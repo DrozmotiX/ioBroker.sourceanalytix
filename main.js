@@ -8,7 +8,6 @@ const state_list = test_Object_list;
 
 // Time Modules
 const cron = require("node-cron"); // Cron Scheduler
-// const month = require('month');
 // const moment = require('moment-quarter'); // Quarter of year
 
 // Create the adapter and define its methods
@@ -123,82 +122,80 @@ function initialize() {
 
 		const unit = state_list[i].unit
 
-		// if ( i == '0') {
+		// replace "." in datapoints to "_"
+		const device = state_list[i].Device.split(".").join("__"); 
+		
+		// Create seperate device channel in powermonitor object tree
+		
+		// Temporary set devlivery here until its build into adapter settings
+		const delivery = false;
 
-			// Ensure no empty spaces in object tree
-			const device = state_list[i].Device.split(".").join("__"); 
-			
-			// Create seperate device channel in powermonitor object tree
-			
-			// Temporary set devlivery here until its build into adapter settings
-			const delivery = false;
+		// Create new device object for every state in powermonitor tree
+		adapter.setObjectNotExists(device, {
+			type: "device",
+			common: {
+				name: state_list[i].alias
+			},
+			native: {},
+		});
 
-			// Create new device object for every state in powermonitor tree
-			adapter.setObjectNotExists(device, {
-				type: "device",
-				common: {
-					name: state_list[i].alias
-				},
-				native: {},
-			});
+		// create states for weekdays
+		for (const x in weekdays){
+			//adapter.log.info("Processing : " + weekdays[x]);
+			let curent_day = ".current_year.this_week." + weekdays[x];
+			doStateCreate_new(delivery, device, curent_day , weekdays[x], "number","value.day", unit, false, true, true, true);
+		}
 
-			// create states for weekdays
-			for (const x in weekdays){
-				//adapter.log.info("Processing : " + weekdays[x]);
-				let curent_day = ".current_year.this_week." + weekdays[x];
-				doStateCreate_new(delivery, device, curent_day , weekdays[x], "number","value.day", unit, false, true, true, true);
+		// create states for weeks
+		let weeknr;
+		for (let y = 1; y < 54; y++) {
+			//adapter.log.info("dataloop : " + y);
+			if ( y < 10 ) {
+				weeknr = "0" + y;
+			} else {
+				weeknr = y;
 			}
+			let state_root = ".current_year.weeks." + weeknr;
+			doStateCreate_new(delivery,device,state_root , "week " + weeknr, "number","value.day", unit, false, true, true, true);
+		}
 
-			// create states for weeks
-			let weeknr;
-			for (let y = 1; y < 54; y++) {
-				//adapter.log.info("dataloop : " + y);
-				if ( y < 10 ) {
-					weeknr = "0" + y;
-				} else {
-					weeknr = y;
-				}
-				let state_root = ".current_year.weeks." + weeknr;
-				doStateCreate_new(delivery,device,state_root , "week " + weeknr, "number","value.day", unit, false, true, true, true);
-			}
+		// create states for months
+		for (const x in months){
+			//adapter.log.info("Processing : " + months[x]);
 
-			// create states for months
-			for (const x in months){
-				//adapter.log.info("Processing : " + months[x]);
+			let curent_day = ".current_year.months." + months[x];
+			doStateCreate_new(delivery,device,curent_day , months[x], "number","value.month", unit, false, true, true, true);
+		}
 
-				let curent_day = ".current_year.months." + months[x];
-				doStateCreate_new(delivery,device,curent_day , months[x], "number","value.month", unit, false, true, true, true);
-			}
+		// create state for current day/week/quarters/month current value
+		let state_root = ".01_current_day";
+		doStateCreate_new(delivery,device,state_root , "current Day ", "number","value.day", unit, false, true, true, false);
+		state_root = ".02_current_week";
+		doStateCreate_new(delivery,device,state_root , "current Week ", "number","value.week", unit, false, true, true, false);
+		state_root = ".03_current_month";
+		doStateCreate_new(delivery,device,state_root , "current Month ", "number","value.month", unit, false, true, true, false);
+		state_root = ".04_current_quarter";
+		doStateCreate_new(delivery,device,state_root , "current Quarter", "number","value.quarter", unit, false, true, true, false);
+		state_root = ".05_current_year";
+		doStateCreate_new(delivery,device,state_root , "current Year", "number","value.year", unit, false, true, true, false);
 
-			// create state for current day/week/quarters/month current value
-			let state_root = ".01_current_day";
-			doStateCreate_new(delivery,device,state_root , "current Day ", "number","value.day", unit, false, true, true, false);
-			state_root = ".02_current_week";
-			doStateCreate_new(delivery,device,state_root , "current Week ", "number","value.week", unit, false, true, true, false);
-			state_root = ".03_current_month";
-			doStateCreate_new(delivery,device,state_root , "current Month ", "number","value.month", unit, false, true, true, false);
-			state_root = ".04_current_quarter";
-			doStateCreate_new(delivery,device,state_root , "current Quarter", "number","value.quarter", unit, false, true, true, false);
-			state_root = ".05_current_year";
-			doStateCreate_new(delivery,device,state_root , "current Year", "number","value.year", unit, false, true, true, false);
+		state_root = ".Current_Reading";
+		doStateCreate_new(delivery,device,state_root , "Current Reading", "number","value.quarter", unit, false, false, false, true);
 
-			state_root = ".Current_Reading";
-			doStateCreate_new(delivery,device,state_root , "Current Reading", "number","value.quarter", unit, false, false, false, true);
+		state_root = ".Reading_start";
+		doStateCreate_new(delivery,device,state_root , "Start Value Reading", "number","value.quarter", unit, true,false, false, true);
 
-			state_root = ".Reading_start";
-			doStateCreate_new(delivery,device,state_root , "Start Value Reading", "number","value.quarter", unit, true,false, false, true);
+		state_root = ".start_values.01_day";
+		doStateCreate_new(delivery,device,state_root , "Meter reading at day start", "number","value.day", unit, false, false, false, true);
+		state_root = ".start_values.02_week";
+		doStateCreate_new(delivery,device,state_root , "Meter reading at week start", "number","value.week", unit, false, false, false, true);
+		state_root = ".start_values.03_month";
+		doStateCreate_new(delivery,device,state_root , "Meter reading at month start", "number","value.month", unit, false, false, false, true);
+		state_root = ".start_values.04_quarter";
+		doStateCreate_new(delivery,device,state_root , "Meter reading at quarter start", "number","value.quarter", unit, false, false, false, true);
+		state_root = ".start_values.05_year";
+		doStateCreate_new(delivery,device,state_root , "Meter reading at year start", "number","value.year", unit, false, false, false, true);
 
-			state_root = ".start_values.01_day";
-			doStateCreate_new(delivery,device,state_root , "Meter reading at day start", "number","value.day", unit, false, false, false, true);
-			state_root = ".start_values.02_week";
-			doStateCreate_new(delivery,device,state_root , "Meter reading at week start", "number","value.week", unit, false, false, false, true);
-			state_root = ".start_values.03_month";
-			doStateCreate_new(delivery,device,state_root , "Meter reading at month start", "number","value.month", unit, false, false, false, true);
-			state_root = ".start_values.04_quarter";
-			doStateCreate_new(delivery,device,state_root , "Meter reading at quarter start", "number","value.quarter", unit, false, false, false, true);
-			state_root = ".start_values.05_year";
-			doStateCreate_new(delivery,device,state_root , "Meter reading at year start", "number","value.year", unit, false, false, false, true);
-		// }
 	}
 	main();
 }
