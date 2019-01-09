@@ -8,12 +8,8 @@ const state_list = test_Object_list;
 
 // Time Modules
 const cron = require('node-cron'); // Cron Scheduler
-// const weeknr = require('weeknumber'); // WeekNumber
-// const year = require('year'); // Year
-// const weekday = require('weekday'); // Day of week
 // const month = require('month');
 // const moment = require('moment-quarter'); // Quarter of year
-// const day = require('month-day'); // Day of month
 
 // Create the adapter and define its methods
 const adapter = utils.adapter({
@@ -56,6 +52,16 @@ function main (){
 	}
 
 	// Reset day counter
+	for ( const z in test_Object_list){
+
+		// adapter.log.info("Cron shedule startet for device : " + test_Object_list[z].Device);
+
+		cron.schedule("0 59 23 1/1 * ? *", function(){
+			Meter_Calculations(test_Object_list[z].Device);
+
+		});
+
+	}
 
 	// Reset Week counter
 	
