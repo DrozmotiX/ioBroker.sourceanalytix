@@ -35,9 +35,6 @@ const adapter = utils.adapter({
 // Adapter hartbeat
 function main (){
 
-	// missing : loop on all devices of object array
-	const id = "discovergy.0.1024000034.Power_Total";
-
 	for ( const z in test_Object_list){
 
 		adapter.log.info("Cron shedule startet for device : " + test_Object_list[z].Device);
@@ -52,24 +49,69 @@ function main (){
 	}
 
 	// Reset day counter
-	for ( const z in test_Object_list){
+	cron.schedule("0 0 * * *", function(){
 
-		// adapter.log.info("Cron shedule startet for device : " + test_Object_list[z].Device);
+		for ( const z in test_Object_list){
 
-		cron.schedule("59 23 * * *", function(){
-			Meter_Calculations(test_Object_list[z].Device);
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
 
-		});
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: 0,ack: true });
 
-	}
+		}
+
+	});
 
 	// Reset Week counter
-	
+	cron.schedule("0 0 1 * 1", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: 0,ack: true });
+
+		}
+
+	});
 	// Reset month counter
+	cron.schedule("0 0 1 * *", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: 0,ack: true });
+
+		}
+
+	});
 	
 	// Reset quarter counter
 	
 	// Reset year counter
+	cron.schedule("0 0 1 1 *", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: 0,ack: true });
+
+		}
+
+	});
 
 }
 

@@ -4,6 +4,9 @@
 ## Published code is currenlty in ALPHA state and only test-objects of discovergy demo account are hard-coded implemented (see to-do !)
 ## first beta release for community testing expected by end of week 2 2019 ;-)
 
+
+# Warning, this adapter needs node 8 or higher !!!
+
 ioBroker Power Monitor allows you to keep track & trace power consumption for your devices.
 You need data as input (total amount of Wh used) from your devices and this adapter will :
 
@@ -22,7 +25,6 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 * recalcalation based on meter values (configurable by date)
 * configuration in adapter settings (currently only demo objects of discovergy are supported)
-* automated reset of start values
 * ensure all values are stored when adapter shuts down to prevent data gaps
 * better logic to reset start values to cover possible issue when adapter is not running during midnight
 * configurable cost price for every state
@@ -38,6 +40,9 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
 
 ## Changelog
+
+### 0.0.7
+* (Dutchman) automated reset of start values
 
 ### 0.0.6
 * (Dutchman) fix issue with travis build
