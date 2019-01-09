@@ -1,6 +1,6 @@
 {
   "_from": "file:Development/ioBroker.powermonitor/iobroker.powermonitor-0.0.2.tgz",
-  "_id": "iobroker.powermonitor@0.0.5",
+  "_id": "iobroker.powermonitor@0.0.4",
   "_inBundle": false,
   "_integrity": "sha512-6VSy1iP7FwfjJ/sgiEqiHpXO+EpM+a+g2Lv+hFCJZ5tg4ZV9Mx7TTBtTpVjkg9LgBKhrc4lnWwGJ3kyCvLNPFw==",
   "_location": "/iobroker.powermonitor",
