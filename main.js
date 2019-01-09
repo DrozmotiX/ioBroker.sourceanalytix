@@ -56,7 +56,7 @@ function main (){
 
 		// adapter.log.info("Cron shedule startet for device : " + test_Object_list[z].Device);
 
-		cron.schedule("0 59 23 1/1 * ? *", function(){
+		cron.schedule("59 23 * * *", function(){
 			Meter_Calculations(test_Object_list[z].Device);
 
 		});
