@@ -7,7 +7,7 @@ const months = JSON.parse('["01_January","02_February","03_March","04_April","05
 const state_list = test_Object_list;
 
 // Time Modules
-const cron = require('node-cron'); // Cron Scheduler
+const cron = require("node-cron"); // Cron Scheduler
 // const month = require('month');
 // const moment = require('moment-quarter'); // Quarter of year
 
@@ -378,8 +378,6 @@ function getWeekNumber(d) {
 		//@ts-ignoreTS-ignore
 		weekNo = "0" + weekNo;
 	}
-
-	adapter.log.error(weekNo);
 
     // Return array of year and week number
     return [weekNo];

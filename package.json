@@ -23,8 +23,9 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^1.0.1",
-    "request": "^2.88.0",
-    "cron": "^1.6.0"
+    "cron": "^1.6.0",
+    "node-cron": "^2.0.3",
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
@@ -45,7 +46,7 @@
   },
   "engines": {
     "node": ">=8.0.0"
-},
+  },
   "main": "main.js",
   "scripts": {
     "test:js": "mocha --opts test/mocha.custom.opts",
