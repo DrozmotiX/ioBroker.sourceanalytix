@@ -1,0 +1,72 @@
+{
+	"common": {
+		"name": "powermonitor",
+		"version": "0.0.4",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie"
+			}
+		},
+		"title": "powermonitor",
+		"titleLang": {
+			"en": "powermonitor",
+			"de": "powermonitor",
+			"ru": "powermonitor",
+			"pt": "powermonitor",
+			"nl": "powermonitor",
+			"fr": "powermonitor",
+			"it": "powermonitor",
+			"es": "powermonitor",
+			"pl": "powermonitor"
+		},
+		"desc": {
+			"en": "powermonitor",
+			"de": "powermonitor",
+			"ru": "powermonitor",
+			"pt": "powermonitor",
+			"nl": "powermonitor",
+			"fr": "powermonitor",
+			"it": "powermonitor",
+			"es": "powermonitor",
+			"pl": "powermonitor"
+		},
+		"authors": [
+			"Dutchman <rdrozda@hotail.com>"
+		],
+		"keywords": [
+			"ioBroker",
+			"template",
+			"Smart Home",
+			"home automation"
+		],
+		"platform": "Javascript/Node.js",
+		"main": "main.js",
+		"icon": "powermonitor.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/DutchmanNL/ioBroker.powermonitor/master/admin/powermonitor.png",
+		"readme": "https://github.com/DutchmanNL/ioBroker.powermonitor/blob/master/README.md",
+		"loglevel": "info",
+		"mode": "daemon",
+		"type": "general",
+		"materialize": true,
+		"dependencies": [
+			{
+				"admin": ">=3.0.0"
+			}
+		]
+	},
+	"native": {
+		"option1": true,
+		"option2": "42"
+	},
+	"objects": [],
+	"instanceObjects": []
+}

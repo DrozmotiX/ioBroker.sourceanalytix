@@ -1,5 +1,9 @@
 # ioBroker.powermonitor
 
+
+## Published code is currenlty in ALPHA state and only test-objects of discovergy demo account are hard-coded implemented (see to-do !)
+## first beta release for community testing expected by end of week 2 2019 ;-)
+
 ioBroker Power Monitor allows you to keep track & trace power consumption for your devices.
 You need data as input (total amount of Wh used) from your devices and this adapter will :
 
@@ -16,12 +20,40 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## To-Do
 
-* Everything !!! :-)
+* recalcalation based on meter values (configurable by date)
+* configuration in adapter settings (currently only demo objects of discovergy are supported)
+* automated reset of start values
+* ensure all values are stored when adapter shuts down to prevent data gaps
+* better logic to reset start values to cover possible issue when adapter is not running during midnight
+* configurable cost price for every state
+* configurable unit price for every state
+* configurable intervall for every state
+* configurable unit for every state
+* storage of meter values for every state
+* calculations for quarter values
+* configurable data points (yes/no) for cost and meter-values
+* calculation for wh/h values
+* test/implementation of liter & m3 values
+* code optimalisation
+* add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
 
 ## Changelog
 
-### 0.0.0
-* (Dutchman) Repository created to collect ideas and start coding
+### 0.0.4
+* (Dutchman) cost calculation
+* (Dutchman) adjustable starting point of meassurement
+* (Dutchman) support of multiple device states instead of 1
+* (Dutchman) fix calculation of current consumptions
+
+### 0.0.3
+* (Dutchman) code optimalisation
+
+### 0.0.2
+* (Dutchman) creation of object structure
+* (Dutchman) first values read based on test_object.js input file to read values adn write data of current period.s
+
+### 0.0.1
+* (Dutchman) initial release
 
 ## License
 MIT License
