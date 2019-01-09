@@ -39,6 +39,9 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
+### 0.0.5
+* (Dutchman) Fix travis test-build
+
 ### 0.0.4
 * (Dutchman) cost calculation
 * (Dutchman) adjustable starting point of meassurement
