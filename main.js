@@ -4,11 +4,14 @@ const translate = require('./lib/words');
 // Lets make sure we know all days and months
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
-const state_list = test_Object_list;
+const state_list = test_Object_list; 
+
+
 
 // Time Modules
-const cron = require("node-cron"); // Cron Scheduler
+const cron = require('node-cron'); // Cron Scheduler
 // const moment = require('moment-quarter'); // Quarter of year
+let interval_timer;
 
 // Create the adapter and define its methods
 const adapter = utils.adapter({
@@ -34,85 +37,25 @@ const adapter = utils.adapter({
 // Adapter hartbeat
 function main (){
 
+	// start shedules for each object in state array
 	for ( const z in test_Object_list){
 
-		adapter.log.info("Cron shedule startet for device : " + test_Object_list[z].Device);
+		// adapter.log.info("Cron shedule startet for device : " + test_Object_list[z].Device);
+
+		interval_timer = setInterval(function () {
+		
+			Meter_Calculations(test_Object_list[z].Device);
+
+		}, state_list[z].interval);
 
 		// Current version reads values based on crone, later versions seperated intervals by device will be possible
-		cron.schedule("*/5 * * * * *", function(){
-			Meter_Calculations(test_Object_list[z].Device);
-			adapter.log.info("Cron shedule executed for device : " + test_Object_list[z].Device);
+		// cron.schedule("*/5 * * * * *", function(){
+			// Meter_Calculations(test_Object_list[z].Device);
+			// adapter.log.info("Cron shedule executed for device : " + test_Object_list[z].Device);
 
-		});
-
-	}
-
-	// Reset day counter
-	cron.schedule("0 0 * * *", function(){
-
-		for ( const z in test_Object_list){
-
-		// Build object root to handle calculations
-		const obj_id = test_Object_list[z].Device.split(".").join("__");
-		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
-
-		//			Meter_Calculations(test_Object_list[z].Device);
-		adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: 0,ack: true });
-
-		}
-
-	});
-
-	// Reset Week counter
-	cron.schedule("0 0 1 * 1", function(){
-
-		for ( const z in test_Object_list){
-
-		// Build object root to handle calculations
-		const obj_id = test_Object_list[z].Device.split(".").join("__");
-		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
-
-		//			Meter_Calculations(test_Object_list[z].Device);
-		adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: 0,ack: true });
-
-		}
-
-	});
-	// Reset month counter
-	cron.schedule("0 0 1 * *", function(){
-
-		for ( const z in test_Object_list){
-
-		// Build object root to handle calculations
-		const obj_id = test_Object_list[z].Device.split(".").join("__");
-		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
-
-		//			Meter_Calculations(test_Object_list[z].Device);
-		adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: 0,ack: true });
-
-		}
-
-	});
-	
-	// Reset quarter counter
-	
-	// Reset year counter
-	cron.schedule("0 0 1 1 *", function(){
-
-		for ( const z in test_Object_list){
-
-		// Build object root to handle calculations
-		const obj_id = test_Object_list[z].Device.split(".").join("__");
-		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
-
-		//			Meter_Calculations(test_Object_list[z].Device);
-		adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: 0,ack: true });
-
-		}
-
-	});
-
-}
+	// reset start values for messurement
+	reset_shedules();
+}};
 
 // Create object tree and states for all devices to be handled
 function initialize() {
@@ -197,7 +140,8 @@ function initialize() {
 		doStateCreate_new(delivery,device,state_root , "Meter reading at year start", "number","value.year", unit, false, false, false, true);
 
 	}
-	main();
+
+	main(); // start main proces
 }
 
 
@@ -282,7 +226,6 @@ async function Meter_Calculations(id){
 	adapter.setState(obj_root + ".cost.05_current_year", { val: state_val,ack: true });
  
 };
-
 
 function ChannelCreate (id, channel, name){
 	adapter.createChannel(id, channel,{
@@ -420,4 +363,73 @@ function getWeekNumber(d) {
 
     // Return array of year and week number
     return [weekNo];
+}
+
+async function reset_shedules (){
+
+	// Reset day counter
+	cron.schedule("0 0 * * *", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: 0,ack: true });
+
+		}
+
+	});
+	
+
+	// Reset Week counter
+	cron.schedule("0 0 1 * 1", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: 0,ack: true });
+
+		}
+
+	});
+	
+	// Reset month counter
+	cron.schedule("0 0 1 * *", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: 0,ack: true });
+
+		}
+
+	});
+	
+	// Reset quarter counter
+	
+	// Reset year counter
+	cron.schedule("0 0 1 1 *", function(){
+
+		for ( const z in test_Object_list){
+
+		// Build object root to handle calculations
+		const obj_id = test_Object_list[z].Device.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;  
+
+		//			Meter_Calculations(test_Object_list[z].Device);
+		adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: 0,ack: true });
+
+		}
+	});
 }

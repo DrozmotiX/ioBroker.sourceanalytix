@@ -22,24 +22,32 @@ Which has been improved by @hadering and published on github
 https://github.com/hdering/homematic_verbrauchszaehler
 
 ## To-Do
-
-* recalcalation based on meter values (configurable by date)
-* configuration in adapter settings (currently only demo objects of discovergy are supported)
-* ensure all values are stored when adapter shuts down to prevent data gaps
-* better logic to reset start values to cover possible issue when adapter is not running during midnight
-* configurable cost price for every state
-* configurable unit price for every state
-* configurable intervall for every state
-* configurable unit for every state
-* storage of meter values for every state
-* calculations for quarter values
-* configurable data points (yes/no) for cost and meter-values
-* calculation for wh/h values
-* test/implementation of liter & m3 values
-* code optimalisation
-* add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
+* [x] ready state values and store to states
+* [x] write meter value to "start" state to use in calculations
+* [x] consumption calculation
+* [x] cost calculation
+* [x] adjustable starting point of meassurement
+* [x] support of multiple device states
+* [ ] recalcalation based on meter values (configurable by date)
+* [ ] ensure all values are stored when adapter shuts down to prevent data gaps
+* [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
+* [ ] configuration in adapter settings (currently only demo objects of discovergy are supported)
+* [ ] configurable cost price for every state
+* [ ] configurable unit price for every state
+* [x] configurable intervall for every state
+* [ ] configurable unit for every state
+* [ ] storage of meter values for every state
+* [ ] calculations for quarter values
+* [ ] configurable data points (yes/no) for cost and meter-values
+* [ ] calculation for wh/h values
+* [ ] test/implementation of liter & m3 values
+* [ ] code optimalisation
+* [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
 
 ## Changelog
+
+### 0.0.8
+* (Dutchman) configurable intervall for every state
 
 ### 0.0.7
 * (Dutchman) automated reset of start values
