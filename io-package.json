@@ -1,7 +1,7 @@
 {
 	"common": {
 		"name": "powermonitor",
-		"version": "0.0.8",
+		"version": "0.0.9",
 		"news": {
 			"0.0.1": {
 				"en": "initial release",
@@ -64,9 +64,10 @@
 		]
 	},
 	"native": {
-		"option1": true,
-		"option2": "42"
-	},
-	"objects": [],
+        "devices": [],
+        "interval": 60000,
+        "noHostname": false
+    },
+    "objects": [],
 	"instanceObjects": []
 }

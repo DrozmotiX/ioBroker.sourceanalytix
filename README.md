@@ -36,15 +36,19 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] configurable unit price for every state
 * [x] configurable intervall for every state
 * [ ] configurable unit for every state
+* [ ] configurable data points (yes/no) for cost and meter-values
 * [ ] storage of meter values for every state
 * [ ] calculations for quarter values
-* [ ] configurable data points (yes/no) for cost and meter-values
 * [ ] calculation for wh/h values
 * [ ] test/implementation of liter & m3 values
 * [ ] code optimalisation
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
 
 ## Changelog
+
+### 0.0.9
+* (Dutchman) fix wrong calculation of start values
+* (Dutchman) fix wrong calculation of quarter values
 
 ### 0.0.8
 * (Dutchman) configurable intervall for every state
