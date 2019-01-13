@@ -97,7 +97,7 @@ function main (){
 								// create object structure and start interval
 								initialize(obj)
 								// reset start values for messurement at midnight
-								//  reset_shedules(obj);
+								 reset_shedules(obj);
 							}
 						})
 					}
@@ -214,86 +214,83 @@ async function Meter_Calculations(id){
 	const obj_id = id._id.split(".").join("__");
 	const obj_root = adapter.namespace + "." + obj_id;  
 
-	// try {
-		const reading = await adapter.getForeignStateAsync(id._id);
-		// adapter.log.info("Reading : " + reading.val);
-		// adapter.log.info("Reading start : " + JSON.stringify(id.common.custom[inst_name].start_meassure));
-
-		const reading_start = await adapter.getForeignObjectAsync(id.common.custom[inst_name].start_meassure);
-		const day_bval = await adapter.getForeignObjectAsync(id.common.custom[inst_name].start_day);
-		const week_bval = await adapter.getForeignObjectAsync(id.common.custom[inst_name].start_week);
-		const month_bval = await adapter.getForeignObjectAsync(id.common.custom[inst_name].start_month);
-		const quarter_bval = await adapter.getForeignObjectAsync(id.common.custom[inst_name].start_quarter);
-		const year_bval = await adapter.getForeignObjectAsync(id.common.custom[inst_name].start_year);
-
-		// adapter.log.info("Reading : " + reading.val);
-		// adapter.log.info("Reading start : " + reading_start);
-
-		// Store current meter value
-		adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: reading.val.toFixed(2) ,ack: true });
-		
-		// Calculate consumption
-		// Weekday & current day
-		let state_val = ((reading.val - day_bval) - reading_start).toFixed(2);
-		adapter.setState(obj_root + ".consumption.01_current_day", { val: state_val,ack: true });
-		adapter.setState(obj_root + ".consumption.current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
-
-		// Week
-		state_val = ((reading.val - week_bval) - reading_start).toFixed(2);
-		adapter.setState(obj_root + ".consumption.02_current_week", { val: state_val,ack: true });
-		adapter.setState(obj_root + ".consumption.current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
-
-		// Month
-		state_val = ((reading.val - month_bval) - reading_start).toFixed(2);
-		adapter.setState(obj_root + ".consumption.03_current_month", { val: state_val,ack: true });
-		adapter.setState(obj_root + ".consumption.current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
-
-		// Quarter
-		state_val = ((reading.val - quarter_bval) - reading_start).toFixed(2);
-		adapter.setState(obj_root + ".consumption.04_current_quarter", { val: state_val,ack: true });
-
-		// Year
-		state_val = ((reading.val - year_bval) - reading_start).toFixed(2);
-		adapter.setState(obj_root + ".consumption.05_current_year", { val: state_val,ack: true });
+	const reading = await adapter.getForeignStateAsync(id._id);
 	
-		
-		// Calculate costs
-		const cost_basic = await adapter.getForeignObjectAsync(id.common.custom[inst_name].basic_price);
-		const cost_unit = await adapter.getForeignObjectAsync(id.common.custom[inst_name].unit_price);
+	// adapter.log.info("Reading start : " + JSON.stringify(id.common.custom[inst_name].start_meassure));
+	// adapter.log.info("Reading : " + reading.val);
+	// adapter.log.info("Test : " + id.common.custom[inst_name].start_day);
 
-		const day_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.01_current_day");
-		const week_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.02_current_week");
-		const month_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.03_current_month");
-		const quarter_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.04_current_quarter");
-		const year_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.05_current_year");
+	const obj_cont = await adapter.getForeignObjectAsync(id._id);
+	const reading_start = obj_cont.common.custom[inst_name].start_meassure;
+	const day_bval = obj_cont.common.custom[inst_name].start_day;
+	const week_bval = obj_cont.common.custom[inst_name].start_week
+	const month_bval = obj_cont.common.custom[inst_name].start_month
+	const quarter_bval = obj_cont.common.custom[inst_name].start_quarter
+	const year_bval = obj_cont.common.custom[inst_name].start_year
 
-		// Weekday & current day
-		state_val = (day_bval_consumend.val * cost_unit).toFixed(2);
+	// Store current meter value
+	adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: reading.val.toFixed(2) ,ack: true });
+	
+	// Calculate consumption
+	// Weekday & current day
+	let state_val = ((reading.val - day_bval) - reading_start).toFixed(2);
+	adapter.setState(obj_root + ".consumption.01_current_day", { val: state_val,ack: true });
+	adapter.setState(obj_root + ".consumption.current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 
-		adapter.setState(obj_root + ".cost.01_current_day", { val: state_val,ack: true });
-		adapter.setState(obj_root + ".cost.current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+	// Week
+	state_val = ((reading.val - week_bval) - reading_start).toFixed(2);
+	adapter.setState(obj_root + ".consumption.02_current_week", { val: state_val,ack: true });
+	adapter.setState(obj_root + ".consumption.current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
-		// Week
-		state_val = (week_bval_consumend.val * cost_unit).toFixed(2);
-		adapter.setState(obj_root + ".cost.02_current_week", { val: state_val,ack: true });
-		adapter.setState(obj_root + ".cost.current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
+	// Month
+	state_val = ((reading.val - month_bval) - reading_start).toFixed(2);
+	adapter.setState(obj_root + ".consumption.03_current_month", { val: state_val,ack: true });
+	adapter.setState(obj_root + ".consumption.current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
-		// Month
-		state_val = (month_bval_consumend.val * cost_unit).toFixed(2);
-		adapter.setState(obj_root + ".cost.03_current_month", { val: state_val,ack: true });
-		adapter.setState(obj_root + ".cost.current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+	// Quarter
+	state_val = ((reading.val - quarter_bval) - reading_start).toFixed(2);
+	adapter.setState(obj_root + ".consumption.04_current_quarter", { val: state_val,ack: true });
 
-		// Quarter
-		state_val = (quarter_bval_consumend.val * cost_unit).toFixed(2);
-			adapter.setState(obj_root + ".cost.04_current_quarter", { val: state_val,ack: true });
+	// Year
+	state_val = ((reading.val - year_bval) - reading_start).toFixed(2);
+	adapter.setState(obj_root + ".consumption.05_current_year", { val: state_val,ack: true });
 
-		// Year
-		state_val = (year_bval_consumend.val * cost_unit).toFixed(2);
-		adapter.setState(obj_root + ".cost.05_current_year", { val: state_val,ack: true });
+	// Calculate costs
+	const cost_basic = obj_cont.common.custom[inst_name].basic_price;
+	const cost_unit = obj_cont.common.custom[inst_name].unit_price;
 
-	// } catch (error) {
-			
-	// }
+	adapter.log.info("Cost basic : " + cost_basic);
+	adapter.log.info("Cost unit : " + cost_unit);
+
+	const day_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.01_current_day");
+	const week_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.02_current_week");
+	const month_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.03_current_month");
+	const quarter_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.04_current_quarter");
+	const year_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.05_current_year");
+
+	// Weekday & current day
+	state_val = (day_bval_consumend.val * cost_unit).toFixed(2);
+
+	adapter.setState(obj_root + ".cost.01_current_day", { val: state_val,ack: true });
+	adapter.setState(obj_root + ".cost.current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+
+	// Week
+	state_val = (week_bval_consumend.val * cost_unit).toFixed(2);
+	adapter.setState(obj_root + ".cost.02_current_week", { val: state_val,ack: true });
+	adapter.setState(obj_root + ".cost.current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
+
+	// Month
+	state_val = (month_bval_consumend.val * cost_unit).toFixed(2);
+	adapter.setState(obj_root + ".cost.03_current_month", { val: state_val,ack: true });
+	adapter.setState(obj_root + ".cost.current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+
+	// Quarter
+	state_val = (quarter_bval_consumend.val * cost_unit).toFixed(2);
+		adapter.setState(obj_root + ".cost.04_current_quarter", { val: state_val,ack: true });
+
+	// Year
+	state_val = (year_bval_consumend.val * cost_unit).toFixed(2);
+	adapter.setState(obj_root + ".cost.05_current_year", { val: state_val,ack: true });
  
 };
 
@@ -420,61 +417,61 @@ function getWeekNumber(d) {
 // 		return Math.ceil(m/3);
 // }
 
-// // Function to reset start values for each day, week, month, quarter, year
-// async function reset_shedules (id){
-// 	adapter.log.error(id._id)
-// //	try {
+// Function to reset start values for each day, week, month, quarter, year
+async function reset_shedules (id){
+	// adapter.log.error(id._id)
+//	try {
 
-// 		// Build object root to handle calculations
-// 		const obj_id = id._id.split(".").join("__");
-// 		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;
+		// Build object root to handle calculations
+		const obj_id = id._id.split(".").join("__");
+		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;
 
-// 		// get current meter value, start value of meassurement & calculate value to write in start states
-// 		const reading = await adapter.getForeignStateAsync(id);
-// 		const reading_start = await adapter.getForeignStateAsync(obj_root + ".Meter_Readings.Reading_start");
-// 		const obj_val = (reading.val - reading_start.val).toFixed(2);
+		// get current meter value, start value of meassurement & calculate value to write in start states
+		const reading = await adapter.getForeignStateAsync(id);
+		const reading_start = await adapter.getForeignStateAsync(obj_root + ".Meter_Readings.Reading_start");
+		const obj_val = (reading.val - reading_start.val).toFixed(2);
 
 
-// 		adapter.log.error(id._id)
+		// adapter.log.error(id._id)
 
-//             adapter.setForeignObject(id._id, {
-// 				common : {
-// 					custom : {
-// 						inst_name : {
-// 							start_month : 9999999
-// 						}
-// 					} 
-// 				}
-// 			}, function (err) {
+            adapter.setForeignObject(id._id, {
+				common : {
+					custom : {
+						inst_name : {
+							start_month : 9999999
+						}
+					} 
+				}
+			}, function (err) {
 
-//             });
+            });
 
-// 		// Reset day counter
-// 		cron.schedule("0 0 * * *", function(){
-// 			//	Meter_Calculations(test_Object_list[z].Device);
-// 			adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: obj_val,ack: true });
-// 		});
+		// Reset day counter
+		cron.schedule("0 0 * * *", function(){
+			//	Meter_Calculations(test_Object_list[z].Device);
+			adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: obj_val,ack: true });
+		});
 		
-// 		// Reset Week counter
-// 		cron.schedule("0 0 1 * 1", function(){
-// 			adapter.setState(obj_root + ".Meter_Readings.start_values.02_week", { val: obj_val,ack: true });
-// 		});
+		// Reset Week counter
+		cron.schedule("0 0 1 * 1", function(){
+			adapter.setState(obj_root + ".Meter_Readings.start_values.02_week", { val: obj_val,ack: true });
+		});
 		
-// 		// Reset month counter
-// 		cron.schedule("0 0 1 * *", function(){
-// 			adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: obj_val,ack: true });
-// 		});
+		// Reset month counter
+		cron.schedule("0 0 1 * *", function(){
+			adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: obj_val,ack: true });
+		});
 		
-// 		// Reset quarter counter
-// 		cron.schedule("0 0 1 * *", function(){
-// 			adapter.setState(obj_root + ".Meter_Readings.start_values.04_quarter", { val: obj_val,ack: true });
-// 		});
+		// Reset quarter counter
+		cron.schedule("0 0 1 * *", function(){
+			adapter.setState(obj_root + ".Meter_Readings.start_values.04_quarter", { val: obj_val,ack: true });
+		});
 		
-// 		// Reset year counter
-// 		cron.schedule("0 0 1 1 *", function(){
-// 			adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: obj_val,ack: true });
-// 		});
-// 	// } catch (error) {
+		// Reset year counter
+		cron.schedule("0 0 1 1 *", function(){
+			adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: obj_val,ack: true });
+		});
+	// } catch (error) {
 		
-// 	// }
-// }
+	// }
+}
