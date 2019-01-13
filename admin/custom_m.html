@@ -66,16 +66,16 @@
         </div>
         <div class="input-field col s2">
                 <input data-field="unit_price" type="number" data-default="0" />
-                <label for="unit_price" class="translate">unit_price</label>
+                <label for="unit_price" class="translate">hours award</label>
         </div>
         <div class="input-field col s2">
                 <input data-field="basic_price" type="number" data-default="0" />
-                <label for="basic_price" class="translate">basic_price</label>
+                <label for="basic_price" class="translate">cost price</label>
         </div>
         
         <div class="input-field col s2">
                 <input data-field="monthly_payment" type="number" data-default="0" />
-                <label for="monthly_payment" class="translate">monthly_payment</label>
+                <label for="monthly_payment" class="translate">monthly payment</label>
     </div>
     </div>       
  
@@ -93,23 +93,23 @@
             </div>
     <div class="input-field col s2">
             <input data-field="start_day" type="number" data-default="0" />
-            <label for="start_day" class="translate">start_day</label>
+            <label for="start_day" class="translate">Start day</label>
     </div>
     <div class="input-field col s2">
             <input data-field="start_week" type="number" data-default="0" />
-            <label for="start_week" class="translate">start_week</label>
+            <label for="start_week" class="translate">Start week</label>
     </div>
     <div class="input-field col s2">
             <input data-field="start_month" type="number" data-default="0" />
-            <label for="start_month" class="translate">start_month</label>
+            <label for="start_month" class="translate">Start month</label>
     </div>
     <div class="input-field col s2">
             <input data-field="start_quarter" type="number" data-default="0" />
-            <label for="start_quarter" class="translate">start_quarter</label>
+            <label for="start_quarter" class="translate">Start quarter</label>
     </div>
     <div class="input-field col s2">
             <input data-field="start_year" type="number" data-default="0" />
-            <label for="start_year" class="translate">start_year</label>
+            <label for="start_year" class="translate">Start year</label>
     </div>
     </div>
 
@@ -127,23 +127,23 @@
             </div>
     <div class="input-field col s2">
             <input data-field="keep_day" type="number" data-default="7" />
-            <label for="keep_day" class="translate">keep_day</label>
+            <label for="keep_day" class="translate">Keep x amount of day's</label>
     </div>
     <div class="input-field col s2">
             <input data-field="keep_week" type="number" data-default="4" />
-            <label for="keep_week" class="translate">keep_week</label>
+            <label for="keep_week" class="translate">Keep x amount of week's</label>
     </div>
     <div class="input-field col s2">
             <input data-field="keep_month" type="number" data-default="4" />
-            <label for="keep_month" class="translate">keep_month</label>
+            <label for="keep_month" class="translate">Keep x amount of month's</label>
     </div>
     <div class="input-field col s2">
             <input data-field="keep_quarter" type="number" data-default="4" />
-            <label for="keep_quarter" class="translate">keep_quarter</label>
+            <label for="keep_quarter" class="translate">Keep x amount of quarter's</label>
     </div>
     <div class="input-field col s2">
             <input data-field="keep_year" type="number" data-default="1" />
-            <label for="keep_year" class="translate">keep_year</label>
+            <label for="keep_year" class="translate">Keep x amount of year's</label>
     </div>
     </div>
 
@@ -162,7 +162,331 @@
             "it": "Alias",
             "es": "Alias",
             "pl": "Alias"
-        }
+        },
+        "enabled": {
+            "en": "enabled",
+            "de": "aktiviert",
+            "ru": "включен",
+            "pt": "ativado",
+            "nl": "ingeschakeld",
+            "fr": "activée",
+            "it": "abilitato",
+            "es": "habilitado",
+            "pl": "włączony",
+            "zh-cn": "启用"
+        },
+        "interval": {
+            "en": "interval",
+            "de": "Intervall",
+            "ru": "интервал",
+            "pt": "intervalo",
+            "nl": "interval",
+            "fr": "intervalle",
+            "it": "intervallo",
+            "es": "intervalo",
+            "pl": "interwał",
+            "zh-cn": "间隔"
+        },
+        "start_meassure": {
+            "en": "Start value for analytics",
+            "de": "Startwert für die Analyse",
+            "ru": "Начальное значение для аналитики",
+            "pt": "Valor inicial para analítica",
+            "nl": "Startwaarde voor analyse",
+            "fr": "Valeur initiale pour l'analyse",
+            "it": "Valore iniziale per l'analisi",
+            "es": "Valor de inicio para analítica",
+            "pl": "Rozpocznij wartość dla analityki",
+            "zh-cn": "分析的起始值"
+        },
+        "Calculate Costs": {
+            "en": "Calculate Costs",
+            "de": "Kosten berechnen",
+            "ru": "Рассчитать стоимость",
+            "pt": "Calcular Custos",
+            "nl": "Kosten berekenen",
+            "fr": "Calculer les coûts",
+            "it": "Calcola costi",
+            "es": "Calcular costos",
+            "pl": "Oblicz koszty",
+            "zh-cn": "计算成本"
+        },
+        "Cost History": {
+            "en": "Cost History",
+            "de": "Kostenverlauf",
+            "ru": "История затрат",
+            "pt": "Histórico de Custos",
+            "nl": "Kosten geschiedenis",
+            "fr": "Histoire des coûts",
+            "it": "Storia dei costi",
+            "es": "Historial de costos",
+            "pl": "Historia kosztów",
+            "zh-cn": "成本历史"
+        },
+        "Calculate Consumption": {
+            "en": "Calculate Consumption",
+            "de": "Verbrauch berechnen",
+            "ru": "Рассчитать потребление",
+            "pt": "Calcular Consumo",
+            "nl": "Bereken het verbruik",
+            "fr": "Calculer la consommation",
+            "it": "Calcola il consumo",
+            "es": "Calcular el consumo",
+            "pl": "Oblicz zużycie",
+            "zh-cn": "计算消费量"
+        },
+        "Consumption History": {
+            "en": "Consumption History",
+            "de": "Verbrauchsverlauf",
+            "ru": "История потребления",
+            "pt": "Histórico de Consumo",
+            "nl": "Consumptie geschiedenis",
+            "fr": "Histoire de consommation",
+            "it": "Storia del consumo",
+            "es": "Historia del consumo",
+            "pl": "Historia zużycia",
+            "zh-cn": "消费史"
+        },
+        "Previous Periode": {
+            "en": "Previous Periode",
+            "de": "Vorherige Periode",
+            "ru": "Предыдущий Период",
+            "pt": "Periode anterior",
+            "nl": "Vorige Periode",
+            "fr": "Periode précédente",
+            "it": "Periode precedente",
+            "es": "Periodo Anterior",
+            "pl": "Poprzedni Periode",
+            "zh-cn": "以前的Periode"
+        },
+        "Keep x amount of periode history": {
+            "en": "Keep x amount of periode history",
+            "de": "Behalte x den Zeitraum der Periode",
+            "ru": "Хранить х истории периодов",
+            "pt": "Manter x quantidade de histórico periode",
+            "nl": "Houd x hoeveelheid geschiedenis geschiedenis aan",
+            "fr": "Conserver x quantité d'historique de périodes",
+            "it": "Mantenere x la quantità di cronologia di periode",
+            "es": "Mantener x cantidad de historia de periode",
+            "pl": "Zachowaj x ilość historii periody",
+            "zh-cn": "保持x量的periode历史"
+        },
+        "Meter History": {
+            "en": "Meter History",
+            "de": "Messprotokoll",
+            "ru": "Метр истории",
+            "pt": "História do Medidor",
+            "nl": "Meter geschiedenis",
+            "fr": "Histoire du compteur",
+            "it": "Meter History",
+            "es": "Historia del medidor",
+            "pl": "Historia licznika",
+            "zh-cn": "仪表历史"
+        },
+        "Keep states of meter by end of day": {
+            "en": "Keep states of meter by end of day",
+            "de": "Die Zählerstände bis zum Ende des Tages beibehalten",
+            "ru": "Сохраняйте состояния счетчика к концу дня",
+            "pt": "Mantenha os estados do medidor até o final do dia",
+            "nl": "Houd de toestand van de meter aan het einde van de dag",
+            "fr": "Garder les états de mètre en fin de journée",
+            "it": "Mantenere gli stati del contatore per fine giornata",
+            "es": "Mantener estados de metro al final del día.",
+            "pl": "Przechowuj stany licznika do końca dnia",
+            "zh-cn": "保持仪表状态到一天结束"
+        },
+        "Advance settings for cost calculation": {
+            "en": "Advance settings for cost calculation",
+            "de": "Voreinstellungen für die Kostenberechnung",
+            "ru": "Расширенные настройки для расчета стоимости",
+            "pt": "Configurações avançadas para cálculo de custos",
+            "nl": "Voorinstellingen voor kostenberekening",
+            "fr": "Paramètres avancés pour le calcul des coûts",
+            "it": "Impostazioni avanzate per il calcolo dei costi",
+            "es": "Ajustes anticipados para el cálculo de costes.",
+            "pl": "Ustawienia zaawansowane do obliczania kosztów",
+            "zh-cn": "提前计算成本"
+        },
+        "hours award": {
+            "en": "hours award",
+            "de": "Stunden Auszeichnung",
+            "ru": "награда часов",
+            "pt": "prêmio de horas",
+            "nl": "uren award",
+            "fr": "heures prix",
+            "it": "premio ore",
+            "es": "horas de premio",
+            "pl": "godziny nagród",
+            "zh-cn": "小时奖励"
+        },
+        "cost price": {
+            "en": "cost price",
+            "de": "Selbstkostenpreis",
+            "ru": "стоимость",
+            "pt": "preço de custo",
+            "nl": "kostprijs",
+            "fr": "prix de revient",
+            "it": "prezzo di costo",
+            "es": "precio de coste",
+            "pl": "Cena fabryczna",
+            "zh-cn": "成本价"
+        },
+        "monthly payment": {
+            "en": "monthly payment",
+            "de": "Monatliche Bezahlung",
+            "ru": "ежемесячный платеж",
+            "pt": "pagamento mensal",
+            "nl": "maandelijkse betaling",
+            "fr": "paiement mensuel",
+            "it": "pagamento mensile",
+            "es": "mensualidad",
+            "pl": "miesięczna płatność",
+            "zh-cn": "每月支付"
+        },
+        "Advance settings for start values": {
+            "en": "Advance settings for start values",
+            "de": "Voreinstellungen für Startwerte",
+            "ru": "Расширенные настройки для начальных значений",
+            "pt": "Configurações avançadas para valores iniciais",
+            "nl": "Voorinstellingen voor startwaarden",
+            "fr": "Paramètres avancés pour les valeurs de départ",
+            "it": "Impostazioni avanzate per i valori iniziali",
+            "es": "Ajustes anticipados para valores iniciales",
+            "pl": "Ustawienia zaawansowane dla wartości początkowych",
+            "zh-cn": "提前设置起始值"
+        },
+        "Start day": {
+            "en": "Start day",
+            "de": "Tag beginnen",
+            "ru": "День начала",
+            "pt": "Dia de início",
+            "nl": "Start dag",
+            "fr": "Commence jour",
+            "it": "Inizia il giorno",
+            "es": "Dia de inicio",
+            "pl": "Rozpocząć dzień",
+            "zh-cn": "开始的一天"
+        },
+        "Start week": {
+            "en": "Start week",
+            "de": "Woche beginnen",
+            "ru": "Начать неделю",
+            "pt": "Semana de início",
+            "nl": "Start week",
+            "fr": "Semaine de départ",
+            "it": "Inizia settimana",
+            "es": "Semana de inicio",
+            "pl": "Rozpocznij tydzień",
+            "zh-cn": "开始一周"
+        },
+        "Start month": {
+            "en": "Start month",
+            "de": "Monat beginnen",
+            "ru": "Начать месяц",
+            "pt": "Mês inicial",
+            "nl": "Begin maand",
+            "fr": "Mois de début",
+            "it": "Inizio mese",
+            "es": "Mes de inicio",
+            "pl": "Rozpocznij miesiąc",
+            "zh-cn": "开始一个月"
+        },
+        "Start quarter": {
+            "en": "Start quarter",
+            "de": "Quartal beginnen",
+            "ru": "Стартовый квартал",
+            "pt": "Início trimestre",
+            "nl": "Begin kwartaal",
+            "fr": "Premier trimestre",
+            "it": "Inizio trimestre",
+            "es": "Inicio cuarto",
+            "pl": "Rozpocznij kwartał",
+            "zh-cn": "开始季度"
+        },
+        "Start year": {
+            "en": "Start year",
+            "de": "Startjahr",
+            "ru": "Начать год",
+            "pt": "Ano de início",
+            "nl": "Start jaar",
+            "fr": "Année de début",
+            "it": "Inizia l'anno",
+            "es": "Año de inicio",
+            "pl": "Rozpoczęcie roku",
+            "zh-cn": "开始一年"
+        },
+        "Advance settings for periode to store": {
+            "en": "Advance settings for periode to store",
+            "de": "Voreinstellungen für die zu speichernde Periode",
+            "ru": "Предварительные настройки для хранения периода",
+            "pt": "Configurações avançadas para periode para armazenar",
+            "nl": "Voorinstellingen voor de periode die moet worden opgeslagen",
+            "fr": "Paramètres avancés pour la période à stocker",
+            "it": "Impostazioni avanzate per periodo da memorizzare",
+            "es": "Configuraciones avanzadas para periode para almacenar",
+            "pl": "Wcześniejsze ustawienia do przechowywania w oknach",
+            "zh-cn": "预先存储periode的设置"
+        },
+        "Keep x amount of day's": {
+            "en": "Keep x amount of day's",
+            "de": "Behalten Sie x Tagesmenge",
+            "ru": "Держите х количество дня",
+            "pt": "Manter x quantidade de dias",
+            "nl": "Houd x aantal dagen bij",
+            "fr": "Gardez x quantité de jour",
+            "it": "Mantieni x quantità di giorni",
+            "es": "Mantener x cantidad de dia",
+            "pl": "Zachowaj x ilość dnia",
+            "zh-cn": "保持x天数"
+        },
+        "Keep x amount of week's": {
+            "en": "Keep x amount of week's",
+            "de": "Behalten Sie x Menge der Woche",
+            "ru": "Держите х количество недели",
+            "pt": "Mantenha x quantidade de semana",
+            "nl": "Houd x aantal van de week",
+            "fr": "Gardez x quantité de la semaine",
+            "it": "Mantiene x l'importo della settimana",
+            "es": "Mantener x cantidad de semana",
+            "pl": "Zachowaj x ilość tygodni",
+            "zh-cn": "保持x周的数量"
+        },
+        "Keep x amount of month's": {
+            "en": "Keep x amount of month's",
+            "de": "Behalten Sie x Menge des Monats",
+            "ru": "Держите х количество месяца",
+            "pt": "Mantenha a quantia x do mês",
+            "nl": "Houd x aantal maanden bij",
+            "fr": "Gardez x quantité de mois",
+            "it": "Mantiene x l'importo del mese",
+            "es": "Mantener x cantidad de mes",
+            "pl": "Zachowaj x ilość miesięcy",
+            "zh-cn": "保持x月份的数量"
+        },
+        "Keep x amount of quarter's": {
+            "en": "Keep x amount of quarter's",
+            "de": "Behalte x Menge des Viertels",
+            "ru": "Держите х количество четверти",
+            "pt": "Mantenha x quantidade de trimestres",
+            "nl": "Houd x aantal kwartalen",
+            "fr": "Gardez x nombre de quarts",
+            "it": "Mantiene x l'importo del trimestre",
+            "es": "Mantener x cantidad de cuartos",
+            "pl": "Zachowaj x ilość kwartałów",
+            "zh-cn": "保持x季度的数量"
+        },
+        "Keep x amount of year's": {
+            "en": "Keep x amount of year's",
+            "de": "X Menge des Jahres einbehalten",
+            "ru": "Держите х количество года",
+            "pt": "Mantenha x quantidade de ano",
+            "nl": "Houd x aantal jaar's bij",
+            "fr": "Gardez x montant de l'année",
+            "it": "Mantiene la quantità x dell'anno",
+            "es": "Mantener x cantidad de año",
+            "pl": "Zachowaj x ilość roku",
+            "zh-cn": "保持x年份的数量"
+        }        
     });
 
 </script>
