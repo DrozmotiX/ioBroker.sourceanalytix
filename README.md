@@ -22,6 +22,7 @@ Which has been improved by @hadering and published on github
 https://github.com/hdering/homematic_verbrauchszaehler
 
 ## To-Do
+* [ ] Fix translations
 * [x] ready state values and store to states
 * [x] write meter value to "start" state to use in calculations
 * [x] consumption calculation

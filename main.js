@@ -30,30 +30,29 @@ const adapter = utils.adapter({
 		}
 	},
 
-
 	// To-Do, initialise new state
 	objectChange: (id, obj) => {
 
 
 		try {
 			
-			// Start initializing & intervall when new object is added to SourceAnalytix
-			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
-				// The object was changed
-				const inst_name = adapter.namespace 
+			// // Start initializing & intervall when new object is added to SourceAnalytix
+			// if (obj.common.custom !== null  && obj.common.custom !== undefined) {
+			// 	// The object was changed
+			// 	const inst_name = adapter.namespace 
 
-				adapter.log.info("new state : " + id + " added to SourceAnalytix")
+			// 	adapter.log.info("new state : " + id + " added to SourceAnalytix")
 
-				adapter.getForeignObject(id, function (err, obj){
-					if (obj !== undefined && obj !== null){
-						initialize(obj)
-					}
-				})
+			// 	adapter.getForeignObject(id, function (err, obj){
+			// 		if (obj !== undefined && obj !== null){
+			// 			initialize(obj)
+			// 		}
+			// 	})
 
-			} else {
-				// The object was deleted
-				// adapter.log.info(`object ${id} deleted`);
-			}
+			// } else {
+			// 	// The object was deleted
+			// 	// adapter.log.info(`object ${id} deleted`);
+			// }
 		} catch (error) {
 				
 		}			
@@ -98,7 +97,7 @@ function main (){
 								// create object structure and start interval
 								initialize(obj)
 								// reset start values for messurement at midnight
-								 reset_shedules(obj._id);
+								//  reset_shedules(obj);
 							}
 						})
 					}
@@ -198,6 +197,7 @@ function initialize(obj) {
 	// Write state values first time
 	Meter_Calculations(obj);
 
+	// Start intervall for state calculations
 	const interval_timer = setInterval(function () {
 		adapter.log.info('`interval run` for : ' + obj._id);
 		Meter_Calculations(obj);
@@ -205,7 +205,7 @@ function initialize(obj) {
 	}, interval);
 
 }
-
+// Handle all calculations
 async function Meter_Calculations(id){
 	const inst_name = adapter.namespace
 	const date = new Date();
@@ -214,7 +214,7 @@ async function Meter_Calculations(id){
 	const obj_id = id._id.split(".").join("__");
 	const obj_root = adapter.namespace + "." + obj_id;  
 
-	try {
+	// try {
 		const reading = await adapter.getForeignStateAsync(id._id);
 		// adapter.log.info("Reading : " + reading.val);
 		// adapter.log.info("Reading start : " + JSON.stringify(id.common.custom[inst_name].start_meassure));
@@ -258,8 +258,8 @@ async function Meter_Calculations(id){
 	
 		
 		// Calculate costs
-		const cost_basic = 21;
-		const cost_unit = 0.27;
+		const cost_basic = await adapter.getForeignObjectAsync(id.common.custom[inst_name].basic_price);
+		const cost_unit = await adapter.getForeignObjectAsync(id.common.custom[inst_name].unit_price);
 
 		const day_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.01_current_day");
 		const week_bval_consumend = await adapter.getForeignStateAsync(obj_root + ".consumption.02_current_week");
@@ -291,9 +291,9 @@ async function Meter_Calculations(id){
 		state_val = (year_bval_consumend.val * cost_unit).toFixed(2);
 		adapter.setState(obj_root + ".cost.05_current_year", { val: state_val,ack: true });
 
-	} catch (error) {
+	// } catch (error) {
 			
-	}
+	// }
  
 };
 
@@ -413,53 +413,68 @@ function getWeekNumber(d) {
     return [weekNo];
 }
 
-// Function to calculate current quarter
-function quarter_of_the_year(){
-		const date = new Date();
-		const m = date.getMonth()+1;
-		return Math.ceil(m/3);
-}
+// // Function to calculate current quarter
+// function quarter_of_the_year(){
+// 		const date = new Date();
+// 		const m = date.getMonth()+1;
+// 		return Math.ceil(m/3);
+// }
 
-// Function to reset start values for each day, week, month, quarter, year
-async function reset_shedules (id){
+// // Function to reset start values for each day, week, month, quarter, year
+// async function reset_shedules (id){
+// 	adapter.log.error(id._id)
+// //	try {
 
-	try {
+// 		// Build object root to handle calculations
+// 		const obj_id = id._id.split(".").join("__");
+// 		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;
 
-		// Build object root to handle calculations
-		const obj_id = id.split(".").join("__");
-		const obj_root = "powermonitor." + adapter.instance + "." + obj_id;
+// 		// get current meter value, start value of meassurement & calculate value to write in start states
+// 		const reading = await adapter.getForeignStateAsync(id);
+// 		const reading_start = await adapter.getForeignStateAsync(obj_root + ".Meter_Readings.Reading_start");
+// 		const obj_val = (reading.val - reading_start.val).toFixed(2);
 
-		// get current meter value, start value of meassurement & calculate value to write in start states
-		const reading = await adapter.getForeignStateAsync(id);
-		const reading_start = await adapter.getForeignStateAsync(obj_root + ".Meter_Readings.Reading_start");
-		const obj_val = (reading.val - reading_start.val).toFixed(2);
 
-		// Reset day counter
-		cron.schedule("0 0 * * *", function(){
-			//	Meter_Calculations(test_Object_list[z].Device);
-			adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: obj_val,ack: true });
-		});
+// 		adapter.log.error(id._id)
+
+//             adapter.setForeignObject(id._id, {
+// 				common : {
+// 					custom : {
+// 						inst_name : {
+// 							start_month : 9999999
+// 						}
+// 					} 
+// 				}
+// 			}, function (err) {
+
+//             });
+
+// 		// Reset day counter
+// 		cron.schedule("0 0 * * *", function(){
+// 			//	Meter_Calculations(test_Object_list[z].Device);
+// 			adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: obj_val,ack: true });
+// 		});
 		
-		// Reset Week counter
-		cron.schedule("0 0 1 * 1", function(){
-			adapter.setState(obj_root + ".Meter_Readings.start_values.02_week", { val: obj_val,ack: true });
-		});
+// 		// Reset Week counter
+// 		cron.schedule("0 0 1 * 1", function(){
+// 			adapter.setState(obj_root + ".Meter_Readings.start_values.02_week", { val: obj_val,ack: true });
+// 		});
 		
-		// Reset month counter
-		cron.schedule("0 0 1 * *", function(){
-			adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: obj_val,ack: true });
-		});
+// 		// Reset month counter
+// 		cron.schedule("0 0 1 * *", function(){
+// 			adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: obj_val,ack: true });
+// 		});
 		
-		// Reset quarter counter
-		cron.schedule("0 0 1 * *", function(){
-			adapter.setState(obj_root + ".Meter_Readings.start_values.04_quarter", { val: obj_val,ack: true });
-		});
+// 		// Reset quarter counter
+// 		cron.schedule("0 0 1 * *", function(){
+// 			adapter.setState(obj_root + ".Meter_Readings.start_values.04_quarter", { val: obj_val,ack: true });
+// 		});
 		
-		// Reset year counter
-		cron.schedule("0 0 1 1 *", function(){
-			adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: obj_val,ack: true });
-		});
-	} catch (error) {
+// 		// Reset year counter
+// 		cron.schedule("0 0 1 1 *", function(){
+// 			adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: obj_val,ack: true });
+// 		});
+// 	// } catch (error) {
 		
-	}
-}
+// 	// }
+// }
