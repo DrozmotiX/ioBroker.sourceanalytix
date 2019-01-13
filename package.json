@@ -1,7 +1,7 @@
 {
-  "name": "iobroker.powermonitor",
+  "name": "iobroker.sourceanalytix",
   "version": "0.0.9",
-  "description": "Powermonitor",
+  "description": "SourceAnalytix",
   "author": {
     "name": "Dutchman",
     "email": "rdrozda86@gmail.com"
@@ -9,7 +9,7 @@
   "contributors": [
     "Dutchman"
   ],
-  "homepage": "https://github.com/DutchmanNL/ioBroker.powermonitor",
+  "homepage": "https://github.com/DutchmanNL/ioBroker.sourceanalytix",
   "license": "MIT",
   "keywords": [
     "ioBroker",
@@ -19,12 +19,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/DutchmanNL/ioBroker.powermonitor"
+    "url": "https://github.com/DutchmanNL/ioBroker.sourceanalytix"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^1.0.1",
     "cron": "^1.6.0",
     "node-cron": "^2.0.3",
+    "npm": "^6.5.0",
     "request": "^2.88.0"
   },
   "devDependencies": {
@@ -57,7 +58,7 @@
     "lint:js": "eslint"
   },
   "bugs": {
-    "url": "https://github.com/DutchmanNL/ioBroker.powermonitor/issues"
+    "url": "https://github.com/DutchmanNL/ioBroker.sourceanalytix/issues"
   },
   "readmeFilename": "README.md"
 }

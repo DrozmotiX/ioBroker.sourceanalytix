@@ -1,42 +1,43 @@
 {
 	"common": {
-		"name": "powermonitor",
+		"name": "sourceanalytix",
 		"version": "0.0.9",
 		"news": {
-			"0.0.1": {
-				"en": "initial release",
-				"de": "Erstveröffentlichung",
-				"ru": "Начальная версия",
-				"pt": "lançamento inicial",
-				"nl": "Eerste uitgave",
-				"fr": "Première version",
-				"it": "Versione iniziale",
-				"es": "Versión inicial",
-				"pl": "Pierwsze wydanie"
+			"0.0.9": {
+				"en": "Prepare Public Beta",
+				"de": "Erste öffentliche Beta",
+				"ru": "Первая публичная бета",
+				"pt": "Primeiro beta público",
+				"nl": "Eerste openbare bèta",
+				"fr": "Première bêta publique",
+				"it": "Prima beta pubblica",
+				"es": "Primera beta pública",
+				"pl": "Pierwsza publiczna beta",
+				"zh-cn": "首次公开测试版"
 			}
 		},
-		"title": "powermonitor",
+		"title": "SourceAnalytix",
 		"titleLang": {
-			"en": "powermonitor",
-			"de": "powermonitor",
-			"ru": "powermonitor",
-			"pt": "powermonitor",
-			"nl": "powermonitor",
-			"fr": "powermonitor",
-			"it": "powermonitor",
-			"es": "powermonitor",
-			"pl": "powermonitor"
+			"en": "SourceAnalytix",
+			"de": "SourceAnalytix",
+			"ru": "SourceAnalytix",
+			"pt": "SourceAnalytix",
+			"nl": "SourceAnalytix",
+			"fr": "SourceAnalytix",
+			"it": "SourceAnalytix",
+			"es": "SourceAnalytix",
+			"pl": "SourceAnalytix"
 		},
 		"desc": {
-			"en": "powermonitor",
-			"de": "powermonitor",
-			"ru": "powermonitor",
-			"pt": "powermonitor",
-			"nl": "powermonitor",
-			"fr": "powermonitor",
-			"it": "powermonitor",
-			"es": "powermonitor",
-			"pl": "powermonitor"
+			"en": "SourceAnalytix",
+			"de": "SourceAnalytix",
+			"ru": "SourceAnalytix",
+			"pt": "SourceAnalytix",
+			"nl": "SourceAnalytix",
+			"fr": "SourceAnalytix",
+			"it": "SourceAnalytix",
+			"es": "SourceAnalytix",
+			"pl": "SourceAnalytix"
 		},
 		"authors": [
 			"Dutchman <rdrozda@hotail.com>"
@@ -49,25 +50,32 @@
 		],
 		"platform": "Javascript/Node.js",
 		"main": "main.js",
-		"icon": "powermonitor.png",
+		"icon": "sourceanalytyx.png",
 		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/DutchmanNL/ioBroker.powermonitor/master/admin/powermonitor.png",
-		"readme": "https://github.com/DutchmanNL/ioBroker.powermonitor/blob/master/README.md",
+		"extIcon": "https://raw.githubusercontent.com/DutchmanNL/ioBroker.sourceanalytyx/master/admin/sourceanalytyx.png",
+		"readme": "https://github.com/DutchmanNL/ioBroker.sourceanalytyx/blob/master/README.md",
 		"loglevel": "info",
 		"mode": "daemon",
 		"type": "general",
 		"materialize": true,
+		"supportCustoms": true,
 		"dependencies": [
 			{
 				"admin": ">=3.0.0"
 			}
 		]
 	},
-	"native": {
-        "devices": [],
-        "interval": 60000,
-        "noHostname": false
-    },
-    "objects": [],
+	"native": {},
+    "objects": [
+        {
+            "_id": "_design/custom",
+            "language": "javascript",
+            "views": {
+                "state": {
+                    "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
+                }
+            }
+		}
+	],
 	"instanceObjects": []
 }

@@ -1,0 +1,168 @@
+<script type="text/x-iobroker" data-template-name="sourceanalytix">
+    <div class="row">
+        <div class="input-field col s2">
+            <input type="checkbox" data-field="enabled" data-default="false"/>
+            <!-- this field is mandatory, just to find out if to include this settings or not</span-->
+            <span class="translate">enabled</span>
+        </div>
+        <div class="col s1">
+        </div>
+        <div class="input-field col s3">
+            <input placeholder="Leave empty to use object's name" type="text" data-field="alias"/>
+            <label for="alias" class="translate">Alias</label>
+        </div>
+        <div class="input-field col s2">
+                <input data-field="interval" type="number" data-default="3" />
+                <label for="interval" class="translate">interval</label>
+        </div>
+        <div class="row">
+            <div class="input-field col s2">
+                <input data-field="start_meassure" type="number" data-default="0" />
+                <label for="start_meassure" class="translate">start_meassure</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s3">
+        </div>
+        <div class="input-field col s2">
+            <input data-field="CalcCost" type="checkbox" data-default="false" />
+            <span class="translate">Calculate Costs</span>
+            <p class="translate">Cost History</p>
+        </div>
+        <div class="input-field col s2">
+            <input data-field="CalcCons" type="checkbox" data-default="false" />
+            <span class="translate">Calculate Consumption</span>
+            <p class="translate">Consumption History</p>
+        </div>
+        <div class="input-field col s2">
+            <input type="checkbox" data-field="previous_periode" data-default="false"/>
+            <span class="translate">Previous Periode</span>
+            <p class="translate">Keep x amount of periode history</p>
+        </div>  
+        <div class="input-field col s2">
+            <input type="checkbox" data-field="meter_history" data-default="false"/>
+            <span class="translate">Meter History</span>
+            <p class="translate">Keep states of meter by end of day</p>
+        </div>   
+    </div>
+    <div class="row">
+        <div class="col s12">
+        </div>
+    </div>
+
+    <table><tr>
+            <td style="padding-top: 20px;padding-left: 10px"><h5 class="translate">Advance settings for cost calculation </h5></td>
+        </tr></table>
+
+    <div class="row">
+        <div class="col s12">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s4">
+        </div>
+        <div class="input-field col s2">
+                <input data-field="unit_price" type="number" data-default="0" />
+                <label for="unit_price" class="translate">unit_price</label>
+        </div>
+        <div class="input-field col s2">
+                <input data-field="basic_price" type="number" data-default="0" />
+                <label for="basic_price" class="translate">basic_price</label>
+        </div>
+        
+        <div class="input-field col s2">
+                <input data-field="monthly_payment" type="number" data-default="0" />
+                <label for="monthly_payment" class="translate">monthly_payment</label>
+    </div>
+    </div>       
+ 
+    <table><tr>
+            <td style="padding-top: 20px;padding-left: 10px"><h5 class="translate">Advance settings for start values </h5></td>
+        </tr></table>
+
+    <div class="row">
+        <div class="col s12">
+        </div>
+    </div>
+ 
+    <div class="row">
+            <div class="col s2">
+            </div>
+    <div class="input-field col s2">
+            <input data-field="start_day" type="number" data-default="0" />
+            <label for="start_day" class="translate">start_day</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="start_week" type="number" data-default="0" />
+            <label for="start_week" class="translate">start_week</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="start_month" type="number" data-default="0" />
+            <label for="start_month" class="translate">start_month</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="start_quarter" type="number" data-default="0" />
+            <label for="start_quarter" class="translate">start_quarter</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="start_year" type="number" data-default="0" />
+            <label for="start_year" class="translate">start_year</label>
+    </div>
+    </div>
+
+    <table><tr>
+            <td style="padding-top: 20px;padding-left: 10px"><h5 class="translate">Advance settings for periode to store </h5></td>
+        </tr></table>
+
+    <div class="row">
+        <div class="col s12">
+        </div>
+    </div>
+ 
+    <div class="row">
+            <div class="col s2">
+            </div>
+    <div class="input-field col s2">
+            <input data-field="keep_day" type="number" data-default="7" />
+            <label for="keep_day" class="translate">keep_day</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="keep_week" type="number" data-default="4" />
+            <label for="keep_week" class="translate">keep_week</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="keep_month" type="number" data-default="4" />
+            <label for="keep_month" class="translate">keep_month</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="keep_quarter" type="number" data-default="4" />
+            <label for="keep_quarter" class="translate">keep_quarter</label>
+    </div>
+    <div class="input-field col s2">
+            <input data-field="keep_year" type="number" data-default="1" />
+            <label for="keep_year" class="translate">keep_year</label>
+    </div>
+    </div>
+
+</script>
+
+<!-- translations to-do = ALL !-->
+<script type="text/javascript">
+    systemDictionary = $.extend(systemDictionary, {
+        "Alias": {
+            "en": "Alias",
+            "de": "Alias",
+            "ru": "Имя",
+            "pt": "Alias",
+            "nl": "Alias",
+            "fr": "Alias",
+            "it": "Alias",
+            "es": "Alias",
+            "pl": "Alias"
+        }
+    });
+
+</script>

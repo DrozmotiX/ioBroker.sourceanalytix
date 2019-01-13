@@ -1,4 +1,4 @@
-# ioBroker.powermonitor
+# ioBroker.SourceAnalytix
 
 
 ## Published code is currenlty in ALPHA state and only test-objects of discovergy demo account are hard-coded implemented (see to-do !)
@@ -31,11 +31,11 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] recalcalation based on meter values (configurable by date)
 * [ ] ensure all values are stored when adapter shuts down to prevent data gaps
 * [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
-* [ ] configuration in adapter settings (currently only demo objects of discovergy are supported)
+* [x] configuration in adapter settings (currently only demo objects of discovergy are supported)
 * [ ] configurable cost price for every state
 * [ ] configurable unit price for every state
 * [x] configurable intervall for every state
-* [ ] configurable unit for every state
+* [x] configurable unit for every state
 * [ ] configurable data points (yes/no) for cost and meter-values
 * [ ] storage of meter values for every state
 * [ ] calculations for quarter values
@@ -49,6 +49,10 @@ https://github.com/hdering/homematic_verbrauchszaehler
 ### 0.0.9
 * (Dutchman) fix wrong calculation of start values
 * (Dutchman) fix wrong calculation of quarter values
+* (Dutchman) prepare public beta and travis testing
+* (Dutchman) change name to SourceAnalytix
+* (Dutchman) implemented SourceAnalytix settings at states (equal to data logging adapters)
+* (Dutchman) configurable unit for every state, automatically from object state. currently only kWh supported !
 
 ### 0.0.8
 * (Dutchman) configurable intervall for every state
