@@ -61,7 +61,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
-### 0.1.1
+### 0.1.2
 * (Dutchman) add support for calculation of Wh values
 
 ### 0.1.0
