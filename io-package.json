@@ -1,7 +1,7 @@
 {
 	"common": {
 		"name": "sourceanalytix",
-		"version": "0.1.1",
+		"version": "0.1.2",
 		"news": {
 		"0.1.0": {
 			"en": "0.1.0 Public beta release",

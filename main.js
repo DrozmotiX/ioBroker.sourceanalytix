@@ -118,11 +118,7 @@ function initialize(obj) {
 	const obj_cust = obj.common.custom[inst_name];
 
 	// Currently only support kWh & m3)
-	if(unit !== "kWh" && unit !== "m3" && unit !== "Wh"){
-
-		adapter.log.error("Sorry unite type " + unit + " not supported yet");
-
-	} else {
+	if(unit == "kWh" || unit == "m3" || unit == "Wh"){
 
 		if(unit === "Wh"){unit = "kWh"}
 
@@ -193,6 +189,9 @@ function initialize(obj) {
 
 		// start cron to reseet counters at midnight
 		reset_shedules(obj);
+
+	} else {
+		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 	}
 }
 // Calculation handler
