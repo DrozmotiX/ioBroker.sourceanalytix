@@ -254,8 +254,8 @@ async function Meter_Calculations(id){
 	//@ts-ignore custom does exist
 	const cost_unit = obj_cont.common.custom[inst_name].unit_price;
 
-		// adapter.log.info("Cost basic : " + cost_basic);
-		// adapter.log.info("Cost unit : " + cost_unit);
+	// adapter.log.info("Cost basic : " + cost_basic);
+	// adapter.log.info("Cost unit : " + cost_unit);
 
 	const day_bval_consumend = ((reading.val - day_bval) - reading_start);
 	const week_bval_consumend =  ((reading.val - week_bval) - reading_start);
