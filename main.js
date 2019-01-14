@@ -118,7 +118,7 @@ function initialize(obj) {
 	const obj_cust = obj.common.custom[inst_name];
 
 	// Currently only support kWh & m3)
-	if(unit == "kWh" || unit == "m3" || unit == "Wh"){
+	if((unit == "kWh") || (unit == "m3") || (unit == "Wh")){
 
 		if(unit === "Wh"){unit = "kWh"}
 
@@ -500,7 +500,7 @@ function unit_calc_fact (obj){
 
 		break;
 
-		case "wh":
+		case "Wh":
 
 			calc_factor = 1000;
 			adapter.log.info("wh");
@@ -516,7 +516,7 @@ function unit_calc_fact (obj){
 
 		default:
 
-			adapter.log.error("value received for calculation with unit : " + unit + " which is currenlty not (yet) supported")
+			adapter.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported")
 			calc_factor = 1;
 
 	}
