@@ -1,8 +1,20 @@
 {
 	"common": {
 		"name": "sourceanalytix",
-		"version": "0.0.9",
+		"version": "0.1.0",
 		"news": {
+		"0.1.0": {
+			"en": "0.1.0 Public beta release",
+			"de": "0.1.0 Öffentliche Betaversion",
+			"ru": "0.1.0 публичная бета-версия",
+			"pt": "0.1.0 versão beta pública",
+			"nl": "0.1.0 Public beta-release",
+			"fr": "Version bêta publique 0.1.0",
+			"it": "0.1.0 Versione beta pubblica",
+			"es": "0.1.0 Public beta pública",
+			"pl": "0.1.0 Publiczne wydanie beta",
+			"zh-cn": "0.1.0公开测试版"
+		},
 			"0.0.9": {
 				"en": "Prepare Public Beta",
 				"de": "Erste öffentliche Beta",
@@ -52,11 +64,11 @@
 		"main": "main.js",
 		"icon": "sourceanalytyx.png",
 		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/DutchmanNL/ioBroker.sourceanalytyx/master/admin/sourceanalytyx.png",
+		"extIcon": "https://raw.githubusercontent.com/DutchmanNL/ioBroker.sourceanalytyx/master/admin/sourceanalytix.png",
 		"readme": "https://github.com/DutchmanNL/ioBroker.sourceanalytyx/blob/master/README.md",
 		"loglevel": "info",
 		"mode": "daemon",
-		"type": "general",
+		"type": "energy",
 		"materialize": true,
 		"supportCustoms": true,
 		"dependencies": [

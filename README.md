@@ -1,19 +1,18 @@
-# ioBroker.SourceAnalytix
+#  [Beta - Released] SourceAnalytix
 
+## Warning, this adapter needs node 8 or higher !!!
 
-## Published code is currenlty in ALPHA state and only test-objects of discovergy demo account are hard-coded implemented (see to-do !)
-## first beta release for community testing expected by end of week 2 2019 ;-)
+ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.
+You need data as input (total amount of Wh, l/h or m3 used) from your devices and this adapter will :
 
-
-# Warning, this adapter needs node 8 or higher !!!
-
-ioBroker Power Monitor allows you to keep track & trace power consumption for your devices.
-You need data as input (total amount of Wh used) from your devices and this adapter will :
-
-* Trace power usage daily, weekly, monthly, quarterly, yearly
+* Trace comsumption daily, weekly, monthly, quarterly, yearly
 * calculate costs (current price is configurable)
-* Can be used for Power Consumption and GAS
-* Input values can be wh/kWh/m3
+* Can be used for Power Consumption, liquids, and GAS
+* Input values can be wh/kWh/m3/l
+
+## How-To
+
+* [ ] To-Do
 
 This adapter has is roots with thanks to pix back in 2016 
 https://forum.iobroker.net/viewtopic.php?f=21&t=2262
@@ -21,31 +20,54 @@ https://forum.iobroker.net/viewtopic.php?f=21&t=2262
 Which has been improved by @hadering and published on github
 https://github.com/hdering/homematic_verbrauchszaehler
 
+## Known issues
+
+* [ ] translations
+* [ ] quarters not calculated
+* [ ] monthly costprice not yet implemented in calculation
+* [ ] statest for cost type delivery are not writen
+* [ ] device name alias not correct
+* [ ] adapter restart needed to add calculation of new objects
+
 ## To-Do
-* [ ] Fix translations
-* [x] ready state values and store to states
-* [x] write meter value to "start" state to use in calculations
-* [x] consumption calculation
-* [x] cost calculation
-* [x] adjustable starting point of meassurement
-* [x] support of multiple device states
+* [ ] Documentation
 * [ ] recalcalation based on meter values (configurable by date)
 * [ ] ensure all values are stored when adapter shuts down to prevent data gaps
 * [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
-* [x] configuration in adapter settings (currently only demo objects of discovergy are supported)
-* [ ] configurable cost price for every state
-* [ ] configurable unit price for every state
-* [x] configurable intervall for every state
-* [x] configurable unit for every state
+* [ ] write meter value to object to use in calculations
 * [ ] configurable data points (yes/no) for cost and meter-values
 * [ ] storage of meter values for every state
 * [ ] calculations for quarter values
 * [ ] calculation for wh/h values
+* [ ] calculation for m3 values
 * [ ] test/implementation of liter & m3 values
 * [ ] code optimalisation
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
+* [x] Fix basic translations
+* [x] ready state values and store to states
+* [x] write meter value to "start" state to use in calculations
+* [x] configurable intervall for every state
+* [x] configurable unit for every state
+* [x] configurable cost price for every state
+* [x] configurable unit price for every state
+* [x] state used for cost or earning
+* [x] consumption calculation
+* [x] cost calculation
+* [x] adjustable starting point of meassurement
+* [x] support of multiple device states
+* [x] configuration in adapter settings (currently only demo objects of discovergy are supported)
+* [x] delete temporary states for calculations
 
 ## Changelog
+
+### 0.1.0
+* (Dutchman) first public beta release
+* (Dutchman) fix translations
+* (Dutchman) rebuild calculation logic
+* (Dutchman) fix calculation of start offset
+* (Dutchman) adjustable if state is used for cosumption or delivery
+* (Dutchman) limited possible logging to kWh only for this moment
+* (Dutchman) only create states and channels for logging types selected
 
 ### 0.0.9
 * (Dutchman) fix wrong calculation of start values
