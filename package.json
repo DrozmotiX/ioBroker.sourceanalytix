@@ -1,6 +1,6 @@
 {
   "name": "iobroker.sourceanalytix",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SourceAnalytix",
   "author": {
     "name": "Dutchman",
@@ -22,7 +22,7 @@
     "url": "https://github.com/DutchmanNL/ioBroker.sourceanalytix"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^1.0.1",
+    "@iobroker/adapter-core": "^1.0.3",
     "cron": "^1.6.0",
     "node-cron": "^2.0.3",
     "npm": "^6.5.0",

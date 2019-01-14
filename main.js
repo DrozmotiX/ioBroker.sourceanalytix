@@ -114,15 +114,17 @@ function initialize(obj) {
 	const inst_name = adapter.namespace
 	// calculate interval from minutes to milliseconds
 	const interval = (obj.common.custom[inst_name].interval * 60000)
-	const unit = obj.common.unit;
+	let unit = obj.common.unit;
 	const obj_cust = obj.common.custom[inst_name];
 
 	// Currently only support kWh & m3)
-	if(unit !== "kWh" && unit !== "m3"){
+	if(unit !== "kWh" && unit !== "m3" && unit !== "Wh"){
 
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 
 	} else {
+
+		if(unit === "Wh"){unit = "kWh"}
 
 		// replace "." in datapoints to "_"
 		const device = obj._id.split(".").join("__");
@@ -186,7 +188,7 @@ function initialize(obj) {
 		const interval_timer = setInterval(function () {
 			adapter.log.info('`interval run` for : ' + obj._id);
 			Meter_Calculations(obj);
-
+			adapter.log.error("Meter Calculation executed");
 		}, interval);
 
 		// start cron to reseet counters at midnight
@@ -198,14 +200,18 @@ async function Meter_Calculations(id){
 	const inst_name = adapter.namespace
 	const date = new Date();
 
+	adapter.log.error("Meter Calculation executed");
+
 	// Write current Meter value to variables
 	const obj_id = id._id.split(".").join("__");
 	const obj_root = adapter.namespace + "." + obj_id;  
 
 	const reading = await adapter.getForeignStateAsync(id._id)
+	// recalculate reading value based on unit to store correctly
+	const calc_factor = unit_calc_fact(id);
+	const calc_reading = reading.val / calc_factor;
 	
 	adapter.log.info("Write calculations for : " + id._id);
-	// adapter.log.info("Test : " + id.common.custom[inst_name].start_day);
 
 	const obj_cont = await adapter.getForeignObjectAsync(id._id);
 	//@ts-ignore custom does exist
@@ -222,30 +228,30 @@ async function Meter_Calculations(id){
 	const year_bval = obj_cont.common.custom[inst_name].start_year
 
 	// Store current meter value to state
-	adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: reading.val.toFixed(2) ,ack: true });
+	adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
 	
 	// Calculate consumption
 	// Weekday & current day
-	let state_val = ((reading.val - day_bval) - reading_start).toFixed(2);
+	let state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
 	adapter.setState(obj_root + ".consumption.01_current_day", { val: state_val,ack: true });
 	adapter.setState(obj_root + ".consumption.current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 
 	// Week
-	state_val = ((reading.val - week_bval) - reading_start).toFixed(2);
+	state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
 	adapter.setState(obj_root + ".consumption.02_current_week", { val: state_val,ack: true });
 	adapter.setState(obj_root + ".consumption.current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
 	// Month
-	state_val = ((reading.val - month_bval) - reading_start).toFixed(2);
+	state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
 	adapter.setState(obj_root + ".consumption.03_current_month", { val: state_val,ack: true });
 	adapter.setState(obj_root + ".consumption.current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
 	// Quarter
-	state_val = ((reading.val - quarter_bval) - reading_start).toFixed(2);
+	state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
 	adapter.setState(obj_root + ".consumption.04_current_quarter", { val: state_val,ack: true });
 
 	// Year
-	state_val = ((reading.val - year_bval) - reading_start).toFixed(2);
+	state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
 	adapter.setState(obj_root + ".consumption.05_current_year", { val: state_val,ack: true });
 
 	// Calculate costs
@@ -257,11 +263,11 @@ async function Meter_Calculations(id){
 	// adapter.log.info("Cost basic : " + cost_basic);
 	// adapter.log.info("Cost unit : " + cost_unit);
 
-	const day_bval_consumend = ((reading.val - day_bval) - reading_start);
-	const week_bval_consumend =  ((reading.val - week_bval) - reading_start);
-	const month_bval_consumend = ((reading.val - month_bval) - reading_start);
-	const quarter_bval_consumend = ((reading.val - quarter_bval) - reading_start);
-	const year_bval_consumend = ((reading.val- year_bval) - reading_start);
+	const day_bval_consumend = ((calc_reading - day_bval) - reading_start);
+	const week_bval_consumend =  ((calc_reading - week_bval) - reading_start);
+	const month_bval_consumend = ((calc_reading - month_bval) - reading_start);
+	const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
+	const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
 
 	// Weekday & current day
 	state_val = (day_bval_consumend * cost_unit).toFixed(2);
@@ -414,11 +420,8 @@ async function reset_shedules (id){
 
 		// get current meter value, start value of meassurement & calculate value to write in start states
 		const reading = await adapter.getForeignStateAsync(id._id);
-		adapter.log.error(reading.val);
-		
-		const obj_cont = await adapter.getForeignObjectAsync(id._id);
-		//@ts-ignore custom does exist
-		const reading_start = obj_cont.common.custom[inst_name].start_meassure;
+		const calc_factor = unit_calc_fact(id);
+		const calc_reading = reading.val / calc_factor;
 
 		const obj = {
 			common : {
@@ -432,7 +435,7 @@ async function reset_shedules (id){
 			//	Meter_Calculations(test_Object_list[z].Device);
 			// adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: obj_val,ack: true });
 			obj.common.custom[inst_name] = {
-				start_day : reading.val
+				start_day : calc_reading
 				};
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
@@ -442,7 +445,7 @@ async function reset_shedules (id){
 		cron.schedule("0 0 1 * 1", function(){
 			// adapter.setState(obj_root + ".Meter_Readings.start_values.02_week", { val: obj_val,ack: true });
 			obj.common.custom[inst_name] = {
-				start_week : reading.val
+				start_week : calc_reading
 				};
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
@@ -452,7 +455,7 @@ async function reset_shedules (id){
 		cron.schedule("0 0 1 * *", function(){
 			// adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: obj_val,ack: true });
 			obj.common.custom[inst_name] = {
-				start_month : reading.val
+				start_month : calc_reading
 				};
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
@@ -462,7 +465,7 @@ async function reset_shedules (id){
 		cron.schedule("0 0 1 * *", function(){
 			// adapter.setState(obj_root + ".Meter_Readings.start_values.04_quarter", { val: obj_val,ack: true });
 			obj.common.custom[inst_name] = {
-				start_quarter : reading.val
+				start_quarter : calc_reading
 				};
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
@@ -472,7 +475,7 @@ async function reset_shedules (id){
 		cron.schedule("0 0 1 1 *", function(){
 			// adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: obj_val,ack: true });
 			obj.common.custom[inst_name] = {
-				start_year : reading.val
+				start_year : calc_reading
 				};
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
@@ -480,4 +483,44 @@ async function reset_shedules (id){
 	// } catch (error) {
 		
 	// }
+}
+
+function unit_calc_fact (obj){
+
+	const unit = obj.common.unit
+	let calc_factor;
+
+	adapter.log.info(unit);
+
+	switch (unit) {
+
+		case "kWh":
+
+			calc_factor = 1;
+			adapter.log.info("kWh");
+
+		break;
+
+		case "wh":
+
+			calc_factor = 1000;
+			adapter.log.info("wh");
+
+		break;
+
+		case "m3":
+
+			calc_factor = 1;
+			adapter.log.info("m3");
+
+		break;
+
+		default:
+
+			adapter.log.error("value received for calculation with unit : " + unit + " which is currenlty not (yet) supported")
+			calc_factor = 1;
+
+	}
+
+	return calc_factor;
 }
