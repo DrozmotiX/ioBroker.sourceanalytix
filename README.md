@@ -25,22 +25,19 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] translations
 * [ ] quarters not calculated
 * [ ] monthly costprice not yet implemented in calculation
-* [ ] statest for cost type delivery are not writen
-* [ ] device name alias not correct
 * [ ] adapter restart needed to add calculation of new objects
+* [x] statest for cost type delivery are not writen
+* [x] device name alias not correct
 
 ## To-Do
 * [ ] Documentation
 * [ ] recalcalation based on meter values (configurable by date)
 * [ ] ensure all values are stored when adapter shuts down to prevent data gaps
 * [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
-* [ ] write meter value to object to use in calculations
 * [ ] configurable data points (yes/no) for cost and meter-values
-* [ ] storage of meter values for every state
 * [ ] calculations for quarter values
-* [ ] calculation for m3 values
-* [ ] test/implementation of liter & m3 values
 * [ ] code optimalisation
+* [ ] storage of meter values for every state
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
 * [ ] compact mode
 * [x] add support for calculation of wh values
@@ -56,13 +53,28 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [x] cost calculation
 * [x] adjustable starting point of meassurement
 * [x] support of multiple device states
+* [x] write meter value to object to use in calculations
 * [x] configuration in adapter settings (currently only demo objects of discovergy are supported)
 * [x] delete temporary states for calculations
+* [x] calculation for m3 values
+* [x] use alias of device name
 
 ## Changelog
 
-### 0.1.3
+### 0.2.0 (in progress)
+* (Dutchman) improved konfiguration screen
+* (Dutchman) fix some naming and translations
+* (Dutchman) improved message at adapter konfiguration
+* (Dutchman) changed logo
+
+### 0.1.5
+* (Dutchman) fix data reset for quarter values (thank you Jens !)
+* (Dutchman) fix usage of alias
+* (Dutchman) calculation for m3 values
+* (Dutchman) calculation for l values
 * (Dutchman) add support for calculation of Wh values
+* (Dutchman) improved state write logic (monitoring of delivery is possible now :-) 
+* (Dutchman) fix log messages
 
 ### 0.1.0
 * (Dutchman) first public beta release
