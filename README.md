@@ -22,12 +22,12 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Known issues
 
-* [ ] translations
 * [ ] quarters not calculated
 * [ ] monthly costprice not yet implemented in calculation
 * [ ] adapter restart needed to add calculation of new objects
 * [x] statest for cost type delivery are not writen
 * [x] device name alias not correct
+* [x] translations
 
 ## To-Do
 * [ ] Documentation
@@ -63,22 +63,26 @@ https://github.com/hdering/homematic_verbrauchszaehler
 ## Changelog
 
 ### 0.2.0 (in progress)
-* (Dutchman) improved konfiguration screen
-* (Dutchman) fix some naming and translations
-* (Dutchman) improved message at adapter konfiguration
-* (Dutchman) changed logo
+* (Dutchman) rebuild logic to calculate values
+
+### 0.1.8 (unuasable temporary verion )
+* (Dutchman) konfiguration pages completly redesigned : Please do not enter values yet !
+* (Dutchman) master konfiguration added to globally define costs
+* (Dutchman) intervall settings moved to global setting instead of each state seperated
+* (Dutchman) instead of cost-price in each state use drop down menu to choose values from global settings
+* (Dutchman) fix namings and translations
 
 ### 0.1.6
 * (Dutchman) fix data reset for quarter values (thank you Jens !)
 * (Dutchman) fix usage of alias
 * (Dutchman) fixed issue in calculation of earnings and delivery
 * (Dutchman) logging improvement
-
-### 0.1.5
-* (Dutchman) improved state write logic, only sent write commando when needed
 * (Dutchman) fix log messages
 * (Dutchman) calculation for m3 values
 * (Dutchman) calculation for l values
+
+### 0.1.5
+* (Dutchman) improved state write logic, only sent write commando when needed
 
 ### 0.1.3
 * (Dutchman) add support for calculation of Wh values

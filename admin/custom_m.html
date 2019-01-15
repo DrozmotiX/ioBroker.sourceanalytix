@@ -1,156 +1,85 @@
 <script type="text/x-iobroker" data-template-name="sourceanalytix">
-    <div class="row">
-        <div class="input-field col s2">
+    <!--
+    <div class="section">
+        <div class="divider"></div>
+        <h4 class="translate">Basic settings</h4>
+    </div> 
+    --> 
+    <div class="row">    
+        <div class="input-field col s3">
             <input type="checkbox" data-field="enabled" data-default="false"/>
-            <!-- this field is mandatory, just to find out if to include this settings or not</span-->
             <span class="translate">enabled</span>
         </div>
-        <div class="col s1">
-        </div>
-        <div class="input-field col s3">
+        <div class="input-field col s4">
             <input placeholder="Leave empty to use object's name" type="text" data-field="alias"/>
             <label for="alias" class="translate">Alias</label>
+        </div>            
+        <div class="input-field col s4">
+            <select class="value" id="language">
+                <option value="kWh">Electricity consumption</option>
+                <option value="Wh">Electricity delivery</option>
+                <option value="Wh">Electricity production</option>
+                <option value="gas">Gas</option>
+                <option value="water_m3">Water</option>
+                <option value="oil_m3">Oil</option>
+            </select>
+            <label for="language" class="translate">Meassurement type</label>
         </div>
-        <div class="input-field col s2">
-                <input data-field="interval" type="number" data-default="3" />
-                <label for="interval" class="translate">interval</label>
-        </div>
+    </div>
+    <div class="section">
+        <div class="divider"></div>
+        <h6 class="translate">What should be evaluated</h6>
+    </div>
         <div class="row">
+            <div class="input-field col s1">
+            </div>
+            <div class="input-field col s3">
+                <input type="checkbox" data-field="costs" data-default="false"/>
+                <span class="translate">Costs (including basic charge)</span>
+            </div>
+            <div class="input-field col s3">
+                <input type="checkbox" data-field="costs" data-default="false"/>
+                <span class="translate">Costs (without basic charge)</span>
+            </div>
             <div class="input-field col s2">
+                <input type="checkbox" data-field="consumption" data-default="false"/>
+                <span class="translate">consumption</span>
+            </div>
+            <div class="input-field col s2">
+                <input type="checkbox" data-field="meter_values" data-default="false"/>
+                <span class="translate">counter values</span>
+            </div>
+        </div>
+    <div class="section">
+        <div class="divider"></div>
+        <h6 class="translate">Please enter start values</h6>
+    </div>
+        <div class="row">
+        <div class="input-field col s2">
                 <input data-field="start_meassure" type="number" data-default="0" />
                 <label for="start_meassure" class="translate">start_meassure</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="input-field col s2">
-            <input data-field="cost_earning" type="checkbox" data-default="false" />
-            <span class="translate">delivery</span>
-            <p class="translate">Activate to calculate earnings</p>
-        </div>
-        <div class="col s2">
         </div>
         <div class="input-field col s2">
-            <input data-field="CalcCost" type="checkbox" data-default="false" />
-            <span class="translate">Calculate Costs</span>
-            <p class="translate">Cost History</p>
+                <input data-field="start_day" type="number" data-default="0" />
+                <label for="start_day" class="translate">Meter reading at day start</label>
         </div>
         <div class="input-field col s2">
-            <input data-field="CalcCons" type="checkbox" data-default="false" />
-            <span class="translate">Calculate Consumption</span>
-            <p class="translate">Consumption History</p>
+                <input data-field="start_week" type="number" data-default="0" />
+                <label for="start_week" class="translate">Meter reading at week start</label>
         </div>
         <div class="input-field col s2">
-            <input type="checkbox" data-field="previous_periode" data-default="false"/>
-            <span class="translate">Previous Periode</span>
-            <p class="translate">Keep x amount of periode history</p>
-        </div>  
-        <div class="input-field col s2">
-            <input type="checkbox" data-field="meter_history" data-default="false"/>
-            <span class="translate">Meter History</span>
-            <p class="translate">Keep states of meter by end of day</p>
-        </div>   
-    </div>
-    <div class="row">
-        <div class="col s12">
-        </div>
-    </div>
-
-    <table><tr>
-            <td style="padding-top: 20px;padding-left: 10px"><h5 class="translate">Advance settings for cost calculation</h5></td>
-        </tr></table>
-
-    <div class="row">
-        <div class="col s12">
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col s4">
+                <input data-field="start_month" type="number" data-default="0" />
+                <label for="start_month" class="translate">Meter reading at month start</label>
         </div>
         <div class="input-field col s2">
-                <input data-field="unit_price" type="number" data-default="0" />
-                <label for="unit_price" class="translate">hours award</label>
+                <input data-field="start_quarter" type="number" data-default="0" />
+                <label for="start_quarter" class="translate">Meter reading at quarter start</label>
         </div>
         <div class="input-field col s2">
-                <input data-field="basic_price" type="number" data-default="0" />
-                <label for="basic_price" class="translate">cost price</label>
+                <input data-field="start_year" type="number" data-default="0" />
+                <label for="start_year" class="translate">Meter reading at year start</label>
         </div>
-        
-        <div class="input-field col s2">
-                <input data-field="monthly_payment" type="number" data-default="0" />
-                <label for="monthly_payment" class="translate">monthly payment</label>
-    </div>
-    </div>       
- 
-    <table><tr>
-            <td style="padding-top: 20px;padding-left: 10px"><h5 class="translate">Advance settings for start values</h5></td>
-        </tr></table>
-
-    <div class="row">
-        <div class="col s12">
         </div>
-    </div>
- 
-    <div class="row">
-            <div class="col s2">
-            </div>
-    <div class="input-field col s2">
-            <input data-field="start_day" type="number" data-default="0" />
-            <label for="start_day" class="translate">Counter reading day start</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="start_week" type="number" data-default="0" />
-            <label for="start_week" class="translate">Meter reading start of week</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="start_month" type="number" data-default="0" />
-            <label for="start_month" class="translate">Meter reading at the beginning of the month</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="start_quarter" type="number" data-default="0" />
-            <label for="start_quarter" class="translate">Meter reading quarterly beginning</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="start_year" type="number" data-default="0" />
-            <label for="start_year" class="translate">Meter reading at the beginning of the year</label>
-    </div>
-    </div>
-
-    <table><tr>
-            <td style="padding-top: 20px;padding-left: 10px"><h5 class="translate">Advance settings for periode to store</h5></td>
-        </tr></table>
-
-    <div class="row">
-        <div class="col s12">
-        </div>
-    </div>
- 
-    <div class="row">
-            <div class="col s2">
-            </div>
-    <div class="input-field col s2">
-            <input data-field="keep_day" type="number" data-default="7" />
-            <label for="keep_day" class="translate">Keep x amount of day's</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="keep_week" type="number" data-default="4" />
-            <label for="keep_week" class="translate">Keep x amount of week's</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="keep_month" type="number" data-default="4" />
-            <label for="keep_month" class="translate">Keep x amount of month's</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="keep_quarter" type="number" data-default="4" />
-            <label for="keep_quarter" class="translate">Keep x amount of quarter's</label>
-    </div>
-    <div class="input-field col s2">
-            <input data-field="keep_year" type="number" data-default="1" />
-            <label for="keep_year" class="translate">Keep x amount of year's</label>
-    </div>
-    </div>
 
 </script>
 
@@ -180,343 +109,209 @@
             "pl": "włączony",
             "zh-cn": "启用"
         },
-        "interval": {
-            "en": "interval",
-            "de": "Intervall",
-            "ru": "интервал",
-            "pt": "intervalo",
-            "nl": "interval",
-            "fr": "intervalle",
-            "it": "intervallo",
-            "es": "intervalo",
-            "pl": "interwał",
-            "zh-cn": "间隔"
+        "What should be evaluated": {
+            "en": "What should be evaluated",
+            "de": "Was soll ausgewertet werden",
+            "ru": "Что следует оценивать",
+            "pt": "O que deve ser avaliado",
+            "nl": "Wat moet worden geëvalueerd",
+            "fr": "Ce qui devrait être évalué",
+            "it": "Cosa dovrebbe essere valutato",
+            "es": "Qué se debe evaluar",
+            "pl": "Co należy ocenić",
+            "zh-cn": "应该评估什么"
         },
-        "start_meassure": {
-            "en": "Start value for analytics",
-            "de": "Startwert für die Analyse",
-            "ru": "Начальное значение для аналитики",
-            "pt": "Valor inicial para analítica",
-            "nl": "Startwaarde voor analyse",
-            "fr": "Valeur initiale pour l'analyse",
-            "it": "Valore iniziale per l'analisi",
-            "es": "Valor de inicio para analítica",
-            "pl": "Rozpocznij wartość dla analityki",
-            "zh-cn": "分析的起始值"
+        "Costs (including basic charge)": {
+            "en": "Costs (including basic charge)",
+            "de": "Kosten (einschließlich Grundgebühr)",
+            "ru": "Расходы (включая базовую плату)",
+            "pt": "Custos (incluindo taxa básica)",
+            "nl": "Kosten (inclusief basiskosten)",
+            "fr": "Frais (frais de base compris)",
+            "it": "Costi (inclusa la tariffa di base)",
+            "es": "Costos (incluido el cargo básico)",
+            "pl": "Koszty (w tym opłata podstawowa)",
+            "zh-cn": "费用（包括基本费用）"
         },
-        "Calculate Costs": {
-            "en": "Calculate Costs",
-            "de": "Kosten berechnen",
-            "ru": "Рассчитать стоимость",
-            "pt": "Calcular Custos",
-            "nl": "Kosten berekenen",
-            "fr": "Calculer les coûts",
-            "it": "Calcola costi",
-            "es": "Calcular costos",
-            "pl": "Oblicz koszty",
-            "zh-cn": "计算成本"
+        "Costs (without basic charge)": {
+            "en": "Costs (without basic charge)",
+            "de": "Kosten (ohne Grundgebühr)",
+            "ru": "Расходы (без основной платы)",
+            "pt": "Custos (sem taxa básica)",
+            "nl": "Kosten (zonder basiskosten)",
+            "fr": "Coûts (sans frais de base)",
+            "it": "Costi (senza spese di base)",
+            "es": "Costes (sin cargo básico)",
+            "pl": "Koszty (bez opłaty podstawowej)",
+            "zh-cn": "费用（无基本费用）"
         },
-        "Cost History": {
-            "en": "Cost History",
-            "de": "Kostenverlauf",
-            "ru": "История затрат",
-            "pt": "Histórico de Custos",
-            "nl": "Kosten geschiedenis",
-            "fr": "Histoire des coûts",
-            "it": "Storia dei costi",
-            "es": "Historial de costos",
-            "pl": "Historia kosztów",
-            "zh-cn": "成本历史"
+        "consumption": {
+            "en": "consumption",
+            "de": "Verbrauch",
+            "ru": "потребление",
+            "pt": "consumo",
+            "nl": "consumptie",
+            "fr": "consommation",
+            "it": "consumo",
+            "es": "consumo",
+            "pl": "konsumpcja",
+            "zh-cn": "消费"
         },
-        "Calculate Consumption": {
-            "en": "Calculate Consumption",
-            "de": "Verbrauch berechnen",
-            "ru": "Рассчитать потребление",
-            "pt": "Calcular Consumo",
-            "nl": "Bereken het verbruik",
-            "fr": "Calculer la consommation",
-            "it": "Calcola il consumo",
-            "es": "Calcular el consumo",
-            "pl": "Oblicz zużycie",
-            "zh-cn": "计算消费量"
+        "counter values": {
+            "en": "counter values",
+            "de": "Zählerwerte",
+            "ru": "значения счетчиков",
+            "pt": "valores de contador",
+            "nl": "teller waarden",
+            "fr": "contre-valeurs",
+            "it": "Contatore valori",
+            "es": "valores de contador",
+            "pl": "wartości liczników",
+            "zh-cn": "反价值"
         },
-        "Consumption History": {
-            "en": "Consumption History",
-            "de": "Verbrauchsverlauf",
-            "ru": "История потребления",
-            "pt": "Histórico de Consumo",
-            "nl": "Consumptie geschiedenis",
-            "fr": "Histoire de consommation",
-            "it": "Storia del consumo",
-            "es": "Historia del consumo",
-            "pl": "Historia zużycia",
-            "zh-cn": "消费史"
+        "Meter reading at day start": {
+            "en": "Meter reading at day start",
+            "de": "Zählerstand bei Tagesbeginn",
+            "ru": "Чтение метра в начале дня",
+            "pt": "Leitura do medidor no início do dia",
+            "nl": "Meting van de meter bij het begin van de dag",
+            "fr": "Relevé du compteur en début de journée",
+            "it": "Lettura del contatore all'inizio del giorno",
+            "es": "Lectura de contadores al comienzo del día.",
+            "pl": "Odczyt licznika na początku dnia",
+            "zh-cn": "仪表在一天开始阅读"
         },
-        "Previous Periode": {
-            "en": "Previous Periode",
-            "de": "Vorherige Periode",
-            "ru": "Предыдущий Период",
-            "pt": "Periode anterior",
-            "nl": "Vorige Periode",
-            "fr": "Periode précédente",
-            "it": "Periode precedente",
-            "es": "Periodo Anterior",
-            "pl": "Poprzedni Periode",
-            "zh-cn": "以前的Periode"
+        "Meter reading at week start": {
+            "en": "Meter reading at week start",
+            "de": "Zählerstand bei Wochenbeginn",
+            "ru": "Чтение метра в начале недели",
+            "pt": "Leitura do medidor no início da semana",
+            "nl": "Meting van de meter bij aanvang van de week",
+            "fr": "Relevé du compteur au début de la semaine",
+            "it": "Lettura del contatore all'inizio della settimana",
+            "es": "Lectura de contadores al inicio de la semana.",
+            "pl": "Odczyt licznika na początku tygodnia",
+            "zh-cn": "一周开始读表"
         },
-        "Keep x amount of periode history": {
-            "en": "Keep x amount of periode history",
-            "de": "Behalte x den Zeitraum der Periode",
-            "ru": "Хранить х истории периодов",
-            "pt": "Manter x quantidade de histórico periode",
-            "nl": "Houd x hoeveelheid geschiedenis geschiedenis aan",
-            "fr": "Conserver x quantité d'historique de périodes",
-            "it": "Mantenere x la quantità di cronologia di periode",
-            "es": "Mantener x cantidad de historia de periode",
-            "pl": "Zachowaj x ilość historii periody",
-            "zh-cn": "保持x量的periode历史"
-        },
-        "Meter History": {
-            "en": "Meter History",
-            "de": "Messprotokoll",
-            "ru": "Метр истории",
-            "pt": "História do Medidor",
-            "nl": "Meter geschiedenis",
-            "fr": "Histoire du compteur",
-            "it": "Meter History",
-            "es": "Historia del medidor",
-            "pl": "Historia licznika",
-            "zh-cn": "仪表历史"
-        },
-        "Keep states of meter by end of day": {
-            "en": "Keep states of meter by end of day",
-            "de": "Die Zählerstände bis zum Ende des Tages beibehalten",
-            "ru": "Сохраняйте состояния счетчика к концу дня",
-            "pt": "Mantenha os estados do medidor até o final do dia",
-            "nl": "Houd de toestand van de meter aan het einde van de dag",
-            "fr": "Garder les états de mètre en fin de journée",
-            "it": "Mantenere gli stati del contatore per fine giornata",
-            "es": "Mantener estados de metro al final del día.",
-            "pl": "Przechowuj stany licznika do końca dnia",
-            "zh-cn": "保持仪表状态到一天结束"
-        },
-        "Advance settings for cost calculation": {
-            "en": "Advance settings for cost calculation",
-            "de": "Voreinstellungen für die Kostenberechnung",
-            "ru": "Расширенные настройки для расчета стоимости",
-            "pt": "Configurações avançadas para cálculo de custos",
-            "nl": "Voorinstellingen voor kostenberekening",
-            "fr": "Paramètres avancés pour le calcul des coûts",
-            "it": "Impostazioni avanzate per il calcolo dei costi",
-            "es": "Ajustes anticipados para el cálculo de costes.",
-            "pl": "Ustawienia zaawansowane do obliczania kosztów",
-            "zh-cn": "提前计算成本"
-        },
-        "hours award": {
-            "en": "price per unit",
-            "de": "Preis pro Einheit",
-            "ru": "цена за единицу",
-            "pt": "preço por unidade",
-            "nl": "prijs per eenheid",
-            "fr": "prix par unité",
-            "it": "prezzo per unità",
-            "es": "precio por unidad",
-            "pl": "Cena za jednostkę",
-            "zh-cn": "每单位价格"
-        },
-        "cost price": {
-            "en": "Cost price per month",
-            "de": "Kostenpreis pro Monat",
-            "ru": "Себестоимость в месяц",
-            "pt": "Preço de custo por mês",
-            "nl": "Kostprijs per maand",
-            "fr": "Prix ​​de revient par mois",
-            "it": "Prezzo di costo al mese",
-            "es": "Precio de costo por mes",
-            "pl": "Koszt za miesiąc",
-            "zh-cn": "每月成本价格"
-        },
-        "monthly payment": {
-            "en": "monthly payment",
-            "de": "Monatliche Bezahlung",
-            "ru": "ежемесячный платеж",
-            "pt": "pagamento mensal",
-            "nl": "maandelijkse betaling",
-            "fr": "paiement mensuel",
-            "it": "pagamento mensile",
-            "es": "mensualidad",
-            "pl": "miesięczna płatność",
-            "zh-cn": "每月支付"
-        },
-        "Advance settings for start values": {
-            "en": "Advance settings for start values",
-            "de": "Voreinstellungen für Startwerte",
-            "ru": "Расширенные настройки для начальных значений",
-            "pt": "Configurações avançadas para valores iniciais",
-            "nl": "Voorinstellingen voor startwaarden",
-            "fr": "Paramètres avancés pour les valeurs de départ",
-            "it": "Impostazioni avanzate per i valori iniziali",
-            "es": "Ajustes anticipados para valores iniciales",
-            "pl": "Ustawienia zaawansowane dla wartości początkowych",
-            "zh-cn": "提前设置起始值"
-        },
-        "Counter reading day start": {
-            "en": "Counter reading day start",
-            "de": "Zählerstand beginnt",
-            "ru": "Начало дня чтения счетчика",
-            "pt": "Início do dia da leitura do contador",
-            "nl": "Startdag teller starten",
-            "fr": "Compteur lecture jour",
-            "it": "Inizio della lettura del contatore",
-            "es": "Inicio del día de la lectura del contador",
-            "pl": "Początek czytania licznika",
-            "zh-cn": "柜台阅读日开始"
-        },
-        "Meter reading start of week": {
-            "en": "Meter reading start of week",
-            "de": "Ablesewert Beginn der Woche",
-            "ru": "Чтение метра начало недели",
-            "pt": "Leitura do medidor início da semana",
-            "nl": "Meterstand begin van de week",
-            "fr": "Lecture du compteur en début de semaine",
-            "it": "Inizio lettura contatore della settimana",
-            "es": "Lectura del medidor inicio de semana.",
-            "pl": "Odczyt licznika rozpoczyna się w tygodniu",
-            "zh-cn": "仪表读数开始一周"
-        },
-        "Meter reading at the beginning of the month": {
-            "en": "Meter reading at the beginning of the month",
-            "de": "Zählerstand am Monatsanfang",
+        "Meter reading at month start": {
+            "en": "Meter reading at month start",
+            "de": "Zählerstand bei Monatsbeginn",
             "ru": "Чтение метра в начале месяца",
             "pt": "Leitura do medidor no início do mês",
-            "nl": "Meterstand aan het begin van de maand",
-            "fr": "Relevé de compteur au début du mois",
+            "nl": "Meting van de meter bij het begin van de maand",
+            "fr": "Relevé du compteur au début du mois",
             "it": "Lettura del contatore all'inizio del mese",
-            "es": "Lectura de contadores a principios de mes.",
-            "pl": "Odczyt miernika na początku miesiąca",
-            "zh-cn": "仪表读数在月初"
+            "es": "Lectura del medidor al inicio del mes",
+            "pl": "Odczyt licznika na początku miesiąca",
+            "zh-cn": "仪表读数月开始"
         },
-        "Meter reading quarterly beginning": {
-            "en": "Meter reading quarterly beginning",
-            "de": "Beginn des Zählerstandes vierteljährlich",
-            "ru": "Чтение метра квартальное начало",
-            "pt": "Leitura trimestral de trimestres",
-            "nl": "Meter die driemaandelijks begint te lezen",
-            "fr": "Relevé du compteur trimestriel",
-            "it": "Contatore che legge l'inizio trimestrale",
-            "es": "Medidor de lectura trimestral a partir",
-            "pl": "Odczyt miernika od początku kwartału",
-            "zh-cn": "仪表每季度开始阅读"
+        "Meter reading at quarter start": {
+            "en": "Meter reading at quarter start",
+            "de": "Zählerstand bei Quartalbeginn",
+            "ru": "Показания счетчика в начале квартала",
+            "pt": "Leitura do medidor no início do trimestre",
+            "nl": "Meting van de meter bij KWARTAAL start",
+            "fr": "Relevé du compteur au début du quart",
+            "it": "Lettura del contatore all'inizio del trimestre",
+            "es": "Lectura del medidor al inicio del trimestre",
+            "pl": "Odczyt miernika na początku kwartału",
+            "zh-cn": "仪表读数在四分之一开始"
         },
-        "Meter reading at the beginning of the year": {
-            "en": "Meter reading at the beginning of the year",
-            "de": "Zählerstand zu Jahresbeginn",
-            "ru": "Чтение метра в начале года",
+        "Meter reading at year start": {
+            "en": "Meter reading at year start",
+            "de": "Zählerstand bei Jahresbeginn",
+            "ru": "Показания счетчика в начале года",
             "pt": "Leitura do medidor no início do ano",
-            "nl": "Meterstand aan het begin van het jaar",
-            "fr": "Relevé de compteur en début d'année",
+            "nl": "Meterstand bij start van het jaar",
+            "fr": "Relevé du compteur au début de l'année",
             "it": "Lettura del contatore all'inizio dell'anno",
-            "es": "Lectura de contadores a principios de año.",
+            "es": "Lectura de contadores al inicio del año.",
             "pl": "Odczyt miernika na początku roku",
-            "zh-cn": "米读在年初"
+            "zh-cn": "米读数年开始"
         },
-        "Advance settings for periode to store": {
-            "en": "Advance settings for periode to store",
-            "de": "Voreinstellungen für die zu speichernde Periode",
-            "ru": "Предварительные настройки для хранения периода",
-            "pt": "Configurações avançadas para periode para armazenar",
-            "nl": "Voorinstellingen voor de periode die moet worden opgeslagen",
-            "fr": "Paramètres avancés pour la période à stocker",
-            "it": "Impostazioni avanzate per periodo da memorizzare",
-            "es": "Configuraciones avanzadas para periode para almacenar",
-            "pl": "Wcześniejsze ustawienia do przechowywania w oknach",
-            "zh-cn": "预先存储periode的设置"
+        "Measurement type": {
+            "en": "Measurement type",
+            "de": "Messart",
+            "ru": "Тип измерения",
+            "pt": "Tipo de medição",
+            "nl": "Meettype",
+            "fr": "Type de mesure",
+            "it": "Tipo di misura",
+            "es": "Tipo de medida",
+            "pl": "Rodzaj pomiaru",
+            "zh-cn": "测量类型"
         },
-        "Keep x amount of day's": {
-            "en": "Keep x amount of day's",
-            "de": "Behalten Sie x Tagesmenge",
-            "ru": "Держите х количество дня",
-            "pt": "Manter x quantidade de dias",
-            "nl": "Houd x aantal dagen bij",
-            "fr": "Gardez x quantité de jour",
-            "it": "Mantieni x quantità di giorni",
-            "es": "Mantener x cantidad de dia",
-            "pl": "Zachowaj x ilość dnia",
-            "zh-cn": "保持x天数"
+        "Leave empty to use device name": {
+            "en": "Leave empty to use device name",
+            "de": "Lassen Sie das Feld leer, um den Gerätenamen zu verwenden",
+            "ru": "Оставьте пустым, чтобы использовать имя устройства",
+            "pt": "Deixe em branco para usar o nome do dispositivo",
+            "nl": "Laat leeg om de apparaatnaam te gebruiken",
+            "fr": "Laisser vide pour utiliser le nom de périphérique",
+            "it": "Lascia vuoto per usare il nome del dispositivo",
+            "es": "Deje vacío para usar el nombre del dispositivo",
+            "pl": "Pozostaw puste, aby użyć nazwy urządzenia",
+            "zh-cn": "留空以使用设备名称"
         },
-        "Keep x amount of week's": {
-            "en": "Keep x amount of week's",
-            "de": "Behalten Sie x Menge der Woche",
-            "ru": "Держите х количество недели",
-            "pt": "Mantenha x quantidade de semana",
-            "nl": "Houd x aantal van de week",
-            "fr": "Gardez x quantité de la semaine",
-            "it": "Mantiene x l'importo della settimana",
-            "es": "Mantener x cantidad de semana",
-            "pl": "Zachowaj x ilość tygodni",
-            "zh-cn": "保持x周的数量"
+        "Gas": {
+            "en": "Gas",
+            "de": "Gas",
+            "ru": "газ",
+            "pt": "Gás",
+            "nl": "Gas",
+            "fr": "Gaz",
+            "it": "Gas",
+            "es": "Gas",
+            "pl": "Gaz",
+            "zh-cn": "加油站"
+            },
+            "Water": {
+            "en": "Water",
+            "de": "Wasser",
+            "ru": "вода",
+            "pt": "agua",
+            "nl": "Water",
+            "fr": "Eau",
+            "it": "acqua",
+            "es": "Agua",
+            "pl": "woda",
+            "zh-cn": "水"
+            },
+            "Oil": {
+            "en": "Oil",
+            "de": "Öl",
+            "ru": "масло",
+            "pt": "Óleo",
+            "nl": "Olie",
+            "fr": "Pétrole",
+            "it": "Olio",
+            "es": "Petróleo",
+            "pl": "Olej",
+            "zh-cn": "油"
         },
-        "Keep x amount of month's": {
-            "en": "Keep x amount of month's",
-            "de": "Behalten Sie x Menge des Monats",
-            "ru": "Держите х количество месяца",
-            "pt": "Mantenha a quantia x do mês",
-            "nl": "Houd x aantal maanden bij",
-            "fr": "Gardez x quantité de mois",
-            "it": "Mantiene x l'importo del mese",
-            "es": "Mantener x cantidad de mes",
-            "pl": "Zachowaj x ilość miesięcy",
-            "zh-cn": "保持x月份的数量"
+        "Electricity consumption": {
+            "en": "Electricity consumption",
+            "de": "Stromverbrauch",
+            "ru": "Потребление электроэнергии",
+            "pt": "Consumo elétrico",
+            "nl": "Elektriciteitsverbruik",
+            "fr": "La consommation d'électricité",
+            "it": "Consumo elettrico",
+            "es": "Consumo de electricidad",
+            "pl": "Pobór prądu",
+            "zh-cn": "用电量"
         },
-        "Keep x amount of quarter's": {
-            "en": "Keep x amount of quarter's",
-            "de": "Behalte x Menge des Viertels",
-            "ru": "Держите х количество четверти",
-            "pt": "Mantenha x quantidade de trimestres",
-            "nl": "Houd x aantal kwartalen",
-            "fr": "Gardez x nombre de quarts",
-            "it": "Mantiene x l'importo del trimestre",
-            "es": "Mantener x cantidad de cuartos",
-            "pl": "Zachowaj x ilość kwartałów",
-            "zh-cn": "保持x季度的数量"
-        },
-        "Keep x amount of year's": {
-            "en": "Keep x amount of year's",
-            "de": "X Menge des Jahres einbehalten",
-            "ru": "Держите х количество года",
-            "pt": "Mantenha x quantidade de ano",
-            "nl": "Houd x aantal jaar's bij",
-            "fr": "Gardez x montant de l'année",
-            "it": "Mantiene la quantità x dell'anno",
-            "es": "Mantener x cantidad de año",
-            "pl": "Zachowaj x ilość roku",
-            "zh-cn": "保持x年份的数量"
-        },
-        "delivery": {
-            "en": "delivery",
-            "de": "Lieferung",
-            "ru": "Доставка",
-            "pt": "Entrega",
-            "nl": "levering",
-            "fr": "livraison",
-            "it": "consegna",
-            "es": "entrega",
-            "pl": "dostawa",
-            "zh-cn": "交货"
-        },
-        "Activate to calculate earnings": {
-            "Activate to calculate earnings": {
-                "en": "Activate to calculate earnings",
-                "de": "Aktivieren Sie diese Option, um das Einkommen zu berechnen",
-                "ru": "Активировать для расчета заработка",
-                "pt": "Ativar para calcular ganhos",
-                "nl": "Activeer om de inkomsten te berekenen",
-                "fr": "Activer pour calculer les revenus",
-                "it": "Attiva per calcolare le entrate",
-                "es": "Activar para calcular ganancias.",
-                "pl": "Aktywuj, aby obliczyć zarobki",
-                "zh-cn": "激活以计算收入"
-            }
-        }        
+        "Electricity delivery": {
+            "en": "Electricity delivery",
+            "de": "Stromlieferung",
+            "ru": "Доставка электричества",
+            "pt": "Entrega de eletricidade",
+            "nl": "Levering van elektriciteit",
+            "fr": "Livraison de l'électricité",
+            "it": "Consegna di energia elettrica",
+            "es": "Entrega de electricidad",
+            "pl": "Dostawa energii elektrycznej",
+            "zh-cn": "电力交付"
+        } 
     });
 </script>
