@@ -34,12 +34,12 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] recalcalation based on meter values (configurable by date)
 * [ ] ensure all values are stored when adapter shuts down to prevent data gaps
 * [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
-* [ ] configurable data points (yes/no) for cost and meter-values
 * [ ] calculations for quarter values
-* [ ] code optimalisation
 * [ ] storage of meter values for every state
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
+* [ ] Make it selectable to store analytics for complete year or only selectable periode.33
 * [ ] compact mode
+* [ ] code optimalisation
 * [x] add support for calculation of wh values
 * [x] Fix basic translations
 * [x] ready state values and store to states
@@ -58,6 +58,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [x] delete temporary states for calculations
 * [x] calculation for m3 values
 * [x] use alias of device name
+* [x] configurable data points (yes/no) for cost, consumption and meter-values
 
 ## Changelog
 
@@ -67,14 +68,20 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * (Dutchman) improved message at adapter konfiguration
 * (Dutchman) changed logo
 
-### 0.1.5
+### 0.1.6
 * (Dutchman) fix data reset for quarter values (thank you Jens !)
 * (Dutchman) fix usage of alias
+* (Dutchman) fixed issue in calculation of earnings and delivery
+* (Dutchman) logging improvement
+
+### 0.1.5
+* (Dutchman) improved state write logic, only sent write commando when needed
+* (Dutchman) fix log messages
 * (Dutchman) calculation for m3 values
 * (Dutchman) calculation for l values
+
+### 0.1.3
 * (Dutchman) add support for calculation of Wh values
-* (Dutchman) improved state write logic (monitoring of delivery is possible now :-) 
-* (Dutchman) fix log messages
 
 ### 0.1.0
 * (Dutchman) first public beta release
