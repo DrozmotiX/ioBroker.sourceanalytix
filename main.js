@@ -6,7 +6,7 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const history    = {};
 const aliasMap   = {};
-const logging = false;
+const logging = true;
 
 // Time Modules
 const cron = require('node-cron'); // Cron Scheduler

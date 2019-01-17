@@ -26,6 +26,66 @@ systemDictionary = {
 		"pl": "Przegląd roczny (zalecane)",
 		"zh-cn": "年度概览（推荐）"
 	  },
+	  "Days": {
+		"en": "Days",
+		"de": "Tage",
+		"ru": "дней",
+		"pt": "Dias",
+		"nl": "Dagen",
+		"fr": "Journées",
+		"it": "giorni",
+		"es": "Dias",
+		"pl": "Dni",
+		"zh-cn": "天"
+	  },
+	  "Weeks": {
+		"en": "Weeks",
+		"de": "Wochen",
+		"ru": "Недели",
+		"pt": "Semanas",
+		"nl": "Weken",
+		"fr": "Semaines",
+		"it": "settimane",
+		"es": "Semanas",
+		"pl": "Tygodnie",
+		"zh-cn": "周"
+	  },
+	  "Months": {
+		"en": "Months",
+		"de": "Monate",
+		"ru": "Месяцы",
+		"pt": "Meses",
+		"nl": "Maanden",
+		"fr": "Mois",
+		"it": "mesi",
+		"es": "Meses",
+		"pl": "Miesięcy",
+		"zh-cn": "月"
+	  },
+	  "Quarter": {
+		"en": "Quarters",
+		"de": "Quartale",
+		"ru": "четверть",
+		"pt": "Trimestre",
+		"nl": "Kwartaalen",
+		"fr": "Trimestre",
+		"it": "Trimestre",
+		"es": "Trimestre",
+		"pl": "Jedna czwarta",
+		"zh-cn": "25美分硬币"
+	  },
+	  "Years": {
+		"en": "Years",
+		"de": "Jahre",
+		"ru": "лет",
+		"pt": "Anos",
+		"nl": "Jaren",
+		"fr": "Années",
+		"it": "Anni",
+		"es": "Años",
+		"pl": "Lata",
+		"zh-cn": "年份"
+	  },
 	  "period of time": {
 		"en": "period of time",
 		"de": "Zeiträume",
@@ -133,18 +193,6 @@ systemDictionary = {
 		"es": "Ajustes anticipados para el cálculo de costes.",
 		"pl": "Ustawienia zaawansowane do obliczania kosztów",
 		"zh-cn": "提前计算成本"
-	},
-	"hours award": {
-		"en": "price per unit",
-		"de": "Preis pro Einheit",
-		"ru": "цена за единицу",
-		"pt": "preço por unidade",
-		"nl": "prijs per eenheid",
-		"fr": "prix par unité",
-		"it": "prezzo per unità",
-		"es": "precio por unidad",
-		"pl": "Cena za jednostkę",
-		"zh-cn": "每单位价格"
 	},
 	"Electricity": {
 		"en": "Electricity",
@@ -254,7 +302,7 @@ systemDictionary = {
 		"pl": "Gaz",
 		"zh-cn": "加油站"
 		},
-		"Water": {
+	"Water": {
 		"en": "Water",
 		"de": "Wasser",
 		"ru": "вода",
@@ -266,7 +314,7 @@ systemDictionary = {
 		"pl": "woda",
 		"zh-cn": "水"
 		},
-		"Oil": {
+	"Oil": {
 		"en": "Oil",
 		"de": "Öl",
 		"ru": "масло",
@@ -289,5 +337,196 @@ systemDictionary = {
 		"es": "Beneficio por unidad (€/kWh)",
 		"pl": "Zysk na jednostkę (€/kWh)",
 		"zh-cn": "每单位利润（欧元/千瓦时）"
-	}
+	},
+	"Alias": {
+		"en": "Alias",
+		"de": "Alias",
+		"ru": "Имя",
+		"pt": "Alias",
+		"nl": "Alias",
+		"fr": "Alias",
+		"it": "Alias",
+		"es": "Alias",
+		"pl": "Alias"
+	},
+	"Measurement type": {
+		"en": "Measurement type",
+		"de": "Messart",
+		"ru": "Тип измерения",
+		"pt": "Tipo de medição",
+		"nl": "Meettype",
+		"fr": "Type de mesure",
+		"it": "Tipo di misura",
+		"es": "Tipo de medida",
+		"pl": "Rodzaj pomiaru",
+		"zh-cn": "测量类型"
+	},
+	"What should be evaluated": {
+		"en": "What should be evaluated",
+		"de": "Was soll ausgewertet werden",
+		"ru": "Что следует оценивать",
+		"pt": "O que deve ser avaliado",
+		"nl": "Wat moet worden geëvalueerd",
+		"fr": "Ce qui devrait être évalué",
+		"it": "Cosa dovrebbe essere valutato",
+		"es": "Qué se debe evaluar",
+		"pl": "Co należy ocenić",
+		"zh-cn": "应该评估什么"
+	},
+	"Costs": {
+		"en": "Costs",
+		"de": "Kosten",
+		"ru": "Расходы",
+		"pt": "Custos",
+		"nl": "Kosten",
+		"fr": "Frais",
+		"it": "Costi",
+		"es": "Los costos",
+		"pl": "Koszty",
+		"zh-cn": "成本"
+	},
+	"(including basic charge)": {
+		"en": "(including basic charge)",
+		"de": "(inklusive Grundgebühr)",
+		"ru": "(включая базовую плату)",
+		"pt": "(incluindo carga básica)",
+		"nl": "(inclusief basiskosten)",
+		"fr": "(frais de base compris)",
+		"it": "(compresa la tassa di base)",
+		"es": "(Incluye cargo básico)",
+		"pl": "(w tym opłata podstawowa)",
+		"zh-cn": "（包括基本费用）"
+	  },
+	  "(without basic charge)": {
+		"en": "(without basic charge)",
+		"de": "(ohne Grundgebühr)",
+		"ru": "(без основной платы)",
+		"pt": "(sem carga básica)",
+		"nl": "(zonder basiskosten)",
+		"fr": "(sans frais de base)",
+		"it": "(senza spese di base)",
+		"es": "(sin cargo básico)",
+		"pl": "(bez opłaty podstawowej)",
+		"zh-cn": "（没有基本费用）"
+	},
+	"consumption": {
+		"en": "consumption",
+		"de": "Verbrauch",
+		"ru": "потребление",
+		"pt": "consumo",
+		"nl": "consumptie",
+		"fr": "consommation",
+		"it": "consumo",
+		"es": "consumo",
+		"pl": "konsumpcja",
+		"zh-cn": "消费"
+	},
+	"counter values": {
+		"en": "counter values",
+		"de": "Zählerwerte",
+		"ru": "значения счетчиков",
+		"pt": "valores de contador",
+		"nl": "teller waarden",
+		"fr": "contre-valeurs",
+		"it": "Contatore valori",
+		"es": "valores de contador",
+		"pl": "wartości liczników",
+		"zh-cn": "反价值"
+	},
+	"Meter reading at day start": {
+		"en": "Meter reading at day start",
+		"de": "Zählerstand bei Tagesbeginn",
+		"ru": "Чтение метра в начале дня",
+		"pt": "Leitura do medidor no início do dia",
+		"nl": "Meting van de meter bij het begin van de dag",
+		"fr": "Relevé du compteur en début de journée",
+		"it": "Lettura del contatore all'inizio del giorno",
+		"es": "Lectura de contadores al comienzo del día.",
+		"pl": "Odczyt licznika na początku dnia",
+		"zh-cn": "仪表在一天开始阅读"
+	},
+	"Meter reading at week start": {
+		"en": "Meter reading at week start",
+		"de": "Zählerstand bei Wochenbeginn",
+		"ru": "Чтение метра в начале недели",
+		"pt": "Leitura do medidor no início da semana",
+		"nl": "Meting van de meter bij aanvang van de week",
+		"fr": "Relevé du compteur au début de la semaine",
+		"it": "Lettura del contatore all'inizio della settimana",
+		"es": "Lectura de contadores al inicio de la semana.",
+		"pl": "Odczyt licznika na początku tygodnia",
+		"zh-cn": "一周开始读表"
+	},
+	"Meter reading at month start": {
+		"en": "Meter reading at month start",
+		"de": "Zählerstand bei Monatsbeginn",
+		"ru": "Чтение метра в начале месяца",
+		"pt": "Leitura do medidor no início do mês",
+		"nl": "Meting van de meter bij het begin van de maand",
+		"fr": "Relevé du compteur au début du mois",
+		"it": "Lettura del contatore all'inizio del mese",
+		"es": "Lectura del medidor al inicio del mes",
+		"pl": "Odczyt licznika na początku miesiąca",
+		"zh-cn": "仪表读数月开始"
+	},
+	"Meter reading at quarter start": {
+		"en": "Meter reading at quarter start",
+		"de": "Zählerstand bei Quartalbeginn",
+		"ru": "Показания счетчика в начале квартала",
+		"pt": "Leitura do medidor no início do trimestre",
+		"nl": "Meting van de meter bij KWARTAAL start",
+		"fr": "Relevé du compteur au début du quart",
+		"it": "Lettura del contatore all'inizio del trimestre",
+		"es": "Lectura del medidor al inicio del trimestre",
+		"pl": "Odczyt miernika na początku kwartału",
+		"zh-cn": "仪表读数在四分之一开始"
+	},
+	"Meter reading at year start": {
+		"en": "Meter reading at year start",
+		"de": "Zählerstand bei Jahresbeginn",
+		"ru": "Показания счетчика в начале года",
+		"pt": "Leitura do medidor no início do ano",
+		"nl": "Meterstand bij start van het jaar",
+		"fr": "Relevé du compteur au début de l'année",
+		"it": "Lettura del contatore all'inizio dell'anno",
+		"es": "Lectura de contadores al inicio del año.",
+		"pl": "Odczyt miernika na początku roku",
+		"zh-cn": "米读数年开始"
+	},
+	"Electricity consumption": {
+		"en": "Electricity consumption",
+		"de": "Stromverbrauch",
+		"ru": "Потребление электроэнергии",
+		"pt": "Consumo elétrico",
+		"nl": "Elektriciteitsverbruik",
+		"fr": "La consommation d'électricité",
+		"it": "Consumo elettrico",
+		"es": "Consumo de electricidad",
+		"pl": "Pobór prądu",
+		"zh-cn": "用电量"
+	},
+	"Electricity delivery": {
+		"en": "Electricity delivery",
+		"de": "Stromlieferung",
+		"ru": "Доставка электричества",
+		"pt": "Entrega de eletricidade",
+		"nl": "Levering van elektriciteit",
+		"fr": "Livraison de l'électricité",
+		"it": "Consegna di energia elettrica",
+		"es": "Entrega de electricidad",
+		"pl": "Dostawa energii elektrycznej",
+		"zh-cn": "电力交付"
+	},
+	"Please enter start values": {
+		"en": "Please enter start values",
+		"de": "Bitte geben Sie die Startwerte ein",
+		"ru": "Пожалуйста, введите начальные значения",
+		"pt": "Por favor insira os valores iniciais",
+		"nl": "Voer de startwaarden in",
+		"fr": "S'il vous plaît entrer les valeurs de départ",
+		"it": "Si prega di inserire i valori iniziali",
+		"es": "Por favor ingrese los valores iniciales",
+		"pl": "Wprowadź wartości początkowe",
+		"zh-cn": "请输入起始值"
+	  }
 };

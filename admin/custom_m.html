@@ -16,14 +16,13 @@
         </div>            
         <div class="input-field col s4">
             <select class="value" id="language">
-                <option value="kWh">Electricity consumption</option>
-                <option value="Wh">Electricity delivery</option>
-                <option value="Wh">Electricity production</option>
-                <option value="gas">Gas</option>
-                <option value="water_m3">Water</option>
-                <option value="oil_m3">Oil</option>
+                <option value="kWh" class="translate">Electricity consumption</option>
+                <option value="Wh" class="translate">Electricity delivery</option>
+                <option value="gas" class="translate">Gas</option>
+                <option value="water_m3" class="translate">Water</option>
+                <option value="oil_m3" class="translate">Oil</option>
             </select>
-            <label for="language" class="translate">Meassurement type</label>
+            <label for="language" class="translate">Measurement type</label>
         </div>
     </div>
     <div class="section">
@@ -31,16 +30,32 @@
         <h6 class="translate">What should be evaluated</h6>
     </div>
         <div class="row">
+            <!--
             <div class="input-field col s1">
             </div>
+            -->
+            <div class="input-field col s2">
+                <input type="checkbox" data-field="costs" data-default="false"/>
+                <span class="translate">Costs</span>
+            </div>
+
+            <div class="switch col s4">
+                <label>
+                    (without basic charge)
+                <input type="checkbox">
+                <span class="lever"></span>
+                    (including basic charge)
+                </label>
+            </div>
+
+            
+            <!--
             <div class="input-field col s3">
                 <input type="checkbox" data-field="costs" data-default="false"/>
-                <span class="translate">Costs (including basic charge)</span>
+                <span class="translate">(without basic charge)</span>
             </div>
-            <div class="input-field col s3">
-                <input type="checkbox" data-field="costs" data-default="false"/>
-                <span class="translate">Costs (without basic charge)</span>
-            </div>
+            -->
+            
             <div class="input-field col s2">
                 <input type="checkbox" data-field="consumption" data-default="false"/>
                 <span class="translate">consumption</span>
@@ -85,233 +100,10 @@
 
 <!-- translations to-do = ALL !-->
 <script type="text/javascript">
-    systemDictionary = $.extend(systemDictionary, {
-        "Alias": {
-            "en": "Alias",
-            "de": "Alias",
-            "ru": "Имя",
-            "pt": "Alias",
-            "nl": "Alias",
-            "fr": "Alias",
-            "it": "Alias",
-            "es": "Alias",
-            "pl": "Alias"
-        },
-        "enabled": {
-            "en": "enabled",
-            "de": "aktiviert",
-            "ru": "включен",
-            "pt": "ativado",
-            "nl": "ingeschakeld",
-            "fr": "activée",
-            "it": "abilitato",
-            "es": "habilitado",
-            "pl": "włączony",
-            "zh-cn": "启用"
-        },
-        "What should be evaluated": {
-            "en": "What should be evaluated",
-            "de": "Was soll ausgewertet werden",
-            "ru": "Что следует оценивать",
-            "pt": "O que deve ser avaliado",
-            "nl": "Wat moet worden geëvalueerd",
-            "fr": "Ce qui devrait être évalué",
-            "it": "Cosa dovrebbe essere valutato",
-            "es": "Qué se debe evaluar",
-            "pl": "Co należy ocenić",
-            "zh-cn": "应该评估什么"
-        },
-        "Costs (including basic charge)": {
-            "en": "Costs (including basic charge)",
-            "de": "Kosten (einschließlich Grundgebühr)",
-            "ru": "Расходы (включая базовую плату)",
-            "pt": "Custos (incluindo taxa básica)",
-            "nl": "Kosten (inclusief basiskosten)",
-            "fr": "Frais (frais de base compris)",
-            "it": "Costi (inclusa la tariffa di base)",
-            "es": "Costos (incluido el cargo básico)",
-            "pl": "Koszty (w tym opłata podstawowa)",
-            "zh-cn": "费用（包括基本费用）"
-        },
-        "Costs (without basic charge)": {
-            "en": "Costs (without basic charge)",
-            "de": "Kosten (ohne Grundgebühr)",
-            "ru": "Расходы (без основной платы)",
-            "pt": "Custos (sem taxa básica)",
-            "nl": "Kosten (zonder basiskosten)",
-            "fr": "Coûts (sans frais de base)",
-            "it": "Costi (senza spese di base)",
-            "es": "Costes (sin cargo básico)",
-            "pl": "Koszty (bez opłaty podstawowej)",
-            "zh-cn": "费用（无基本费用）"
-        },
-        "consumption": {
-            "en": "consumption",
-            "de": "Verbrauch",
-            "ru": "потребление",
-            "pt": "consumo",
-            "nl": "consumptie",
-            "fr": "consommation",
-            "it": "consumo",
-            "es": "consumo",
-            "pl": "konsumpcja",
-            "zh-cn": "消费"
-        },
-        "counter values": {
-            "en": "counter values",
-            "de": "Zählerwerte",
-            "ru": "значения счетчиков",
-            "pt": "valores de contador",
-            "nl": "teller waarden",
-            "fr": "contre-valeurs",
-            "it": "Contatore valori",
-            "es": "valores de contador",
-            "pl": "wartości liczników",
-            "zh-cn": "反价值"
-        },
-        "Meter reading at day start": {
-            "en": "Meter reading at day start",
-            "de": "Zählerstand bei Tagesbeginn",
-            "ru": "Чтение метра в начале дня",
-            "pt": "Leitura do medidor no início do dia",
-            "nl": "Meting van de meter bij het begin van de dag",
-            "fr": "Relevé du compteur en début de journée",
-            "it": "Lettura del contatore all'inizio del giorno",
-            "es": "Lectura de contadores al comienzo del día.",
-            "pl": "Odczyt licznika na początku dnia",
-            "zh-cn": "仪表在一天开始阅读"
-        },
-        "Meter reading at week start": {
-            "en": "Meter reading at week start",
-            "de": "Zählerstand bei Wochenbeginn",
-            "ru": "Чтение метра в начале недели",
-            "pt": "Leitura do medidor no início da semana",
-            "nl": "Meting van de meter bij aanvang van de week",
-            "fr": "Relevé du compteur au début de la semaine",
-            "it": "Lettura del contatore all'inizio della settimana",
-            "es": "Lectura de contadores al inicio de la semana.",
-            "pl": "Odczyt licznika na początku tygodnia",
-            "zh-cn": "一周开始读表"
-        },
-        "Meter reading at month start": {
-            "en": "Meter reading at month start",
-            "de": "Zählerstand bei Monatsbeginn",
-            "ru": "Чтение метра в начале месяца",
-            "pt": "Leitura do medidor no início do mês",
-            "nl": "Meting van de meter bij het begin van de maand",
-            "fr": "Relevé du compteur au début du mois",
-            "it": "Lettura del contatore all'inizio del mese",
-            "es": "Lectura del medidor al inicio del mes",
-            "pl": "Odczyt licznika na początku miesiąca",
-            "zh-cn": "仪表读数月开始"
-        },
-        "Meter reading at quarter start": {
-            "en": "Meter reading at quarter start",
-            "de": "Zählerstand bei Quartalbeginn",
-            "ru": "Показания счетчика в начале квартала",
-            "pt": "Leitura do medidor no início do trimestre",
-            "nl": "Meting van de meter bij KWARTAAL start",
-            "fr": "Relevé du compteur au début du quart",
-            "it": "Lettura del contatore all'inizio del trimestre",
-            "es": "Lectura del medidor al inicio del trimestre",
-            "pl": "Odczyt miernika na początku kwartału",
-            "zh-cn": "仪表读数在四分之一开始"
-        },
-        "Meter reading at year start": {
-            "en": "Meter reading at year start",
-            "de": "Zählerstand bei Jahresbeginn",
-            "ru": "Показания счетчика в начале года",
-            "pt": "Leitura do medidor no início do ano",
-            "nl": "Meterstand bij start van het jaar",
-            "fr": "Relevé du compteur au début de l'année",
-            "it": "Lettura del contatore all'inizio dell'anno",
-            "es": "Lectura de contadores al inicio del año.",
-            "pl": "Odczyt miernika na początku roku",
-            "zh-cn": "米读数年开始"
-        },
-        "Measurement type": {
-            "en": "Measurement type",
-            "de": "Messart",
-            "ru": "Тип измерения",
-            "pt": "Tipo de medição",
-            "nl": "Meettype",
-            "fr": "Type de mesure",
-            "it": "Tipo di misura",
-            "es": "Tipo de medida",
-            "pl": "Rodzaj pomiaru",
-            "zh-cn": "测量类型"
-        },
-        "Leave empty to use device name": {
-            "en": "Leave empty to use device name",
-            "de": "Lassen Sie das Feld leer, um den Gerätenamen zu verwenden",
-            "ru": "Оставьте пустым, чтобы использовать имя устройства",
-            "pt": "Deixe em branco para usar o nome do dispositivo",
-            "nl": "Laat leeg om de apparaatnaam te gebruiken",
-            "fr": "Laisser vide pour utiliser le nom de périphérique",
-            "it": "Lascia vuoto per usare il nome del dispositivo",
-            "es": "Deje vacío para usar el nombre del dispositivo",
-            "pl": "Pozostaw puste, aby użyć nazwy urządzenia",
-            "zh-cn": "留空以使用设备名称"
-        },
-        "Gas": {
-            "en": "Gas",
-            "de": "Gas",
-            "ru": "газ",
-            "pt": "Gás",
-            "nl": "Gas",
-            "fr": "Gaz",
-            "it": "Gas",
-            "es": "Gas",
-            "pl": "Gaz",
-            "zh-cn": "加油站"
-            },
-            "Water": {
-            "en": "Water",
-            "de": "Wasser",
-            "ru": "вода",
-            "pt": "agua",
-            "nl": "Water",
-            "fr": "Eau",
-            "it": "acqua",
-            "es": "Agua",
-            "pl": "woda",
-            "zh-cn": "水"
-            },
-            "Oil": {
-            "en": "Oil",
-            "de": "Öl",
-            "ru": "масло",
-            "pt": "Óleo",
-            "nl": "Olie",
-            "fr": "Pétrole",
-            "it": "Olio",
-            "es": "Petróleo",
-            "pl": "Olej",
-            "zh-cn": "油"
-        },
-        "Electricity consumption": {
-            "en": "Electricity consumption",
-            "de": "Stromverbrauch",
-            "ru": "Потребление электроэнергии",
-            "pt": "Consumo elétrico",
-            "nl": "Elektriciteitsverbruik",
-            "fr": "La consommation d'électricité",
-            "it": "Consumo elettrico",
-            "es": "Consumo de electricidad",
-            "pl": "Pobór prądu",
-            "zh-cn": "用电量"
-        },
-        "Electricity delivery": {
-            "en": "Electricity delivery",
-            "de": "Stromlieferung",
-            "ru": "Доставка электричества",
-            "pt": "Entrega de eletricidade",
-            "nl": "Levering van elektriciteit",
-            "fr": "Livraison de l'électricité",
-            "it": "Consegna di energia elettrica",
-            "es": "Entrega de electricidad",
-            "pl": "Dostawa energii elektrycznej",
-            "zh-cn": "电力交付"
-        } 
+
+$.get( "adapter/sourceanalytix/words.js", function(script) {
+    let translation = script.substring(script.indexOf('{'), script.length); 
+    translation = translation.substring(0, translation.lastIndexOf(';'));   
+    $.extend(systemDictionary, JSON.parse(translation));
     });
 </script>
