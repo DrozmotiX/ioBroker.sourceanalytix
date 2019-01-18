@@ -6,7 +6,8 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const history    = {};
 const aliasMap   = {};
-const logging = true;
+let state_set = [];
+let logging;
 
 // Time Modules
 const cron = require('node-cron'); // Cron Scheduler
@@ -16,7 +17,8 @@ const cron = require('node-cron'); // Cron Scheduler
 const adapter = utils.adapter({
 	name: "sourceanalytix",
 
-	ready: main, // Initializ all objetc at adapter start
+	// ready: main, // Initializ all objetc at adapter start
+	ready: update_states_all, // Initializ all objetc at adapter start
 
 	// is called when adapter shuts down - callback has to be called under any circumstances!
 	unload: (callback) => {
@@ -36,23 +38,19 @@ const adapter = utils.adapter({
 
 
 		try {
-			// // Start initializing & intervall when new object is added to SourceAnalytix
-			// if (obj.common.custom !== null  && obj.common.custom !== undefined) {
-			// 	// The object was changed
-			// 	const inst_name = adapter.namespace 
+			// Start initializing & intervall when new object is added to SourceAnalytix
+			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
+				// The object was changed
+				const inst_name = adapter.namespace; 
 
-			// 	adapter.log.info("new state : " + id + " added to SourceAnalytix")
+				adapter.log.info("new state : " + id + " added to SourceAnalytix");
 
-			// 	adapter.getForeignObject(id, function (err, obj){
-			// 		if (obj !== undefined && obj !== null){
-			// 			initialize(obj)
-			// 		}
-			// 	})
+				initialize(obj)
 
-			// } else {
-			// 	// The object was deleted
-			// 	// adapter.log.info(`object ${id} deleted`);
-			// }
+			} else {
+				// The object was deleted
+				// adapter.log.info(`object ${id} deleted`);
+			}
 		} catch (error) {
 				
 		}			
@@ -60,10 +58,14 @@ const adapter = utils.adapter({
 	
 });
 
-// Adapter hartbeat
-function main (){ 
-	// initialize all SourceAnalytix enabled states
-	adapter.log.info("SourceanAlytix startet, initializing all states");
+function update_states_all (){ 
+	// clean variable
+	state_set = [];
+	// Adopt logging setting from configuration
+	logging = adapter.config.developer_logging;
+	
+	// // initialize all SourceAnalytix enabled states
+	// adapter.log.info("Update state settings");
 	
 	// read all objects and get list of SourceAnalytix enabled states
 	adapter.objects.getObjectView('custom', 'state', {}, (err, doc) => {
@@ -95,45 +97,88 @@ function main (){
 						adapter.getForeignObject(id, function (err, obj){
 
 							if (obj !== undefined && obj !== null){
-								adapter.log.info('Activate SourceAnalytix for : ' + obj._id);
-								// create object structure and start interval
-								initialize(obj)
+								//  adapter.log.info('Activate SourceAnalytix for : ' + obj._id);
+								// Push item into variable array
+
+								// for 0.3.0 : Optimise, only run initialisation for newly added items not all
+								// build check to verify
+
+								state_set.push(JSON.stringify(obj));
+								initialize(obj);
+								// adapter.log.info(JSON.stringify(state_set));
 							}
 						})
 					}
 				}
-			}
+			}	
 		}
 	});	
-	
-	// adapter.subscribeForeignObjects("*");
+	adapter.subscribeForeignObjects("*");
+}
+
+// Initialise all states
+function test_initialise(){
+
+	for (const i in state_set){
+
+		if(logging === true){adapter.log.info(JSON.stringify(state_set[i]));};
+
+		initialize(state_set[i])
+
+	}
+
+	adapter.log.info(JSON.stringify(state_set))
 
 }
 
 // Create object tree and states for all devices to be handled
 function initialize(obj) {
 	const inst_name = adapter.namespace
+	
+	// adapter.log.info(JSON.stringify(obj));
+	adapter.log.info('Activate SourceAnalytix for : ' + obj._id);
 	// calculate interval from minutes to milliseconds
-	const interval = (obj.common.custom[inst_name].interval * 60000)
-	let unit = obj.common.unit;
+	const id = obj._id;
 	const obj_cust = obj.common.custom[inst_name];
+	const intervall = (adapter.config.intervall * 60000);
+	// adapter.log.info("Intervall : " + intervall);
+	let unit = obj.common.unit;
+	if(logging === true){adapter.log.info("Device : " + id + " with intervall : " + intervall + " and unit : " + unit);};
+	if(logging === true){adapter.log.info("instanze name : " + inst_name);};
+
+	// const obj_cust = adapter.config.custom;
+	if(logging === true){adapter.log.info(JSON.stringify(obj_cust));};
+
+	if(logging === true){adapter.log.info("Custom object tree : " + JSON.stringify(obj_cust));};
 
 	// Currently only support kWh & m3)
 	if((unit == "kWh") || (unit == "m3") || (unit == "Wh") || (unit == "l")){
 
-		if(unit === "Wh"){unit = "kWh"}
-		if(unit === "l"){unit = "m3"}
+		if(unit === "Wh"){unit = "kWh"};
+		if(unit === "l"){unit = "m3"};
 
 		// replace "." in datapoints to "_"
-		const device = obj._id.split(".").join("__");
+		const device = id.split(".").join("__");
 
-		// Set type to consume or deliver
-		const delivery = obj_cust.cost_earning;
+		if(logging === true){adapter.log.info("Changed Device Name : " + device);};
+
+		// 	// Set type to consume or deliver
+		let delivery;
+		if(logging === true){adapter.log.info("Delivery type = : " + delivery);};
+
+		if (obj_cust.state_type == "kWh_delivery") {
+			delivery = true;
+		} else {
+			delivery = false;
+		};
 		
 		// define device name, change with alias when required
 		let alias = obj.common.name;
-		if(obj_cust.alias !== "") {alias = obj_cust.alias};
-
+		if(logging === true){adapter.log.info("Device name = : " + alias);};
+		if(logging === true){adapter.log.info("State alias name = : " + obj_cust.alias);};
+		if(obj_cust.alias !== undefined) {alias = obj_cust.alias};
+		
+		
 		// Create new device object for every state in powermonitor tree
 		adapter.setObjectNotExists(device, {
 			type: "device",
@@ -151,62 +196,81 @@ function initialize(obj) {
 			adapter.extendObject(device, objekt, function (err) {		
 		});		
 
-		// create states for weekdays
-		for (const x in weekdays){
-			let curent_day = ".current_year.this_week." + weekdays[x];
-			doStateCreate(delivery, device, curent_day , weekdays[x], "number","value.day", unit, obj_cust.CalcCons, obj_cust.CalcCost, obj_cust.meter_history);
-		}
+		if(logging === true){adapter.log.info("Customized Device name = : " + alias);};
 
-		// create states for weeks
-		let weeknr;
-		for (let y = 1; y < 54; y++) {
-			if ( y < 10 ) {
-				weeknr = "0" + y;
-			} else {
-				weeknr = y;
-			}
-			let state_root = ".current_year.weeks." + weeknr;
-			doStateCreate(delivery,device,state_root , "week " + weeknr, "number","value.day", unit, obj_cust.CalcCons, obj_cust.CalcCost, obj_cust.meter_history);
-		}
+		if(logging === true){adapter.log.info("Days ? : " + adapter.config.store_days);};
+		if(logging === true){adapter.log.info("Consumption ?  : " + obj_cust.consumption);};
+		if(logging === true){adapter.log.info("Costs : " + obj_cust.costs);};
+		if(logging === true){adapter.log.info("Meter History ? : " + obj_cust.meter_values);};
 
-		// create states for months
-		for (const x in months){
-			let curent_day = ".current_year.months." + months[x];
-			doStateCreate(delivery,device,curent_day , months[x], "number","value.month", unit, obj_cust.CalcCons, obj_cust.CalcCost, obj_cust.meter_history);
-		}
+		if (adapter.config.store_days === true) {
+			if(logging === true){adapter.log.info("Creating weekdays");};
+			// create states for weekdays
+			for (const x in weekdays){
+				let curent_day = ".current_year.this_week." + weekdays[x];
+				// doStateCreate(delivery, device, curent_day , weekdays[x], "number","value.day", unit, obj_cust.consumption, obj_cust.CalcCost, obj_cust.meter_values);
+				doStateCreate(delivery, device, curent_day , weekdays[x], "number","value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+			};
+		};
+
+		if (adapter.config.store_weeks) {
+			// create states for weeks
+			let weeknr;
+			for (let y = 1; y < 54; y++) {
+				if ( y < 10 ) {
+					weeknr = "0" + y;
+				} else {
+					weeknr = y;
+				}
+				let state_root = ".current_year.weeks." + weeknr;
+				doStateCreate(delivery,device,state_root , "week " + weeknr, "number","value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+			};
+		};
+
+		if (adapter.config.store_months) {
+			// create states for months
+			for (const x in months){
+				let curent_day = ".current_year.months." + months[x];
+				doStateCreate(delivery,device,curent_day , months[x], "number","value.month", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+			};
+		};
 
 		// create state for current day/week/quarters/month current value
 		let state_root = ".01_current_day";
-		doStateCreate(delivery,device,state_root , "current Day ", "number","value.day", unit, obj_cust.CalcCons, obj_cust.CalcCost, false);
+		if (adapter.config.store_days === true){doStateCreate(delivery,device,state_root , "current Day ", "number","value.day", unit, obj_cust.consumption, obj_cust.costs, false);};
 		state_root = ".02_current_week";
-		doStateCreate(delivery,device,state_root , "current Week ", "number","value.week", unit, obj_cust.CalcCons, obj_cust.CalcCost, false);
+		if (adapter.config.store_weeks === true){doStateCreate(delivery,device,state_root , "current Week ", "number","value.week", unit, obj_cust.consumption, obj_cust.costs, false);};
 		state_root = ".03_current_month";
-		doStateCreate(delivery,device,state_root , "current Month ", "number","value.month", unit, obj_cust.CalcCons, obj_cust.CalcCost, false);
+		if (adapter.config.store_months === true){doStateCreate(delivery,device,state_root , "current Month ", "number","value.month", unit, obj_cust.consumption, obj_cust.costs, false);};
 		state_root = ".04_current_quarter";
-		doStateCreate(delivery,device,state_root , "current Quarter", "number","value.quarter", unit, obj_cust.CalcCons, obj_cust.CalcCost, false);
+		if (adapter.config.store_quarters === true){doStateCreate(delivery,device,state_root , "current Quarter", "number","value.quarter", unit, obj_cust.consumption, obj_cust.costs, false);};
 		state_root = ".05_current_year";
-		doStateCreate(delivery,device,state_root , "current Year", "number","value.year", unit, obj_cust.CalcCons, obj_cust.CalcCost, false);
+		if (adapter.config.store_years === true){doStateCreate(delivery,device,state_root , "current Year", "number","value.year", unit, obj_cust.consumption, obj_cust.costs, false);};
 
 		state_root = ".Current_Reading";
-		doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", unit, false, false, obj_cust.meter_history);
+		doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", unit, false, false, obj_cust.meter_values);
 
 		adapter.log.info("Initialization finished for : " + device)
 		// Write state values first time
-		Meter_Calculations(obj);
+		// Meter_Calculations(obj);
 
-		// Start intervall for state calculations
-		const interval_timer = setInterval(function () {
-			if(logging === true){adapter.log.info('`interval run` for : ' + obj._id);};
-			Meter_Calculations(obj);
-		}, interval);
+	// 	// Start intervall for state calculations
+	// 	const interval_timer = setInterval(function () {
+	// 		if(logging === true){adapter.log.info('`interval run` for : ' + obj._id);};
+	// 		Meter_Calculations(obj);
+	// 	}, interval);
 
-		// start cron to reseet counters at midnight
-		reset_shedules(obj);
+	// 	// start cron to reseet counters at midnight
+	// 	reset_shedules(obj);
 
 	} else {
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 	}
 }
+
+
+// ######################
+
 // Calculation handler
 async function Meter_Calculations(id){
 	if(logging === true){adapter.log.info("Write calculations for : " + id._id);};
@@ -229,9 +293,9 @@ async function Meter_Calculations(id){
 	const obj_cont = await adapter.getForeignObjectAsync(id._id);
 	//@ts-ignore custom does exist
 	const obj_cust = obj_cont.common.custom[inst_name];
-	if(logging === true){adapter.log.info("Handle cost calculations : " + obj_cust.CalcCost);};
-	if(logging === true){adapter.log.info("Handle consumption calculations : " + obj_cust.CalcCons);};
-	if(logging === true){adapter.log.info("Handle meter history : " + obj_cust.meter_history);};
+	if(logging === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);};
+	if(logging === true){adapter.log.info("Handle consumption calculations : " + obj_cust.consumption);};
+	if(logging === true){adapter.log.info("Handle meter history : " + obj_cust.meter_values);};
 	const reading_start = obj_cust.start_meassure; 
 	const day_bval = obj_cust.start_day;
 	const week_bval = obj_cust.start_week
@@ -258,7 +322,7 @@ async function Meter_Calculations(id){
 		del_t = ".delivery.";
 	}
 
-	if(obj_cust.CalcCons){
+	if(obj_cust.consumption){
 		// Store current meter value to state
 		adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
 		
@@ -317,7 +381,7 @@ async function Meter_Calculations(id){
 	if(logging === true){adapter.log.info("delivery type " + del_t);};
 	if(logging === true){adapter.log.info("example state string : " + obj_root + cost_t + "01_current_day");};
 	
-	if(obj_cust.CalcCost){
+	if(obj_cust.costs){
 		// Weekday & current day
 		state_val = (day_bval_consumend * cost_unit).toFixed(2);};
 		if(logging === true){adapter.log.info("calculated cost day : " + state_val);
@@ -351,6 +415,9 @@ async function Meter_Calculations(id){
 
 // Function to handle channel creation
 function ChannelCreate (id, channel, name){
+	if(logging === true){adapter.log.info("Parent device : " + id);};
+	if(logging === true){adapter.log.info("Create channel id : " + channel);};
+	if(logging === true){adapter.log.info("Create channel name : " + name);};
 	adapter.createChannel(id, channel,{
 		"name": name
 	});
