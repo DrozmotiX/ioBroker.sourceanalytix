@@ -528,5 +528,17 @@ systemDictionary = {
 		"es": "Por favor ingrese los valores iniciales",
 		"pl": "Wprowadź wartości początkowe",
 		"zh-cn": "请输入起始值"
+	  },
+	  "Logging to troubleshoot": {
+		"en": "Logging to troubleshoot",
+		"de": "Protokollierung zur Problembehandlung",
+		"ru": "Ведение журнала для устранения неполадок",
+		"pt": "Registrando para solucionar problemas",
+		"nl": "Loggen om problemen op te lossen",
+		"fr": "Se connecter pour dépanner",
+		"it": "Registrazione per la risoluzione dei problemi",
+		"es": "Registro para solucionar problemas",
+		"pl": "Logowanie do rozwiązywania problemów",
+		"zh-cn": "记录以进行故障排除"
 	  }
 };
