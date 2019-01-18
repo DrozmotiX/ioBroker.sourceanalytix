@@ -39,13 +39,20 @@ const adapter = utils.adapter({
 
 		try {
 			// Start initializing & intervall when new object is added to SourceAnalytix
+			//@ts-ignore obj is  not undefined or null and common.custom exists
 			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
 				// The object was changed
 				const inst_name = adapter.namespace; 
 
 				adapter.log.info("new state : " + id + " added to SourceAnalytix");
+				adapter.getForeignObject(id, function (err, obj){
 
-				initialize(obj)
+					if (obj !== undefined && obj !== null){
+						state_set.push(obj);
+						initialize;
+					};
+				});
+				// initialize(obj)
 
 			} else {
 				// The object was deleted
@@ -68,6 +75,7 @@ function update_states_all (){
 	// adapter.log.info("Update state settings");
 	
 	// read all objects and get list of SourceAnalytix enabled states
+	//@ts-ignore {} not recognized must me fixed in template
 	adapter.objects.getObjectView('custom', 'state', {}, (err, doc) => {
 		let count = 0;
 		if (doc && doc.rows) {
@@ -103,32 +111,44 @@ function update_states_all (){
 								// for 0.3.0 : Optimise, only run initialisation for newly added items not all
 								// build check to verify
 
-								state_set.push(JSON.stringify(obj));
+								state_set.push(obj);
 								initialize(obj);
 								// adapter.log.info(JSON.stringify(state_set));
-							}
-						})
-					}
-				}
-			}	
-		}
+							};
+						});
+					};
+				};
+			};	
+		};
+
+		// Start intervall for state calculations
+		// to be improved in release
+		const interval_timer = setInterval(function () {
+			calc_intervall()
+		}, 5000);
+
 	});	
 	adapter.subscribeForeignObjects("*");
 }
 
+// Run calculations
+function calc_intervall(){
+	if(logging === true){"Calculation handling started"};
+	for (const i in state_set){
+		if(logging === true){"Handle calculation for state : " + state_set[i]};
+		if(logging === true){adapter.log.info(JSON.stringify(state_set[i]));};
+		calculation_handler(state_set[i]);
+	};
+	adapter.log.info(JSON.stringify(state_set));
+}
+
 // Initialise all states
 function test_initialise(){
-
+	if(logging === true){"Calc intervall state list overview: " + adapter.log.info(JSON.stringify(state_set));};
 	for (const i in state_set){
-
 		if(logging === true){adapter.log.info(JSON.stringify(state_set[i]));};
-
-		initialize(state_set[i])
-
-	}
-
-	adapter.log.info(JSON.stringify(state_set))
-
+		calculation_handler(state_set[i]);
+	};
 }
 
 // Create object tree and states for all devices to be handled
@@ -140,6 +160,7 @@ function initialize(obj) {
 	// calculate interval from minutes to milliseconds
 	const id = obj._id;
 	const obj_cust = obj.common.custom[inst_name];
+	//@ts-ignore intervall is always a number
 	const intervall = (adapter.config.intervall * 60000);
 	// adapter.log.info("Intervall : " + intervall);
 	let unit = obj.common.unit;
@@ -272,20 +293,20 @@ function initialize(obj) {
 // ######################
 
 // Calculation handler
-async function Meter_Calculations(id){
-	if(logging === true){adapter.log.info("Write calculations for : " + id._id);};
-	
+async function calculation_handler(id){
 	const inst_name = adapter.namespace
-	const date = new Date(); 
-	
-	// Write current Meter value to variables
+	let cost_t, del_t,state_val;
+	const date = new Date();
+	let cost_basic;
+	let cost_unit;
+	if(logging === true){adapter.log.info("Write calculations for : " + id._id);};
+
+	// replace "." in datapoints to "_"
 	const obj_id = id._id.split(".").join("__");
 	const obj_root = adapter.namespace + "." + obj_id;  
 
-	const reading = await adapter.getForeignStateAsync(id._id)
-	// recalculate reading value based on unit to store correctly
-	//	const calc_factor = unit_calc_fact(id, reading.val);
-	//	const calc_reading = reading.val / calc_factor;
+	// Get current value from meter
+	const reading = await adapter.getForeignStateAsync(id._id);
 	const calc_reading = unit_calc_fact(id, reading.val);
 
 	if(logging === true){adapter.log.info("Meter current reading : " + reading.val);};
@@ -293,16 +314,64 @@ async function Meter_Calculations(id){
 	const obj_cont = await adapter.getForeignObjectAsync(id._id);
 	//@ts-ignore custom does exist
 	const obj_cust = obj_cont.common.custom[inst_name];
+
+	// Define whih calculation factor must be used
+
+	switch (obj_cust.state_type) {
+
+		case "kWh_consumption":
+				if(logging === true){adapter.log.info("Case result : Electricity consumption");};
+				cost_unit = adapter.config.unit_price_power;
+				cost_basic = adapter.config.basic_price_power;
+			break;
+
+		case "kWh_delivery":
+				if(logging === true){adapter.log.info("Case result : Electricity consumption night");};
+				cost_unit = adapter.config.unit_price_power_night;
+				cost_basic = adapter.config.basic_price_power;
+			break;
+
+		case "Electricity delivery":
+				if(logging === true){adapter.log.info("Case result : Electricity delivery");};
+				cost_unit = adapter.config.unit_price_power_delivery;
+				cost_basic = adapter.config.basic_price_power;
+			break;
+		
+		case "gas":
+				if(logging === true){adapter.log.info("Case result : Gas");};
+				cost_unit = adapter.config.unit_price_gas;
+				cost_basic = adapter.config.basic_price_gas;
+			break;
+		
+		case "water_m3":
+				if(logging === true){adapter.log.info("Case result : Water");};
+				cost_unit = adapter.config.unit_price_water;
+				cost_basic = adapter.config.basic_price_water;
+			break;
+		
+		case "oil_m3":
+				if(logging === true){adapter.log.info("Case result : Oil");};
+				cost_unit = adapter.config.unit_price_oil;
+				cost_basic = adapter.config.basic_price_oil
+
+		default:
+		adapter.log.error("Error in case handling of cost type identificaton" + obj_cust.state_type);
+	};
+
 	if(logging === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);};
+	if(logging === true){adapter.log.info("Calculation Factor : " + cost_unit);};
+	if(logging === true){adapter.log.info("Cost basic : " + cost_basic);};
+	if(logging === true){adapter.log.info("Cost unit : " + cost_unit);};
 	if(logging === true){adapter.log.info("Handle consumption calculations : " + obj_cust.consumption);};
 	if(logging === true){adapter.log.info("Handle meter history : " + obj_cust.meter_values);};
-	const reading_start = obj_cust.start_meassure; 
+
+	// temporary set to sero, this calue will be used later to handle period calculations
+	const reading_start = 0; 	//obj_cust.start_meassure; 
 	const day_bval = obj_cust.start_day;
-	const week_bval = obj_cust.start_week
-	const month_bval = obj_cust.start_month
-	const quarter_bval = obj_cust.start_quarter
-	const year_bval = obj_cust.start_year
-	let cost_t, del_t,state_val;
+	const week_bval = obj_cust.start_week;
+	const month_bval = obj_cust.start_month;
+	const quarter_bval = obj_cust.start_quarter;
+	const year_bval = obj_cust.start_year;
 
 	if(logging === true){adapter.log.info("reading_start : " + reading_start);};
 	if(logging === true){adapter.log.info("day start : " + day_bval);};
@@ -312,23 +381,26 @@ async function Meter_Calculations(id){
 	if(logging === true){adapter.log.info("year start : " + year_bval);};
 
 	// set correct naming for cost & delivery based on type
-	if(obj_cust.cost_earning === false){
-
-		cost_t = ".cost.";
-		del_t = ".consumption.";
-
-	} else {
+	if(obj_cust.state_type == "kWh_delivery"){
 		cost_t =  ".earnings.";
 		del_t = ".delivery.";
+	} else {
+		cost_t = ".cost.";
+		del_t = ".consumption.";
 	}
 
-	if(obj_cust.consumption){
+	if(obj_cust.consumption === true){
 		// Store current meter value to state
 		adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
 		
 		// Calculate consumption
 		// Weekday & current day
 		state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
+
+		adapter.log.error(obj_root);
+		adapter.log.error(del_t);
+		adapter.log.error("01_current_day");
+
 		if(logging === true){adapter.log.info("calculated reading day : " + state_val);};
 		adapter.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
 		adapter.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
@@ -355,13 +427,6 @@ async function Meter_Calculations(id){
 		if(logging === true){adapter.log.info("calculated reading day : " + state_val);};
 		adapter.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
 	}
-	
-	// Calculate costs
-	const cost_basic = obj_cust.basic_price;
-	const cost_unit = obj_cust.unit_price;
-
-	if(logging === true){adapter.log.info("Cost basic : " + cost_basic);};
-	if(logging === true){adapter.log.info("Cost unit : " + cost_unit);};
 
 	const day_bval_consumend = ((calc_reading - day_bval) - reading_start);
 	const week_bval_consumend =  ((calc_reading - week_bval) - reading_start);
@@ -383,29 +448,34 @@ async function Meter_Calculations(id){
 	
 	if(obj_cust.costs){
 		// Weekday & current day
+		//@ts-ignore cost_unit is always a number
 		state_val = (day_bval_consumend * cost_unit).toFixed(2);};
 		if(logging === true){adapter.log.info("calculated cost day : " + state_val);
 		adapter.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
 		adapter.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 		
 		// Week
+		//@ts-ignore cost_unit is always a number
 		state_val = (week_bval_consumend * cost_unit).toFixed(2);};
 		if(logging === true){adapter.log.info("calculated cost week : " + state_val);
 		adapter.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
 		adapter.setState(obj_root + cost_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
 		// Month
+		//@ts-ignore cost_unit is always a number
 		state_val = (month_bval_consumend * cost_unit).toFixed(2);};
 		if(logging === true){adapter.log.info("calculated cost month : " + state_val);
 		adapter.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
 		adapter.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
 		// Quarter
+		//@ts-ignore cost_unit is always a number
 		state_val = (quarter_bval_consumend * cost_unit).toFixed(2);};
 		if(logging === true){adapter.log.info("calculated cost quarter : " + state_val);
 		adapter.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
 
 		// Year
+		//@ts-ignore cost_unit is always a number
 		state_val = (year_bval_consumend * cost_unit).toFixed(2);};
 		if(logging === true){adapter.log.info("calculated cost year : " + state_val);
 		adapter.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
@@ -558,6 +628,7 @@ async function reset_shedules (id){
 			obj.common.custom[inst_name] = {
 				start_day : calc_reading
 				};
+				//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
 		});
@@ -568,6 +639,7 @@ async function reset_shedules (id){
 			obj.common.custom[inst_name] = {
 				start_week : calc_reading
 				};
+				//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
 		});
@@ -578,6 +650,7 @@ async function reset_shedules (id){
 			obj.common.custom[inst_name] = {
 				start_month : calc_reading
 				};
+				//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
 		});
@@ -588,6 +661,7 @@ async function reset_shedules (id){
 			obj.common.custom[inst_name] = {
 				start_quarter : calc_reading
 				};
+				//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
 		});
@@ -598,6 +672,7 @@ async function reset_shedules (id){
 			obj.common.custom[inst_name] = {
 				start_year : calc_reading
 				};
+				//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 				adapter.extendForeignObject(id._id, obj, function (err) {		
 			});
 		});
