@@ -1,8 +1,20 @@
 {
 	"common": {
 		"name": "sourceanalytix",
-		"version": "0.1.8",
+		"version": "0.1.9",
 		"news": {
+		"0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
+			"en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
+			"de": "0.1.9 Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
+			"ru": "0.1.9 Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
+			"pt": "0.1.9 Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
+			"nl": "0.1.9 Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
+			"fr": "0.1.9 Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
+			"it": "0.1.9 Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
+			"es": "0.1.9 Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
+			"pl": "0.1.9 Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
+			"zh-cn": "0.1.9准备稳定的0.2.0，重新设计计算逻辑和配置接口"
+		},
 		"0.1.0": {
 			"en": "0.1.0 Public beta release",
 			"de": "0.1.0 Öffentliche Betaversion",
