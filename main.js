@@ -262,15 +262,14 @@ function initialize(obj) {
 
 		// create state for current day/week/quarters/month current value
 		let state_root = ".01_current_day";
-		if (adapter.config.store_days === true){doStateCreate(delivery,device,state_root , "current Day ", "number","value.day", unit, obj_cust.consumption, obj_cust.costs, false);};
 		state_root = ".02_current_week";
-		if (adapter.config.store_weeks === true){doStateCreate(delivery,device,state_root , "current Week ", "number","value.week", unit, obj_cust.consumption, obj_cust.costs, false);};
+		doStateCreate(delivery,device,state_root , "current Week ", "number","value.week", unit, obj_cust.consumption, obj_cust.costs, false);
 		state_root = ".03_current_month";
-		if (adapter.config.store_months === true){doStateCreate(delivery,device,state_root , "current Month ", "number","value.month", unit, obj_cust.consumption, obj_cust.costs, false);};
+		doStateCreate(delivery,device,state_root , "current Month ", "number","value.month", unit, obj_cust.consumption, obj_cust.costs, false);
 		state_root = ".04_current_quarter";
-		if (adapter.config.store_quarters === true){doStateCreate(delivery,device,state_root , "current Quarter", "number","value.quarter", unit, obj_cust.consumption, obj_cust.costs, false);};
+		doStateCreate(delivery,device,state_root , "current Quarter", "number","value.quarter", unit, obj_cust.consumption, obj_cust.costs, false);
 		state_root = ".05_current_year";
-		if (adapter.config.store_years === true){doStateCreate(delivery,device,state_root , "current Year", "number","value.year", unit, obj_cust.consumption, obj_cust.costs, false);};
+		doStateCreate(delivery,device,state_root , "current Year", "number","value.year", unit, obj_cust.consumption, obj_cust.costs, false);
 
 		state_root = ".Current_Reading";
 		doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", unit, false, false, obj_cust.meter_values);
@@ -292,9 +291,6 @@ function initialize(obj) {
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 	}
 }
-
-
-// ######################
 
 // Calculation handler
 async function calculation_handler(id){
