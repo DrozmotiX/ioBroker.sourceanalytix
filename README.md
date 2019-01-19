@@ -1,5 +1,8 @@
 #  [Beta - Released] SourceAnalytix
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
+
+
 ## Warning, this adapter needs node 8 or higher !!!
 
 ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.
