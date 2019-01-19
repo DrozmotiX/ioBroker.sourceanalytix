@@ -1,4 +1,8 @@
 #  [Beta - Released] SourceAnalytix
+[![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
+[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+[![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/ioBroker/sourceanalytix)
 
 ## Warning, this adapter needs node 8 or higher !!!
 
@@ -22,9 +26,12 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Known issues
 
+* [ ] Period calculation selectable but not yet implemented
+* [ ] Meter value selectable  but not yet implemented
+* [ ] store current meter values not yet implemented
 * [ ] quarters not calculated
 * [ ] monthly costprice not yet implemented in calculation
-* [ ] adapter restart needed to add calculation of new objects
+* [x] adapter restart needed to add calculation of new objects
 * [x] statest for cost type delivery are not writen
 * [x] device name alias not correct
 * [x] translations
@@ -37,7 +44,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] calculations for quarter values
 * [ ] storage of meter values for every state
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
-* [ ] Make it selectable to store analytics for complete year or only selectable periode.33
+* [ ] Make it selectable to store analytics for complete year or only selectable periode
 * [ ] compact mode
 * [ ] code optimalisation
 * [x] add support for calculation of wh values
@@ -65,12 +72,24 @@ https://github.com/hdering/homematic_verbrauchszaehler
 ### 0.2.0 (in progress)
 * (Dutchman) rebuild logic to calculate values
 
+### 0.1.9 
+* (Dutchman) Adapter moved to community development tree
+* (Dutchman) added npm version and test-status to readme
+* (Dutchman) finalized new konfiguration screen & translations
+* (Dutchman) adding/removing objects from analytix does not need adapter reboot anymore ! :-)
+* (Dutchman) rebuild logic how data is handled as basic for new calculation logic (Experimental)
+* (Dutchman) added options to year analytics to choose values (days,weeks,years etc)
+* (Dutchman) option added for Developer logging
+* (Dutchman) Basic price is currently not considered in cost calculations !
+* (Dutchman) Values day start, week start etc are currenlty not automatically set (will be in 0.2.0)
+
+
 ### 0.1.8 (unuasable temporary verion )
 * (Dutchman) konfiguration pages completly redesigned : Please do not enter values yet !
 * (Dutchman) master konfiguration added to globally define costs
 * (Dutchman) intervall settings moved to global setting instead of each state seperated
 * (Dutchman) instead of cost-price in each state use drop down menu to choose values from global settings
-* (Dutchman) fix namings and translations
+* (Dutchman) fix naming and translations
 
 ### 0.1.6
 * (Dutchman) fix data reset for quarter values (thank you Jens !)
