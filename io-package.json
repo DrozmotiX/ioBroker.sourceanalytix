@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.1.9-RC1",
+        "version": "0.2.0",
         "news": {
             "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
                 "en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",

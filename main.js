@@ -310,6 +310,9 @@ function initialize(obj) {
 		// Subscribe state, every state change will trigger calculation
 		adapter.subscribeForeignStates(obj._id);
 
+		// Start cron to reset values at day, week etc start
+		reset_shedules (obj._id);
+
 	} else {
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 	}

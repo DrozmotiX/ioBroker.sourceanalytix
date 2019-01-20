@@ -44,7 +44,6 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] calculations for quarter values
 * [ ] storage of meter values for every state
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
-* [ ] Make it selectable to store analytics for complete year or only selectable periode
 * [ ] compact mode
 * [ ] code optimalisation
 * [x] add support for calculation of wh values
@@ -66,21 +65,26 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [x] calculation for m3 values
 * [x] use alias of device name
 * [x] configurable data points (yes/no) for cost, consumption and meter-values
+* [x] Make it selectable to store analytics for complete year or only selectable periode
 
 ## Changelog
 
-### 0.2.0 (in progress)
+### 0.2.1 (in progress)
+* (Dutchman) fix unit issue to support upper and lower case in values
+* (Dutchman) fix unit issue replace strange characters
+
+
+### 0.2.0
 * (Dutchman) rebuild logic to calculate values (beta testing)
+* (Dutchman) implement logic to automatically reset values by start of new day, week, month, year etc (beta testing)
 * (Dutchman) changed logic from intervall polling to handle calculations based on state updates (beta testing, not if suitable for all situations)
 * (Dutchman) fix issue incorrect states are added to monitoring
+* (Dutchman) fix issue calculation not stopped when state removed from monitoring
 * (Dutchman) always store all current meassurements to values of cathegorie regardless setting year etc
-* (Dutchman) implement logic to automatically reset values by start of new day, week, month, year etc
 * (Dutchman) code cleanup and optiomalisation
-* (Dutchman) fix issue with device naming
 * (Dutchman) added logging option "satus notification"
+* (Dutchman) implement new translation mechanisme
 
-* (Dutchman) 
-* (Dutchman) 
 
 ### 0.1.9 
 * (Dutchman) Adapter moved to community development tree
