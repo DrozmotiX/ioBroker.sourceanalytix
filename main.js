@@ -10,7 +10,7 @@ const aliasMap   = {};
 let state_set = [];
 let logging;
 // intervall declariont removed, functionality changed to subscription 
-let interval_timer;
+// let interval_timer;
 
 // Time Modules
 const cron = require("node-cron"); // Cron Scheduler
@@ -87,7 +87,6 @@ const adapter = utils.adapter({
 			adapter.log.info(`state ${id} deleted`);
 		}
 	},
-	
 });
 
 function update_states_all (){ 
@@ -208,9 +207,6 @@ function initialize(obj) {
 	if((unit == "kWh") || (unit == "m3") || (unit == "Wh") || (unit == "l")){
 
 		if(unit === "Wh"){unit = "kWh";}
-
-
-
 		if(unit === "l"){unit = "m3";}
 
 		// replace "." in datapoints to "_"
@@ -256,7 +252,6 @@ function initialize(obj) {
 		});		
 
 		if(logging === true){adapter.log.info("Customized Device name = : " + alias);}
-
 		if(logging === true){adapter.log.info("Days ? : " + adapter.config.store_days);}
 		if(logging === true){adapter.log.info("Consumption ?  : " + obj_cust.consumption);}
 		if(logging === true){adapter.log.info("Costs : " + obj_cust.costs);}
@@ -315,10 +310,8 @@ function initialize(obj) {
 	} else {
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 	}
-
 	// Calculate all values for the first time
 	calculation_handler(obj._id);
-
 }
 
 // Calculation handler
@@ -465,8 +458,6 @@ async function calculation_handler(id){
 	if(logging === true){adapter.log.info("month consumed " + month_bval_consumend);}
 	if(logging === true){adapter.log.info("quarter consumed " + quarter_bval_consumend);}
 	if(logging === true){adapter.log.info("year consumed "+ year_bval_consumend);}
-
-
 	if(logging === true){adapter.log.info("objroot " + obj_root);}
 	if(logging === true){adapter.log.info("cost type " + cost_t);}
 	if(logging === true){adapter.log.info("delivery type " + del_t);}
@@ -587,10 +578,8 @@ function doStateCreate(delivery, device, id, name, type,role, unit, head, financ
 			},
 			native: {},
 		});
-
 		set_zero_val(object);
 	}
-
 }
 
 // null values must be set 0 to avoid issue in later processing, def: 0 at object creation possible n js-controler 2.0

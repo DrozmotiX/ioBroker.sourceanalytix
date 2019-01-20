@@ -70,7 +70,17 @@ https://github.com/hdering/homematic_verbrauchszaehler
 ## Changelog
 
 ### 0.2.0 (in progress)
-* (Dutchman) rebuild logic to calculate values
+* (Dutchman) rebuild logic to calculate values (beta testing)
+* (Dutchman) changed logic from intervall polling to handle calculations based on state updates (beta testing, not if suitable for all situations)
+* (Dutchman) fix issue incorrect states are added to monitoring
+* (Dutchman) always store all current meassurements to values of cathegorie regardless setting year etc
+* (Dutchman) implement logic to automatically reset values by start of new day, week, month, year etc
+* (Dutchman) code cleanup and optiomalisation
+* (Dutchman) fix issue with device naming
+* (Dutchman) added logging option "satus notification"
+
+* (Dutchman) 
+* (Dutchman) 
 
 ### 0.1.9 
 * (Dutchman) Adapter moved to community development tree
