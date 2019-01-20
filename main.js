@@ -40,7 +40,7 @@ const adapter = utils.adapter({
 		const inst_name = adapter.namespace;
 
 		try {
-			// Start initializing & intervall when new object is added to SourceAnalytix
+			// Start initializing & data calculation when new object is added to SourceAnalytix
 			//@ts-ignore obj can be undefined yes, this IF checks that !
 			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
 
@@ -67,7 +67,8 @@ const adapter = utils.adapter({
 		
 			} else {
 				// Object is removed from source analytix, unsubscribe for state changes
-				adapter.log.info("state : " + id + " removed from SourceAnalytix");
+				// Log temporary only in dev-mode, unsubscribe must b e improved function triggered unneeded currenlty = 
+				if(dev_log === true){adapter.log.info("state : " + id + " removed from SourceAnalytix");}
 				adapter.unsubscribeForeignStates(id);
 			}
 		} catch (error) {
@@ -81,7 +82,7 @@ const adapter = utils.adapter({
 	stateChange: (id, state) => {
 		if (state) {
 			// The state was changed
-			if (mon_log === true){adapter.log.info(`state ${id} monitored by soureanalytix changed : ${state.val} `);}
+			if (mon_log === true){adapter.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);}
 
 			adapter.getForeignObject(id, function (err, obj){
 
@@ -204,16 +205,17 @@ function initialize(obj) {
 	const id = obj._id;
 	const obj_cust = obj.common.custom[inst_name];
 	// adapter.log.info("Intervall : " + intervall);
-	let unit = obj.common.unit;
+	let unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
 	if(dev_log === true){adapter.log.info("instanze name : " + inst_name);}
 	// const obj_cust = adapter.config.custom;
 	if(dev_log === true){adapter.log.info(JSON.stringify(obj_cust));}
 	if(dev_log === true){adapter.log.info("Custom object tree : " + JSON.stringify(obj_cust));}
 
 	// Currently only support kWh & m3)
-	if((unit == "kWh") || (unit == "m3") || (unit == "Wh") || (unit == "l")){
+	if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l")){
 
-		if(unit === "Wh"){unit = "kWh";}
+		if(unit === "wh"){unit = "kWh";}
+		if(unit === "kwh"){unit = "kWh";}
 		if(unit === "l"){unit = "m3";}
 
 		// replace "." in datapoints to "_"
@@ -506,7 +508,7 @@ async function calculation_handler(id){
 		if(dev_log === true){adapter.log.info("calculated cost year : " + state_val);}
 		adapter.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
 	}
-	if(dev_log === true || mon_log === true){adapter.log.info("Meter Calculation executed");}
+	if(dev_log === true){adapter.log.info("Meter Calculation executed");}
 }
 
 // Function to handle channel creation
@@ -633,9 +635,6 @@ function getWeekNumber(d) {
 async function reset_shedules (id){
 	const inst_name = adapter.namespace;
 	//	try {
-	// Build object root to handle calculations
-	const obj_id = id._id.split(".").join("__");
-	const obj_root = "powermonitor." + adapter.instance + "." + obj_id;
 
 	// get current meter value, start value of meassurement & calculate value to write in start states
 	const reading = await adapter.getForeignStateAsync(id._id);
@@ -716,18 +715,18 @@ async function reset_shedules (id){
 
 function unit_calc_fact (obj, value){
 
-	const unit = obj.common.unit;
+	const unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
 	let calc_value;
 
 	switch (unit) {
 
-		case "kWh":
+		case "kwh":
 
 			calc_value = value;
 
 			break;
 
-		case "Wh":
+		case "wh":
 
 			calc_value = value / 1000;
 

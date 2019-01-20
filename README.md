@@ -38,6 +38,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## To-Do
 * [ ] Documentation
+* [ ] Cost default value to 0 with error message if not provided
 * [ ] recalcalation based on meter values (configurable by date)
 * [ ] ensure all values are stored when adapter shuts down to prevent data gaps
 * [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
@@ -69,10 +70,13 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
-### 0.2.1 (in progress)
+### 0.2.1
+* (Dutchman) fix "current_day" missing in object tree
+* (Dutchman) fix log messages "removed from SourceAnalytix"
 * (Dutchman) fix unit issue to support upper and lower case in values
 * (Dutchman) fix unit issue replace strange characters
-
+* (Dutchman) remove intervall setting from configuraiton screen (handle by state subscribtion now!)
+* (Dutchman) remove start meassurement from state configuraiton screen (not need, please use day start, week start etc !)
 
 ### 0.2.0
 * (Dutchman) rebuild logic to calculate values (beta testing)

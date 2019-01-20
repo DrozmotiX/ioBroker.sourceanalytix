@@ -1,8 +1,32 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "news": {
+            "0.2.1 Several bugs fixed": {
+                "en": "Several bugs fixed",
+                "de": "Mehrere Fehler behoben",
+                "ru": "Исправлено несколько ошибок",
+                "pt": "Vários bugs corrigidos",
+                "nl": "Verschillende bugs verholpen",
+                "fr": "Plusieurs bugs corrigés",
+                "it": "Diversi errori risolti",
+                "es": "Varios errores corregidos",
+                "pl": "Naprawiono kilka błędów",
+                "zh-cn": "修复了几个错误"
+            },
+            "0.2.0 Public Release candidate": {
+                "en": "Public Release candidate",
+                "de": "Öffentlicher Release-Kandidat",
+                "ru": "Публичный релиз кандидата",
+                "pt": "Candidato de lançamento público",
+                "nl": "Public Release-kandidaat",
+                "fr": "Candidat à la diffusion publique",
+                "it": "Candidato a rilascio pubblico",
+                "es": "Candidato de lanzamiento público",
+                "pl": "Kandydat na Public Release",
+                "zh-cn": "公开发布候选人"
+            },
             "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
                 "en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
                 "de": "0.1.9 Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
