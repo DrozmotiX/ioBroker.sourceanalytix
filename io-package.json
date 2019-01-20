@@ -1,120 +1,122 @@
 {
-	"common": {
-		"name": "sourceanalytix",
-		"version": "0.1.9",
-		"news": {
-		"0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
-			"en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
-			"de": "0.1.9 Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
-			"ru": "0.1.9 Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
-			"pt": "0.1.9 Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
-			"nl": "0.1.9 Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
-			"fr": "0.1.9 Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
-			"it": "0.1.9 Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
-			"es": "0.1.9 Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
-			"pl": "0.1.9 Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
-			"zh-cn": "0.1.9准备稳定的0.2.0，重新设计计算逻辑和配置接口"
-		},
-		"0.1.0": {
-			"en": "0.1.0 Public beta release",
-			"de": "0.1.0 Öffentliche Betaversion",
-			"ru": "0.1.0 публичная бета-версия",
-			"pt": "0.1.0 versão beta pública",
-			"nl": "0.1.0 Public beta-release",
-			"fr": "Version bêta publique 0.1.0",
-			"it": "0.1.0 Versione beta pubblica",
-			"es": "0.1.0 Public beta pública",
-			"pl": "0.1.0 Publiczne wydanie beta",
-			"zh-cn": "0.1.0公开测试版"
-		},
-			"0.0.9": {
-				"en": "Prepare Public Beta",
-				"de": "Erste öffentliche Beta",
-				"ru": "Первая публичная бета",
-				"pt": "Primeiro beta público",
-				"nl": "Eerste openbare bèta",
-				"fr": "Première bêta publique",
-				"it": "Prima beta pubblica",
-				"es": "Primera beta pública",
-				"pl": "Pierwsza publiczna beta",
-				"zh-cn": "首次公开测试版"
-			}
-		},
-		"title": "SourceAnalytix",
-		"titleLang": {
-			"en": "SourceAnalytix",
-			"de": "SourceAnalytix",
-			"ru": "SourceAnalytix",
-			"pt": "SourceAnalytix",
-			"nl": "SourceAnalytix",
-			"fr": "SourceAnalytix",
-			"it": "SourceAnalytix",
-			"es": "SourceAnalytix",
-			"pl": "SourceAnalytix"
-		},
-		"desc": {
-			"en": "SourceAnalytix",
-			"de": "SourceAnalytix",
-			"ru": "SourceAnalytix",
-			"pt": "SourceAnalytix",
-			"nl": "SourceAnalytix",
-			"fr": "SourceAnalytix",
-			"it": "SourceAnalytix",
-			"es": "SourceAnalytix",
-			"pl": "SourceAnalytix"
-		},
-		"authors": [
-			"Dutchman <rdrozda@hotail.com>"
-		],
-		"keywords": [
-			"ioBroker",
-			"template",
-			"Smart Home",
-			"home automation"
-		],
-		"platform": "Javascript/Node.js",
-		"main": "main.js",
-		"icon": "sourceanalytix.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
-		"readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
-		"loglevel": "info",
-		"mode": "daemon",
-		"type": "energy",
-		"materialize": true,
-		"supportCustoms": true,
-		"dependencies": [
-			{
-				"admin": ">=3.0.0"
-			}
-		]
-	},
-	"native": {
-		"store_year": true,
-		"store_days" : true,
-		"store_weeks" : false,
-		"store_months" : true,
-		"store_quarters" : false,
-		"store_years" : false,
-		"store_period" : false,
-		"keep_days": "7",
-		"keep_weeks": "4",
-		"keep_quarters" : "2",
-		"keep_months" : "4",
-		"keep_years" : "1",
-		"unit_price_power" : "0.27",
-		"unit_price_power_night" : "0.24",
-		"unit_price_power_delivery" : "0.17",
-		"basic_price_power" : "15",
-		"unit_price_gas" : "0.32",
-		"basic_price_gas" : "13",
-		"unit_price_water" : "0.07",
-		"basic_price_water" : "22",
-		"unit_price_oil": "0.12",
-		"basic_price_oil" : "31",		
-		"intervall":"5",
-		"developer_logging" : false
-	},
+    "common": {
+        "name": "sourceanalytix",
+        "version": "0.1.9",
+        "news": {
+            "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
+                "en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
+                "de": "0.1.9 Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
+                "ru": "0.1.9 Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
+                "pt": "0.1.9 Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
+                "nl": "0.1.9 Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
+                "fr": "0.1.9 Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
+                "it": "0.1.9 Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
+                "es": "0.1.9 Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
+                "pl": "0.1.9 Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
+                "zh-cn": "0.1.9准备稳定的0.2.0，重新设计计算逻辑和配置接口"
+            },
+            "0.1.0": {
+                "en": "0.1.0 Public beta release",
+                "de": "0.1.0 Öffentliche Betaversion",
+                "ru": "0.1.0 публичная бета-версия",
+                "pt": "0.1.0 versão beta pública",
+                "nl": "0.1.0 Public beta-release",
+                "fr": "Version bêta publique 0.1.0",
+                "it": "0.1.0 Versione beta pubblica",
+                "es": "0.1.0 Public beta pública",
+                "pl": "0.1.0 Publiczne wydanie beta",
+                "zh-cn": "0.1.0公开测试版"
+            },
+            "0.0.9": {
+                "en": "Prepare Public Beta",
+                "de": "Erste öffentliche Beta",
+                "ru": "Первая публичная бета",
+                "pt": "Primeiro beta público",
+                "nl": "Eerste openbare bèta",
+                "fr": "Première bêta publique",
+                "it": "Prima beta pubblica",
+                "es": "Primera beta pública",
+                "pl": "Pierwsza publiczna beta",
+                "zh-cn": "首次公开测试版"
+            }
+        },
+        "title": "SourceAnalytix",
+        "titleLang": {
+            "en": "SourceAnalytix",
+            "de": "SourceAnalytix",
+            "ru": "SourceAnalytix",
+            "pt": "SourceAnalytix",
+            "nl": "SourceAnalytix",
+            "fr": "SourceAnalytix",
+            "it": "SourceAnalytix",
+            "es": "SourceAnalytix",
+            "pl": "SourceAnalytix",
+            "zh-cn": "SourceAnalytix"
+        },
+        "desc": {
+            "en": "ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.",
+            "de": "Mit ioBroker SourceAnalytix können Sie die Verbrauchs-, Kosten- und Zählerwerte Ihrer Geräte nachverfolgen.",
+            "ru": "ioBroker SourceAnalytix позволяет вам отслеживать и отслеживать потребление, стоимость и значения счетчиков для ваших устройств.",
+            "pt": "O ioBroker SourceAnalytix permite que você acompanhe e rastreie os valores de consumo, custo e medidor para seus dispositivos.",
+            "nl": "ioBroker Met SourceAnalytix kunt u de verbruiks-, kosten- en meterwaarden voor uw apparaten bijhouden en volgen.",
+            "fr": "ioBroker SourceAnalytix vous permet de garder une trace de la consommation, des coûts et des valeurs de compteur pour vos appareils.",
+            "it": "ioBroker SourceAnalytix ti consente di tenere traccia dei consumi, dei costi e dei valori dei contatori per i tuoi dispositivi.",
+            "es": "ioBroker SourceAnalytix le permite realizar un seguimiento y seguimiento de los valores de consumo, costo y medidor para sus dispositivos.",
+            "pl": "ioBroker SourceAnalytix umożliwia śledzenie i śledzenie wartości zużycia, kosztu i licznika dla urządzeń.",
+            "zh-cn": "ioBroker SourceAnalytix允许您跟踪和跟踪设备的消耗，成本和仪表值。"
+        },
+        "authors": [
+            "Dutchman <rdrozda@hotail.com>"
+        ],
+        "keywords": [
+            "ioBroker",
+            "template",
+            "Smart Home",
+            "home automation"
+        ],
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "sourceanalytix.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
+        "readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "energy",
+        "materialize": true,
+        "supportCustoms": true,
+        "dependencies": [
+            {
+                "admin": ">=3.0.0"
+            }
+        ]
+    },
+    "native": {
+        "store_year": true,
+        "store_days": true,
+        "store_weeks": false,
+        "store_months": true,
+        "store_quarters": false,
+        "store_years": false,
+        "store_period": false,
+        "keep_days": "7",
+        "keep_weeks": "4",
+        "keep_quarters": "2",
+        "keep_months": "4",
+        "keep_years": "1",
+        "unit_price_power": "0.27",
+        "unit_price_power_night": "0.24",
+        "unit_price_power_delivery": "0.17",
+        "basic_price_power": "15",
+        "unit_price_gas": "0.32",
+        "basic_price_gas": "13",
+        "unit_price_water": "0.07",
+        "basic_price_water": "22",
+        "unit_price_oil": "0.12",
+        "basic_price_oil": "31",
+        "intervall": "5",
+        "developer_logging": false
+    },
     "objects": [
         {
             "_id": "_design/custom",
@@ -124,7 +126,7 @@
                     "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
                 }
             }
-		}
-	],
-	"instanceObjects": []
+        }
+    ],
+    "instanceObjects": []
 }
