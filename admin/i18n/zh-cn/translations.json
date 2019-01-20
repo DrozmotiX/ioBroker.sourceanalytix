@@ -33,6 +33,7 @@
     "Price per unit night current (€/kWh)": "每单位夜间电流价格（欧元/千瓦时）",
     "Profit per unit (€/kWh)": "每单位利润（欧元/千瓦时）",
     "Quarter": "25美分硬币",
+    "Status messages to log": "要记录的状态消息",
     "Water": "水",
     "Weeks": "周",
     "What should be evaluated": "应该评估什么",
