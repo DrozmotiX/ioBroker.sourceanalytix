@@ -115,7 +115,8 @@
         "unit_price_oil": "0.12",
         "basic_price_oil": "31",
         "intervall": "5",
-        "developer_logging": false
+        "developer_logging": false,
+        "status_logging": false
     },
     "objects": [
         {

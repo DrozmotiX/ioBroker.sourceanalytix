@@ -7,8 +7,7 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const history    = {};
 const aliasMap   = {};
-let state_set = [];
-let logging;
+let state_set = [], dev_log, mon_log;
 // intervall declariont removed, functionality changed to subscription 
 // let interval_timer;
 
@@ -41,21 +40,20 @@ const adapter = utils.adapter({
 		const inst_name = adapter.namespace;
 
 		try {
-			adapter.log.error("Object change triggered");
 			// Start initializing & intervall when new object is added to SourceAnalytix
 			//@ts-ignore obj can be undefined yes, this IF checks that !
 			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
 
 				// Check if object change is related to SourceAnalytix activation
 				//@ts-ignore obj is  not undefined or null and common.custom exists when entering this IF
-				if (obj.common.custom.inst_name.enabled === true){
+				if (obj.common.custom[inst_name].enabled === true){
 				// The object was changed
 				// // stop current running intervall (removed in 0.2.0, handled by state subscribe)
 				// (function () {if (interval_timer) {clearInterval(interval_timer); interval_timer = null;}})();
 					adapter.log.info("new state : " + id + " added to SourceAnalytix");
 					adapter.getForeignObject(id, function (err, obj){
 
-						adapter.log.info(JSON.stringify(obj));
+						if(dev_log === true){adapter.log.info(JSON.stringify(obj));}	// add logging variable
 
 						if (obj !== undefined && obj !== null){
 							state_set.push(obj);
@@ -63,7 +61,7 @@ const adapter = utils.adapter({
 						}
 					});
 				}
-
+		
 			} else {
 				// Object is removed from source analytix, unsubscribe for state changes
 				adapter.log.info("state : " + id + " removed from SourceAnalytix");
@@ -71,7 +69,7 @@ const adapter = utils.adapter({
 			}
 		} catch (error) {
 
-			adapter.log.error("Issue in handling added/removed value to calculation");
+			adapter.log.error("Issue in handling added/removed value to calculation" + error);
 				
 		}			
 	},
@@ -80,8 +78,18 @@ const adapter = utils.adapter({
 	stateChange: (id, state) => {
 		if (state) {
 			// The state was changed
-			adapter.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-			calculation_handler(id);
+			if (mon_log === true){adapter.log.info(`state ${id} monitored by soureanalytix changed : ${state.val} `);}
+
+			adapter.getForeignObject(id, function (err, obj){
+
+				if (obj !== undefined && obj !== null){
+					state_set.push(obj);
+					calculation_handler(obj);
+				}
+			});
+
+
+
 		} else {
 			// The state was deleted
 			adapter.log.info(`state ${id} deleted`);
@@ -93,7 +101,8 @@ function update_states_all (){
 	// clean variable
 	state_set = [];
 	// Adopt logging setting from configuration
-	logging = adapter.config.developer_logging;
+	dev_log = adapter.config.developer_logging;
+	mon_log = adapter.config.status_logging;
 	
 	// // initialize all SourceAnalytix enabled states
 	// adapter.log.info("Update state settings");
@@ -140,9 +149,6 @@ function update_states_all (){
 								state_set.push(obj);
 								initialize(obj);
 								// adapter.log.info(JSON.stringify(state_set));
-								
-								
-								adapter.log.info(obj._id);
 							}
 						});
 					}
@@ -165,11 +171,11 @@ function update_states_all (){
 // 	const intervall = 5000;
 // 	interval_timer = setInterval(function () {
 
-// 		// if(logging === true){adapter.log.info("Device : " + id + " with intervall : " + intervall + " and unit : " + unit);}
-// 		if(logging === true){adapter.log.info("Calculation handling started");}
+// 		// if(dev_log === true){adapter.log.info("Device : " + id + " with intervall : " + intervall + " and unit : " + unit);}
+// 		if(dev_log === true){adapter.log.info("Calculation handling started");}
 // 		for (const i in state_set){
-// 			if(logging === true){"Handle calculation for state : " + state_set[i];}
-// 			if(logging === true){adapter.log.info(JSON.stringify(state_set[i]));}
+// 			if(dev_log === true){"Handle calculation for state : " + state_set[i];}
+// 			if(dev_log === true){adapter.log.info(JSON.stringify(state_set[i]));}
 // 			calculation_handler(state_set[i]);
 // 			adapter.log.info("Handling calculations for : " + state_set[i].common.name);
 // 		}
@@ -179,9 +185,9 @@ function update_states_all (){
 
 // // Initialise all states
 // function test_initialise(){
-// 	if(logging === true){"Calc intervall state list overview: " + adapter.log.info(JSON.stringify(state_set));}
+// 	if(dev_log === true){"Calc intervall state list overview: " + adapter.log.info(JSON.stringify(state_set));}
 // 	for (const i in state_set){
-// 		if(logging === true){adapter.log.info(JSON.stringify(state_set[i]));}
+// 		if(dev_log === true){adapter.log.info(JSON.stringify(state_set[i]));}
 // 		calculation_handler(state_set[i]);
 // 	};
 // }
@@ -196,12 +202,10 @@ function initialize(obj) {
 	const obj_cust = obj.common.custom[inst_name];
 	// adapter.log.info("Intervall : " + intervall);
 	let unit = obj.common.unit;
-	if(logging === true){adapter.log.info("instanze name : " + inst_name);}
-
+	if(dev_log === true){adapter.log.info("instanze name : " + inst_name);}
 	// const obj_cust = adapter.config.custom;
-	if(logging === true){adapter.log.info(JSON.stringify(obj_cust));}
-
-	if(logging === true){adapter.log.info("Custom object tree : " + JSON.stringify(obj_cust));}
+	if(dev_log === true){adapter.log.info(JSON.stringify(obj_cust));}
+	if(dev_log === true){adapter.log.info("Custom object tree : " + JSON.stringify(obj_cust));}
 
 	// Currently only support kWh & m3)
 	if((unit == "kWh") || (unit == "m3") || (unit == "Wh") || (unit == "l")){
@@ -212,11 +216,11 @@ function initialize(obj) {
 		// replace "." in datapoints to "_"
 		const device = id.split(".").join("__");
 
-		if(logging === true){adapter.log.info("Changed Device Name : " + device);}
+		if(dev_log === true){adapter.log.info("Changed Device Name : " + device);}
 
 		// 	// Set type to consume or deliver
 		let delivery;
-		if(logging === true){adapter.log.info("Delivery type = : " + delivery);}
+		if(dev_log === true){adapter.log.info("Delivery type = : " + delivery);}
 
 		if (obj_cust.state_type == "kWh_delivery") {
 			delivery = true;
@@ -226,13 +230,12 @@ function initialize(obj) {
 		
 		// define device name, change with alias when required
 		let alias = obj.common.name;
-		adapter.log.info("Name before alias renaming : " + alias);
-		if(logging === true){adapter.log.info("Device name : " + alias);}
-		if(logging === true){adapter.log.info("State alias name : " + obj_cust.alias);}
+		if(dev_log === true){adapter.log.info("Name before alias renaming : " + alias);}
+		if(dev_log === true){adapter.log.info("Device name : " + alias);}
+		if(dev_log === true){adapter.log.info("State alias name : " + obj_cust.alias);}
 		if(obj_cust.alias !== undefined && obj_cust.alias !== null && obj_cust.alias !== "") {alias = obj_cust.alias;}
-		if(logging === true){adapter.log.info("Name after alias renaming" + alias);}
+		if(dev_log === true){adapter.log.info("Name after alias renaming" + alias);}
 		
-
 		// Create new device object for every state in powermonitor tree
 		adapter.setObjectNotExists(device, {
 			type: "device",
@@ -251,14 +254,14 @@ function initialize(obj) {
 			if (err !== null){adapter.log.error("Changing alias name failed with : " + err);}
 		});		
 
-		if(logging === true){adapter.log.info("Customized Device name = : " + alias);}
-		if(logging === true){adapter.log.info("Days ? : " + adapter.config.store_days);}
-		if(logging === true){adapter.log.info("Consumption ?  : " + obj_cust.consumption);}
-		if(logging === true){adapter.log.info("Costs : " + obj_cust.costs);}
-		if(logging === true){adapter.log.info("Meter History ? : " + obj_cust.meter_values);}
+		if(dev_log === true){adapter.log.info("Customized Device name = : " + alias);}
+		if(dev_log === true){adapter.log.info("Days ? : " + adapter.config.store_days);}
+		if(dev_log === true){adapter.log.info("Consumption ?  : " + obj_cust.consumption);}
+		if(dev_log === true){adapter.log.info("Costs : " + obj_cust.costs);}
+		if(dev_log === true){adapter.log.info("Meter History ? : " + obj_cust.meter_values);}
 
 		if (adapter.config.store_days === true) {
-			if(logging === true){adapter.log.info("Creating weekdays");}
+			if(dev_log === true){adapter.log.info("Creating weekdays");}
 			// create states for weekdays
 			for (const x in weekdays){
 				const curent_day = ".current_year.this_week." + weekdays[x];
@@ -311,7 +314,7 @@ function initialize(obj) {
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
 	}
 	// Calculate all values for the first time
-	calculation_handler(obj._id);
+	calculation_handler(obj);
 }
 
 // Calculation handler
@@ -321,7 +324,7 @@ async function calculation_handler(id){
 	const date = new Date();
 	let cost_basic;
 	let cost_unit;
-	if(logging === true){adapter.log.info("Write calculations for : " + id._id);}
+	if(dev_log === true || mon_log === true){adapter.log.info("Write calculations for : " + id._id);}
 
 	// replace "." in datapoints to "_"
 	const obj_id = id._id.split(".").join("__");
@@ -330,8 +333,7 @@ async function calculation_handler(id){
 	// Get current value from meter
 	const reading = await adapter.getForeignStateAsync(id._id);
 	const calc_reading = unit_calc_fact(id, reading.val);
-
-	if(logging === true){adapter.log.info("Meter current reading : " + reading.val);}
+	if(dev_log === true){adapter.log.info("Meter current reading : " + reading.val);}
 
 	const obj_cont = await adapter.getForeignObjectAsync(id._id);
 	//@ts-ignore custom does exist
@@ -342,37 +344,37 @@ async function calculation_handler(id){
 	switch (obj_cust.state_type) {
 
 		case "kWh_consumption":
-			if(logging === true){adapter.log.info("Case result : Electricity consumption");}
+			if(dev_log === true){adapter.log.info("Case result : Electricity consumption");}
 			cost_unit = adapter.config.unit_price_power;
 			cost_basic = adapter.config.basic_price_power;
 			break;
 
 		case "kWh_delivery":
-			if(logging === true){adapter.log.info("Case result : Electricity consumption night");}
+			if(dev_log === true){adapter.log.info("Case result : Electricity consumption night");}
 			cost_unit = adapter.config.unit_price_power_night;
 			cost_basic = adapter.config.basic_price_power;
 			break;
 
 		case "Electricity delivery":
-			if(logging === true){adapter.log.info("Case result : Electricity delivery");}
+			if(dev_log === true){adapter.log.info("Case result : Electricity delivery");}
 			cost_unit = adapter.config.unit_price_power_delivery;
 			cost_basic = adapter.config.basic_price_power;
 			break;
 		
 		case "gas":
-			if(logging === true){adapter.log.info("Case result : Gas");}
+			if(dev_log === true){adapter.log.info("Case result : Gas");}
 			cost_unit = adapter.config.unit_price_gas;
 			cost_basic = adapter.config.basic_price_gas;
 			break;
 		
 		case "water_m3":
-			if(logging === true){adapter.log.info("Case result : Water");}
+			if(dev_log === true){adapter.log.info("Case result : Water");}
 			cost_unit = adapter.config.unit_price_water;
 			cost_basic = adapter.config.basic_price_water;
 			break;
 		
 		case "oil_m3":
-			if(logging === true){adapter.log.info("Case result : Oil");}
+			if(dev_log === true){adapter.log.info("Case result : Oil");}
 			cost_unit = adapter.config.unit_price_oil;
 			cost_basic = adapter.config.basic_price_oil;
 			break;
@@ -381,12 +383,12 @@ async function calculation_handler(id){
 			adapter.log.error("Error in case handling of cost type identificaton" + obj_cust.state_type);
 	}
 
-	if(logging === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);}
-	if(logging === true){adapter.log.info("Calculation Factor : " + cost_unit);}
-	if(logging === true){adapter.log.info("Cost basic : " + cost_basic);}
-	if(logging === true){adapter.log.info("Cost unit : " + cost_unit);}
-	if(logging === true){adapter.log.info("Handle consumption calculations : " + obj_cust.consumption);}
-	if(logging === true){adapter.log.info("Handle meter history : " + obj_cust.meter_values);}
+	if(dev_log === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);}
+	if(dev_log === true){adapter.log.info("Calculation Factor : " + cost_unit);}
+	if(dev_log === true){adapter.log.info("Cost basic : " + cost_basic);}
+	if(dev_log === true){adapter.log.info("Cost unit : " + cost_unit);}
+	if(dev_log === true){adapter.log.info("Handle consumption calculations : " + obj_cust.consumption);}
+	if(dev_log === true){adapter.log.info("Handle meter history : " + obj_cust.meter_values);}
 
 	// temporary set to sero, this calue will be used later to handle period calculations
 	const reading_start = 0; 	//obj_cust.start_meassure; 
@@ -396,12 +398,12 @@ async function calculation_handler(id){
 	const quarter_bval = obj_cust.start_quarter;
 	const year_bval = obj_cust.start_year;
 
-	if(logging === true){adapter.log.info("reading_start : " + reading_start);}
-	if(logging === true){adapter.log.info("day start : " + day_bval);}
-	if(logging === true){adapter.log.info("week start : " + week_bval);}
-	if(logging === true){adapter.log.info("month start " + month_bval);}
-	if(logging === true){adapter.log.info("quarter start " + quarter_bval);}
-	if(logging === true){adapter.log.info("year start : " + year_bval);}
+	if(dev_log === true){adapter.log.info("reading_start : " + reading_start);}
+	if(dev_log === true){adapter.log.info("day start : " + day_bval);}
+	if(dev_log === true){adapter.log.info("week start : " + week_bval);}
+	if(dev_log === true){adapter.log.info("month start " + month_bval);}
+	if(dev_log === true){adapter.log.info("quarter start " + quarter_bval);}
+	if(dev_log === true){adapter.log.info("year start : " + year_bval);}
 
 	// set correct naming for cost & delivery based on type
 	if(obj_cust.state_type == "kWh_delivery"){
@@ -420,30 +422,30 @@ async function calculation_handler(id){
 		// Weekday & current day
 		state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
 
-		if(logging === true){adapter.log.info("calculated reading day : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated reading day : " + state_val);}
 		adapter.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
 		adapter.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 
 		// Week
 		state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
-		if(logging === true){adapter.log.info("calculated reading week : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated reading week : " + state_val);}
 		adapter.setState(obj_root + del_t + "02_current_week", { val: state_val,ack: true });
 		adapter.setState(obj_root + del_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
 		// Month
 		state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
-		if(logging === true){adapter.log.info("calculated reading month : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated reading month : " + state_val);}
 		adapter.setState(obj_root + del_t + "03_current_month", { val: state_val,ack: true });
 		adapter.setState(obj_root + del_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
 		// Quarter
 		state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
-		if(logging === true){adapter.log.info("calculated reading quarter : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated reading quarter : " + state_val);}
 		adapter.setState(obj_root + del_t + "04_current_quarter", { val: state_val,ack: true });
 
 		// Year
 		state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
-		if(logging === true){adapter.log.info("calculated reading day : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated reading day : " + state_val);}
 		adapter.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
 	}
 
@@ -453,58 +455,58 @@ async function calculation_handler(id){
 	const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
 	const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
 
-	if(logging === true){adapter.log.info("day consumed " + day_bval_consumend);}
-	if(logging === true){adapter.log.info("week consumed " + week_bval_consumend);}
-	if(logging === true){adapter.log.info("month consumed " + month_bval_consumend);}
-	if(logging === true){adapter.log.info("quarter consumed " + quarter_bval_consumend);}
-	if(logging === true){adapter.log.info("year consumed "+ year_bval_consumend);}
-	if(logging === true){adapter.log.info("objroot " + obj_root);}
-	if(logging === true){adapter.log.info("cost type " + cost_t);}
-	if(logging === true){adapter.log.info("delivery type " + del_t);}
-	if(logging === true){adapter.log.info("example state string : " + obj_root + cost_t + "01_current_day");}
+	if(dev_log === true){adapter.log.info("day consumed " + day_bval_consumend);}
+	if(dev_log === true){adapter.log.info("week consumed " + week_bval_consumend);}
+	if(dev_log === true){adapter.log.info("month consumed " + month_bval_consumend);}
+	if(dev_log === true){adapter.log.info("quarter consumed " + quarter_bval_consumend);}
+	if(dev_log === true){adapter.log.info("year consumed "+ year_bval_consumend);}
+	if(dev_log === true){adapter.log.info("objroot " + obj_root);}
+	if(dev_log === true){adapter.log.info("cost type " + cost_t);}
+	if(dev_log === true){adapter.log.info("delivery type " + del_t);}
+	if(dev_log === true){adapter.log.info("example state string : " + obj_root + cost_t + "01_current_day");}
 	
 	if(obj_cust.costs === true){
 		// Weekday & current day
 		//@ts-ignore cost_unit is always a number
 		state_val = (day_bval_consumend * cost_unit).toFixed(2);
-		if(logging === true){adapter.log.info("calculated cost day : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated cost day : " + state_val);}
 		adapter.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
 		adapter.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 		
 		// Week
 		//@ts-ignore cost_unit is always a number
 		state_val = (week_bval_consumend * cost_unit).toFixed(2);
-		if(logging === true){adapter.log.info("calculated cost week : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated cost week : " + state_val);}
 		adapter.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
 		adapter.setState(obj_root + cost_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
 		// Month
 		//@ts-ignore cost_unit is always a number
 		state_val = (month_bval_consumend * cost_unit).toFixed(2);
-		if(logging === true){adapter.log.info("calculated cost month : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated cost month : " + state_val);}
 		adapter.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
 		adapter.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
 		// Quarter
 		//@ts-ignore cost_unit is always a number
 		state_val = (quarter_bval_consumend * cost_unit).toFixed(2);
-		if(logging === true){adapter.log.info("calculated cost quarter : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated cost quarter : " + state_val);}
 		adapter.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
 
 		// Year
 		//@ts-ignore cost_unit is always a number
 		state_val = (year_bval_consumend * cost_unit).toFixed(2);
-		if(logging === true){adapter.log.info("calculated cost year : " + state_val);}
+		if(dev_log === true){adapter.log.info("calculated cost year : " + state_val);}
 		adapter.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
 	}
-	if(logging === true){adapter.log.info("Meter Calculation executed");}
+	if(dev_log === true || mon_log === true){adapter.log.info("Meter Calculation executed");}
 }
 
 // Function to handle channel creation
 function ChannelCreate (id, channel, name){
-	if(logging === true){adapter.log.info("Parent device : " + id);}
-	if(logging === true){adapter.log.info("Create channel id : " + channel);}
-	if(logging === true){adapter.log.info("Create channel name : " + name);}
+	if(dev_log === true){adapter.log.info("Parent device : " + id);}
+	if(dev_log === true){adapter.log.info("Create channel id : " + channel);}
+	if(dev_log === true){adapter.log.info("Create channel name : " + name);}
 	adapter.createChannel(id, channel,{
 		"name": name
 	});
@@ -588,7 +590,7 @@ async function set_zero_val (id){
 	const inst_name = adapter.namespace;
 
 	const reading = await adapter.getForeignStateAsync(inst_name + "." + id);
-	if(logging === true){adapter.log.info(JSON.stringify(reading));}
+	if(dev_log === true){adapter.log.info(JSON.stringify(reading));}
 	if (reading.val === null) {adapter.setState(id, { val: 0, ack: true });}
 }
 
