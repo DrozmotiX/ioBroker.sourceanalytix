@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.1.9",
+        "version": "0.1.9-RC1",
         "news": {
             "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
                 "en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
@@ -115,7 +115,8 @@
         "unit_price_oil": "0.12",
         "basic_price_oil": "31",
         "intervall": "5",
-        "developer_logging": false
+        "developer_logging": false,
+        "status_logging": false
     },
     "objects": [
         {
