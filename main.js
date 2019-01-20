@@ -44,22 +44,25 @@ const adapter = utils.adapter({
 			//@ts-ignore obj can be undefined yes, this IF checks that !
 			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
 
-				// Check if object change is related to SourceAnalytix activation
 				//@ts-ignore obj is  not undefined or null and common.custom exists when entering this IF
-				if (obj.common.custom[inst_name].enabled === true){
-				// The object was changed
-				// // stop current running intervall (removed in 0.2.0, handled by state subscribe)
-				// (function () {if (interval_timer) {clearInterval(interval_timer); interval_timer = null;}})();
-					adapter.log.info("new state : " + id + " added to SourceAnalytix");
-					adapter.getForeignObject(id, function (err, obj){
+				if (obj.common.custom[inst_name].enabled !== null && obj.common.custom[inst_name].enabled !== undefined){
+				// Check if object change is related to SourceAnalytix activation
+					//@ts-ignore obj is  not undefined or null
+					if (obj.common.custom[inst_name].enabled === true){
+					// The object was changed
+					// // stop current running intervall (removed in 0.2.0, handled by state subscribe)
+					// (function () {if (interval_timer) {clearInterval(interval_timer); interval_timer = null;}})();
+						adapter.log.info("new state : " + id + " added to SourceAnalytix");
+						adapter.getForeignObject(id, function (err, obj){
 
-						if(dev_log === true){adapter.log.info(JSON.stringify(obj));}	// add logging variable
+							if(dev_log === true){adapter.log.info(JSON.stringify(obj));}	// add logging variable
 
-						if (obj !== undefined && obj !== null){
-							state_set.push(obj);
-							initialize(obj);
-						}
-					});
+							if (obj !== undefined && obj !== null){
+								state_set.push(obj);
+								initialize(obj);
+							}
+						});
+					}
 				}
 		
 			} else {
