@@ -297,6 +297,7 @@ function initialize(obj) {
 
 		// create state for current day/week/quarters/month current value
 		let state_root = ".01_current_day";
+		doStateCreate(delivery,device,state_root , "current Day ", "number","value.week", unit, obj_cust.consumption, obj_cust.costs, false);
 		state_root = ".02_current_week";
 		doStateCreate(delivery,device,state_root , "current Week ", "number","value.week", unit, obj_cust.consumption, obj_cust.costs, false);
 		state_root = ".03_current_month";
