@@ -40,8 +40,6 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] Documentation
 * [ ] Cost default value to 0 with error message if not provided
 * [ ] recalcalation based on meter values (configurable by date)
-* [ ] ensure all values are stored when adapter shuts down to prevent data gaps
-* [ ] better logic to reset start values to cover possible issue when adapter is not running during midnight
 * [ ] calculations for quarter values
 * [ ] storage of meter values for every state
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
@@ -67,8 +65,16 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [x] use alias of device name
 * [x] configurable data points (yes/no) for cost, consumption and meter-values
 * [x] Make it selectable to store analytics for complete year or only selectable periode
+* [x] ensure all values are stored when adapter shuts down to prevent data gaps
 
 ## Changelog
+
+### 0.2.2
+* (Dutchman) fix reset of start values
+* (Dutchman) removed uneeded logging "Write calculations for : "
+* (Dutchman) generic improvement of logging, to see status messages activate it in adapter settings ! Otherwise onlyu erros will be shown and add/del devices
+* (Dutchman) improved complete logic of state add/delete/update config in backend which will result in better performance/error handling
+* (Dutchman) small fix in configuration screen to show logging options
 
 ### 0.2.1
 * (Dutchman) fix "current_day" missing in object tree

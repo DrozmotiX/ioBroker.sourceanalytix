@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.1",
+        "version": "0.2.2",
         "news": {
+            "0.2.1 Final fix for start values, several code improvements": {
+                "en": "0.2.1 Final fix for start values, several code improvements",
+                "de": "0.2.1 Endfix für Startwerte, verschiedene Code-Verbesserungen",
+                "ru": "0.2.1 Окончательное исправление для начальных значений, несколько улучшений кода",
+                "pt": "0.2.1 Correção final para valores iniciais, várias melhorias no código",
+                "nl": "0.2.1 Laatste fix voor startwaarden, verschillende codeverbeteringen",
+                "fr": "0.2.1 Correctif final pour les valeurs de départ, plusieurs améliorations de code",
+                "it": "0.2.1 Correzione finale per i valori iniziali, diversi miglioramenti del codice",
+                "es": "0.2.1 Arreglo final para valores de inicio, varias mejoras de código",
+                "pl": "0.2.1 Ostateczna poprawka wartości początkowych, kilka ulepszeń kodu",
+                "zh-cn": "0.2.1起始值的最终修复，几个代码改进"
+            },
             "0.2.1 Several bugs fixed": {
                 "en": "Several bugs fixed",
                 "de": "Mehrere Fehler behoben",
@@ -121,7 +133,7 @@
         "store_weeks": false,
         "store_months": true,
         "store_quarters": false,
-        "store_years": false,
+        "store_years": true,
         "store_period": false,
         "keep_days": "7",
         "keep_weeks": "4",

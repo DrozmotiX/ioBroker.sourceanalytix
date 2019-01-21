@@ -35,47 +35,58 @@ const adapter = utils.adapter({
 		}
 	},
 
-	// To-Do, initialise new state
+	// Monitor changes on objects and take action if an object is added to SourceAnalytix monitoring
 	objectChange: (id, obj) => {
-		const inst_name = adapter.namespace;
-
-		try {
-			// Start initializing & data calculation when new object is added to SourceAnalytix
-			//@ts-ignore obj can be undefined yes, this IF checks that !
-			if (obj.common.custom !== null  && obj.common.custom !== undefined) {
-
-				//@ts-ignore obj is  not undefined or null and common.custom exists when entering this IF
-				if (obj.common.custom[inst_name].enabled !== null && obj.common.custom[inst_name].enabled !== undefined){
-				// Check if object change is related to SourceAnalytix activation
-					//@ts-ignore obj is  not undefined or null
-					if (obj.common.custom[inst_name].enabled === true){
-					// The object was changed
-					// // stop current running intervall (removed in 0.2.0, handled by state subscribe)
-					// (function () {if (interval_timer) {clearInterval(interval_timer); interval_timer = null;}})();
-						adapter.log.info("new state : " + id + " added to SourceAnalytix");
-						adapter.getForeignObject(id, function (err, obj){
-
-							if(dev_log === true){adapter.log.info(JSON.stringify(obj));}	// add logging variable
-
-							if (obj !== undefined && obj !== null){
-								state_set.push(obj);
-								initialize(obj);
-							}
-						});
-					}
-				}
+		let existing = false;
+		let array_id;
 		
-			} else {
-				// Object is removed from source analytix, unsubscribe for state changes
-				// Log temporary only in dev-mode, unsubscribe must b e improved function triggered unneeded currenlty = 
-				if(dev_log === true){adapter.log.info("state : " + id + " removed from SourceAnalytix");}
-				adapter.unsubscribeForeignStates(id);
+		if (dev_log === true){adapter.log.info("Object array from trigger : " + JSON.stringify(state_set));}
+		
+		// Check if change object is part of array
+		for(const x in state_set) {
+
+			if (state_set[x] === id){
+
+				adapter.log.info("Found it : " + id);
+				existing = true;
+				array_id = x;
 			}
-		} catch (error) {
-			// temprorary disable error catch will be fixt later 
-			// adapter.log.error("Issue in handling added/removed value to calculation" + error);
+
+		}
+
+
+		// Check if object is activated for SourceAnalytix
+		if (obj && obj.common &&
+			(
+				(obj.common.custom  && obj.common.custom[adapter.namespace]  && obj.common.custom[adapter.namespace].enabled)
+			)
+		) {			
+			// Verify if the object was already activated, if no initialize and start cron else only initialize new settings
+			if (existing === false){
+				adapter.log.info("Enable SourceAnalytix for : " + id);
+				// Add object to array
+				state_set.push(id);
+				initialize(obj);
+				// Start cron to reset values at day, week etc start
+				reset_shedules (obj);				
+			} else { 
+				adapter.log.info("Updated SourceAnalytix configuration for : " + id);
+				initialize(obj);
+			}
+
+			if (dev_log === true){adapter.log.info("Complete object array : " + JSON.stringify(state_set));}
+		
+		} else {
+
+			
+			if ( existing === true) {
+				adapter.log.info("Disable SourceAnalytix for : " + id);
+				adapter.unsubscribeForeignStates(id);
+				state_set.splice(array_id, 1); 
 				
-		}			
+			}
+
+		}
 	},
 
 	// handle calculation when a subscribed state changes
@@ -83,20 +94,11 @@ const adapter = utils.adapter({
 		if (state) {
 			// The state was changed
 			if (mon_log === true){adapter.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);}
-
 			adapter.getForeignObject(id, function (err, obj){
-
 				if (obj !== undefined && obj !== null){
-					state_set.push(obj);
 					calculation_handler(obj);
 				}
 			});
-
-
-
-		} else {
-			// The state was deleted
-			adapter.log.info(`state ${id} deleted`);
 		}
 	},
 });
@@ -142,66 +144,29 @@ function update_states_all (){
 					} else {
 						count++;
 						adapter.getForeignObject(id, function (err, obj){
-
 							if (obj !== undefined && obj !== null){
-								//  adapter.log.info("Activate SourceAnalytix for : " + obj._id);
-								// Push item into variable array
-
-								// for 0.3.0 : Optimise, only run initialisation for newly added items not all
-								// build check to verify
-
-								state_set.push(obj);
+								// Push object into variable array used for checks later
+								state_set.push(id);
+								// run initialisation for objects
+								adapter.log.info("Activate SourceAnalytix for : " + obj._id);
 								initialize(obj);
-								// adapter.log.info(JSON.stringify(state_set));
+								if (dev_log === true){adapter.log.info("Object array : " + JSON.stringify(state_set));}
+								
+								// Start cron to reset values at day, week etc start
+								reset_shedules (obj);
 							}
 						});
 					}
 				}
 			}
 		}
-
-		// Start intervall for state calculations
-		// calc_intervall();
-
 	});	
 	adapter.subscribeForeignObjects("*");
 }
 
-// At introduction of 0.2 intervall is removed, we handle it by subscription now
-// // Run calculations
-// function calc_intervall(){
-// 	//@ts-ignore intervall is always a number
-// //	const intervall = (adapter.config.intervall * 60000);
-// 	const intervall = 5000;
-// 	interval_timer = setInterval(function () {
-
-// 		// if(dev_log === true){adapter.log.info("Device : " + id + " with intervall : " + intervall + " and unit : " + unit);}
-// 		if(dev_log === true){adapter.log.info("Calculation handling started");}
-// 		for (const i in state_set){
-// 			if(dev_log === true){"Handle calculation for state : " + state_set[i];}
-// 			if(dev_log === true){adapter.log.info(JSON.stringify(state_set[i]));}
-// 			calculation_handler(state_set[i]);
-// 			adapter.log.info("Handling calculations for : " + state_set[i].common.name);
-// 		}
-// 	// adapter.log.info(JSON.stringify(state_set));
-// 	}, intervall);
-// }
-
-// // Initialise all states
-// function test_initialise(){
-// 	if(dev_log === true){"Calc intervall state list overview: " + adapter.log.info(JSON.stringify(state_set));}
-// 	for (const i in state_set){
-// 		if(dev_log === true){adapter.log.info(JSON.stringify(state_set[i]));}
-// 		calculation_handler(state_set[i]);
-// 	};
-// }
-
 // Create object tree and states for all devices to be handled
 function initialize(obj) {
 	const inst_name = adapter.namespace;
-	// adapter.log.info(JSON.stringify(obj));
-	adapter.log.info("Activate SourceAnalytix for : " + obj._id);
-	// calculate interval from minutes to milliseconds
 	const id = obj._id;
 	const obj_cust = obj.common.custom[inst_name];
 	// adapter.log.info("Intervall : " + intervall);
@@ -312,12 +277,9 @@ function initialize(obj) {
 		state_root = ".Current_Reading";
 		doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", unit, false, false, obj_cust.meter_values);
 
-		adapter.log.info("Initialization finished for : " + device);
+		if(dev_log === true){adapter.log.info("Initialization finished for : " + device);}
 		// Subscribe state, every state change will trigger calculation
 		adapter.subscribeForeignStates(obj._id);
-
-		// Start cron to reset values at day, week etc start
-		reset_shedules (obj._id);
 
 	} else {
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
@@ -333,7 +295,7 @@ async function calculation_handler(id){
 	const date = new Date();
 	let cost_basic;
 	let cost_unit;
-	if(dev_log === true || mon_log === true){adapter.log.info("Write calculations for : " + id._id);}
+	if(dev_log === true){adapter.log.info("Write calculations for : " + id._id);}
 
 	// replace "." in datapoints to "_"
 	const obj_id = id._id.split(".").join("__");
@@ -632,122 +594,146 @@ function getWeekNumber(d) {
 // }
 
 // Function to reset start values for each day, week, month, quarter, year
-async function reset_shedules (id){
+async function reset_shedules (obj_array){
 	const inst_name = adapter.namespace;
-	//	try {
 
-	// get current meter value, start value of meassurement & calculate value to write in start states
-	const reading = await adapter.getForeignStateAsync(id._id);
-	const calc_factor = unit_calc_fact(id);
-	const calc_reading = reading.val / calc_factor;
-
-	const obj = {
-		common : {
-			custom : {
-			} 
-		}
-	};
+	// Prepare custom object
+	const obj = {};
+	obj.common = {};
+	obj.common.custom = {};
+	obj.common.custom[inst_name] = {};
 
 	// Reset day counter
-	cron.schedule("0 0 * * *", function(){
-		//	Meter_Calculations(test_Object_list[z].Device);
-		// adapter.setState(obj_root + ".Meter_Readings.start_values.01_day", { val: obj_val,ack: true });
-		obj.common.custom[inst_name] = {
-			start_day : calc_reading
-		};
+	cron.schedule("0 0 * * *", async function(){
+		// get current meter value
+		const reading = await adapter.getForeignStateAsync(obj_array._id);
+		const calc_reading = unit_calc_fact(obj_array, reading.val);
+
+		// Extend object with start value day
+		obj.common.custom[adapter.namespace].start_day = calc_reading;
+		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-		adapter.extendForeignObject(id._id, obj, function (err) {
-			if (err !== null){adapter.log.error("Error writing meter value of start Day ! : " + err);}	
+		adapter.extendForeignObject(obj_array._id, obj, function (err) {
+			if (err) {
+				adapter.log.error("Setting start value Day failed : " + err);
+			} else {
+				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+				adapter.log.error("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+			}
 		});
 	});
 	
 	// Reset Week counter
-	cron.schedule("0 0 1 * 1", function(){
-		// adapter.setState(obj_root + ".Meter_Readings.start_values.02_week", { val: obj_val,ack: true });
-		obj.common.custom[inst_name] = {
-			start_week : calc_reading
-		};
+	cron.schedule("0 0 * * 1", async function(){
+
+		// get current meter value
+		const reading = await adapter.getForeignStateAsync(obj_array._id);
+		const calc_reading = unit_calc_fact(obj_array, reading.val);
+
+		// Extend object with start value week
+		obj.common.custom[adapter.namespace].start_week = calc_reading;
+		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-		adapter.extendForeignObject(id._id, obj, function (err) {		
-			if (err !== null){adapter.log.error("Error writing meter value of start Week ! : " + err);}	
+		adapter.extendForeignObject(obj_array._id, obj, function (err) {
+			if (err) {
+				adapter.log.error("Setting start value Week failed : " + err);
+			} else {
+				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+				adapter.log.error("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+			}
 		});
 	});
 	
 	// Reset month counter
-	cron.schedule("0 0 1 * *", function(){
-		// adapter.setState(obj_root + ".Meter_Readings.start_values.03_month", { val: obj_val,ack: true });
-		obj.common.custom[inst_name] = {
-			start_month : calc_reading
-		};
+	cron.schedule("0 0 1 * *", async function(){
+
+		// get current meter value
+		const reading = await adapter.getForeignStateAsync(obj_array._id);
+		const calc_reading = unit_calc_fact(obj_array, reading.val);
+
+		// Extend object with start value month
+		obj.common.custom[adapter.namespace].start_month = calc_reading;
+		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-		adapter.extendForeignObject(id._id, obj, function (err) {		
-			adapter.log.error("Error writing meter value of start Month ! : " + err);	
+		adapter.extendForeignObject(obj_array._id, obj, function (err) {
+			if (err) {
+				adapter.log.error("Setting start value month failed : " + err);
+			} else {
+				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+				adapter.log.error("Setting start value month for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+			}
 		});
 	});
 	
 	// Reset quarter counter
-	cron.schedule("0 0 1 1,4,7,10 *", function(){
-		// adapter.setState(obj_root + ".Meter_Readings.start_values.04_quarter", { val: obj_val,ack: true });
-		obj.common.custom[inst_name] = {
-			start_quarter : calc_reading
-		};
+	cron.schedule("0 0 1 1,4,7,10 *", async function(){
+
+		// get current meter value
+		const reading = await adapter.getForeignStateAsync(obj_array._id);
+		const calc_reading = unit_calc_fact(obj_array, reading.val);
+
+		// Extend object with start value quarter
+		obj.common.custom[adapter.namespace].start_quarter = calc_reading;
+		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-		adapter.extendForeignObject(id._id, obj, function (err) {	
-			if (err !== null){adapter.log.error("Error writing meter value of start Quarter ! : " + err);}		
+		adapter.extendForeignObject(obj_array._id, obj, function (err) {
+			if (err) {
+				adapter.log.error("Setting start value quarter failed : " + err);
+			} else {
+				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+				adapter.log.error("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+			}
 		});
 	});
 	
 	// Reset year counter
-	cron.schedule("0 0 1 1 *", function(){
-		// adapter.setState(obj_root + ".Meter_Readings.start_values.05_year", { val: obj_val,ack: true });
-		obj.common.custom[inst_name] = {
-			start_year : calc_reading
-		};
+	cron.schedule("0 0 1 1 *", async function(){
+
+		// get current meter value
+		const reading = await adapter.getForeignStateAsync(obj_array._id);
+		const calc_reading = unit_calc_fact(obj_array, reading.val);
+
+		// Extend object with start value year
+		obj.common.custom[adapter.namespace].start_year = calc_reading;
+		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-		adapter.extendForeignObject(id._id, obj, function (err) {	
-			if (err !== null){adapter.log.error("Error writing meter value of start Year ! : " + err);}		
+		adapter.extendForeignObject(obj_array._id, obj, function (err) {
+			if (err) {
+				adapter.log.error("Setting start value year failed : " + err);
+			} else {
+				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+				adapter.log.error("Setting start value year for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+			}
 		});
 	});
-	// } catch (error) {
-		
-	// }
 }
 
+// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
 function unit_calc_fact (obj, value){
 
 	const unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
 	let calc_value;
 
 	switch (unit) {
-
 		case "kwh":
-
 			calc_value = value;
-
 			break;
-
 		case "wh":
-
 			calc_value = value / 1000;
-
 			break;
-
 		case "m3":
-
 			calc_value = value;
-
 			break;
-		
 		case "l":
-
 			calc_value = value / 1000;
-
 			break;
-
 		default:
-
 			adapter.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
-
 	}
 	return calc_value;
 }
