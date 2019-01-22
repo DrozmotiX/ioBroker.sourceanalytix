@@ -69,6 +69,9 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
+### 0.2.21
+* (Dutchman) add support for heating pumps
+
 ### 0.2.2
 * (Dutchman) fix reset of start values
 * (Dutchman) removed uneeded logging "Write calculations for : "

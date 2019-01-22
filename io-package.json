@@ -1,21 +1,33 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.2",
+        "version": "0.2.21",
         "news": {
-            "0.2.1 Final fix for start values, several code improvements": {
-                "en": "0.2.1 Final fix for start values, several code improvements",
-                "de": "0.2.1 Endfix für Startwerte, verschiedene Code-Verbesserungen",
-                "ru": "0.2.1 Окончательное исправление для начальных значений, несколько улучшений кода",
-                "pt": "0.2.1 Correção final para valores iniciais, várias melhorias no código",
-                "nl": "0.2.1 Laatste fix voor startwaarden, verschillende codeverbeteringen",
-                "fr": "0.2.1 Correctif final pour les valeurs de départ, plusieurs améliorations de code",
-                "it": "0.2.1 Correzione finale per i valori iniziali, diversi miglioramenti del codice",
-                "es": "0.2.1 Arreglo final para valores de inicio, varias mejoras de código",
-                "pl": "0.2.1 Ostateczna poprawka wartości początkowych, kilka ulepszeń kodu",
-                "zh-cn": "0.2.1起始值的最终修复，几个代码改进"
+            "0.2.21": {
+                "en": "add support for heating pumps",
+                "de": "Unterstützung für Heizungspumpen hinzufügen",
+                "ru": "добавить поддержку для тепловых насосов",
+                "pt": "adicione suporte para bombas de aquecimento",
+                "nl": "voeg ondersteuning toe voor verwarmingspompen",
+                "fr": "ajouter un support pour les pompes à chaleur",
+                "it": "aggiungere il supporto per le pompe di calore",
+                "es": "añadir soporte para bombas de calor",
+                "pl": "dodaj wsparcie dla pomp grzewczych",
+                "zh-cn": "增加对加热泵的支持"
+            },            
+            "0.2.2": {
+                "en": "Final fix for start values, several code improvements",
+                "de": "Endfix für Startwerte, verschiedene Code-Verbesserungen",
+                "ru": "Окончательное исправление для начальных значений, несколько улучшений кода",
+                "pt": "Correção final para valores iniciais, várias melhorias no código",
+                "nl": "Laatste fix voor startwaarden, verschillende codeverbeteringen",
+                "fr": "Correctif final pour les valeurs de départ, plusieurs améliorations de code",
+                "it": "Correzione finale per i valori iniziali, diversi miglioramenti del codice",
+                "es": "Arreglo final para valores de inicio, varias mejoras de código",
+                "pl": "Ostateczna poprawka wartości początkowych, kilka ulepszeń kodu",
+                "zh-cn": "0.2.2起始值的最终修复，几个代码改进"
             },
-            "0.2.1 Several bugs fixed": {
+            "0.2.1": {
                 "en": "Several bugs fixed",
                 "de": "Mehrere Fehler behoben",
                 "ru": "Исправлено несколько ошибок",
@@ -27,7 +39,7 @@
                 "pl": "Naprawiono kilka błędów",
                 "zh-cn": "修复了几个错误"
             },
-            "0.2.0 Public Release candidate": {
+            "0.2.0": {
                 "en": "Public Release candidate",
                 "de": "Öffentlicher Release-Kandidat",
                 "ru": "Публичный релиз кандидата",
@@ -39,28 +51,28 @@
                 "pl": "Kandydat na Public Release",
                 "zh-cn": "公开发布候选人"
             },
-            "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned": {
-                "en": "0.1.9 Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
-                "de": "0.1.9 Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
-                "ru": "0.1.9 Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
-                "pt": "0.1.9 Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
-                "nl": "0.1.9 Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
-                "fr": "0.1.9 Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
-                "it": "0.1.9 Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
-                "es": "0.1.9 Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
-                "pl": "0.1.9 Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
-                "zh-cn": "0.1.9准备稳定的0.2.0，重新设计计算逻辑和配置接口"
+            "0.1.9": {
+                "en": "Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
+                "de": "Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
+                "ru": "Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
+                "pt": "Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
+                "nl": "Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
+                "fr": "Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
+                "it": "Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
+                "es": "Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
+                "pl": "Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
+                "zh-cn": "准备稳定的0.2.0，重新设计计算逻辑和配置接口"
             },
             "0.1.0": {
-                "en": "0.1.0 Public beta release",
-                "de": "0.1.0 Öffentliche Betaversion",
-                "ru": "0.1.0 публичная бета-версия",
-                "pt": "0.1.0 versão beta pública",
-                "nl": "0.1.0 Public beta-release",
+                "en": "Public beta release",
+                "de": "Öffentliche Betaversion",
+                "ru": "публичная бета-версия",
+                "pt": "versão beta pública",
+                "nl": "Public beta-release",
                 "fr": "Version bêta publique 0.1.0",
-                "it": "0.1.0 Versione beta pubblica",
-                "es": "0.1.0 Public beta pública",
-                "pl": "0.1.0 Publiczne wydanie beta",
+                "it": "Versione beta pubblica",
+                "es": "Public beta pública",
+                "pl": "Publiczne wydanie beta",
                 "zh-cn": "0.1.0公开测试版"
             },
             "0.0.9": {
@@ -144,6 +156,9 @@
         "unit_price_power_night": "0.24",
         "unit_price_power_delivery": "0.17",
         "basic_price_power": "15",
+        "unit_price_heatpump": "0.24",
+        "unit_price_heatpump_night": "0.22",
+        "basic_price_heatpump": "15",
         "unit_price_gas": "0.32",
         "basic_price_gas": "13",
         "unit_price_water": "0.07",

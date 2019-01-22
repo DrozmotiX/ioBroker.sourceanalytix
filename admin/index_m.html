@@ -77,10 +77,7 @@
 				<div class="row">
 				   <div id="tab-main" class="col s12 page">
 					  <div class="section">
-						 <h6 class="translate">Please set time periods here</h6>
-					  </div>
-					  <div class="section">
-						 <div class="divider"></div>
+						 <h6 class="translate">Analyse the whole year</h6>
 					  </div>
 					  <div class="row">
 						 <div class="input-field col s2">
@@ -109,8 +106,12 @@
 						 </div>
 					  </div>
 					  <div class="section">
-						 <div class="divider"></div>
-					  </div>
+							<div class="divider"></div>
+						 </div>
+					  <div class="section">
+							<h6 class="translate">Analyse the previous x period</h6>
+						 </div>
+
 					  <div class="row">
 						 <div class="input-field col s2">
 							<input type="checkbox" class="value" id="store_periode" />
@@ -148,9 +149,12 @@
 							<input type="number" class="value" id="intervall"/>
 							<label for="intervall" class="translate">Calculation is done every x minutes</label>
 						 </div> -->				   
-					  <div class="section">
-						<div class="divider"></div>
-					</div>				
+						 <div class="section">
+							<div class="divider"></div>
+						</div>							 
+						 <div class="section">
+							<h6 class="translate">Analyse the previous x period</h6>
+						 </div>			
 					<div class="row">
 						<div class="input-field col s3">
 							<input type="checkbox" class="value" id="status_logging" />
@@ -186,6 +190,23 @@
 						 <label for="unit_price_power_delivery" class="translate">Profit per unit (€/kWh)</label>
 					  </div>			 
 				   </div>
+				   <div class="row">
+						<div class="text col s2">
+						   <p class="translate">Heat pump</p>
+						</div>
+						<div class="input-field col s2">
+						   <input type="number" class="value" id="unit_price_power" />
+						   <label for="unit_price_power" class="translate">Price per unit (€/kWh)</label>
+						</div>
+						<div class="input-field col s2">
+						   <input type="number" class="value" id="unit_price_power_night" />
+						   <label for="unit_price_power_night" class="translate">Price per unit night current (€/kWh)</label>
+						</div>
+						<div class="input-field col s2">
+						   <input type="number" class="value" id="basic_price_power" />
+						   <label for="basic_price_power" class="translate">Monthly base price</label>
+						</div>		 
+					 </div>
 				   <div class="row">
 					  <div class="text col s2">
 						 <p class="translate">Gas</p>

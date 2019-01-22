@@ -4,6 +4,8 @@
     "Advance settings for cost calculation": "Ustawienia zaawansowane do obliczania kosztów",
     "Advance settings for periode to store": "Wcześniejsze ustawienia do przechowywania w oknach",
     "Alias": "Alias",
+    "Analyse the previous x period": "Przeanalizuj poprzedni okres x",
+    "Analyse the whole year": "Przeanalizuj cały rok",
     "Annual overview (recommended)": "Przegląd roczny (zalecane)",
     "Calculation is done every x minutes": "Obliczanie odbywa się co x minut",
     "Costs": "Koszty",
@@ -12,6 +14,8 @@
     "Electricity consumption": "Pobór prądu",
     "Electricity delivery": "Dostawa energii elektrycznej",
     "Gas": "Gaz",
+    "Heat pump": "Pompa ciepła",
+    "Logging settings": "Ustawienia rejestrowania",
     "Logging to troubleshoot": "Logowanie do rozwiązywania problemów",
     "Measurement type": "Rodzaj pomiaru",
     "Meter reading at day start": "Odczyt licznika na początku dnia",
@@ -44,5 +48,6 @@
     "counter values": "wartości liczników",
     "number of days": "Liczba dni",
     "number of months": "liczba miesięcy",
-    "period of time": "okres czasu"
+    "period of time": "okres czasu",
+    "settings": "ustawienia"
 }
