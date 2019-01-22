@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.21",
+        "version": "0.2.22",
         "news": {
-            "0.2.21": {
+            "0.2.22": {
                 "en": "add support for heating pumps",
                 "de": "Unterstützung für Heizungspumpen hinzufügen",
                 "ru": "добавить поддержку для тепловых насосов",
