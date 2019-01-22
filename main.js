@@ -319,27 +319,26 @@ async function calculation_handler(id){
 			cost_unit = adapter.config.unit_price_power;
 			cost_basic = adapter.config.basic_price_power;
 			break;
-
-		case "kWh_delivery":
+		case "kWh_consumption_night":
 			if(dev_log === true){adapter.log.info("Case result : Electricity consumption night");}
 			cost_unit = adapter.config.unit_price_power_night;
 			cost_basic = adapter.config.basic_price_power;
 			break;
 
-		case "Electricity delivery":
+		case "kWh_delivery":
 			if(dev_log === true){adapter.log.info("Case result : Electricity delivery");}
 			cost_unit = adapter.config.unit_price_power_delivery;
 			cost_basic = adapter.config.basic_price_power;
 			break;
 
-		case "Heat pump":
+		case "kWh_heatpomp":
 			if(dev_log === true){adapter.log.info("Case result : Heat Pump");}
 			cost_unit = adapter.config.unit_price_heatpump;
 			cost_basic = adapter.config.basic_price_heatpump;
 			break;
 
-		case "Heat pump night":
-			if(dev_log === true){adapter.log.info("Case result : Heat Pump");}
+		case "kWh_heatpomp_night":
+			if(dev_log === true){adapter.log.info("Case result : Heat Pump night");}
 			cost_unit = adapter.config.unit_price_heatpump_night;
 			cost_basic = adapter.config.basic_price_heatpump;
 			break;			
@@ -363,7 +362,7 @@ async function calculation_handler(id){
 			break;
 
 		default:
-			adapter.log.error("Error in case handling of cost type identificaton" + obj_cust.state_type);
+			adapter.log.error("Error in case handling of cost type identificaton : " + obj_cust.state_type);
 	}
 
 	if(dev_log === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);}

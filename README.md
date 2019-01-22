@@ -69,7 +69,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
-### 0.2.21
+### 0.2.22
 * (Dutchman) add support for heating pumps
 * (Dutchman) improvements in adapter configuration screen
 
