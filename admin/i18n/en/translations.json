@@ -4,6 +4,8 @@
     "Advance settings for cost calculation": "Advance settings for cost calculation",
     "Advance settings for periode to store": "Advance settings for periode to store",
     "Alias": "Alias",
+    "Analyse the previous x period": "Analyse the previous x period",
+    "Analyse the whole year": "Analyse the whole year",
     "Annual overview (recommended)": "Annual overview (recommended)",
     "Calculation is done every x minutes": "Calculation is done every x minutes",
     "Costs": "Costs",
@@ -12,6 +14,9 @@
     "Electricity consumption": "Electricity consumption",
     "Electricity delivery": "Electricity delivery",
     "Gas": "Gas",
+    "Heat pump": "Heat pump",
+    "Heat pump night": "Heat pump night",    
+    "Logging settings": "Logging settings",
     "Logging to troubleshoot": "Logging to troubleshoot",
     "Measurement type": "Measurement type",
     "Meter reading at day start": "Meter reading at day start",
@@ -44,5 +49,6 @@
     "counter values": "counter values",
     "number of days": "number of days",
     "number of months": "number of months",
-    "period of time": "period of time"
+    "period of time": "period of time",
+    "settings": "settings"
 }

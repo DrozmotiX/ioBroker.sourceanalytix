@@ -331,7 +331,19 @@ async function calculation_handler(id){
 			cost_unit = adapter.config.unit_price_power_delivery;
 			cost_basic = adapter.config.basic_price_power;
 			break;
-		
+
+		case "Heat pump":
+			if(dev_log === true){adapter.log.info("Case result : Heat Pump");}
+			cost_unit = adapter.config.unit_price_heatpump;
+			cost_basic = adapter.config.basic_price_heatpump;
+			break;
+
+		case "Heat pump night":
+			if(dev_log === true){adapter.log.info("Case result : Heat Pump");}
+			cost_unit = adapter.config.unit_price_heatpump_night;
+			cost_basic = adapter.config.basic_price_heatpump;
+			break;			
+
 		case "gas":
 			if(dev_log === true){adapter.log.info("Case result : Gas");}
 			cost_unit = adapter.config.unit_price_gas;

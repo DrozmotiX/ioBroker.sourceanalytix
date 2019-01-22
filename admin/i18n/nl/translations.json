@@ -4,6 +4,8 @@
     "Advance settings for cost calculation": "Voorinstellingen voor kostenberekening",
     "Advance settings for periode to store": "Voorinstellingen voor de periode die moet worden opgeslagen",
     "Alias": "Alias",
+    "Analyse the previous x period": "Analyseer de vorige x-periode",
+    "Analyse the whole year": "Analyseer het hele jaar",
     "Annual overview (recommended)": "Jaaroverzicht (aanbevolen)",
     "Calculation is done every x minutes": "De berekening wordt elke x minuten uitgevoerd",
     "Costs": "Kosten",
@@ -12,6 +14,8 @@
     "Electricity consumption": "Elektriciteitsverbruik",
     "Electricity delivery": "Levering van elektriciteit",
     "Gas": "Gas",
+    "Heat pump": "Warmtepomp",
+    "Logging settings": "Logboekinstellingen",
     "Logging to troubleshoot": "Loggen om problemen op te lossen",
     "Measurement type": "Meettype",
     "Meter reading at day start": "Meting van de meter bij het begin van de dag",
@@ -44,5 +48,6 @@
     "counter values": "teller waarden",
     "number of days": "aantal dagen",
     "number of months": "aantal maanden",
-    "period of time": "periodes"
+    "period of time": "periodes",
+    "settings": "instellingen"
 }

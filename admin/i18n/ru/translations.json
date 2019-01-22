@@ -4,6 +4,8 @@
     "Advance settings for cost calculation": "Расширенные настройки для расчета стоимости",
     "Advance settings for periode to store": "Предварительные настройки для хранения периода",
     "Alias": "Имя",
+    "Analyse the previous x period": "Проанализируйте предыдущий период x",
+    "Analyse the whole year": "Анализировать весь год",
     "Annual overview (recommended)": "Годовой обзор (рекомендуется)",
     "Calculation is done every x minutes": "Расчет производится каждые х минут",
     "Costs": "Расходы",
@@ -12,6 +14,8 @@
     "Electricity consumption": "Потребление электроэнергии",
     "Electricity delivery": "Доставка электричества",
     "Gas": "газ",
+    "Heat pump": "Тепловой носос",
+    "Logging settings": "Настройки ведения журнала",
     "Logging to troubleshoot": "Ведение журнала для устранения неполадок",
     "Measurement type": "Тип измерения",
     "Meter reading at day start": "Чтение метра в начале дня",
@@ -44,5 +48,6 @@
     "counter values": "значения счетчиков",
     "number of days": "количество дней",
     "number of months": "количество месяцев",
-    "period of time": "промежуток времени"
+    "period of time": "промежуток времени",
+    "settings": "настройки"
 }
