@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.23",
+        "version": "0.2.24",
         "news": {
             "0.2.23": {
                 "en": "add support for heating pumps",
