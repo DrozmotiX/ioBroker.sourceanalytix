@@ -6,7 +6,7 @@
     </div> 
     --> 
     <div class="row">    
-        <div class="input-field col s3">
+        <div class="input-field col s2">
             <input type="checkbox" data-field="enabled" data-default="false"/>
             <span class="translate">enabled</span>
         </div>
@@ -14,7 +14,7 @@
             <input placeholder="Leave empty to use object's name" type="text" data-field="alias"/>
             <label for="alias" class="translate">Alias</label>
         </div>            
-        <div class="input-field col s4">
+        <div class="input-field col s2">
             <select class="value" data-field="state_type">
                 <option value="kWh_consumption" class="translate">Electricity consumption</option>
                 <option value="kWh_consumption_night" class="translate">Electricity consumption night</option>
@@ -26,6 +26,16 @@
                 <option value="oil_m3" class="translate">Oil</option>
             </select>
             <label for="language" class="translate">Measurement type</label>
+        </div>
+        <div class="input-field col s2">
+            <select class="value" data-field="state_unit">
+                <option value="automatically" class="translate">automatically</option>
+                <option value="kWh" class="translate">kWh</option>
+                <option value="wh" class="translate">wh</option>
+                <option value="m3" class="translate">m3</option>
+                <option value="l" class="translate">l</option>
+            </select>
+            <label for="language" class="translate">Measurement unit</label>
         </div>
     </div>
     <div class="section">

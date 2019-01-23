@@ -1,9 +1,21 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.24",
+        "version": "0.2.25",
         "news": {
-            "0.2.23": {
+            "0.2.25": {
+                "en": "add option in state setting to automatically OR manually choose the meassurement unit",
+                "de": "Option in Zustandseinstellung hinzufügen, um die Maßeinheit automatisch ODER manuell auszuwählen",
+                "ru": "добавить опцию в настройке состояния, чтобы автоматически или вручную выбрать единицу измерения",
+                "pt": "adicione a opção na configuração de estado para automaticamente OU escolha manualmente a unidade de medida",
+                "nl": "optie toevoegen in de statusinstelling om automatisch of handmatig de meeteenheid te kiezen",
+                "fr": "ajout d'option dans le réglage d'état pour choisir automatiquement OU manuellement l'unité de mesure",
+                "it": "aggiungere l'opzione nell'impostazione dello stato automaticamente O selezionare manualmente l'unità di misura",
+                "es": "Agregue la opción en la configuración de estado para seleccionar automáticamente O manualmente la unidad de medida",
+                "pl": "dodać opcję w ustawieniu stanu, aby automatycznie LUB ręcznie wybrać jednostkę miary",
+                "zh-cn": "在状态设置中添加选项以自动或手动选择测量单位"
+            },  
+            "0.2.24": {
                 "en": "add support for heating pumps",
                 "de": "Unterstützung für Heizungspumpen hinzufügen",
                 "ru": "добавить поддержку для тепловых насосов",

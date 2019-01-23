@@ -69,7 +69,10 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
-### 0.2.22
+### 0.2.25
+* (Dutchman) add option in state setting to automatically OR manually choose the meassurement unit (for cases device state does not have correct value)
+
+### 0.2.24
 * (Dutchman) add support for heating pumps
 * (Dutchman) improvements in adapter configuration screen
 

@@ -171,6 +171,13 @@ function initialize(obj) {
 	const obj_cust = obj.common.custom[inst_name];
 	// adapter.log.info("Intervall : " + intervall);
 	let unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
+	
+	// Replace meassurement unit when selected in state setting
+	if(obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
+		unit = obj_cust.state_unit.toLowerCase();
+		if(dev_log === true){adapter.log.info("Unit of state origing change to : " + unit);}
+	}
+
 	if(dev_log === true){adapter.log.info("instanze name : " + inst_name);}
 	// const obj_cust = adapter.config.custom;
 	if(dev_log === true){adapter.log.info(JSON.stringify(obj_cust));}
@@ -726,8 +733,17 @@ async function reset_shedules (obj_array){
 
 // Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
 function unit_calc_fact (obj, value){
-
-	const unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
+	const inst_name = adapter.namespace;
+	const obj_cust = obj.common.custom[inst_name];
+	// adapter.log.info("Intervall : " + intervall);
+	let unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
+	
+	// Replace meassurement unit when selected in state setting
+	if(obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
+		unit = obj_cust.state_unit.toLowerCase();
+		if(dev_log === true){adapter.log.info("Unit of state origing change to : " + unit);}
+	}
+	
 	let calc_value;
 
 	switch (unit) {
