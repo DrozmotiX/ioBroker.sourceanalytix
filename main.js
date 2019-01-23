@@ -41,13 +41,11 @@ const adapter = utils.adapter({
 		let array_id;
 		
 		if (dev_log === true){adapter.log.info("Object array from trigger : " + JSON.stringify(state_set));}
-		
+		if (dev_log === true){adapter.log.info("Object array of trigger : " + JSON.stringify(obj));}
 		// Check if change object is part of array
 		for(const x in state_set) {
 
 			if (state_set[x] === id){
-
-				adapter.log.info("Found it : " + id);
 				existing = true;
 				array_id = x;
 			}
@@ -180,7 +178,7 @@ function initialize(obj) {
 
 	if(dev_log === true){adapter.log.info("instanze name : " + inst_name);}
 	// const obj_cust = adapter.config.custom;
-	if(dev_log === true){adapter.log.info(JSON.stringify(obj_cust));}
+	if(dev_log === true){adapter.log.info("Content custom of object : " + JSON.stringify(obj_cust));}
 	if(dev_log === true){adapter.log.info("Custom object tree : " + JSON.stringify(obj_cust));}
 
 	// Currently only support kWh & m3)
@@ -197,7 +195,7 @@ function initialize(obj) {
 
 		// 	// Set type to consume or deliver
 		let delivery;
-		if(dev_log === true){adapter.log.info("Delivery type = : " + delivery);}
+		if(dev_log === true){adapter.log.info("Delivery type : " + delivery);}
 
 		if (obj_cust.state_type == "kWh_delivery") {
 			delivery = true;
@@ -298,6 +296,7 @@ function initialize(obj) {
 // Calculation handler
 async function calculation_handler(id){
 	const inst_name = adapter.namespace;
+	if(dev_log === true){adapter.log.info("Instance name : " + inst_name);}
 	let cost_t, del_t,state_val;
 	const date = new Date();
 	let cost_basic;
@@ -306,17 +305,21 @@ async function calculation_handler(id){
 
 	// replace "." in datapoints to "_"
 	const obj_id = id._id.split(".").join("__");
-	const obj_root = adapter.namespace + "." + obj_id;  
+	const obj_root = adapter.namespace + "." + obj_id;
+
+	if(dev_log === true){adapter.log.info("Calc obj root " + obj_root);}
 
 	// Get current value from meter
 	const reading = await adapter.getForeignStateAsync(id._id);
 	const calc_reading = unit_calc_fact(id, reading.val);
 	if(dev_log === true){adapter.log.info("Meter current reading : " + reading.val);}
+	if(dev_log === true){adapter.log.info("Meter calculated reading : " + calc_reading);}
 
 	const obj_cont = await adapter.getForeignObjectAsync(id._id);
+	if(dev_log === true){adapter.log.info("State object content: " + JSON.stringify(obj_cont));}
 	//@ts-ignore custom does exist
 	const obj_cust = obj_cont.common.custom[inst_name];
-
+	if(dev_log === true){adapter.log.info("State object custom content: " + JSON.stringify(obj_cust));}
 	// Define whih calculation factor must be used
 
 	switch (obj_cust.state_type) {
@@ -403,9 +406,13 @@ async function calculation_handler(id){
 		del_t = ".consumption.";
 	}
 
+	if(dev_log === true){adapter.log.info("Delivery state set to : " + del_t);}
+
 	if(obj_cust.consumption === true){
+		if(dev_log === true){adapter.log.info("Start consumption calculations");}
 		// Store current meter value to state
-		adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
+		// disabled in 0.2.26, check in later version for meter readings
+		// adapter.setState(obj_root + del_t + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
 		
 		// Calculate consumption
 		// Weekday & current day
@@ -579,8 +586,12 @@ async function set_zero_val (id){
 	const inst_name = adapter.namespace;
 
 	const reading = await adapter.getForeignStateAsync(inst_name + "." + id);
-	if(dev_log === true){adapter.log.info(JSON.stringify(reading));}
-	if (reading.val === null) {adapter.setState(id, { val: 0, ack: true });}
+	if(dev_log === true){adapter.log.info("Zero val at initalisation, value of state : " + JSON.stringify(reading));}
+	if (reading === null) {
+		
+		if(dev_log === true){adapter.log.info("Zero val at initalisation, target state : " + inst_name + "." + id);}
+
+		adapter.setState(inst_name + "." + id, { val: 0, ack: true });}
 }
 
 // Function to calculate current week number
@@ -629,15 +640,15 @@ async function reset_shedules (obj_array){
 
 		// Extend object with start value day
 		obj.common.custom[adapter.namespace].start_day = calc_reading;
-		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+		if (dev_log === true){adapter.log.info("Object content custom current : " + JSON.stringify(obj));}
 
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 		adapter.extendForeignObject(obj_array._id, obj, function (err) {
 			if (err) {
 				adapter.log.error("Setting start value Day failed : " + err);
 			} else {
-				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
-				adapter.log.error("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+				if (dev_log === true){adapter.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+				adapter.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 			}
 		});
 	});
@@ -651,15 +662,15 @@ async function reset_shedules (obj_array){
 
 		// Extend object with start value week
 		obj.common.custom[adapter.namespace].start_week = calc_reading;
-		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+		if (dev_log === true){adapter.log.info("Object content custom current : " + JSON.stringify(obj));}
 
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 		adapter.extendForeignObject(obj_array._id, obj, function (err) {
 			if (err) {
 				adapter.log.error("Setting start value Week failed : " + err);
 			} else {
-				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
-				adapter.log.error("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+				if (dev_log === true){adapter.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+				adapter.log.info("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 			}
 		});
 	});
@@ -673,15 +684,15 @@ async function reset_shedules (obj_array){
 
 		// Extend object with start value month
 		obj.common.custom[adapter.namespace].start_month = calc_reading;
-		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+		if (dev_log === true){adapter.log.info("Object content custom current : " + JSON.stringify(obj));}
 
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 		adapter.extendForeignObject(obj_array._id, obj, function (err) {
 			if (err) {
 				adapter.log.error("Setting start value month failed : " + err);
 			} else {
-				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
-				adapter.log.error("Setting start value month for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+				if (dev_log === true){adapter.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+				adapter.log.info("Setting start value month for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 			}
 		});
 	});
@@ -695,15 +706,15 @@ async function reset_shedules (obj_array){
 
 		// Extend object with start value quarter
 		obj.common.custom[adapter.namespace].start_quarter = calc_reading;
-		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+		if (dev_log === true){adapter.log.info("Object content custom current : " + JSON.stringify(obj));}
 
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 		adapter.extendForeignObject(obj_array._id, obj, function (err) {
 			if (err) {
 				adapter.log.error("Setting start value quarter failed : " + err);
 			} else {
-				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
-				adapter.log.error("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+				if (dev_log === true){adapter.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+				adapter.log.info("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 			}
 		});
 	});
@@ -717,15 +728,15 @@ async function reset_shedules (obj_array){
 
 		// Extend object with start value year
 		obj.common.custom[adapter.namespace].start_year = calc_reading;
-		if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
+		if (dev_log === true){adapter.log.info("Object content custom current : " + JSON.stringify(obj));}
 
 		//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 		adapter.extendForeignObject(obj_array._id, obj, function (err) {
 			if (err) {
 				adapter.log.error("Setting start value year failed : " + err);
 			} else {
-				if (dev_log === true){adapter.log.info(JSON.stringify(obj));}
-				adapter.log.error("Setting start value year for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+				if (dev_log === true){adapter.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+				adapter.log.info("Setting start value year for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 			}
 		});
 	});
@@ -733,11 +744,19 @@ async function reset_shedules (obj_array){
 
 // Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
 function unit_calc_fact (obj, value){
+	if(dev_log === true){adapter.log.info("Object array input for unit factore calculation : " + JSON.stringify(obj));}
+	if(dev_log === true){adapter.log.info("State value input for unit factore calculation : " + JSON.stringify(value));}
+	if (value === null){
+		if (dev_log === true){adapter.log.error("Data error ! NULL value received for current reading of device : " + obj._id);}
+	}
 	const inst_name = adapter.namespace;
 	const obj_cust = obj.common.custom[inst_name];
 	// adapter.log.info("Intervall : " + intervall);
 	let unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
 	
+	if(dev_log === true){adapter.log.info("Test unit from object : " + unit);}
+	if(dev_log === true){adapter.log.info("Test unit from custom object : " + obj_cust.state_unit);}
+
 	// Replace meassurement unit when selected in state setting
 	if(obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
 		unit = obj_cust.state_unit.toLowerCase();
@@ -762,5 +781,12 @@ function unit_calc_fact (obj, value){
 		default:
 			adapter.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
 	}
+
+	if (calc_value === null){
+		adapter.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
+	}
+
+	if(dev_log === true){adapter.log.info("State value output of unit factore calculation : " + JSON.stringify(calc_value));}
+
 	return calc_value;
 }

@@ -69,6 +69,10 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
+### 0.2.26
+* (Dutchman) fix issue in calculations for gas environments and liquids
+* (Dutchman) improve logging related to issue analytics
+
 ### 0.2.25
 * (Dutchman) add option in state setting to automatically OR manually choose the meassurement unit (for cases device state does not have correct value)
 

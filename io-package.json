@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.25",
+        "version": "0.2.26",
         "news": {
+            "0.2.26": {
+                "en": "Fix issue in calculations for gas environments and liquids",
+                "de": "Problem in Berechnungen für Gasumgebungen und Flüssigkeiten behoben",
+                "ru": "Исправлена ​​ошибка в расчетах для газовых сред и жидкостей.",
+                "pt": "Corrigir problema em cálculos para ambientes de gás e líquidos",
+                "nl": "Probleem verhelpen bij berekeningen voor gasomgevingen en vloeistoffen",
+                "fr": "Correction d'un problème dans les calculs pour les environnements de gaz et les liquides",
+                "it": "Risolto il problema nei calcoli per ambienti a gas e liquidi",
+                "es": "Solucionar el problema en los cálculos para ambientes de gas y líquidos.",
+                "pl": "Napraw problem w obliczeniach dla środowisk gazowych i cieczy",
+                "zh-cn": "解决气体环境和液体计算中的问题"
+            },  
             "0.2.25": {
                 "en": "add option in state setting to automatically OR manually choose the meassurement unit",
                 "de": "Option in Zustandseinstellung hinzufügen, um die Maßeinheit automatisch ODER manuell auszuwählen",
