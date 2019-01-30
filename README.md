@@ -3,7 +3,7 @@
 [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
-
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg?columns=all)](https://waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix)
 ## Warning, this adapter needs node 8 or higher !!!
 
 ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.
@@ -69,8 +69,11 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
+### 0.2.27
+* (Dutchman) fixed issue related to multihost installations with slave as target
+
 ### 0.2.26
-* (Dutchman) fix issue in calculations for gas environments and liquids
+* (Dutchman) fixed issue in calculations for gas environments and liquids
 * (Dutchman) improve logging related to issue analytics
 
 ### 0.2.25
@@ -81,17 +84,17 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * (Dutchman) improvements in adapter configuration screen
 
 ### 0.2.2
-* (Dutchman) fix reset of start values
+* (Dutchman) fixed reset of start values
 * (Dutchman) removed uneeded logging "Write calculations for : "
 * (Dutchman) generic improvement of logging, to see status messages activate it in adapter settings ! Otherwise onlyu erros will be shown and add/del devices
 * (Dutchman) improved complete logic of state add/delete/update config in backend which will result in better performance/error handling
-* (Dutchman) small fix in configuration screen to show logging options
+* (Dutchman) small fixed in configuration screen to show logging options
 
 ### 0.2.1
-* (Dutchman) fix "current_day" missing in object tree
-* (Dutchman) fix log messages "removed from SourceAnalytix"
-* (Dutchman) fix unit issue to support upper and lower case in values
-* (Dutchman) fix unit issue replace strange characters
+* (Dutchman) fixed "current_day" missing in object tree
+* (Dutchman) fixed log messages "removed from SourceAnalytix"
+* (Dutchman) fixed unit issue to support upper and lower case in values
+* (Dutchman) fixed unit issue replace strange characters
 * (Dutchman) remove intervall setting from configuraiton screen (handle by state subscribtion now!)
 * (Dutchman) remove start meassurement from state configuraiton screen (not need, please use day start, week start etc !)
 
@@ -99,8 +102,8 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * (Dutchman) rebuild logic to calculate values (beta testing)
 * (Dutchman) implement logic to automatically reset values by start of new day, week, month, year etc (beta testing)
 * (Dutchman) changed logic from intervall polling to handle calculations based on state updates (beta testing, not if suitable for all situations)
-* (Dutchman) fix issue incorrect states are added to monitoring
-* (Dutchman) fix issue calculation not stopped when state removed from monitoring
+* (Dutchman) fixed issue incorrect states are added to monitoring
+* (Dutchman) fixed issue calculation not stopped when state removed from monitoring
 * (Dutchman) always store all current meassurements to values of cathegorie regardless setting year etc
 * (Dutchman) code cleanup and optiomalisation
 * (Dutchman) added logging option "satus notification"
@@ -124,14 +127,14 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * (Dutchman) master konfiguration added to globally define costs
 * (Dutchman) intervall settings moved to global setting instead of each state seperated
 * (Dutchman) instead of cost-price in each state use drop down menu to choose values from global settings
-* (Dutchman) fix naming and translations
+* (Dutchman) fixed naming and translations
 
 ### 0.1.6
-* (Dutchman) fix data reset for quarter values (thank you Jens !)
-* (Dutchman) fix usage of alias
-* (Dutchman) fixed issue in calculation of earnings and delivery
+* (Dutchman) fixed data reset for quarter values (thank you Jens !)
+* (Dutchman) fixed usage of alias
+* (Dutchman) fixeded issue in calculation of earnings and delivery
 * (Dutchman) logging improvement
-* (Dutchman) fix log messages
+* (Dutchman) fixed log messages
 * (Dutchman) calculation for m3 values
 * (Dutchman) calculation for l values
 
@@ -143,16 +146,16 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ### 0.1.0
 * (Dutchman) first public beta release
-* (Dutchman) fix translations
+* (Dutchman) fixed translations
 * (Dutchman) rebuild calculation logic
-* (Dutchman) fix calculation of start offset
+* (Dutchman) fixed calculation of start offset
 * (Dutchman) adjustable if state is used for cosumption or delivery
 * (Dutchman) limited possible logging to kWh only for this moment
 * (Dutchman) only create states and channels for logging types selected
 
 ### 0.0.9
-* (Dutchman) fix wrong calculation of start values
-* (Dutchman) fix wrong calculation of quarter values
+* (Dutchman) fixed wrong calculation of start values
+* (Dutchman) fixed wrong calculation of quarter values
 * (Dutchman) prepare public beta and travis testing
 * (Dutchman) change name to SourceAnalytix
 * (Dutchman) implemented SourceAnalytix settings at states (equal to data logging adapters)
@@ -165,14 +168,14 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * (Dutchman) automated reset of start values
 
 ### 0.0.6
-* (Dutchman) fix issue with travis build
-* (Dutchman) fix wrong information in package-json
+* (Dutchman) fixed issue with travis build
+* (Dutchman) fixed wrong information in package-json
 
 ### 0.0.4
 * (Dutchman) cost calculation
 * (Dutchman) adjustable starting point of meassurement
 * (Dutchman) support of multiple device states instead of 1
-* (Dutchman) fix calculation of current consumptions
+* (Dutchman) fixed calculation of current consumptions
 
 ### 0.0.3
 * (Dutchman) code optimalisation

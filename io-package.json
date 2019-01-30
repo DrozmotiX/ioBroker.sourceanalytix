@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.26",
+        "version": "0.2.27",
         "news": {
+            "0.2.27": {
+                "en": "Fixed issue related to multihost installations with slave as target",
+                "de": "Problem bei Multihost-Installationen mit Slave als Ziel behoben",
+                "ru": "Исправлена ​​проблема, связанная с установкой нескольких хостов с ведомым в качестве цели",
+                "pt": "Corrigido problema relacionado a instalações multi-host com escravo como alvo",
+                "nl": "Probleem opgelost met multihost-installaties met slaaf als doelwit",
+                "fr": "Résolution du problème lié aux installations multihôtes avec esclave comme cible",
+                "it": "Risolto il problema relativo alle installazioni multihost con slave come destinazione",
+                "es": "Se solucionó el problema relacionado con las instalaciones multihost con esclavo como destino",
+                "pl": "Naprawiono problem związany z instalacjami multihost z niewolnikiem jako celem",
+                "zh-cn": "修复了与slave作为目标的多主机安装相关的问题"
+            }, 
             "0.2.26": {
                 "en": "Fix issue in calculations for gas environments and liquids",
                 "de": "Problem in Berechnungen für Gasumgebungen und Flüssigkeiten behoben",
@@ -158,9 +170,7 @@
         "materialize": true,
         "supportCustoms": true,
         "dependencies": [
-            {
-                "admin": ">=3.0.0"
-            }
+            {}
         ]
     },
     "native": {
