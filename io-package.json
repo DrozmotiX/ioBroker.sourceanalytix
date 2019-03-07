@@ -158,6 +158,7 @@
             "Smart Home",
             "home automation"
         ],
+        "license": "MIT",
         "platform": "Javascript/Node.js",
         "main": "main.js",
         "icon": "sourceanalytix.png",
