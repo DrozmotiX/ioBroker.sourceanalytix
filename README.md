@@ -1,6 +1,6 @@
 #  [Beta - Released] SourceAnalytix
 [![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
-[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+![Number of Installations](http://iobroker.live/badges/sourceanalytix-installed.svg) ![Number of Installations](http://iobroker.live/badges/sourceanalytix-stable.svg) [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg?columns=all)](https://waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix)
