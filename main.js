@@ -7,6 +7,7 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const history    = {};
 const aliasMap   = {};
+const wh_start_val = [];
 let state_set = [], dev_log, mon_log;
 // intervall declariont removed, functionality changed to subscription 
 // let interval_timer;
@@ -167,6 +168,7 @@ function initialize(obj) {
 	const inst_name = adapter.namespace;
 	const id = obj._id;
 	const obj_cust = obj.common.custom[inst_name];
+	let w_calc = false;
 	// adapter.log.info("Intervall : " + intervall);
 	let unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
 	
@@ -182,9 +184,10 @@ function initialize(obj) {
 	if(dev_log === true){adapter.log.info("Custom object tree : " + JSON.stringify(obj_cust));}
 
 	// Currently only support kWh & m3)
-	if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l")){
+	if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l") || (unit == "w")){
 
 		if(unit === "wh"){unit = "kWh";}
+		if(unit === "w"){unit = "kWh"; w_calc = true;}
 		if(unit === "kwh"){unit = "kWh";}
 		if(unit === "l"){unit = "m3";}
 
@@ -280,15 +283,26 @@ function initialize(obj) {
 		doStateCreate(delivery,device,state_root , "current Year", "number","value.year", unit, obj_cust.consumption, obj_cust.costs, false);
 
 		state_root = ".Current_Reading";
-		doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", unit, false, false, obj_cust.meter_values);
+		if(w_calc == false){doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", unit, false, false, obj_cust.meter_values);}
+
+		// Create meassurement states for calculations related w to kWh 
+		if(w_calc == true){
+			state_root = ".Current_Reading";
+			doStateCreate(delivery,device,state_root , "Current Reading", "number","value.current", "W", false, false, true);
+			state_root = ".Current_Reading_kWh";
+			doStateCreate(delivery,device,state_root , "Current Reading to kWh", "number","value.current", unit, false, false, true);
+		}
 
 		if(dev_log === true){adapter.log.info("Initialization finished for : " + device);}
 		// Subscribe state, every state change will trigger calculation
 		adapter.subscribeForeignStates(obj._id);
 
 	} else {
+
 		adapter.log.error("Sorry unite type " + unit + " not supported yet");
+
 	}
+
 	// Calculate all values for the first time
 	calculation_handler(obj);
 }
@@ -299,8 +313,7 @@ async function calculation_handler(id){
 	if(dev_log === true){adapter.log.info("Instance name : " + inst_name);}
 	let cost_t, del_t,state_val;
 	const date = new Date();
-	let cost_basic;
-	let cost_unit;
+	let cost_basic, cost_unit, skip_calc = false;
 	if(dev_log === true){adapter.log.info("Write calculations for : " + id._id);}
 
 	// replace "." in datapoints to "_"
@@ -308,12 +321,6 @@ async function calculation_handler(id){
 	const obj_root = adapter.namespace + "." + obj_id;
 
 	if(dev_log === true){adapter.log.info("Calc obj root " + obj_root);}
-
-	// Get current value from meter
-	const reading = await adapter.getForeignStateAsync(id._id);
-	const calc_reading = unit_calc_fact(id, reading.val);
-	if(dev_log === true){adapter.log.info("Meter current reading : " + reading.val);}
-	if(dev_log === true){adapter.log.info("Meter calculated reading : " + calc_reading);}
 
 	const obj_cont = await adapter.getForeignObjectAsync(id._id);
 	if(dev_log === true){adapter.log.info("State object content: " + JSON.stringify(obj_cont));}
@@ -373,129 +380,208 @@ async function calculation_handler(id){
 
 		default:
 			adapter.log.error("Error in case handling of cost type identificaton : " + obj_cust.state_type);
+			skip_calc = true;
 	}
 
-	if(dev_log === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);}
-	if(dev_log === true){adapter.log.info("Calculation Factor : " + cost_unit);}
-	if(dev_log === true){adapter.log.info("Cost basic : " + cost_basic);}
-	if(dev_log === true){adapter.log.info("Cost unit : " + cost_unit);}
-	if(dev_log === true){adapter.log.info("Handle consumption calculations : " + obj_cust.consumption);}
-	if(dev_log === true){adapter.log.info("Handle meter history : " + obj_cust.meter_values);}
+	if (skip_calc === false){
 
-	// temporary set to sero, this calue will be used later to handle period calculations
-	const reading_start = 0; 	//obj_cust.start_meassure; 
-	const day_bval = obj_cust.start_day;
-	const week_bval = obj_cust.start_week;
-	const month_bval = obj_cust.start_month;
-	const quarter_bval = obj_cust.start_quarter;
-	const year_bval = obj_cust.start_year;
 
-	if(dev_log === true){adapter.log.info("reading_start : " + reading_start);}
-	if(dev_log === true){adapter.log.info("day start : " + day_bval);}
-	if(dev_log === true){adapter.log.info("week start : " + week_bval);}
-	if(dev_log === true){adapter.log.info("month start " + month_bval);}
-	if(dev_log === true){adapter.log.info("quarter start " + quarter_bval);}
-	if(dev_log === true){adapter.log.info("year start : " + year_bval);}
+		// Get current value from meter
+		const reading = await adapter.getForeignStateAsync(id._id);
 
-	// set correct naming for cost & delivery based on type
-	if(obj_cust.state_type == "kWh_delivery"){
-		cost_t =  ".earnings.";
-		del_t = ".delivery.";
-	} else {
-		cost_t = ".cost.";
-		del_t = ".consumption.";
-	}
+		if (id.common.unit == "W"){
 
-	if(dev_log === true){adapter.log.info("Delivery state set to : " + del_t);}
+			// Write current received W value to state
+			adapter.setState(obj_root + ".Meter_Readings.Current_Reading", { val: reading.val.toFixed(3) ,ack: true });
 
-	if(obj_cust.consumption === true){
-		if(dev_log === true){adapter.log.info("Start consumption calculations");}
-		// Store current meter value to state
-		// disabled in 0.2.26, check in later version for meter readings
-		// adapter.setState(obj_root + del_t + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
+			// verify if startvalue ist set for calculation, if not store start value.
+			const kWh_start_val = obj_root + ".Meter_Readings.Current_Reading_kWh";
+			const W_start_val = obj_root + ".Meter_Readings.Current_Reading";
+			adapter.log.info("Before logic of watt : " + JSON.stringify(wh_start_val));
+			adapter.log.warn("array content for start val : " + wh_start_val["sourceanalytix.0.discovergy__0__1024000034__Power_1.Meter_Readings.Current_Reading_kWh"]);
+			if (wh_start_val[kWh_start_val]  === undefined) {
+
+				adapter.log.error("Current wh start value = undefined");
+
+				// Get current stored kWh value and calculate new kWh based on timing of meassurement
+				const kWh_stored  = await adapter.getStateAsync(kWh_start_val);
+				adapter.log.warn("after kWh_stored");
+				const kWh_calc = 1000 * kWh_stored.val;
+				adapter.log.warn("after kWh_cal");
+				adapter.log.warn('"' + obj_root + '.Meter_Readings.Current_Reading_kWh"' + ":" + kWh_calc);
+				// const array_obj = JSON.parse('{"' + obj_root + '.Meter_Readings.Current_Reading_kWh"' + ":" + kWh_calc + "}");
+				// const array_obj = JSON.parse('{"' + obj_id + '.Meter_Readings.Current_Reading_kWh" : {value":"' + kWh_calc + "}}");
+
+				// wh_start_val.push("{" + obj_id + ".Meter_Readings.Current_Reading_kWh" + "}");
+				const test_start = obj_id + ".Meter_Readings.Current_Reading_kWh";
+				const wh_start_val_temp = {};
+				wh_start_val_temp.push('"' + test_start + '" : "' + kWh_calc + '"');
+				adapter.log.info("push try : " + JSON.stringify(wh_start_val_temp));
+
+				const arrayForObject = JSON.parse("{" + wh_start_val_temp + "}");
+				adapter.log.info("Array read : " + JSON.stringify(arrayForObject));
+				wh_start_val.push(wh_start_val_temp);
+				adapter.log.info("Array read start val : " + JSON.stringify(wh_start_val));
+
+				// wh_start_val.push(JSON.parse(wh_start_val_temp));
+				// test_1.push(obj_id + ".Meter_Readings.Previous_Reading_kWh");
+				// adapter.log.info("push try : " + JSON.stringify(wh_start_val));
+				// const wh_test_bla = JSON.parse("{" + wh_start_val + "}");
+				// adapter.log.info("push try after value push : " + JSON.stringify(wh_test_bla));
+
+				// adapter.log.warn("after array buid");
+				// wh_start_val.push(array_obj);
+				// adapter.log.info(JSON.stringify(wh_start_val));
+				// const bla = obj_id + ".Meter_Readings.Current_Reading_kWh";
+				// adapter.log.error("Obj_root_build : " + bla);
+				// adapter.log.info(JSON.stringify(wh_start_val[bla]));
+				// adapter.log.warn("test_issue");
+				
+			} else {
+				const w_stored  = await adapter.getStateAsync(W_start_val);
+				const w_obj  = await adapter.getObjectAsync(W_start_val);
+				const kWh_stored  = await adapter.getStateAsync(kWh_start_val);
+				const kWh_obj  = await adapter.getObjectAsync(kWh_start_val);
+
+				adapter.log.error(JSON.stringify(w_stored));
+				adapter.log.error(JSON.stringify(w_obj));
+				adapter.log.error(JSON.stringify(kWh_stored));
+				adapter.log.error(JSON.stringify(kWh_obj));
+				// const calculated = kWh_stored * w_stored.val * (w_obj.ts);
+
+			}
+			adapter.log.info("After logic of watt : " + JSON.stringify(wh_start_val));
+		}
+
+		const calc_reading = unit_calc_fact(id, reading.val);
 		
-		// Calculate consumption
-		// Weekday & current day
-		state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
+		if(dev_log === true){adapter.log.info("Meter current reading : " + reading.val);}
+		if(dev_log === true){adapter.log.info("Meter calculated reading : " + calc_reading);}
 
-		if(dev_log === true){adapter.log.info("calculated reading day : " + state_val);}
-		adapter.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
-		adapter.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 
-		// Week
-		state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
-		if(dev_log === true){adapter.log.info("calculated reading week : " + state_val);}
-		adapter.setState(obj_root + del_t + "02_current_week", { val: state_val,ack: true });
-		adapter.setState(obj_root + del_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
-		// Month
-		state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
-		if(dev_log === true){adapter.log.info("calculated reading month : " + state_val);}
-		adapter.setState(obj_root + del_t + "03_current_month", { val: state_val,ack: true });
-		adapter.setState(obj_root + del_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+		if(dev_log === true){adapter.log.info("Handle cost calculations : " + obj_cust.costs);}
+		if(dev_log === true){adapter.log.info("Calculation Factor : " + cost_unit);}
+		if(dev_log === true){adapter.log.info("Cost basic : " + cost_basic);}
+		if(dev_log === true){adapter.log.info("Cost unit : " + cost_unit);}
+		if(dev_log === true){adapter.log.info("Handle consumption calculations : " + obj_cust.consumption);}
+		if(dev_log === true){adapter.log.info("Handle meter history : " + obj_cust.meter_values);}
 
-		// Quarter
-		state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
-		if(dev_log === true){adapter.log.info("calculated reading quarter : " + state_val);}
-		adapter.setState(obj_root + del_t + "04_current_quarter", { val: state_val,ack: true });
+		// temporary set to sero, this calue will be used later to handle period calculations
+		const reading_start = 0; 	//obj_cust.start_meassure; 
+		const day_bval = obj_cust.start_day;
+		const week_bval = obj_cust.start_week;
+		const month_bval = obj_cust.start_month;
+		const quarter_bval = obj_cust.start_quarter;
+		const year_bval = obj_cust.start_year;
 
-		// Year
-		state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
-		if(dev_log === true){adapter.log.info("calculated reading day : " + state_val);}
-		adapter.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
-	}
+		if(dev_log === true){adapter.log.info("reading_start : " + reading_start);}
+		if(dev_log === true){adapter.log.info("day start : " + day_bval);}
+		if(dev_log === true){adapter.log.info("week start : " + week_bval);}
+		if(dev_log === true){adapter.log.info("month start " + month_bval);}
+		if(dev_log === true){adapter.log.info("quarter start " + quarter_bval);}
+		if(dev_log === true){adapter.log.info("year start : " + year_bval);}
 
-	const day_bval_consumend = ((calc_reading - day_bval) - reading_start);
-	const week_bval_consumend =  ((calc_reading - week_bval) - reading_start);
-	const month_bval_consumend = ((calc_reading - month_bval) - reading_start);
-	const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
-	const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
+		// set correct naming for cost & delivery based on type
+		if(obj_cust.state_type == "kWh_delivery"){
+			cost_t =  ".earnings.";
+			del_t = ".delivery.";
+		} else {
+			cost_t = ".cost.";
+			del_t = ".consumption.";
+		}
 
-	if(dev_log === true){adapter.log.info("day consumed " + day_bval_consumend);}
-	if(dev_log === true){adapter.log.info("week consumed " + week_bval_consumend);}
-	if(dev_log === true){adapter.log.info("month consumed " + month_bval_consumend);}
-	if(dev_log === true){adapter.log.info("quarter consumed " + quarter_bval_consumend);}
-	if(dev_log === true){adapter.log.info("year consumed "+ year_bval_consumend);}
-	if(dev_log === true){adapter.log.info("objroot " + obj_root);}
-	if(dev_log === true){adapter.log.info("cost type " + cost_t);}
-	if(dev_log === true){adapter.log.info("delivery type " + del_t);}
-	if(dev_log === true){adapter.log.info("example state string : " + obj_root + cost_t + "01_current_day");}
-	
-	if(obj_cust.costs === true){
-		// Weekday & current day
-		//@ts-ignore cost_unit is always a number
-		state_val = (day_bval_consumend * cost_unit).toFixed(2);
-		if(dev_log === true){adapter.log.info("calculated cost day : " + state_val);}
-		adapter.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
-		adapter.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+		if(dev_log === true){adapter.log.info("Delivery state set to : " + del_t);}
+
+		if(obj_cust.consumption === true){
+			if(dev_log === true){adapter.log.info("Start consumption calculations");}
+			// Store current meter value to state
+			// disabled in 0.2.26, check in later version for meter readings
+			// adapter.setState(obj_root + del_t + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
+			
+			// Calculate consumption
+			// Weekday & current day
+			state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
+
+			if(dev_log === true){adapter.log.info("calculated reading day : " + state_val);}
+			adapter.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
+			adapter.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+
+			// Week
+			state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
+			if(dev_log === true){adapter.log.info("calculated reading week : " + state_val);}
+			adapter.setState(obj_root + del_t + "02_current_week", { val: state_val,ack: true });
+			adapter.setState(obj_root + del_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
+
+			// Month
+			state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
+			if(dev_log === true){adapter.log.info("calculated reading month : " + state_val);}
+			adapter.setState(obj_root + del_t + "03_current_month", { val: state_val,ack: true });
+			adapter.setState(obj_root + del_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+
+			// Quarter
+			state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
+			if(dev_log === true){adapter.log.info("calculated reading quarter : " + state_val);}
+			adapter.setState(obj_root + del_t + "04_current_quarter", { val: state_val,ack: true });
+
+			// Year
+			state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
+			if(dev_log === true){adapter.log.info("calculated reading day : " + state_val);}
+			adapter.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
+		}
+
+		const day_bval_consumend = ((calc_reading - day_bval) - reading_start);
+		const week_bval_consumend =  ((calc_reading - week_bval) - reading_start);
+		const month_bval_consumend = ((calc_reading - month_bval) - reading_start);
+		const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
+		const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
+
+		if(dev_log === true){adapter.log.info("day consumed " + day_bval_consumend);}
+		if(dev_log === true){adapter.log.info("week consumed " + week_bval_consumend);}
+		if(dev_log === true){adapter.log.info("month consumed " + month_bval_consumend);}
+		if(dev_log === true){adapter.log.info("quarter consumed " + quarter_bval_consumend);}
+		if(dev_log === true){adapter.log.info("year consumed "+ year_bval_consumend);}
+		if(dev_log === true){adapter.log.info("objroot " + obj_root);}
+		if(dev_log === true){adapter.log.info("cost type " + cost_t);}
+		if(dev_log === true){adapter.log.info("delivery type " + del_t);}
+		if(dev_log === true){adapter.log.info("example state string : " + obj_root + cost_t + "01_current_day");}
 		
-		// Week
-		//@ts-ignore cost_unit is always a number
-		state_val = (week_bval_consumend * cost_unit).toFixed(2);
-		if(dev_log === true){adapter.log.info("calculated cost week : " + state_val);}
-		adapter.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
-		adapter.setState(obj_root + cost_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
+		if(obj_cust.costs === true){
+			// Weekday & current day
+			//@ts-ignore cost_unit is always a number
+			state_val = (day_bval_consumend * cost_unit).toFixed(2);
+			if(dev_log === true){adapter.log.info("calculated cost day : " + state_val);}
+			adapter.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
+			adapter.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+			
+			// Week
+			//@ts-ignore cost_unit is always a number
+			state_val = (week_bval_consumend * cost_unit).toFixed(2);
+			if(dev_log === true){adapter.log.info("calculated cost week : " + state_val);}
+			adapter.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
+			adapter.setState(obj_root + cost_t + "current_year.weeks." + getWeekNumber(new Date()), { val: state_val,ack: true });
 
-		// Month
-		//@ts-ignore cost_unit is always a number
-		state_val = (month_bval_consumend * cost_unit).toFixed(2);
-		if(dev_log === true){adapter.log.info("calculated cost month : " + state_val);}
-		adapter.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
-		adapter.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+			// Month
+			//@ts-ignore cost_unit is always a number
+			state_val = (month_bval_consumend * cost_unit).toFixed(2);
+			if(dev_log === true){adapter.log.info("calculated cost month : " + state_val);}
+			adapter.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
+			adapter.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
-		// Quarter
-		//@ts-ignore cost_unit is always a number
-		state_val = (quarter_bval_consumend * cost_unit).toFixed(2);
-		if(dev_log === true){adapter.log.info("calculated cost quarter : " + state_val);}
-		adapter.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
+			// Quarter
+			//@ts-ignore cost_unit is always a number
+			state_val = (quarter_bval_consumend * cost_unit).toFixed(2);
+			if(dev_log === true){adapter.log.info("calculated cost quarter : " + state_val);}
+			adapter.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
 
-		// Year
-		//@ts-ignore cost_unit is always a number
-		state_val = (year_bval_consumend * cost_unit).toFixed(2);
-		if(dev_log === true){adapter.log.info("calculated cost year : " + state_val);}
-		adapter.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
+			// Year
+			//@ts-ignore cost_unit is always a number
+			state_val = (year_bval_consumend * cost_unit).toFixed(2);
+			if(dev_log === true){adapter.log.info("calculated cost year : " + state_val);}
+			adapter.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
+		}
+		if(dev_log === true){adapter.log.info("Meter Calculation executed");}
 	}
-	if(dev_log === true){adapter.log.info("Meter Calculation executed");}
 }
 
 // Function to handle channel creation
