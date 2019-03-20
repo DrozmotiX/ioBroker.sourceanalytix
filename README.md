@@ -6,6 +6,8 @@
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg?columns=all)](https://waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix)
 ## Warning, this adapter needs node 8 or higher !!!
 
+#  Warning : adapter is in rebuilding phase, do not install from git only from admin by using latest repository (verion 0.2.26)
+
 ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.
 You need data as input (total amount of Wh, l/h or m3 used) from your devices and this adapter will :
 
@@ -68,6 +70,13 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [x] ensure all values are stored when adapter shuts down to prevent data gaps
 
 ## Changelog
+
+
+### 0.2.271
+* (Dutchman) implement compact mode
+* (Dutchman) fix testing issues
+* (Dutchman) fix error "unit" or "tolowercase" is undefind
+* (Dutchman) fixed installation issues
 
 ### 0.2.27
 * (Dutchman) fixed issue related to multihost installations with slave as target
