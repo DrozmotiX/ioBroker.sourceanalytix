@@ -1,7 +1,7 @@
 {
 	"common": {
 		"name": "sourceanalytix",
-        "version": "0.2.271",
+        "version": "0.2.272",
         "news": {
             "0.2.27": {
                 "en": "Fixed issue related to multihost installations with slave as target",
@@ -204,10 +204,18 @@
 		"unit_price_water" : "0.07",
 		"basic_price_water" : "22",
         "unit_price_oil": "0.12",
-		"basic_price_oil" : "31",		
-		"intervall":"5",
-		"developer_logging" : false
+		"basic_price_oil" : "31"
 	},
-	"objects": [],
+    "objects": [
+        {
+            "_id": "_design/custom",
+            "language": "javascript",
+            "views": {
+                "state": {
+                    "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
+                }
+            }
+		}
+	],
 	"instanceObjects": []
 }

@@ -17,7 +17,7 @@ const months = JSON.parse('["01_January","02_February","03_March","04_April","05
 const history    = {};
 const aliasMap   = {};
 const wh_start_val = [];
-let state_set = [], dev_log, mon_log;
+let state_set = [], mon_log;
 // Time Modules
 const cron = require("node-cron"); // Cron Scheduler
 // const fs = require("fs");
@@ -44,9 +44,75 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async onReady() {
 		// Initialize your adapter here
-		this.update_states_all;
+		this.log.info("Adapter SourceAnalytix startet :-)");
+		// this.update_states_all;
+
+		// clean variable
+		state_set = [];
+		// Adopt logging setting from configuration
+		mon_log = this.config.status_logging;		
+
+		// // initialize all SourceAnalytix enabled states
+		// this.log.info("Update state settings");
+		this.log.info("Initializing all enabled states for SourceAnalytix");
+
+		// Subscribe on all foreign states to ensure changes in objects are reflected
+		this.subscribeForeignObjects("*");
+			
+		this.objects.getObjectView("custom", "state", {}, (err, doc) => {
+			let count = 0; 
+			this.log.debug("Result doc : " + JSON.stringify(doc));
+			if (doc && doc.rows) {
+				
+				for (let i = 0, l = doc.rows.length; i < l; i++) {
+					if (doc.rows[i].value) {
+						let id = doc.rows[i].id;
+	
+						// temporary disable, should consider to have alias also in SourceAnalytix in case meters are changed
+						// const realId = id;
+						if (doc.rows[i].value[this.namespace] && doc.rows[i].value[this.namespace].aliasId) {
+							aliasMap[id] = doc.rows[i].value[this.namespace].aliasId;
+							this.log.debug("Found Alias: " + id + " --> " + aliasMap[id]);
+							id = aliasMap[id];
+						}
+						history[id] = doc.rows[i].value;
+	
+						if (history[id].enabled !== undefined) {
+							history[id] = history[id].enabled ? {"history.0": history[id]} : null;
+							if (!history[id]) {
+								this.log.info("undefined id");
+								// delete history[id];
+								continue;
+							}
+						}
+						if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
+							// delete history[id];
+						} else {
+							count++;
+							this.getForeignObject(id, (err, obj)=> {
+								if (obj !== undefined && obj !== null){
+									// Push object into variable array used for checks later
+									state_set.push(id);
+									this.log.silly(JSON.stringify(obj));
+									// run initialisation for objects
+									this.log.info("Activate SourceAnalytix for : " + obj._id);
+									this.initialize(obj);
+									this.log.debug("Object array : " + JSON.stringify(state_set));
+									
+									// Start cron to reset values at day, week etc start
+									this.reset_shedules (obj);
+								}
+							});
+						}
+					}
+				}
+			}
+
+		});
 	}
 
+
+	
 	/**
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
 	 * @param {() => void} callback
@@ -69,8 +135,8 @@ class Sourceanalytix extends utils.Adapter {
 		let existing = false;
 		let array_id;
 		
-		if (dev_log === true){this.log.info("Object array from trigger : " + JSON.stringify(state_set));}
-		if (dev_log === true){this.log.info("Object array of trigger : " + JSON.stringify(obj));}
+		this.log.debug("Object array of all activated states : " + JSON.stringify(state_set));
+		this.log.silly("Object array of object trigger : " + JSON.stringify(obj));
 		// Check if change object is part of array
 		for(const x in state_set) {
 
@@ -101,7 +167,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.initialize(obj);
 			}
 
-			if (dev_log === true){this.log.info("Complete object array : " + JSON.stringify(state_set));}
+			this.log.debug("Complete object array : " + JSON.stringify(state_set));
 		
 		} else {
 
@@ -125,7 +191,8 @@ class Sourceanalytix extends utils.Adapter {
 		if (state) {
 			// The state was changed
 			if (mon_log === true){this.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);}
-			this.getForeignObject(id, function (err, obj){
+
+			this.getForeignObject(id, (err, obj) => {
 				if (obj !== undefined && obj !== null){
 					this.calculation_handler(obj);
 				}
@@ -133,93 +200,15 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 
-	// /**
-	//  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-	//  * Using this method requires "common.message" property to be set to true in io-package.json
-	//  * @param {ioBroker.Message} obj
-	//  */
-	// onMessage(obj) {
-	// 	if (typeof obj === "object" && obj.message) {
-	// 		if (obj.command === "send") {
-	// 			// e.g. send email or pushover or whatever
-	// 			this.log.info("send command");
-
-	// 			// Send response in callback if required
-	// 			if (obj.callback) this.sendTo(obj.from, obj.command, "Message received", obj.callback);
-	// 		}
-	// 	}
-	// }
-
-	update_states_all (){ 
-		// clean variable
-		state_set = [];
-		// Adopt logging setting from configuration
-		dev_log = this.config.developer_logging;
-		mon_log = this.config.status_logging;		
-
-		// // initialize all SourceAnalytix enabled states
-		// this.log.info("Update state settings");
-
-		this.objects.getObjectView("custom", "state", {}, (err, doc) => {
-
-			let count = 0; 
-			if (doc && doc.rows) {
-				for (let i = 0, l = doc.rows.length; i < l; i++) {
-					if (doc.rows[i].value) {
-						let id = doc.rows[i].id;
-	
-						// temporary disable, should consider to have alias also in SourceAnalytix in case meters are changed
-						// const realId = id;
-						if (doc.rows[i].value[this.namespace] && doc.rows[i].value[this.namespace].aliasId) {
-							aliasMap[id] = doc.rows[i].value[this.namespace].aliasId;
-							this.log.debug("Found Alias: " + id + " --> " + aliasMap[id]);
-							id = aliasMap[id];
-						}
-						history[id] = doc.rows[i].value;
-	
-						if (history[id].enabled !== undefined) {
-							history[id] = history[id].enabled ? {"history.0": history[id]} : null;
-							if (!history[id]) {
-								this.log.info("undefined id");
-								// delete history[id];
-								continue;
-							}
-						}
-						if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
-							// delete history[id];
-						} else {
-							count++;
-							this.getForeignObject(id, function (err, obj){
-								if (obj !== undefined && obj !== null){
-									// Push object into variable array used for checks later
-									state_set.push(id);
-									// run initialisation for objects
-									this.log.info("Activate SourceAnalytix for : " + obj._id);
-									this.initialize(obj);
-									if (dev_log === true){this.log.info("Object array : " + JSON.stringify(state_set));}
-									
-									// Start cron to reset values at day, week etc start
-									this.reset_shedules (obj);
-								}
-							});
-						}
-					}
-				}
-			}
-
-		});
-
-	}
 	// null values must be set 0 to avoid issue in later processing, def: 0 at object creation possible n js-controler 2.0
 	async set_zero_val (id){
 
 		const inst_name = this.namespace;
 	
 		const reading = await this.getForeignStateAsync(inst_name + "." + id);
-		if(dev_log === true){this.log.info("Zero val at initalisation, value of state : " + JSON.stringify(reading));}
 		if (reading === null) {
 			
-			if(dev_log === true){this.log.info("Zero val at initalisation, target state : " + inst_name + "." + id);}
+			this.log.debug("Zero val at initalisation, target state : " + inst_name + "." + id);
 	
 			this.setState(inst_name + "." + id, { val: 0, ack: true });}
 	}
@@ -270,14 +259,14 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Extend object with start value day
 			obj.common.custom[this.namespace].start_day = calc_reading;
-			if (dev_log === true){this.log.info("Object content custom current : " + JSON.stringify(obj));}
+			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, function (err) {
 				if (err) {
 					this.log.error("Setting start value Day failed : " + err);
 				} else {
-					if (dev_log === true){this.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+					this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
 					this.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 				}
 			});
@@ -292,14 +281,14 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Extend object with start value week
 			obj.common.custom[this.namespace].start_week = calc_reading;
-			if (dev_log === true){this.log.info("Object content custom current : " + JSON.stringify(obj));}
+			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, function (err) {
 				if (err) {
 					this.log.error("Setting start value Week failed : " + err);
 				} else {
-					if (dev_log === true){this.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+					this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
 					this.log.info("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 				}
 			});
@@ -314,14 +303,14 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Extend object with start value month
 			obj.common.custom[this.namespace].start_month = calc_reading;
-			if (dev_log === true){this.log.info("Object content custom current : " + JSON.stringify(obj));}
+			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, function (err) {
 				if (err) {
 					this.log.error("Setting start value month failed : " + err);
 				} else {
-					if (dev_log === true){this.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+					this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
 					this.log.info("Setting start value month for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 				}
 			});
@@ -336,14 +325,14 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Extend object with start value quarter
 			obj.common.custom[this.namespace].start_quarter = calc_reading;
-			if (dev_log === true){this.log.info("Object content custom current : " + JSON.stringify(obj));}
+			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, function (err) {
 				if (err) {
 					this.log.error("Setting start value quarter failed : " + err);
 				} else {
-					if (dev_log === true){this.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+					this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
 					this.log.info("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 				}
 			});
@@ -358,14 +347,14 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Extend object with start value year
 			obj.common.custom[this.namespace].start_year = calc_reading;
-			if (dev_log === true){this.log.info("Object content custom current : " + JSON.stringify(obj));}
+			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, function (err) {
 				if (err) {
 					this.log.error("Setting start value year failed : " + err);
 				} else {
-					if (dev_log === true){this.log.info("Object content custom after start_day value reset : " + JSON.stringify(obj));}
+					this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
 					this.log.info("Setting start value year for device : " + obj_array._id + " succeeded with value + " + calc_reading);
 				}
 			});
@@ -374,25 +363,15 @@ class Sourceanalytix extends utils.Adapter {
 
 	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
 	unit_calc_fact (obj, value){
-		if(dev_log === true){this.log.info("Object array input for unit factore calculation : " + JSON.stringify(obj));}
-		if(dev_log === true){this.log.info("State value input for unit factore calculation : " + JSON.stringify(value));}
+		this.log.debug("Object array input for unit factore calculation : " + JSON.stringify(obj));
+		this.log.debug("State value input for unit factore calculation : " + JSON.stringify(value));
 		if (value === null){
-			if (dev_log === true){this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);}
+			this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
 		}
-		const inst_name = this.namespace;
-		const obj_cust = obj.common.custom[inst_name];
-		// this.log.info("Intervall : " + intervall);
-		let unit = "";
-		
-		if(dev_log === true){this.log.info("Test unit from object : " + unit);}
-		if(dev_log === true){this.log.info("Test unit from custom object : " + obj_cust.state_unit);}
 
-		// Replace meassurement unit when selected in state setting
-		if(obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
-			unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
-			unit = obj_cust.state_unit.toLowerCase();
-			if(dev_log === true){this.log.info("Unit of state origing change to : " + unit);}
-		}
+		const unit = this.defineUnit(obj);
+
+		this.log.debug("Test unit : " + unit);
 		
 		let calc_value;
 
@@ -417,16 +396,16 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
 		}
 
-		if(dev_log === true){this.log.info("State value output of unit factore calculation : " + JSON.stringify(calc_value));}
+		this.log.debug("State value output of unit factore calculation : " + JSON.stringify(calc_value));
 
 		return calc_value;
 	}
 
 	// Function to handle channel creation
 	ChannelCreate (id, channel, name){
-		if(dev_log === true){this.log.info("Parent device : " + id);}
-		if(dev_log === true){this.log.info("Create channel id : " + channel);}
-		if(dev_log === true){this.log.info("Create channel name : " + name);}
+		this.log.debug("Parent device : " + id);
+		this.log.debug("Create channel id : " + channel);
+		this.log.debug("Create channel name : " + name);
 		this.createChannel(id, channel,{
 			"name": name
 		});
@@ -511,33 +490,15 @@ class Sourceanalytix extends utils.Adapter {
 		const obj_cust = obj.common.custom[inst_name];
 		let skip_init = false;
 		let w_calc = false;
-		// this.log.info("Intervall : " + intervall);
-		let unit = "";
+		let unit = this.defineUnit(obj);
 		
-		// Replace meassurement unit when selected in state setting
-		if(obj_cust.state_unit === undefined) {
-			
-			if (obj_cust.state_unit != "automatically") {
-				unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
-				unit = obj_cust.state_unit.toLowerCase();
-				if(dev_log === true){this.log.info("Unit of state origing change to : " + unit);}
-
-			} else {
-
-				this.log.error(obj._id + " Does not have a unit defined, please selecte the propper unit at the state settings ");
-				skip_init = true;
-
-			}
-
-		}
-
 		// Check if initialization should be handled
 		if (skip_init === false) {
 
-			if(dev_log === true){this.log.info("instanze name : " + inst_name);}
+			this.log.debug("instanze name : " + inst_name);
 			// const obj_cust = this.config.custom;
-			if(dev_log === true){this.log.info("Content custom of object : " + JSON.stringify(obj_cust));}
-			if(dev_log === true){this.log.info("Custom object tree : " + JSON.stringify(obj_cust));}
+			this.log.debug("Content custom of object : " + JSON.stringify(obj_cust));
+			this.log.debug("Custom object tree : " + JSON.stringify(obj_cust));
 
 			// Currently only support kWh & m3)
 			if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l") || (unit == "w")){
@@ -550,11 +511,11 @@ class Sourceanalytix extends utils.Adapter {
 				// replace "." in datapoints to "_"
 				const device = id.split(".").join("__");
 
-				if(dev_log === true){this.log.info("Changed Device Name : " + device);}
+				this.log.debug("Changed Device Name : " + device);
 
 				// 	// Set type to consume or deliver
 				let delivery;
-				if(dev_log === true){this.log.info("Delivery type : " + delivery);}
+				this.log.debug("Delivery type : " + delivery);
 
 				if (obj_cust.state_type == "kWh_delivery") {
 					delivery = true;
@@ -564,11 +525,11 @@ class Sourceanalytix extends utils.Adapter {
 				
 				// define device name, change with alias when required
 				let alias = obj.common.name;
-				if(dev_log === true){this.log.info("Name before alias renaming : " + alias);}
-				if(dev_log === true){this.log.info("Device name : " + alias);}
-				if(dev_log === true){this.log.info("State alias name : " + obj_cust.alias);}
+				this.log.debug("Name before alias renaming : " + alias);
+				this.log.debug("Device name : " + alias);
+				this.log.debug("State alias name : " + obj_cust.alias);
 				if(obj_cust.alias !== undefined && obj_cust.alias !== null && obj_cust.alias !== "") {alias = obj_cust.alias;}
-				if(dev_log === true){this.log.info("Name after alias renaming" + alias);}
+				this.log.debug("Name after alias renaming" + alias);
 				
 				// Create new device object for every state in powermonitor tree
 				this.setObjectNotExists(device, {
@@ -588,14 +549,14 @@ class Sourceanalytix extends utils.Adapter {
 					if (err !== null){this.log.error("Changing alias name failed with : " + err);}
 				});		
 
-				if(dev_log === true){this.log.info("Customized Device name = : " + alias);}
-				if(dev_log === true){this.log.info("Days ? : " + this.config.store_days);}
-				if(dev_log === true){this.log.info("Consumption ?  : " + obj_cust.consumption);}
-				if(dev_log === true){this.log.info("Costs : " + obj_cust.costs);}
-				if(dev_log === true){this.log.info("Meter History ? : " + obj_cust.meter_values);}
+				this.log.debug("Customized Device name = : " + alias);
+				this.log.debug("Days ? : " + this.config.store_days);
+				this.log.debug("Consumption ?  : " + obj_cust.consumption);
+				this.log.debug("Costs : " + obj_cust.costs);
+				this.log.debug("Meter History ? : " + obj_cust.meter_values);
 
 				if (this.config.store_days === true) {
-					if(dev_log === true){this.log.info("Creating weekdays");}
+					this.log.debug("Creating weekdays");
 					// create states for weekdays
 					for (const x in weekdays){
 						const curent_day = ".current_year.this_week." + weekdays[x];
@@ -649,7 +610,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.doStateCreate(delivery,device,state_root , "Current Reading to kWh", "number","value.current", unit, false, false, true);
 				}
 
-				if(dev_log === true){this.log.info("Initialization finished for : " + device);}
+				this.log.debug("Initialization finished for : " + device);
 				// Subscribe state, every state change will trigger calculation
 				this.subscribeForeignStates(obj._id);
 
@@ -667,70 +628,70 @@ class Sourceanalytix extends utils.Adapter {
 	// Calculation handler
 	async calculation_handler(id){
 		const inst_name = this.namespace;
-		if(dev_log === true){this.log.info("Instance name : " + inst_name);}
+		this.log.debug("Instance name : " + inst_name);
 		let cost_t, del_t,state_val;
 		const date = new Date();
 		let cost_basic, cost_unit, skip_calc = false;
-		if(dev_log === true){this.log.info("Write calculations for : " + id._id);}
+		this.log.debug("Write calculations for : " + id._id);
 
 		// replace "." in datapoints to "_"
 		const obj_id = id._id.split(".").join("__");
 		const obj_root = this.namespace + "." + obj_id;
 
-		if(dev_log === true){this.log.info("Calc obj root " + obj_root);}
+		this.log.debug("Calc obj root " + obj_root);
 
 		const obj_cont = await this.getForeignObjectAsync(id._id);
-		if(dev_log === true){this.log.info("State object content: " + JSON.stringify(obj_cont));}
+		this.log.debug("State object content: " + JSON.stringify(obj_cont));
 		//@ts-ignore custom does exist
 		const obj_cust = obj_cont.common.custom[inst_name];
-		if(dev_log === true){this.log.info("State object custom content: " + JSON.stringify(obj_cust));}
+		this.log.debug("State object custom content: " + JSON.stringify(obj_cust));
 		// Define whih calculation factor must be used
 
 		switch (obj_cust.state_type) {
 
 			case "kWh_consumption":
-				if(dev_log === true){this.log.info("Case result : Electricity consumption");}
+				this.log.debug("Case result : Electricity consumption");
 				cost_unit = this.config.unit_price_power;
 				cost_basic = this.config.basic_price_power;
 				break;
 			case "kWh_consumption_night":
-				if(dev_log === true){this.log.info("Case result : Electricity consumption night");}
+				this.log.debug("Case result : Electricity consumption night");
 				cost_unit = this.config.unit_price_power_night;
 				cost_basic = this.config.basic_price_power;
 				break;
 
 			case "kWh_delivery":
-				if(dev_log === true){this.log.info("Case result : Electricity delivery");}
+				this.log.debug("Case result : Electricity delivery");
 				cost_unit = this.config.unit_price_power_delivery;
 				cost_basic = this.config.basic_price_power;
 				break;
 
 			case "kWh_heatpomp":
-				if(dev_log === true){this.log.info("Case result : Heat Pump");}
+				this.log.debug("Case result : Heat Pump");
 				cost_unit = this.config.unit_price_heatpump;
 				cost_basic = this.config.basic_price_heatpump;
 				break;
 
 			case "kWh_heatpomp_night":
-				if(dev_log === true){this.log.info("Case result : Heat Pump night");}
+				this.log.debug("Case result : Heat Pump night");
 				cost_unit = this.config.unit_price_heatpump_night;
 				cost_basic = this.config.basic_price_heatpump;
 				break;			
 
 			case "gas":
-				if(dev_log === true){this.log.info("Case result : Gas");}
+				this.log.debug("Case result : Gas");
 				cost_unit = this.config.unit_price_gas;
 				cost_basic = this.config.basic_price_gas;
 				break;
 			
 			case "water_m3":
-				if(dev_log === true){this.log.info("Case result : Water");}
+				this.log.debug("Case result : Water");
 				cost_unit = this.config.unit_price_water;
 				cost_basic = this.config.basic_price_water;
 				break;
 			
 			case "oil_m3":
-				if(dev_log === true){this.log.info("Case result : Oil");}
+				this.log.debug("Case result : Oil");
 				cost_unit = this.config.unit_price_oil;
 				cost_basic = this.config.basic_price_oil;
 				break;
@@ -754,8 +715,8 @@ class Sourceanalytix extends utils.Adapter {
 				// verify if startvalue ist set for calculation, if not store start value.
 				const kWh_start_val = obj_root + ".Meter_Readings.Current_Reading_kWh";
 				const W_start_val = obj_root + ".Meter_Readings.Current_Reading";
-				this.log.info("Before logic of watt : " + JSON.stringify(wh_start_val));
-				this.log.warn("array content for start val : " + wh_start_val["sourceanalytix.0.discovergy__0__1024000034__Power_1.Meter_Readings.Current_Reading_kWh"]);
+				this.log.silly("Before logic of watt : " + JSON.stringify(wh_start_val));
+				this.log.silly("array content for start val : " + wh_start_val["sourceanalytix.0.discovergy__0__1024000034__Power_1.Meter_Readings.Current_Reading_kWh"]);
 				if (wh_start_val[kWh_start_val]  === undefined) {
 
 					this.log.error("Current wh start value = undefined");
@@ -812,17 +773,17 @@ class Sourceanalytix extends utils.Adapter {
 
 			const calc_reading = this.unit_calc_fact(id, reading.val);
 			
-			if(dev_log === true){this.log.info("Meter current reading : " + reading.val);}
-			if(dev_log === true){this.log.info("Meter calculated reading : " + calc_reading);}
+			this.log.debug("Meter current reading : " + reading.val);
+			this.log.debug("Meter calculated reading : " + calc_reading);
 
 
 
-			if(dev_log === true){this.log.info("Handle cost calculations : " + obj_cust.costs);}
-			if(dev_log === true){this.log.info("Calculation Factor : " + cost_unit);}
-			if(dev_log === true){this.log.info("Cost basic : " + cost_basic);}
-			if(dev_log === true){this.log.info("Cost unit : " + cost_unit);}
-			if(dev_log === true){this.log.info("Handle consumption calculations : " + obj_cust.consumption);}
-			if(dev_log === true){this.log.info("Handle meter history : " + obj_cust.meter_values);}
+			this.log.debug("Handle cost calculations : " + obj_cust.costs);
+			this.log.debug("Calculation Factor : " + cost_unit);
+			this.log.debug("Cost basic : " + cost_basic);
+			this.log.debug("Cost unit : " + cost_unit);
+			this.log.debug("Handle consumption calculations : " + obj_cust.consumption);
+			this.log.debug("Handle meter history : " + obj_cust.meter_values);
 
 			// temporary set to sero, this calue will be used later to handle period calculations
 			const reading_start = 0; 	//obj_cust.start_meassure; 
@@ -832,12 +793,12 @@ class Sourceanalytix extends utils.Adapter {
 			const quarter_bval = obj_cust.start_quarter;
 			const year_bval = obj_cust.start_year;
 
-			if(dev_log === true){this.log.info("reading_start : " + reading_start);}
-			if(dev_log === true){this.log.info("day start : " + day_bval);}
-			if(dev_log === true){this.log.info("week start : " + week_bval);}
-			if(dev_log === true){this.log.info("month start " + month_bval);}
-			if(dev_log === true){this.log.info("quarter start " + quarter_bval);}
-			if(dev_log === true){this.log.info("year start : " + year_bval);}
+			this.log.debug("reading_start : " + reading_start);
+			this.log.debug("day start : " + day_bval);
+			this.log.debug("week start : " + week_bval);
+			this.log.debug("month start " + month_bval);
+			this.log.debug("quarter start " + quarter_bval);
+			this.log.debug("year start : " + year_bval);
 
 			// set correct naming for cost & delivery based on type
 			if(obj_cust.state_type == "kWh_delivery"){
@@ -848,10 +809,10 @@ class Sourceanalytix extends utils.Adapter {
 				del_t = ".consumption.";
 			}
 
-			if(dev_log === true){this.log.info("Delivery state set to : " + del_t);}
+			this.log.debug("Delivery state set to : " + del_t);
 
 			if(obj_cust.consumption === true){
-				if(dev_log === true){this.log.info("Start consumption calculations");}
+				this.log.debug("Start consumption calculations");
 				// Store current meter value to state
 				// disabled in 0.2.26, check in later version for meter readings
 				// this.setState(obj_root + del_t + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
@@ -860,30 +821,30 @@ class Sourceanalytix extends utils.Adapter {
 				// Weekday & current day
 				state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
 
-				if(dev_log === true){this.log.info("calculated reading day : " + state_val);}
+				this.log.debug("calculated reading day : " + state_val);
 				this.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
 				this.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 
 				// Week
 				state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
-				if(dev_log === true){this.log.info("calculated reading week : " + state_val);}
+				this.log.debug("calculated reading week : " + state_val);
 				this.setState(obj_root + del_t + "02_current_week", { val: state_val,ack: true });
 				this.setState(obj_root + del_t + "current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val,ack: true });
 
 				// Month
 				state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
-				if(dev_log === true){this.log.info("calculated reading month : " + state_val);}
+				this.log.debug("calculated reading month : " + state_val);
 				this.setState(obj_root + del_t + "03_current_month", { val: state_val,ack: true });
 				this.setState(obj_root + del_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
 				// Quarter
 				state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
-				if(dev_log === true){this.log.info("calculated reading quarter : " + state_val);}
+				this.log.debug("calculated reading quarter : " + state_val);
 				this.setState(obj_root + del_t + "04_current_quarter", { val: state_val,ack: true });
 
 				// Year
 				state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
-				if(dev_log === true){this.log.info("calculated reading day : " + state_val);}
+				this.log.debug("calculated reading day : " + state_val);
 				this.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
 			}
 
@@ -893,52 +854,72 @@ class Sourceanalytix extends utils.Adapter {
 			const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
 			const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
 
-			if(dev_log === true){this.log.info("day consumed " + day_bval_consumend);}
-			if(dev_log === true){this.log.info("week consumed " + week_bval_consumend);}
-			if(dev_log === true){this.log.info("month consumed " + month_bval_consumend);}
-			if(dev_log === true){this.log.info("quarter consumed " + quarter_bval_consumend);}
-			if(dev_log === true){this.log.info("year consumed "+ year_bval_consumend);}
-			if(dev_log === true){this.log.info("objroot " + obj_root);}
-			if(dev_log === true){this.log.info("cost type " + cost_t);}
-			if(dev_log === true){this.log.info("delivery type " + del_t);}
-			if(dev_log === true){this.log.info("example state string : " + obj_root + cost_t + "01_current_day");}
+			this.log.debug("day consumed " + day_bval_consumend);
+			this.log.debug("week consumed " + week_bval_consumend);
+			this.log.debug("month consumed " + month_bval_consumend);
+			this.log.debug("quarter consumed " + quarter_bval_consumend);
+			this.log.debug("year consumed "+ year_bval_consumend);
+			this.log.debug("objroot " + obj_root);
+			this.log.debug("cost type " + cost_t);
+			this.log.debug("delivery type " + del_t);
+			this.log.debug("example state string : " + obj_root + cost_t + "01_current_day");
 			
 			if(obj_cust.costs === true){
 				// Weekday & current day
 				//@ts-ignore cost_unit is always a number
 				state_val = (day_bval_consumend * cost_unit).toFixed(2);
-				if(dev_log === true){this.log.info("calculated cost day : " + state_val);}
+				this.log.debug("calculated cost day : " + state_val);
 				this.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
 				this.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
 				
 				// Week
 				//@ts-ignore cost_unit is always a number
 				state_val = (week_bval_consumend * cost_unit).toFixed(2);
-				if(dev_log === true){this.log.info("calculated cost week : " + state_val);}
+				this.log.debug("calculated cost week : " + state_val);
 				this.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
 				this.setState(obj_root + cost_t + "current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val,ack: true });
 
 				// Month
 				//@ts-ignore cost_unit is always a number
 				state_val = (month_bval_consumend * cost_unit).toFixed(2);
-				if(dev_log === true){this.log.info("calculated cost month : " + state_val);}
+				this.log.debug("calculated cost month : " + state_val);
 				this.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
 				this.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
 
 				// Quarter
 				//@ts-ignore cost_unit is always a number
 				state_val = (quarter_bval_consumend * cost_unit).toFixed(2);
-				if(dev_log === true){this.log.info("calculated cost quarter : " + state_val);}
+				this.log.debug("calculated cost quarter : " + state_val);
 				this.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
 
 				// Year
 				//@ts-ignore cost_unit is always a number
 				state_val = (year_bval_consumend * cost_unit).toFixed(2);
-				if(dev_log === true){this.log.info("calculated cost year : " + state_val);}
+				this.log.debug("calculated cost year : " + state_val);
 				this.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
 			}
-			if(dev_log === true){this.log.info("Meter Calculation executed");}
+			this.log.debug("Meter Calculation executed");
 		}
+	}
+
+	defineUnit (obj){
+
+		const inst_name = this.namespace;
+		const obj_cust = obj.common.custom[inst_name];
+		// this.log.info("Intervall : " + intervall);
+		let unit = "";
+
+		// Check if unit is defined in state object, if not use custom value
+		if (obj.common.unit !== undefined) {
+			unit = obj.common.unit.toLowerCase().replace(/\s|[0-9_]|\W|[#$%^&*()]/g, "");
+		} else if(obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
+
+			// Replace meassurement unit when selected in state setting
+			unit = obj_cust.state_unit.toLowerCase();
+			this.log.debug("Unit of state origing change to : " + unit);
+		}
+
+		return unit;
 	}
 
 }

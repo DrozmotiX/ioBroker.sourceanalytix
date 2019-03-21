@@ -1,12 +1,12 @@
 #  [Beta - Released] SourceAnalytix
-[![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
+[![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
+![Number of Installations](http://iobroker.live/badges/sourceanalytix-installed.svg) 
+![Number of Installations](http://iobroker.live/badges/sourceanalytix-stable.svg) [![NPM version]
 [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
-[![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg?columns=all)](https://waffle.io/iobroker-community-adapters/ioBroker.sourceanalytix)
-## Warning, this adapter needs node 8 or higher !!!
+[![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
 
-#  Warning : adapter is in rebuilding phase, do not install from git only from admin by using latest repository (verion 0.2.26)
+## Warning, this adapter needs node 8 or higher !!!
 
 ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.
 You need data as input (total amount of Wh, l/h or m3 used) from your devices and this adapter will :
@@ -29,10 +29,10 @@ https://github.com/hdering/homematic_verbrauchszaehler
 ## Known issues
 
 * [ ] Period calculation selectable but not yet implemented
-* [ ] Meter value selectable  but not yet implemented
 * [ ] store current meter values not yet implemented
 * [ ] quarters not calculated
 * [ ] monthly costprice not yet implemented in calculation
+* [x] Meter value selectable  but not yet implemented
 * [x] adapter restart needed to add calculation of new objects
 * [x] statest for cost type delivery are not writen
 * [x] device name alias not correct
@@ -45,8 +45,8 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [ ] calculations for quarter values
 * [ ] storage of meter values for every state
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
-* [ ] compact mode
 * [ ] code optimalisation
+* [x] compact mode
 * [x] add support for calculation of wh values
 * [x] Fix basic translations
 * [x] ready state values and store to states
@@ -71,6 +71,11 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
+### 0.2.272
+* change logic of initialisation
+* fix issue in calculation handling
+* extract unit definition to central function
+* removed "logging to troubleshoot", use "debug" in adapter setting
 
 ### 0.2.271
 * (Dutchman) implement compact mode
