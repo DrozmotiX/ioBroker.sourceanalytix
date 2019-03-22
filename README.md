@@ -1,8 +1,6 @@
 #  [Beta - Released] SourceAnalytix
 [![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
-![Number of Installations](http://iobroker.live/badges/sourceanalytix-installed.svg) 
-![Number of Installations](http://iobroker.live/badges/sourceanalytix-stable.svg) [![NPM version]
-[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+![Number of Installations](http://iobroker.live/badges/sourceanalytix-installed.svg) ![Number of Installations](http://iobroker.live/badges/sourceanalytix-stable.svg) [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
 
@@ -71,11 +69,16 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
+### 0.2.273
+* (Dutchman) fix issue in daily reset of start values
+* (Dutchman) Fix badges in readme
+* (Dutchman) exclude calculations of w from current routines (will be implemented in next version(s)
+
 ### 0.2.272
-* change logic of initialisation
-* fix issue in calculation handling
-* extract unit definition to central function
-* removed "logging to troubleshoot", use "debug" in adapter setting
+* (Dutchman) change logic of initialisation
+* (Dutchman) fix issue in calculation handling
+* (Dutchman) extract unit definition to central function
+* (Dutchman) removed "logging to troubleshoot", use "debug" in adapter setting
 
 ### 0.2.271
 * (Dutchman) implement compact mode

@@ -252,7 +252,7 @@ class Sourceanalytix extends utils.Adapter {
 		obj.common.custom[inst_name] = {};
 
 		// Reset day counter
-		cron.schedule("0 0 * * *", async function(){
+		cron.schedule("0 0 * * *", async () => {
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
 			const calc_reading = this.unit_calc_fact(obj_array, reading.val);
@@ -262,7 +262,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-			this.extendForeignObject(obj_array._id, obj, function (err) {
+			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value Day failed : " + err);
 				} else {
@@ -273,7 +273,7 @@ class Sourceanalytix extends utils.Adapter {
 		});
 		
 		// Reset Week counter
-		cron.schedule("0 0 * * 1", async function(){
+		cron.schedule("0 0 * * 1", async () => {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
@@ -284,7 +284,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-			this.extendForeignObject(obj_array._id, obj, function (err) {
+			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value Week failed : " + err);
 				} else {
@@ -295,7 +295,7 @@ class Sourceanalytix extends utils.Adapter {
 		});
 		
 		// Reset month counter
-		cron.schedule("0 0 1 * *", async function(){
+		cron.schedule("0 0 1 * *", async () => {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
@@ -306,7 +306,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-			this.extendForeignObject(obj_array._id, obj, function (err) {
+			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value month failed : " + err);
 				} else {
@@ -317,7 +317,7 @@ class Sourceanalytix extends utils.Adapter {
 		});
 		
 		// Reset quarter counter
-		cron.schedule("0 0 1 1,4,7,10 *", async function(){
+		cron.schedule("0 0 1 1,4,7,10 *", async () => {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
@@ -328,7 +328,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-			this.extendForeignObject(obj_array._id, obj, function (err) {
+			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value quarter failed : " + err);
 				} else {
@@ -339,7 +339,7 @@ class Sourceanalytix extends utils.Adapter {
 		});
 		
 		// Reset year counter
-		cron.schedule("0 0 1 1 *", async function(){
+		cron.schedule("0 0 1 1 *", async () => {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
@@ -350,7 +350,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
-			this.extendForeignObject(obj_array._id, obj, function (err) {
+			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value year failed : " + err);
 				} else {
@@ -501,7 +501,8 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Custom object tree : " + JSON.stringify(obj_cust));
 
 			// Currently only support kWh & m3)
-			if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l") || (unit == "w")){
+			// if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l") || (unit == "w")){
+			if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l")){	
 
 				if(unit === "wh"){unit = "kWh";}
 				if(unit === "w"){unit = "kWh"; w_calc = true;}
