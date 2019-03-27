@@ -1,6 +1,6 @@
 {
-	"common": {
-		"name": "sourceanalytix",
+    "common": {
+        "name": "sourceanalytix",
         "version": "0.2.274",
         "news": {
             "0.2.27": {
@@ -125,87 +125,91 @@
             }
         },
         "title": "SourceAnalytix",
-		"titleLang": {
-			"en": "SourceAnalytix",
-			"de": "SourceAnalytix",
-			"ru": "SourceAnalytix",
-			"pt": "SourceAnalytix",
-			"nl": "SourceAnalytix",
-			"fr": "SourceAnalytix",
-			"it": "SourceAnalytix",
-			"es": "SourceAnalytix",
-			"pl": "SourceAnalytix",
-			"zh-cn": "SourceAnalytix"
-		},
-		"desc": {
-			"en": "Provide detailed consumption calculations for daily, weekly, monthly and yearly consumption data",
-			"de": "Stellen Sie detaillierte Verbrauchsberechnungen für tägliche, wöchentliche, monatliche und jährliche Verbrauchsdaten bereit",
-			"ru": "Предоставить подробные расчеты потребления для ежедневных, еженедельных, ежемесячных и годовых данных потребления",
-			"pt": "Fornecer cálculos detalhados de consumo para dados de consumo diários, semanais, mensais e anuais",
-			"nl": "Geef gedetailleerde verbruiksberekeningen voor dagelijkse, wekelijkse, maandelijkse en jaarlijkse verbruiksgegevens",
-			"fr": "Fournir des calculs de consommation détaillés pour les données de consommation quotidiennes, hebdomadaires, mensuelles et annuelles",
-			"it": "Fornire calcoli dettagliati sui consumi per i dati di consumo giornalieri, settimanali, mensili e annuali",
-			"es": "Proporcionar cálculos de consumo detallados para datos de consumo diarios, semanales, mensuales y anuales",
-			"pl": "Podaj szczegółowe obliczenia zużycia dla dziennych, tygodniowych, miesięcznych i rocznych danych o zużyciu",
-			"zh-cn": "提供每日，每周，每月和每年消费数据的详细消费计算"
-		},
-		"authors": [
-			"DutchmanNL <rdrozda@hotmail.com>"
-		],
-		"keywords": [
-			"energy",
-			"power",
-			"analytics",
-			"consumption",
-			"meassurement",
-			"data"
-		],
-		"license": "MIT",
-		"platform": "Javascript/Node.js",
-		"main": "main.js",
-		"icon": "sourceanalytix.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
-		"readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
-		"loglevel": "info",
-		"mode": "daemon",
-		"type": "energy",
-		"compact": true,
-		"materialize": true,
-		"supportCustoms": true,
-		"dependencies": [
-			{
-				"admin": ">=3.0.0"
-			},
-			{
-				"js-controller": ">=1.4.2"
-			}
-		]
-	},
-	"native": {
-		"store_year": true,
-		"store_days" : true,
-		"store_weeks" : false,
-		"store_months" : true,
-		"store_quarters" : false,
-		"store_years" : false,
-		"store_period" : false,
-		"keep_days": "7",
-		"keep_weeks": "4",
-		"keep_quarters" : "2",
-		"keep_months" : "4",
-		"keep_years" : "1",
-		"unit_price_power" : "0.27",
-		"unit_price_power_night" : "0.24",
-		"unit_price_power_delivery" : "0.17",
-		"basic_price_power" : "15",
-        "unit_price_heatpump": "0.24",
-        "unit_price_heatpump_night": "0.22",
-		"unit_price_water" : "0.07",
-		"basic_price_water" : "22",
-        "unit_price_oil": "0.12",
-		"basic_price_oil" : "31"
-	},
+        "titleLang": {
+            "en": "SourceAnalytix",
+            "de": "SourceAnalytix",
+            "ru": "SourceAnalytix",
+            "pt": "SourceAnalytix",
+            "nl": "SourceAnalytix",
+            "fr": "SourceAnalytix",
+            "it": "SourceAnalytix",
+            "es": "SourceAnalytix",
+            "pl": "SourceAnalytix",
+            "zh-cn": "SourceAnalytix"
+        },
+        "desc": {
+            "en": "Provide detailed consumption calculations for daily, weekly, monthly and yearly consumption data",
+            "de": "Stellen Sie detaillierte Verbrauchsberechnungen für tägliche, wöchentliche, monatliche und jährliche Verbrauchsdaten bereit",
+            "ru": "Предоставить подробные расчеты потребления для ежедневных, еженедельных, ежемесячных и годовых данных потребления",
+            "pt": "Fornecer cálculos detalhados de consumo para dados de consumo diários, semanais, mensais e anuais",
+            "nl": "Geef gedetailleerde verbruiksberekeningen voor dagelijkse, wekelijkse, maandelijkse en jaarlijkse verbruiksgegevens",
+            "fr": "Fournir des calculs de consommation détaillés pour les données de consommation quotidiennes, hebdomadaires, mensuelles et annuelles",
+            "it": "Fornire calcoli dettagliati sui consumi per i dati di consumo giornalieri, settimanali, mensili e annuali",
+            "es": "Proporcionar cálculos de consumo detallados para datos de consumo diarios, semanales, mensuales y anuales",
+            "pl": "Podaj szczegółowe obliczenia zużycia dla dziennych, tygodniowych, miesięcznych i rocznych danych o zużyciu",
+            "zh-cn": "提供每日，每周，每月和每年消费数据的详细消费计算"
+        },
+        "authors": [
+            "DutchmanNL <rdrozda@hotmail.com>"
+        ],
+        "keywords": [
+            "energy",
+            "power",
+            "analytics",
+            "consumption",
+            "meassurement",
+            "data"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "sourceanalytix.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
+        "readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "energy",
+        "compact": true,
+        "materialize": true,
+        "supportCustoms": true,
+        "dependencies": [
+            {
+                "admin": ">=3.0.0"
+            },
+            {
+                "js-controller": ">=1.4.2"
+            }
+        ]
+    },
+    "native": {
+        "store_year": true,
+        "store_days" : true,
+        "store_weeks" : false,
+        "store_months" : true,
+        "store_quarters" : false,
+        "store_years" : false,
+        "store_period" : false,
+        "keep_days": 7,
+        "keep_weeks": 4,
+        "keep_quarters" : 2,
+        "keep_months" : 4,
+        "keep_years" : 1,
+        "unit_price_power" : 0.27,
+        "unit_price_power_night" : 0.24,
+        "unit_price_power_delivery" : 0.17,
+        "basic_price_power" : 15,
+        "unit_price_heatpump": 0.24,
+        "unit_price_heatpump_night": 0.22,
+        "basic_price_heatpump": 31,
+        "unit_price_water" : 0.07,
+        "basic_price_water" : 22,
+        "unit_price_oil": 0.12,
+        "basic_price_oil" : 31,
+        "unit_price_gas": 0.12,
+        "basic_price_gas" : 31,
+        "status_logging": false
+    },
     "objects": [
         {
             "_id": "_design/custom",
@@ -215,7 +219,7 @@
                     "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
                 }
             }
-		}
-	],
-	"instanceObjects": []
+        }
+    ],
+    "instanceObjects": []
 }
