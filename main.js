@@ -16,7 +16,6 @@ const months = JSON.parse('["01_January","02_February","03_March","04_April","05
 // Create variables for object arrays
 const history    = {};
 const aliasMap   = {};
-const wh_start_val = [];
 let state_set = [], mon_log;
 // Time Modules
 const cron = require("node-cron"); // Cron Scheduler
@@ -60,7 +59,6 @@ class Sourceanalytix extends utils.Adapter {
 		this.subscribeForeignObjects("*");
 			
 		this.objects.getObjectView("custom", "state", {}, (err, doc) => {
-			let count = 0; 
 			this.log.debug("Result doc : " + JSON.stringify(doc));
 			if (doc && doc.rows) {
 				
@@ -88,7 +86,6 @@ class Sourceanalytix extends utils.Adapter {
 						if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
 							// delete history[id];
 						} else {
-							count++;
 							this.getForeignObject(id, (err, obj)=> {
 								if (obj !== undefined && obj !== null){
 									// Push object into variable array used for checks later
@@ -175,6 +172,7 @@ class Sourceanalytix extends utils.Adapter {
 			if ( existing === true) {
 				this.log.info("Disable SourceAnalytix for : " + id);
 				this.unsubscribeForeignStates(id);
+				// TODO: array_id is a string, but is used like a number
 				state_set.splice(array_id, 1); 
 				
 			}
@@ -223,11 +221,10 @@ class Sourceanalytix extends utils.Adapter {
 		// Get first day of year
 		const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
 		// Calculate full weeks to nearest Thursday
-		//@ts-ignoreTS-ignore
-		let weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+		// @ts-ignore subtracting dates is fine
+		let weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7).toString();
 
-		if (weekNo < 10){
-			//@ts-ignoreTS-ignore
+		if (weekNo.length === 1){
 			weekNo = "0" + weekNo;
 		}
 		// Return array of year and week number
@@ -255,13 +252,13 @@ class Sourceanalytix extends utils.Adapter {
 		cron.schedule("0 0 * * *", async () => {
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
+			if (!reading) return;
 			const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 			// Extend object with start value day
 			obj.common.custom[this.namespace].start_day = calc_reading;
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
-			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value Day failed : " + err);
@@ -277,13 +274,13 @@ class Sourceanalytix extends utils.Adapter {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
+			if (!reading) return;
 			const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 			// Extend object with start value week
 			obj.common.custom[this.namespace].start_week = calc_reading;
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
-			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value Week failed : " + err);
@@ -299,13 +296,13 @@ class Sourceanalytix extends utils.Adapter {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
+			if (!reading) return;
 			const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 			// Extend object with start value month
 			obj.common.custom[this.namespace].start_month = calc_reading;
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
-			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value month failed : " + err);
@@ -321,13 +318,13 @@ class Sourceanalytix extends utils.Adapter {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
+			if (!reading) return;
 			const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 			// Extend object with start value quarter
 			obj.common.custom[this.namespace].start_quarter = calc_reading;
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
-			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value quarter failed : " + err);
@@ -343,13 +340,13 @@ class Sourceanalytix extends utils.Adapter {
 
 			// get current meter value
 			const reading = await this.getForeignStateAsync(obj_array._id);
+			if (!reading) return;
 			const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 			// Extend object with start value year
 			obj.common.custom[this.namespace].start_year = calc_reading;
 			this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
-			//@ts-ignore Issue in recognized obj correctly, must be fixed in template
 			this.extendForeignObject(obj_array._id, obj, (err) => {
 				if (err) {
 					this.log.error("Setting start value year failed : " + err);
@@ -540,7 +537,7 @@ class Sourceanalytix extends utils.Adapter {
 			objekt.common = {
 				name: alias
 			};
-			this.extendObject(device, objekt, function (err) {
+			this.extendObject(device, objekt, (err) => {
 				if (err !== null){this.log.error("Changing alias name failed with : " + err);}
 			});		
 
@@ -626,7 +623,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Instance name : " + inst_name);
 		let cost_t, del_t,state_val;
 		const date = new Date();
-		let cost_basic, cost_unit, skip_calc = false;
+		let cost_basic, cost_unit;
 		this.log.debug("Write calculations for : " + id._id);
 
 		// replace "." in datapoints to "_"
@@ -693,33 +690,35 @@ class Sourceanalytix extends utils.Adapter {
 
 			default:
 				this.log.error("Error in case handling of cost type identificaton : " + obj_cust.state_type);
-				skip_calc = true;
+				return;
 		}
 
 		// Disable initalisatiton in case of w value is received
-		if (this.defineUnit(obj_cont) === "w"){skip_calc === true;}
+		if (this.defineUnit(obj_cont) === "w") return;
 
-		if (skip_calc === false){
+		// Get current value from meter
+		const reading = await this.getForeignStateAsync(id._id);
+		if (!reading) {
+			// maybe log something?
+			return;
+		}
 
-			// Get current value from meter
-			const reading = await this.getForeignStateAsync(id._id);
+		// Write current reading value to 
+		const calc_reading = this.unit_calc_fact(id, reading.val);
 
-			// Write current reading value to 
-			const calc_reading = this.unit_calc_fact(id, reading.val);
+		if (this.defineUnit(obj_cont) === "w"){
 
-			if (this.defineUnit(obj_cont) === "w"){
+			// // Write current received W value to state
+			// if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });}			
+			
+			// // // Write calculated kWh value to state
+			// // if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading_kWh", { val: calc_reading.toFixed(3) ,ack: true });}
 
-				// // Write current received W value to state
-				// if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });}			
-				
-				// // // Write calculated kWh value to state
-				// // if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading_kWh", { val: calc_reading.toFixed(3) ,ack: true });}
-
-				// // verify if startvalue ist set for calculation, if not store start value.
-				// const kWh_start_val = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading_kWh");
-				// const W_start_val = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading");
-				// this.log.silly("Before logic of watt : " + JSON.stringify(wh_start_val));
-				// this.log.silly("array content for start val : " + wh_start_val["sourceanalytix.0.discovergy__0__1024000034__Power_1.Meter_Readings.Current_Reading_kWh"]);
+			// // verify if startvalue ist set for calculation, if not store start value.
+			// const kWh_start_val = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading_kWh");
+			// const W_start_val = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading");
+			// this.log.silly("Before logic of watt : " + JSON.stringify(wh_start_val));
+			// this.log.silly("array content for start val : " + wh_start_val["sourceanalytix.0.discovergy__0__1024000034__Power_1.Meter_Readings.Current_Reading_kWh"]);
 
 
 			// 	if (wh_start_val[kWh_start_val]  === undefined) {
@@ -759,7 +758,7 @@ class Sourceanalytix extends utils.Adapter {
 			// 		// this.log.error("Obj_root_build : " + bla);
 			// 		// this.log.info(JSON.stringify(wh_start_val[bla]));
 			// 		// this.log.warn("test_issue");
-					
+				
 			// 	} else {
 			// 		const w_stored  = await this.getStateAsync(W_start_val);
 			// 		const w_obj  = await this.getObjectAsync(W_start_val);
@@ -772,134 +771,128 @@ class Sourceanalytix extends utils.Adapter {
 			// 		this.log.error(JSON.stringify(kWh_obj));
 			// 		// const calculated = kWh_stored * w_stored.val * (w_obj.ts);
 
-				// }
-			// 	this.log.info("After logic of watt : " + JSON.stringify(wh_start_val));
-			}
-			
-			this.log.debug("Meter current reading : " + reading.val);
-			this.log.debug("Meter calculated reading : " + calc_reading);
-			this.log.debug("Handle cost calculations : " + obj_cust.costs);
-			this.log.debug("Calculation Factor : " + cost_unit);
-			this.log.debug("Cost basic : " + cost_basic);
-			this.log.debug("Cost unit : " + cost_unit);
-			this.log.debug("Handle consumption calculations : " + obj_cust.consumption);
-			this.log.debug("Handle meter history : " + obj_cust.meter_values);
-
-			// temporary set to sero, this calue will be used later to handle period calculations
-			const reading_start = 0; 	//obj_cust.start_meassure; 
-			const day_bval = obj_cust.start_day;
-			const week_bval = obj_cust.start_week;
-			const month_bval = obj_cust.start_month;
-			const quarter_bval = obj_cust.start_quarter;
-			const year_bval = obj_cust.start_year;
-
-			this.log.debug("reading_start : " + reading_start);
-			this.log.debug("day start : " + day_bval);
-			this.log.debug("week start : " + week_bval);
-			this.log.debug("month start " + month_bval);
-			this.log.debug("quarter start " + quarter_bval);
-			this.log.debug("year start : " + year_bval);
-
-			// set correct naming for cost & delivery based on type
-			if(obj_cust.state_type === "kWh_delivery"){
-				cost_t =  ".earnings.";
-				del_t = ".delivery.";
-			} else {
-				cost_t = ".cost.";
-				del_t = ".consumption.";
-			}
-
-			this.log.debug("Delivery state set to : " + del_t);
-
-			if(obj_cust.consumption === true){
-				this.log.debug("Start consumption calculations");
-				// Store current meter value to state
-				// disabled in 0.2.26, check in later version for meter readings
-				if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });}
-
-				// Calculate consumption
-				// Weekday & current day
-				state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
-
-				this.log.debug("calculated reading day : " + state_val);
-				this.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
-				this.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
-
-				// Week
-				state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
-				this.log.debug("calculated reading week : " + state_val);
-				this.setState(obj_root + del_t + "02_current_week", { val: state_val,ack: true });
-				this.setState(obj_root + del_t + "current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val,ack: true });
-
-				// Month
-				state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
-				this.log.debug("calculated reading month : " + state_val);
-				this.setState(obj_root + del_t + "03_current_month", { val: state_val,ack: true });
-				this.setState(obj_root + del_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
-
-				// Quarter
-				state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
-				this.log.debug("calculated reading quarter : " + state_val);
-				this.setState(obj_root + del_t + "04_current_quarter", { val: state_val,ack: true });
-
-				// Year
-				state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
-				this.log.debug("calculated reading day : " + state_val);
-				this.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
-			}
-
-			const day_bval_consumend = ((calc_reading - day_bval) - reading_start);
-			const week_bval_consumend =  ((calc_reading - week_bval) - reading_start);
-			const month_bval_consumend = ((calc_reading - month_bval) - reading_start);
-			const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
-			const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
-
-			this.log.debug("day consumed " + day_bval_consumend);
-			this.log.debug("week consumed " + week_bval_consumend);
-			this.log.debug("month consumed " + month_bval_consumend);
-			this.log.debug("quarter consumed " + quarter_bval_consumend);
-			this.log.debug("year consumed "+ year_bval_consumend);
-			this.log.debug("objroot " + obj_root);
-			this.log.debug("cost type " + cost_t);
-			this.log.debug("delivery type " + del_t);
-			this.log.debug("example state string : " + obj_root + cost_t + "01_current_day");
-			
-			if(obj_cust.costs === true){
-				// Weekday & current day
-				//@ts-ignore cost_unit is always a number
-				state_val = (day_bval_consumend * cost_unit).toFixed(2);
-				this.log.debug("calculated cost day : " + state_val);
-				this.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
-				this.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
-				
-				// Week
-				//@ts-ignore cost_unit is always a number
-				state_val = (week_bval_consumend * cost_unit).toFixed(2);
-				this.log.debug("calculated cost week : " + state_val);
-				this.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
-				this.setState(obj_root + cost_t + "current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val,ack: true });
-
-				// Month
-				//@ts-ignore cost_unit is always a number
-				state_val = (month_bval_consumend * cost_unit).toFixed(2);
-				this.log.debug("calculated cost month : " + state_val);
-				this.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
-				this.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
-
-				// Quarter
-				//@ts-ignore cost_unit is always a number
-				state_val = (quarter_bval_consumend * cost_unit).toFixed(2);
-				this.log.debug("calculated cost quarter : " + state_val);
-				this.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
-
-				// Year
-				//@ts-ignore cost_unit is always a number
-				state_val = (year_bval_consumend * cost_unit).toFixed(2);
-				this.log.debug("calculated cost year : " + state_val);
-				this.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
-			}
-			this.log.debug("Meter Calculation executed");
+			// }
+		// 	this.log.info("After logic of watt : " + JSON.stringify(wh_start_val));
 		}
+		
+		this.log.debug("Meter current reading : " + reading.val);
+		this.log.debug("Meter calculated reading : " + calc_reading);
+		this.log.debug("Handle cost calculations : " + obj_cust.costs);
+		this.log.debug("Calculation Factor : " + cost_unit);
+		this.log.debug("Cost basic : " + cost_basic);
+		this.log.debug("Cost unit : " + cost_unit);
+		this.log.debug("Handle consumption calculations : " + obj_cust.consumption);
+		this.log.debug("Handle meter history : " + obj_cust.meter_values);
+
+		// temporary set to sero, this calue will be used later to handle period calculations
+		const reading_start = 0; 	//obj_cust.start_meassure; 
+		const day_bval = obj_cust.start_day;
+		const week_bval = obj_cust.start_week;
+		const month_bval = obj_cust.start_month;
+		const quarter_bval = obj_cust.start_quarter;
+		const year_bval = obj_cust.start_year;
+
+		this.log.debug("reading_start : " + reading_start);
+		this.log.debug("day start : " + day_bval);
+		this.log.debug("week start : " + week_bval);
+		this.log.debug("month start " + month_bval);
+		this.log.debug("quarter start " + quarter_bval);
+		this.log.debug("year start : " + year_bval);
+
+		// set correct naming for cost & delivery based on type
+		if(obj_cust.state_type === "kWh_delivery"){
+			cost_t =  ".earnings.";
+			del_t = ".delivery.";
+		} else {
+			cost_t = ".cost.";
+			del_t = ".consumption.";
+		}
+
+		this.log.debug("Delivery state set to : " + del_t);
+
+		if(obj_cust.consumption === true){
+			this.log.debug("Start consumption calculations");
+			// Store current meter value to state
+			// disabled in 0.2.26, check in later version for meter readings
+			if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });}
+
+			// Calculate consumption
+			// Weekday & current day
+			state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
+
+			this.log.debug("calculated reading day : " + state_val);
+			this.setState(obj_root + del_t + "01_current_day", { val: state_val,ack: true });
+			this.setState(obj_root + del_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+
+			// Week
+			state_val = ((calc_reading - week_bval) - reading_start).toFixed(3);
+			this.log.debug("calculated reading week : " + state_val);
+			this.setState(obj_root + del_t + "02_current_week", { val: state_val,ack: true });
+			this.setState(obj_root + del_t + "current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val,ack: true });
+
+			// Month
+			state_val = ((calc_reading - month_bval) - reading_start).toFixed(3);
+			this.log.debug("calculated reading month : " + state_val);
+			this.setState(obj_root + del_t + "03_current_month", { val: state_val,ack: true });
+			this.setState(obj_root + del_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+
+			// Quarter
+			state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
+			this.log.debug("calculated reading quarter : " + state_val);
+			this.setState(obj_root + del_t + "04_current_quarter", { val: state_val,ack: true });
+
+			// Year
+			state_val = ((calc_reading - year_bval) - reading_start).toFixed(3);
+			this.log.debug("calculated reading day : " + state_val);
+			this.setState(obj_root + del_t + "05_current_year", { val: state_val,ack: true });
+		}
+
+		const day_bval_consumend = ((calc_reading - day_bval) - reading_start);
+		const week_bval_consumend =  ((calc_reading - week_bval) - reading_start);
+		const month_bval_consumend = ((calc_reading - month_bval) - reading_start);
+		const quarter_bval_consumend = ((calc_reading - quarter_bval) - reading_start);
+		const year_bval_consumend = ((calc_reading- year_bval) - reading_start);
+
+		this.log.debug("day consumed " + day_bval_consumend);
+		this.log.debug("week consumed " + week_bval_consumend);
+		this.log.debug("month consumed " + month_bval_consumend);
+		this.log.debug("quarter consumed " + quarter_bval_consumend);
+		this.log.debug("year consumed "+ year_bval_consumend);
+		this.log.debug("objroot " + obj_root);
+		this.log.debug("cost type " + cost_t);
+		this.log.debug("delivery type " + del_t);
+		this.log.debug("example state string : " + obj_root + cost_t + "01_current_day");
+		
+		if(obj_cust.costs === true){
+			// Weekday & current day
+			state_val = (day_bval_consumend * cost_unit).toFixed(2);
+			this.log.debug("calculated cost day : " + state_val);
+			this.setState(obj_root + cost_t + "01_current_day", { val: state_val,ack: true });
+			this.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val ,ack: true });
+			
+			// Week
+			state_val = (week_bval_consumend * cost_unit).toFixed(2);
+			this.log.debug("calculated cost week : " + state_val);
+			this.setState(obj_root + cost_t + "02_current_week", { val: state_val,ack: true });
+			this.setState(obj_root + cost_t + "current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val,ack: true });
+
+			// Month
+			state_val = (month_bval_consumend * cost_unit).toFixed(2);
+			this.log.debug("calculated cost month : " + state_val);
+			this.setState(obj_root + cost_t + "03_current_month", { val: state_val,ack: true });
+			this.setState(obj_root + cost_t + "current_year.months." + months[date.getMonth()], { val: state_val,ack: true });
+
+			// Quarter
+			state_val = (quarter_bval_consumend * cost_unit).toFixed(2);
+			this.log.debug("calculated cost quarter : " + state_val);
+			this.setState(obj_root + cost_t + "04_current_quarter", { val: state_val,ack: true });
+
+			// Year
+			state_val = (year_bval_consumend * cost_unit).toFixed(2);
+			this.log.debug("calculated cost year : " + state_val);
+			this.setState(obj_root + cost_t + "05_current_year", { val: state_val,ack: true });
+		}
+		this.log.debug("Meter Calculation executed");
 	}
 
 	defineUnit (obj){
