@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.275",
+        "version": "0.2.276",
         "news": {
             "0.2.27": {
                 "en": "Fixed issue related to multihost installations with slave as target",

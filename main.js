@@ -440,7 +440,7 @@ class Sourceanalytix extends utils.Adapter {
 				},
 				native: {},
 			});
-			this.set_zero_val(object);
+			await this.set_zero_val(object);
 		}
 
 		if (financial) {
@@ -458,7 +458,7 @@ class Sourceanalytix extends utils.Adapter {
 				},
 				native: {},
 			});
-			this.set_zero_val(object);
+			await this.set_zero_val(object);
 		}
 
 		if (reading) {
@@ -477,7 +477,7 @@ class Sourceanalytix extends utils.Adapter {
 				},
 				native: {},
 			});
-			this.set_zero_val(object);
+			await this.set_zero_val(object);
 		}
 	}
 
@@ -554,7 +554,7 @@ class Sourceanalytix extends utils.Adapter {
 				for (const x in weekdays) {
 					const curent_day = ".current_year.this_week." + weekdays[x];
 					// doStateCreate(delivery, device, curent_day , weekdays[x], "number","value.day", unit, obj_cust.consumption, obj_cust.CalcCost, obj_cust.meter_values);
-					this.doStateCreate(delivery, device, curent_day, weekdays[x], "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+					await this.doStateCreate(delivery, device, curent_day, weekdays[x], "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 				}
 			}
 
@@ -568,7 +568,7 @@ class Sourceanalytix extends utils.Adapter {
 						weeknr = y;
 					}
 					const state_root = ".current_year.weeks." + weeknr;
-					this.doStateCreate(delivery, device, state_root, "week " + weeknr, "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+					await this.doStateCreate(delivery, device, state_root, "week " + weeknr, "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 				}
 			}
 
@@ -576,7 +576,7 @@ class Sourceanalytix extends utils.Adapter {
 				// create states for months
 				for (const x in months) {
 					const curent_day = ".current_year.months." + months[x];
-					this.doStateCreate(delivery, device, curent_day, months[x], "number", "value.month", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+					await this.doStateCreate(delivery, device, curent_day, months[x], "number", "value.month", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 				}
 			}
 
@@ -600,9 +600,9 @@ class Sourceanalytix extends utils.Adapter {
 			// Create meassurement states for calculations related w to kWh 
 			if (w_calc === true) {
 				state_root = ".Current_Reading";
-				this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", "W", false, false, true);
+				await this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", "W", false, false, true);
 				state_root = ".Current_Reading_kWh";
-				this.doStateCreate(delivery, device, state_root, "Current Reading to kWh", "number", "value.current", unit, false, false, true);
+				await this.doStateCreate(delivery, device, state_root, "Current Reading to kWh", "number", "value.current", unit, false, false, true);
 			}
 
 			this.log.debug("Initialization finished for : " + device);
@@ -610,7 +610,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.subscribeForeignStates(obj._id);
 
 			// Calculate all values for the first time
-			this.calculation_handler(obj);
+			await this.calculation_handler(obj);
 
 		} else {
 
@@ -622,7 +622,7 @@ class Sourceanalytix extends utils.Adapter {
 	async calculation_handler(id) {
 		const inst_name = this.namespace;
 		this.log.debug("Instance name : " + inst_name);
-		let cost_t, del_t, state_val;
+		let cost_t, del_t;
 		const date = new Date();
 		let cost_basic, cost_unit;
 		this.log.debug("Write calculations for : " + id._id);
@@ -700,7 +700,7 @@ class Sourceanalytix extends utils.Adapter {
 		// Get current value from meter
 		const reading = await this.getForeignStateAsync(id._id);
 		if (!reading) {
-			// maybe log something?
+			this.log.error("Current value cannot be read during calculation of state : " + id._id);
 			return;
 		}
 
@@ -811,6 +811,40 @@ class Sourceanalytix extends utils.Adapter {
 
 		this.log.debug("Delivery state set to : " + del_t);
 
+		// Store meter values
+		if (obj_cust.meter_values === true) {
+
+			this.log.debug("Start meter value calculations");
+			// Store current meter value to state
+			// disabled in 0.2.26, check in later version for meter readings
+			this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3), ack: true });
+
+			// Calculate consumption
+			// Weekday & current day
+			const state_val = calc_reading.toFixed(3);
+
+			this.log.debug("calculated reading day : " + state_val);
+			this.setState(obj_root + ".Meter_Readings.current_year.this_week." + weekdays[date.getDay()], { val: state_val, ack: true });
+
+			// Week
+			this.log.debug("calculated reading week : " + state_val);
+			this.setState(obj_root + ".Meter_Readings.current_year.weeks." + this.getWeekNumber(new Date()), { val: state_val, ack: true });
+
+			// Month
+			this.log.debug("calculated reading month : " + state_val);
+			this.setState(obj_root + ".Meter_Readings.current_year.months." + months[date.getMonth()], { val: state_val, ack: true });
+
+			// // Quarter
+			// state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
+			// this.log.debug("calculated reading quarter : " + state_val);
+
+			// Year
+			this.log.debug("calculated reading day : " + state_val);
+			this.setState(obj_root + ".Meter_Readings.05_current_year", { val: state_val, ack: true });
+
+		}
+
+		// calculatte consumption
 		if (obj_cust.consumption === true) {
 			this.log.debug("Start consumption calculations");
 			// Store current meter value to state
@@ -819,7 +853,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Calculate consumption
 			// Weekday & current day
-			state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
+			let state_val = ((calc_reading - day_bval) - reading_start).toFixed(3);
 
 			this.log.debug("calculated reading day : " + state_val);
 			this.setState(obj_root + del_t + "01_current_day", { val: state_val, ack: true });
@@ -864,9 +898,10 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("delivery type " + del_t);
 		this.log.debug("example state string : " + obj_root + cost_t + "01_current_day");
 
+		// Calculate costs
 		if (obj_cust.costs === true) {
 			// Weekday & current day
-			state_val = (day_bval_consumend * cost_unit).toFixed(2);
+			let state_val = (day_bval_consumend * cost_unit).toFixed(2);
 			this.log.debug("calculated cost day : " + state_val);
 			this.setState(obj_root + cost_t + "01_current_day", { val: state_val, ack: true });
 			this.setState(obj_root + cost_t + "current_year.this_week." + weekdays[date.getDay()], { val: state_val, ack: true });
