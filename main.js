@@ -400,17 +400,18 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	// Function to handle channel creation
-	ChannelCreate(id, channel, name) {
+	async ChannelCreate(id, channel, name) {
 		this.log.debug("Parent device : " + id);
 		this.log.debug("Create channel id : " + channel);
 		this.log.debug("Create channel name : " + name);
-		this.createChannel(id, channel, {
+
+		await this.createChannelAsync(id, channel, {
 			"name": name
 		});
 	}
 
 	// Function to handle state creation
-	doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
+	async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
 		let head_cathegorie;
 		let financiel_cathegorie;
 
@@ -426,8 +427,8 @@ class Sourceanalytix extends utils.Adapter {
 		let object = device + "." + head_cathegorie + id;
 
 		if (head) {
-			this.ChannelCreate(device, head_cathegorie, head_cathegorie);
-			this.setObjectNotExists(object, {
+			await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+			await this.setObjectNotExistsAsync(object, {
 				type: "state",
 				common: {
 					name: name,
@@ -443,10 +444,9 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		if (financial) {
-			this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
+			await this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
 			object = device + "." + financiel_cathegorie + id;
-
-			this.setObjectNotExists(object, {
+			await this.setObjectNotExistsAsync(object, {
 				type: "state",
 				common: {
 					name: name,
@@ -464,8 +464,8 @@ class Sourceanalytix extends utils.Adapter {
 		if (reading) {
 
 			object = device + "." + "Meter_Readings" + id;
-			this.ChannelCreate(device, "Meter_Readings", "Meter_Readings");
-			this.setObjectNotExists(object, {
+			await this.ChannelCreate(device, "Meter_Readings", "Meter_Readings");
+			await this.setObjectNotExistsAsync(object, {
 				type: "state",
 				common: {
 					name: name,
@@ -482,7 +482,7 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	// Create object tree and states for all devices to be handled
-	initialize(obj) {
+	async initialize(obj) {
 		const inst_name = this.namespace;
 		const id = obj._id;
 		const obj_cust = obj.common.custom[inst_name];
@@ -525,7 +525,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Name after alias renaming" + alias);
 
 			// Create new device object for every state in powermonitor tree
-			this.setObjectNotExists(device, {
+			this.setObjectNotExistsAsync(device, {
 				type: "device",
 				common: {
 					name: alias
@@ -538,7 +538,7 @@ class Sourceanalytix extends utils.Adapter {
 			objekt.common = {
 				name: alias
 			};
-			this.extendObject(device, objekt, (err) => {
+			this.extendObjectAsync(device, objekt, (err) => {
 				if (err !== null) { this.log.error("Changing alias name failed with : " + err); }
 			});
 
