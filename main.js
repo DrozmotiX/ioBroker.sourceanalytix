@@ -8,11 +8,11 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 
-
 // Load your modules here, e.g.:
 // Lets make sure we know all days and months
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
+const w_values = {};
 // Create variables for object arrays
 const history = {};
 const aliasMap = {};
@@ -107,8 +107,6 @@ class Sourceanalytix extends utils.Adapter {
 
 		});
 	}
-
-
 
 	/**
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
@@ -386,6 +384,9 @@ class Sourceanalytix extends utils.Adapter {
 			case "l":
 				calc_value = value / 1000;
 				break;
+			case "w":
+				calc_value = value;
+				break;
 			default:
 				this.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
 		}
@@ -495,7 +496,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Custom object tree : " + JSON.stringify(obj_cust));
 
 		// if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l") || (unit == "w")){
-		if ((unit === "kwh") || (unit === "m3") || (unit === "wh") || (unit === "l")) {
+		if ((unit === "kwh") || (unit === "m3") || (unit === "wh") || (unit === "l") || (unit == "w")) {
 
 			if (unit === "wh") { unit = "kWh"; }
 			if (unit === "w") { unit = "kWh"; w_calc = true; }
@@ -600,9 +601,9 @@ class Sourceanalytix extends utils.Adapter {
 			// Create meassurement states for calculations related w to kWh 
 			if (w_calc === true) {
 				state_root = ".Current_Reading";
-				await this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", "W", false, false, true);
-				state_root = ".Current_Reading_kWh";
-				await this.doStateCreate(delivery, device, state_root, "Current Reading to kWh", "number", "value.current", unit, false, false, true);
+				await this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", unit, false, false, true);
+				state_root = ".Current_Reading_W";
+				await this.doStateCreate(delivery, device, state_root, "Current Reading W", "number", "value.current", "W", false, false, true);
 			}
 
 			this.log.debug("Initialization finished for : " + device);
@@ -622,9 +623,8 @@ class Sourceanalytix extends utils.Adapter {
 	async calculation_handler(id) {
 		const inst_name = this.namespace;
 		this.log.debug("Instance name : " + inst_name);
-		let cost_t, del_t;
+		let cost_t, del_t,cost_basic, cost_unit;
 		const date = new Date();
-		let cost_basic, cost_unit;
 		this.log.debug("Write calculations for : " + id._id);
 
 		// replace "." in datapoints to "_"
@@ -635,9 +635,13 @@ class Sourceanalytix extends utils.Adapter {
 
 		const obj_cont = await this.getForeignObjectAsync(id._id);
 		this.log.debug("State object content: " + JSON.stringify(obj_cont));
+
 		//@ts-ignore custom does exist
 		const obj_cust = obj_cont.common.custom[inst_name];
-		this.log.debug("State object custom content: " + JSON.stringify(obj_cust));
+		this.log.debug("State object custom content: " + JSON.stringify(obj_cust));	
+
+		// Define unit
+		const unit = await this.defineUnit(obj_cont); 
 
 		// Define whih calculation factor must be used
 		switch (obj_cust.state_type) {
@@ -694,86 +698,53 @@ class Sourceanalytix extends utils.Adapter {
 				return;
 		}
 
-		// Disable initalisatiton in case of w value is received
-		if (this.defineUnit(obj_cont) === "w") return;
-
 		// Get current value from meter
 		const reading = await this.getForeignStateAsync(id._id);
+
 		if (!reading) {
 			this.log.error("Current value cannot be read during calculation of state : " + id._id);
 			return;
 		}
 
-		// Write current reading value to 
-		const calc_reading = this.unit_calc_fact(id, reading.val);
+		// Declare variable containing meassurement
+		let calc_reading;
 
-		if (this.defineUnit(obj_cont) === "w") {
+		// Different logic for W values, calculate to kWh first
+		if (unit !== "w") {
 
-			// // Write current received W value to state
-			// if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });}			
+			calc_reading = await this.unit_calc_fact(id, reading.val);
 
-			// // // Write calculated kWh value to state
-			// // if(obj_cust.meter_values){this.setState(obj_root + ".Meter_Readings.Current_Reading_kWh", { val: calc_reading.toFixed(3) ,ack: true });}
+		} else {
+			// Get previous reading of W and its related timestammps
+			const Prev_Reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading_W");
+			this.log.debug("Previous_reading from state : " + JSON.stringify(Prev_Reading))
+			if (!Prev_Reading) return;
 
-			// // verify if startvalue ist set for calculation, if not store start value.
-			// const kWh_start_val = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading_kWh");
-			// const W_start_val = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading");
-			// this.log.silly("Before logic of watt : " + JSON.stringify(wh_start_val));
-			// this.log.silly("array content for start val : " + wh_start_val["sourceanalytix.0.discovergy__0__1024000034__Power_1.Meter_Readings.Current_Reading_kWh"]);
+			// Get current calculated kWh value, if not present in memory read from states
+			let Prev_calc_reading = 0;
+			if (w_values.calc_reading !== undefined && w_values.calc_reading !== null){
+				Prev_calc_reading = w_values.calc_reading;
+				this.log.debug("Previous_calc_reading from memory : " + JSON.stringify(Prev_calc_reading));
+				// Calculation logic W to kWh
+				calc_reading = Prev_calc_reading + (((reading.ts - Prev_Reading.ts)/1000) * Prev_Reading.val / 3600000);
+				// Update variable with new value for next calculation cyclus
+				w_values.calc_reading = calc_reading;
+				this.log.debug("New calculated reading : " + JSON.stringify(calc_reading))
 
+				// Write values to state
+				await this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading ,ack: true });
+				await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
 
-			// 	if (wh_start_val[kWh_start_val]  === undefined) {
-
-			// 		this.log.error("Current wh start value = undefined");
-
-			// 		// Get current stored kWh value and calculate new kWh based on timing of meassurement
-			// 		const kWh_stored  = await this.getStateAsync(kWh_start_val);
-			// 		this.log.warn("after kWh_stored");
-			// 		const kWh_calc = 1000 * kWh_stored.val;
-			// 		this.log.warn("after kWh_cal");
-			// 		this.log.warn('"' + obj_root + '.Meter_Readings.Current_Reading_kWh"' + ":" + kWh_calc);
-			// 		// const array_obj = JSON.parse('{"' + obj_root + '.Meter_Readings.Current_Reading_kWh"' + ":" + kWh_calc + "}");
-			// 		// const array_obj = JSON.parse('{"' + obj_id + '.Meter_Readings.Current_Reading_kWh" : {value":"' + kWh_calc + "}}");
-
-			// 		// wh_start_val.push("{" + obj_id + ".Meter_Readings.Current_Reading_kWh" + "}");
-			// 		const test_start = obj_id + ".Meter_Readings.Current_Reading_kWh";
-			// 		const wh_start_val_temp = {};
-			// 		wh_start_val_temp.push('"' + test_start + '" : "' + kWh_calc + '"');
-			// 		this.log.info("push try : " + JSON.stringify(wh_start_val_temp));
-
-			// 		const arrayForObject = JSON.parse("{" + wh_start_val_temp + "}");
-			// 		this.log.info("Array read : " + JSON.stringify(arrayForObject));
-			// 		wh_start_val.push(wh_start_val_temp);
-			// 		this.log.info("Array read start val : " + JSON.stringify(wh_start_val));
-
-			// 		// wh_start_val.push(JSON.parse(wh_start_val_temp));
-			// 		// test_1.push(obj_id + ".Meter_Readings.Previous_Reading_kWh");
-			// 		// this.log.info("push try : " + JSON.stringify(wh_start_val));
-			// 		// const wh_test_bla = JSON.parse("{" + wh_start_val + "}");
-			// 		// this.log.info("push try after value push : " + JSON.stringify(wh_test_bla));
-
-			// 		// this.log.warn("after array buid");
-			// 		// wh_start_val.push(array_obj);
-			// 		// this.log.info(JSON.stringify(wh_start_val));
-			// 		// const bla = obj_id + ".Meter_Readings.Current_Reading_kWh";
-			// 		// this.log.error("Obj_root_build : " + bla);
-			// 		// this.log.info(JSON.stringify(wh_start_val[bla]));
-			// 		// this.log.warn("test_issue");
-
-			// 	} else {
-			// 		const w_stored  = await this.getStateAsync(W_start_val);
-			// 		const w_obj  = await this.getObjectAsync(W_start_val);
-			// 		const kWh_stored  = await this.getStateAsync(kWh_start_val);
-			// 		const kWh_obj  = await this.getObjectAsync(kWh_start_val);
-
-			// 		this.log.error(JSON.stringify(w_stored));
-			// 		this.log.error(JSON.stringify(w_obj));
-			// 		this.log.error(JSON.stringify(kWh_stored));
-			// 		this.log.error(JSON.stringify(kWh_obj));
-			// 		// const calculated = kWh_stored * w_stored.val * (w_obj.ts);
-
-			// }
-			// 	this.log.info("After logic of watt : " + JSON.stringify(wh_start_val));
+			} else {
+				const temp_reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading");
+				if (temp_reading !== undefined && temp_reading !== null) {
+					Prev_calc_reading = parseFloat(temp_reading.val);
+					w_values.calc_reading = Prev_calc_reading;
+					await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
+					this.log.debug("Previous_calc_reading from state : " + JSON.stringify(Prev_calc_reading));
+					return;
+				}
+			}
 		}
 
 		this.log.debug("Meter current reading : " + reading.val);
@@ -956,6 +927,7 @@ class Sourceanalytix extends utils.Adapter {
 
 }
 
+//@ts-ignore .parent exists
 if (module.parent) {
 	// Export the constructor in compact mode
 	/**

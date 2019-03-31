@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.276",
+        "version": "0.2.28",
         "news": {
+            "0.2.28": {
+                "en": "Calculation w to kWh implemented & several code improvements",
+                "de": "Berechnung w bis kWh implementiert & mehrere Code-Verbesserungen",
+                "ru": "Выполнен расчет с использованием кВтч и несколько улучшений кода",
+                "pt": "Cálculo w para kWh implementado e várias melhorias de código",
+                "nl": "Berekening w tot kWh geïmplementeerd & verschillende codeverbeteringen",
+                "fr": "Calcul w en kWh mis en œuvre & plusieurs améliorations de code",
+                "it": "Calcolo w in kWh implementato e numerosi miglioramenti del codice",
+                "es": "Cálculo w a kWh implementado y varias mejoras de código.",
+                "pl": "Wprowadzono obliczenia w do kWh i wprowadzono kilka ulepszeń kodu",
+                "zh-cn": "计算w到kWh实施和几个代码改进"
+            }, 
             "0.2.27": {
                 "en": "Fixed issue related to multihost installations with slave as target",
                 "de": "Problem bei Multihost-Installationen mit Slave als Ziel behoben",
