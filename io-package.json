@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.28",
+        "version": "0.2.281",
         "news": {
-            "0.2.28": {
+            "0.2.281": {
                 "en": "Calculation w to kWh implemented & several code improvements",
                 "de": "Berechnung w bis kWh implementiert & mehrere Code-Verbesserungen",
                 "ru": "Выполнен расчет с использованием кВтч и несколько улучшений кода",

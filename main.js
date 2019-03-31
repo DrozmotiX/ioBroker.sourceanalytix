@@ -385,8 +385,8 @@ class Sourceanalytix extends utils.Adapter {
 				calc_value = value / 1000;
 				break;
 			case "w":
-				calc_value = value;
-				break;
+			calc_value = value;
+			break;
 			default:
 				this.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
 		}
@@ -722,26 +722,34 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Get current calculated kWh value, if not present in memory read from states
 			let Prev_calc_reading = 0;
-			if (w_values.calc_reading !== undefined && w_values.calc_reading !== null){
-				Prev_calc_reading = w_values.calc_reading;
+			this.log.debug("W value from memory : " + JSON.stringify(w_values));
+			this.log.debug("W value from memory_2 : " + JSON.stringify(w_values.calc_reading));			
+			if (w_values.calc_reading !== undefined && w_values.calc_reading !== null && (w_values.calc_reading[obj_id] !== undefined && w_values.calc_reading[obj_id] !== null)){
+				Prev_calc_reading = w_values.calc_reading[obj_id];
 				this.log.debug("Previous_calc_reading from memory : " + JSON.stringify(Prev_calc_reading));
 				// Calculation logic W to kWh
 				calc_reading = Prev_calc_reading + (((reading.ts - Prev_Reading.ts)/1000) * Prev_Reading.val / 3600000);
 				// Update variable with new value for next calculation cyclus
-				w_values.calc_reading = calc_reading;
+				w_values.calc_reading[obj_id] = calc_reading;
 				this.log.debug("New calculated reading : " + JSON.stringify(calc_reading))
+				this.log.debug("new W value from memory : " + JSON.stringify(w_values));
 
 				// Write values to state
-				await this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading ,ack: true });
+				await this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3) ,ack: true });
 				await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
 
 			} else {
+				this.log.debug("Else clause no value in memory present")
 				const temp_reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading");
 				if (temp_reading !== undefined && temp_reading !== null) {
 					Prev_calc_reading = parseFloat(temp_reading.val);
-					w_values.calc_reading = Prev_calc_reading;
+					// w_values.obj_id.calc_reading = Prev_calc_reading;
+					w_values.calc_reading = {
+						[obj_id] : Prev_calc_reading
+					};
 					await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
 					this.log.debug("Previous_calc_reading from state : " + JSON.stringify(Prev_calc_reading));
+					this.log.debug("W value from state : " + JSON.stringify(w_values));
 					return;
 				}
 			}
