@@ -95,16 +95,12 @@ class Sourceanalytix extends utils.Adapter {
 									this.log.info("Activate SourceAnalytix for : " + obj._id);
 									this.initialize(obj);
 									this.log.debug("Object array : " + JSON.stringify(state_set));
-
-									// Start cron to reset values at day, week etc start
-									this.reset_shedules(obj);
 								}
 							});
 						}
 					}
 				}
 			}
-
 		});
 	}
 
@@ -131,7 +127,7 @@ class Sourceanalytix extends utils.Adapter {
 		let array_id;
 
 		this.log.debug("Object array of all activated states : " + JSON.stringify(state_set));
-		this.log.silly("Object array of object trigger : " + JSON.stringify(obj));
+		this.log.debug("Object array of object trigger : " + JSON.stringify(obj));
 		// Check if change object is part of array
 		for (const x in state_set) {
 
@@ -141,7 +137,6 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 		}
-
 
 		// Check if object is activated for SourceAnalytix
 		if (obj && obj.common &&
@@ -172,9 +167,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.unsubscribeForeignStates(id);
 				// TODO: array_id is a string, but is used like a number
 				state_set.splice(array_id, 1);
-
 			}
-
 		}
 	}
 
@@ -186,7 +179,9 @@ class Sourceanalytix extends utils.Adapter {
 	onStateChange(id, state) {
 		if (state) {
 			// The state was changed
-			if (mon_log === true) { this.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`); }
+			if (mon_log === true) {
+				this.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
+			}
 
 			this.getForeignObject(id, (err, obj) => {
 				if (obj !== undefined && obj !== null) {
@@ -385,8 +380,8 @@ class Sourceanalytix extends utils.Adapter {
 				calc_value = value / 1000;
 				break;
 			case "w":
-			calc_value = value;
-			break;
+				calc_value = value;
+				break;
 			default:
 				this.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
 		}
@@ -522,7 +517,9 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Name before alias renaming : " + alias);
 			this.log.debug("Device name : " + alias);
 			this.log.debug("State alias name : " + obj_cust.alias);
-			if (obj_cust.alias !== undefined && obj_cust.alias !== null && obj_cust.alias !== "") { alias = obj_cust.alias; }
+			if (obj_cust.alias !== undefined && obj_cust.alias !== null && obj_cust.alias !== "") {
+				alias = obj_cust.alias;
+			}
 			this.log.debug("Name after alias renaming" + alias);
 
 			// Create new device object for every state in powermonitor tree
@@ -540,7 +537,9 @@ class Sourceanalytix extends utils.Adapter {
 				name: alias
 			};
 			this.extendObjectAsync(device, objekt, (err) => {
-				if (err !== null) { this.log.error("Changing alias name failed with : " + err); }
+				if (err !== null) {
+					this.log.error("Changing alias name failed with : " + err);
+				}
 			});
 
 			this.log.debug("Customized Device name = : " + alias);
@@ -594,7 +593,9 @@ class Sourceanalytix extends utils.Adapter {
 			this.doStateCreate(delivery, device, state_root, "current Year", "number", "value.year", unit, obj_cust.consumption, obj_cust.costs, false);
 
 			state_root = ".Current_Reading";
-			if (w_calc === false) { this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", unit, false, false, obj_cust.meter_values); }
+			if (w_calc === false) {
+				this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", unit, false, false, obj_cust.meter_values);
+			}
 
 			this.log.silly("Current reading state : " + delivery + device + state_root);
 
@@ -613,6 +614,15 @@ class Sourceanalytix extends utils.Adapter {
 			// Calculate all values for the first time
 			await this.calculation_handler(obj);
 
+			if (this.defineUnit(obj) === "w") {
+				// code here
+				obj._id = this.namespace + device + ".Meter_Readings.Current_Reading";
+				this.reset_shedules(obj);
+			} else {
+				// Start cron to reset values at day, week etc start
+				this.reset_shedules(obj);
+			}
+
 		} else {
 
 			this.log.error("Sorry unite type " + unit + " not supported yet");
@@ -623,7 +633,7 @@ class Sourceanalytix extends utils.Adapter {
 	async calculation_handler(id) {
 		const inst_name = this.namespace;
 		this.log.debug("Instance name : " + inst_name);
-		let cost_t, del_t,cost_basic, cost_unit;
+		let cost_t, del_t, cost_basic, cost_unit;
 		const date = new Date();
 		this.log.debug("Write calculations for : " + id._id);
 
@@ -634,14 +644,19 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Calc obj root " + obj_root);
 
 		const obj_cont = await this.getForeignObjectAsync(id._id);
+		if (obj_cont === undefined || obj_cont === null) {
+			return;
+		}
 		this.log.debug("State object content: " + JSON.stringify(obj_cont));
 
-		//@ts-ignore custom does exist
+		if (obj_cont.common.custom === undefined) {
+			return;
+		}
 		const obj_cust = obj_cont.common.custom[inst_name];
-		this.log.debug("State object custom content: " + JSON.stringify(obj_cust));	
+		this.log.debug("State object custom content: " + JSON.stringify(obj_cust));
 
 		// Define unit
-		const unit = await this.defineUnit(obj_cont); 
+		const unit = await this.defineUnit(obj_cont);
 
 		// Define whih calculation factor must be used
 		switch (obj_cust.state_type) {
@@ -717,21 +732,21 @@ class Sourceanalytix extends utils.Adapter {
 		} else {
 			// Get previous reading of W and its related timestammps
 			const Prev_Reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading_W");
-			this.log.debug("Previous_reading from state : " + JSON.stringify(Prev_Reading))
+			this.log.debug("Previous_reading from state : " + JSON.stringify(Prev_Reading));
 			if (!Prev_Reading) return;
 
 			// Get current calculated kWh value, if not present in memory read from states
 			let Prev_calc_reading = 0;
 			this.log.debug("W value from memory : " + JSON.stringify(w_values));
-			this.log.debug("W value from memory_2 : " + JSON.stringify(w_values.calc_reading));			
-			if (w_values.calc_reading !== undefined && w_values.calc_reading !== null && (w_values.calc_reading[obj_id] !== undefined && w_values.calc_reading[obj_id] !== null)){
+			this.log.debug("W value from memory_2 : " + JSON.stringify(w_values.calc_reading));
+			if (w_values.calc_reading !== undefined && w_values.calc_reading !== null && (w_values.calc_reading[obj_id] !== undefined && w_values.calc_reading[obj_id] !== null)) {
 				Prev_calc_reading = w_values.calc_reading[obj_id];
 				this.log.debug("Previous_calc_reading from memory : " + JSON.stringify(Prev_calc_reading));
 				// Calculation logic W to kWh
-				calc_reading = Prev_calc_reading + (((reading.ts - Prev_Reading.ts)/1000) * Prev_Reading.val / 3600000);
+				calc_reading = Prev_calc_reading + (((reading.ts - Prev_Reading.ts) / 1000) * Prev_Reading.val / 3600000);
 				// Update variable with new value for next calculation cyclus
 				w_values.calc_reading[obj_id] = calc_reading;
-				this.log.debug("New calculated reading : " + JSON.stringify(calc_reading))
+				this.log.debug("New calculated reading : " + JSON.stringify(calc_reading));
 				this.log.debug("new W value from memory : " + JSON.stringify(w_values));
 
 				// Write values to state
@@ -739,13 +754,13 @@ class Sourceanalytix extends utils.Adapter {
 				await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
 
 			} else {
-				this.log.debug("Else clause no value in memory present")
+				this.log.debug("Else clause no value in memory present");
 				const temp_reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading");
 				if (temp_reading !== undefined && temp_reading !== null) {
 					Prev_calc_reading = parseFloat(temp_reading.val);
 					// w_values.obj_id.calc_reading = Prev_calc_reading;
 					w_values.calc_reading = {
-						[obj_id] : Prev_calc_reading
+						[obj_id]: Prev_calc_reading
 					};
 					await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
 					this.log.debug("Previous_calc_reading from state : " + JSON.stringify(Prev_calc_reading));
@@ -765,7 +780,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Handle meter history : " + obj_cust.meter_values);
 
 		// temporary set to sero, this calue will be used later to handle period calculations
-		const reading_start = 0; 	//obj_cust.start_meassure; 
+		const reading_start = 0; //obj_cust.start_meassure; 
 		const day_bval = obj_cust.start_day;
 		const week_bval = obj_cust.start_week;
 		const month_bval = obj_cust.start_month;
