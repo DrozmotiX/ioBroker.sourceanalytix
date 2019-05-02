@@ -6,6 +6,7 @@ language: node_js
 node_js:
   - '8'
   - '10'
+  - '12'
 env:
   - CXX=g++-4.9
 addons:
@@ -24,6 +25,6 @@ before_script:
   - npm install winston@3.2.1
   - 'npm install https://github.com/ioBroker/ioBroker.js-controller/tarball/master --production'
 script:
-  - 'npm run test'
+  - npm run test
   - 'npm run test:unit'
   - 'npm run test:integration'
