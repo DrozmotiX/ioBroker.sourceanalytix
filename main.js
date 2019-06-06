@@ -742,6 +742,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (w_values.calc_reading !== undefined && w_values.calc_reading !== null && (w_values.calc_reading[obj_id] !== undefined && w_values.calc_reading[obj_id] !== null)) {
 				Prev_calc_reading = w_values.calc_reading[obj_id];
 				this.log.debug("Previous_calc_reading from memory : " + JSON.stringify(Prev_calc_reading));
+
 				// Calculation logic W to kWh
 				calc_reading = Prev_calc_reading + (((reading.ts - Prev_Reading.ts) / 1000) * Prev_Reading.val / 3600000);
 				// Update variable with new value for next calculation cyclus
@@ -755,13 +756,21 @@ class Sourceanalytix extends utils.Adapter {
 
 			} else {
 				this.log.debug("Else clause no value in memory present");
-				const temp_reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading");
+				const temp_reading = await this.getStateAsync(obj_root + ".Meter_Readings.Current_Reading");
 				if (temp_reading !== undefined && temp_reading !== null) {
 					Prev_calc_reading = parseFloat(temp_reading.val);
-					// w_values.obj_id.calc_reading = Prev_calc_reading;
-					w_values.calc_reading = {
-						[obj_id]: Prev_calc_reading
-					};
+					if(w_values.calc_reading !== undefined && w_values.calc_reading !== null) {
+						w_values.calc_reading[obj_id] = Prev_calc_reading;
+					} else {
+						w_values.calc_reading = {
+							[obj_id]: Prev_calc_reading
+						};
+					}
+					//w_values.obj_id.calc_reading = Prev_calc_reading;
+					//w_values.calc_reading = {
+					// [obj_id]: Prev_calc_reading
+					//};
+
 					await this.setState(obj_root + ".Meter_Readings.Current_Reading_W", { val: reading.val ,ack: true });
 					this.log.debug("Previous_calc_reading from state : " + JSON.stringify(Prev_calc_reading));
 					this.log.debug("W value from state : " + JSON.stringify(w_values));
