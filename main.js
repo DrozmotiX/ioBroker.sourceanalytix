@@ -8,19 +8,14 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 
-// Load your modules here, e.g.:
 // Lets make sure we know all days and months
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
-const w_values = {};
+
 // Create variables for object arrays
-const history = {};
-const aliasMap = {};
-const cron_set = [];
-let state_set = [], mon_log;
-// Time Modules
+const history = {}, w_values = {}, aliasMap = {}, cron_set = [], state_set = [];
+// Load Time Modules
 const cron = require("node-cron"); // Cron Scheduler
-// const fs = require("fs");
 
 class Sourceanalytix extends utils.Adapter {
 
@@ -45,15 +40,8 @@ class Sourceanalytix extends utils.Adapter {
 	async onReady() {
 		// Initialize your adapter here
 		this.log.info("Adapter SourceAnalytix startet :-)");
-		// this.update_states_all;
-
-		// clean variable
-		state_set = [];
-		// Adopt logging setting from configuration
-		mon_log = this.config.status_logging;
 
 		// // initialize all SourceAnalytix enabled states
-		// this.log.info("Update state settings");
 		this.log.info("Initializing all enabled states for SourceAnalytix");
 
 		// Subscribe on all foreign states to ensure changes in objects are reflected
@@ -145,14 +133,12 @@ class Sourceanalytix extends utils.Adapter {
 				(obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled)
 			)
 		) {
-			// Verify if the object was already activated, if no initialize and start cron else only initialize new settings
+			// Verify if the object was already activated, if not initialize new device
 			if (existing === false) {
 				this.log.info("Enable SourceAnalytix for : " + id);
 				// Add object to array
 				state_set.push(id);
 				this.initialize(obj);
-				// Start cron to reset values at day, week etc start
-				this.reset_shedules(obj);
 			} else {
 				this.log.info("Updated SourceAnalytix configuration for : " + id);
 				this.initialize(obj);
@@ -161,7 +147,6 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug("Complete object array : " + JSON.stringify(state_set));
 
 		} else {
-
 
 			if (existing === true) {
 				this.log.info("Disable SourceAnalytix for : " + id);
@@ -180,9 +165,7 @@ class Sourceanalytix extends utils.Adapter {
 	onStateChange(id, state) {
 		if (state) {
 			// The state was changed
-			if (mon_log === true) {
-				this.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
-			}
+			this.log.debug(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
 
 			this.getForeignObject(id, (err, obj) => {
 				if (obj !== undefined && obj !== null) {
@@ -196,12 +179,10 @@ class Sourceanalytix extends utils.Adapter {
 	async set_zero_val(id) {
 
 		const inst_name = this.namespace;
-
 		const reading = await this.getForeignStateAsync(inst_name + "." + id);
+
 		if (reading === null) {
-
 			this.log.debug("Zero val at initalisation, target state : " + inst_name + "." + id);
-
 			this.setState(inst_name + "." + id, { val: 0, ack: true });
 		}
 	}
@@ -239,9 +220,11 @@ class Sourceanalytix extends utils.Adapter {
 		let existing = false;
 		for (const x in cron_set) {
 
-			if (state_set[x] === obj_array._id) {
+			// check if cronjob is already running, if not initiate 
+			if (cron_set[x] === obj_array._id) {
 				existing = true;
 			}
+
 		}
 
 		if (existing === false) {
@@ -365,7 +348,7 @@ class Sourceanalytix extends utils.Adapter {
 			});
 		} else {
 
-			this.log.debug("shedule already present, do nothing")
+			this.log.debug("shedule already present, do nothing");
 
 		}
 	}
@@ -508,7 +491,6 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Content custom of object : " + JSON.stringify(obj_cust));
 		this.log.debug("Custom object tree : " + JSON.stringify(obj_cust));
 
-		// if((unit == "kwh") || (unit == "m3") || (unit == "wh") || (unit == "l") || (unit == "w")){
 		if ((unit === "kwh") || (unit === "m3") || (unit === "wh") || (unit === "l") || (unit == "w")) {
 
 			if (unit === "wh") { unit = "kWh"; }
@@ -571,7 +553,6 @@ class Sourceanalytix extends utils.Adapter {
 				// create states for weekdays
 				for (const x in weekdays) {
 					const curent_day = ".current_year.this_week." + weekdays[x];
-					// doStateCreate(delivery, device, curent_day , weekdays[x], "number","value.day", unit, obj_cust.consumption, obj_cust.CalcCost, obj_cust.meter_values);
 					await this.doStateCreate(delivery, device, curent_day, weekdays[x], "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 				}
 			}
@@ -600,15 +581,15 @@ class Sourceanalytix extends utils.Adapter {
 
 			// create state for current day/week/quarters/month current value
 			let state_root = ".01_current_day";
-			this.doStateCreate(delivery, device, state_root, "current Day ", "number", "value.week", unit, obj_cust.consumption, obj_cust.costs, false);
+			await this.doStateCreate(delivery, device, state_root, "current Day ", "number", "value.week", unit, obj_cust.consumption, obj_cust.costs, false);
 			state_root = ".02_current_week";
-			this.doStateCreate(delivery, device, state_root, "current Week ", "number", "value.week", unit, obj_cust.consumption, obj_cust.costs, false);
+			await this.doStateCreate(delivery, device, state_root, "current Week ", "number", "value.week", unit, obj_cust.consumption, obj_cust.costs, false);
 			state_root = ".03_current_month";
-			this.doStateCreate(delivery, device, state_root, "current Month ", "number", "value.month", unit, obj_cust.consumption, obj_cust.costs, false);
+			await this.doStateCreate(delivery, device, state_root, "current Month ", "number", "value.month", unit, obj_cust.consumption, obj_cust.costs, false);
 			state_root = ".04_current_quarter";
-			this.doStateCreate(delivery, device, state_root, "current Quarter", "number", "value.quarter", unit, obj_cust.consumption, obj_cust.costs, false);
+			await this.doStateCreate(delivery, device, state_root, "current Quarter", "number", "value.quarter", unit, obj_cust.consumption, obj_cust.costs, false);
 			state_root = ".05_current_year";
-			this.doStateCreate(delivery, device, state_root, "current Year", "number", "value.year", unit, obj_cust.consumption, obj_cust.costs, false);
+			await this.doStateCreate(delivery, device, state_root, "current Year", "number", "value.year", unit, obj_cust.consumption, obj_cust.costs, false);
 			state_root = ".Current_Reading";
 			await this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", unit, false, false, true);
 
@@ -641,10 +622,11 @@ class Sourceanalytix extends utils.Adapter {
 	// Calculation handler
 	async calculation_handler(id) {
 		const inst_name = this.namespace;
-		this.log.debug("Instance name : " + inst_name);
 		let cost_t, del_t, cost_basic, cost_unit;
-		const date = new Date();
 		this.log.debug("Write calculations for : " + id._id);
+		this.log.debug("Instance name : " + inst_name);
+		
+		const date = new Date();
 
 		// replace "." in datapoints to "_"
 		const obj_id = id._id.split(".").join("__");
@@ -653,6 +635,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Calc obj root " + obj_root);
 
 		const obj_cont = await this.getForeignObjectAsync(id._id);
+
 		if (obj_cont === undefined || obj_cont === null) {
 			return;
 		}
@@ -661,6 +644,7 @@ class Sourceanalytix extends utils.Adapter {
 		if (obj_cont.common.custom === undefined) {
 			return;
 		}
+
 		const obj_cust = obj_cont.common.custom[inst_name];
 		this.log.debug("State object custom content: " + JSON.stringify(obj_cust));
 
@@ -794,7 +778,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Handle consumption calculations : " + obj_cust.consumption);
 		this.log.debug("Handle meter history : " + obj_cust.meter_values);
 
-		// temporary set to sero, this calue will be used later to handle period calculations
+		// temporary set to sero, this value will be used later to handle period calculations
 		const reading_start = 0; //obj_cust.start_meassure; 
 		const day_bval = obj_cust.start_day;
 		const week_bval = obj_cust.start_week;
@@ -824,9 +808,6 @@ class Sourceanalytix extends utils.Adapter {
 		if (obj_cust.meter_values === true) {
 
 			this.log.debug("Start meter value calculations");
-			// Store current meter value to state
-			// disabled in 0.2.26, check in later version for meter readings
-			// this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3), ack: true });
 
 			// Calculate consumption
 			// Weekday & current day
@@ -856,9 +837,6 @@ class Sourceanalytix extends utils.Adapter {
 		// calculatte consumption
 		if (obj_cust.consumption === true) {
 			this.log.debug("Start consumption calculations");
-			// Store current meter value to state
-			// disabled in 0.2.26, check in later version for meter readings
-			// if (obj_cust.meter_values) { this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading.toFixed(3), ack: true }); }
 
 			// Calculate consumption
 			// Weekday & current day
@@ -944,23 +922,21 @@ class Sourceanalytix extends utils.Adapter {
 
 		const inst_name = this.namespace;
 		const obj_cust = obj.common.custom[inst_name];
-		// this.log.info("Intervall : " + intervall);
 		let unit = "";
 
 		// Check if unit is defined in state object, if not use custom value
 		if (obj.common.unit !== undefined) {
 			unit = obj.common.unit.toLowerCase().replace(/\s|\W|[#$%^&*()]/g, "");
 		} else if (obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
-
 			// Replace meassurement unit when selected in state setting
 			unit = obj_cust.state_unit.toLowerCase();
 			this.log.debug("Unit of state origing change to : " + unit);
 		} else {
-
 			this.log.error("Identifying unit failed, please ensure state has a propper unit assigned or the unit is manually choosen in state settings !");
 		}
 
 		return unit;
+		
 	}
 
 }
