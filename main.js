@@ -220,7 +220,7 @@ class Sourceanalytix extends utils.Adapter {
 		let existing = false;
 		for (const x in cron_set) {
 
-			// check if cronjob is already running, if not initiate 
+			// check if cronjob is already running, if not initiate
 			if (cron_set[x] === obj_array._id) {
 				existing = true;
 			}
@@ -243,7 +243,7 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
+				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
 
 				// Extend object with start value day
 				obj.common.custom[this.namespace].start_day = calc_reading;
@@ -265,7 +265,7 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
+				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
 
 				// Extend object with start value week
 				obj.common.custom[this.namespace].start_week = calc_reading;
@@ -287,7 +287,7 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
+				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
 
 				// Extend object with start value month
 				obj.common.custom[this.namespace].start_month = calc_reading;
@@ -309,7 +309,7 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
+				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
 
 				// Extend object with start value quarter
 				obj.common.custom[this.namespace].start_quarter = calc_reading;
@@ -331,7 +331,7 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
+				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
 
 				// Extend object with start value year
 				obj.common.custom[this.namespace].start_year = calc_reading;
@@ -379,6 +379,49 @@ class Sourceanalytix extends utils.Adapter {
 				break;
 			case "l":
 				calc_value = value / 1000;
+				break;
+			case "w":
+				calc_value = value;
+				break;
+			default:
+				this.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
+		}
+
+		if (calc_value === null) {
+			this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
+		}
+
+		this.log.debug("State value output of unit factore calculation : " + JSON.stringify(calc_value));
+
+		return calc_value;
+	}
+
+	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
+	unit_calc_fact1(obj, value) {
+		this.log.debug("Object array input for unit factore calculation : " + JSON.stringify(obj));
+		this.log.debug("State value input for unit factore calculation : " + JSON.stringify(value));
+		if (value === null) {
+			this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
+		}
+
+		const unit = this.defineUnit(obj);
+
+		this.log.debug("Test unit : " + unit);
+
+		let calc_value;
+
+		switch (unit) {
+			case "kwh":
+				calc_value = value;
+				break;
+			case "wh":
+				calc_value = value;
+				break;
+			case "m3":
+				calc_value = value;
+				break;
+			case "l":
+				calc_value = value;
 				break;
 			case "w":
 				calc_value = value;
@@ -595,7 +638,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.silly("Current reading state : " + delivery + device + state_root);
 
-			// Create meassurement state used for calculations related w to kWh 
+			// Create meassurement state used for calculations related w to kWh
 			if (w_calc === true) {
 				state_root = ".Current_Reading_W";
 				await this.doStateCreate(delivery, device, state_root, "Current Reading W", "number", "value.current", "W", false, false, true);
@@ -625,7 +668,7 @@ class Sourceanalytix extends utils.Adapter {
 		let cost_t, del_t, cost_basic, cost_unit;
 		this.log.debug("Write calculations for : " + id._id);
 		this.log.debug("Instance name : " + inst_name);
-		
+
 		const date = new Date();
 
 		// replace "." in datapoints to "_"
@@ -779,7 +822,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Handle meter history : " + obj_cust.meter_values);
 
 		// temporary set to sero, this value will be used later to handle period calculations
-		const reading_start = 0; //obj_cust.start_meassure; 
+		const reading_start = 0; //obj_cust.start_meassure;
 		const day_bval = obj_cust.start_day;
 		const week_bval = obj_cust.start_week;
 		const month_bval = obj_cust.start_month;
@@ -936,7 +979,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		return unit;
-		
+
 	}
 
 }
