@@ -239,7 +239,7 @@ class Sourceanalytix extends utils.Adapter {
 			obj.common.custom[inst_name] = {};
 
 			// Reset day counter
-			cron.schedule("0 0 * * *", async () => {
+			cron.schedule("40 0 * * *", async () => {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
