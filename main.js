@@ -396,7 +396,7 @@ class Sourceanalytix extends utils.Adapter {
 		return calc_value;
 	}
 
-	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
+	// Unit list without conversion for the reset start values for each day, week, month, quarter, year
 	unit_calc_fact1(obj, value) {
 		this.log.debug("Object array input for unit factore calculation : " + JSON.stringify(obj));
 		this.log.debug("State value input for unit factore calculation : " + JSON.stringify(value));
