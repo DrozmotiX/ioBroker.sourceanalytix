@@ -243,10 +243,10 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
+				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value day
-				obj.common.custom[this.namespace].start_day = calc_reading;
+				obj.common.custom[this.namespace].start_day = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -254,7 +254,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value Day failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -265,10 +265,10 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
+				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value week
-				obj.common.custom[this.namespace].start_week = calc_reading;
+				obj.common.custom[this.namespace].start_week = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -276,7 +276,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value Week failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -287,10 +287,10 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
+				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value month
-				obj.common.custom[this.namespace].start_month = calc_reading;
+				obj.common.custom[this.namespace].start_month = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -298,7 +298,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value month failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value month for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value month for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -309,10 +309,10 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
+				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value quarter
-				obj.common.custom[this.namespace].start_quarter = calc_reading;
+				obj.common.custom[this.namespace].start_quarter = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -320,7 +320,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value quarter failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -331,10 +331,10 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact1(obj_array, reading.val);
+				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value year
-				obj.common.custom[this.namespace].start_year = calc_reading;
+				obj.common.custom[this.namespace].start_year = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -342,7 +342,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value year failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value year for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value year for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -379,49 +379,6 @@ class Sourceanalytix extends utils.Adapter {
 				break;
 			case "l":
 				calc_value = value / 1000;
-				break;
-			case "w":
-				calc_value = value;
-				break;
-			default:
-				this.log.error("Case error : value received for calculation with unit : " + unit + " which is currenlty not (yet) supported");
-		}
-
-		if (calc_value === null) {
-			this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
-		}
-
-		this.log.debug("State value output of unit factore calculation : " + JSON.stringify(calc_value));
-
-		return calc_value;
-	}
-
-	// Unit list without conversion for the reset start values for each day, week, month, quarter, year
-	unit_calc_fact1(obj, value) {
-		this.log.debug("Object array input for unit factore calculation : " + JSON.stringify(obj));
-		this.log.debug("State value input for unit factore calculation : " + JSON.stringify(value));
-		if (value === null) {
-			this.log.error("Data error ! NULL value received for current reading of device : " + obj._id);
-		}
-
-		const unit = this.defineUnit(obj);
-
-		this.log.debug("Test unit : " + unit);
-
-		let calc_value;
-
-		switch (unit) {
-			case "kwh":
-				calc_value = value;
-				break;
-			case "wh":
-				calc_value = value;
-				break;
-			case "m3":
-				calc_value = value;
-				break;
-			case "l":
-				calc_value = value;
 				break;
 			case "w":
 				calc_value = value;
