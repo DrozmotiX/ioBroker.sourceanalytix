@@ -936,6 +936,7 @@ class Sourceanalytix extends utils.Adapter {
 
 }
 
+
 //@ts-ignore .parent exists
 if (module.parent) {
 	// Export the constructor in compact mode

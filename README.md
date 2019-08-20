@@ -69,8 +69,8 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Changelog
 
-### 0.2.43
-* (xXBJXx) Fix reset of start values
+### 0.2.44
+* (xXBJXx) Fix wrong storage of start meter values
 
 ### 0.2.41
 * (Dutchman) Fix wrong storage of daily reset of meter values
