@@ -18,7 +18,7 @@ You need data as input (total amount of Wh, l/h or m3 used) from your devices an
 
 * [ ] To-Do
 
-This adapter has is roots with thanks to pix back in 2016 
+This adapter has is roots with thanks to pix back in 2016
 https://forum.iobroker.net/viewtopic.php?f=21&t=2262
 
 Which has been improved by @hadering and published on github
@@ -68,6 +68,9 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * [x] ensure all values are stored when adapter shuts down to prevent data gaps
 
 ## Changelog
+
+### 0.2.43
+* (xXBJXx) Fix reset of start values
 
 ### 0.2.41
 * (Dutchman) Fix wrong storage of daily reset of meter values
@@ -141,7 +144,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 * (Dutchman) implement new translation mechanisme
 
 
-### 0.1.9 
+### 0.1.9
 * (Dutchman) Adapter moved to community development tree
 * (Dutchman) added npm version and test-status to readme
 * (Dutchman) finalized new konfiguration screen & translations
