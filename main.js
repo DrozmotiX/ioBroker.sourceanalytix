@@ -243,7 +243,6 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value day
 				obj.common.custom[this.namespace].start_day = reading.val;
@@ -265,7 +264,6 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value week
 				obj.common.custom[this.namespace].start_week = reading.val;
@@ -287,7 +285,6 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value month
 				obj.common.custom[this.namespace].start_month = reading.val;
@@ -309,7 +306,6 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value quarter
 				obj.common.custom[this.namespace].start_quarter = reading.val;
@@ -331,7 +327,6 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				//const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value year
 				obj.common.custom[this.namespace].start_year = reading.val;
