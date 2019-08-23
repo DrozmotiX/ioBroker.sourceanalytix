@@ -220,7 +220,7 @@ class Sourceanalytix extends utils.Adapter {
 		let existing = false;
 		for (const x in cron_set) {
 
-			// check if cronjob is already running, if not initiate 
+			// check if cronjob is already running, if not initiate
 			if (cron_set[x] === obj_array._id) {
 				existing = true;
 			}
@@ -243,10 +243,9 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value day
-				obj.common.custom[this.namespace].start_day = calc_reading;
+				obj.common.custom[this.namespace].start_day = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -254,7 +253,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value Day failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -265,10 +264,9 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value week
-				obj.common.custom[this.namespace].start_week = calc_reading;
+				obj.common.custom[this.namespace].start_week = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -276,7 +274,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value Week failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value Week for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -287,10 +285,9 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value month
-				obj.common.custom[this.namespace].start_month = calc_reading;
+				obj.common.custom[this.namespace].start_month = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -298,7 +295,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value month failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value month for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value month for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -309,10 +306,9 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value quarter
-				obj.common.custom[this.namespace].start_quarter = calc_reading;
+				obj.common.custom[this.namespace].start_quarter = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -320,7 +316,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value quarter failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value quarter for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -331,10 +327,9 @@ class Sourceanalytix extends utils.Adapter {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
-				const calc_reading = this.unit_calc_fact(obj_array, reading.val);
 
 				// Extend object with start value year
-				obj.common.custom[this.namespace].start_year = calc_reading;
+				obj.common.custom[this.namespace].start_year = reading.val;
 				this.log.debug("Object content custom current : " + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
@@ -342,7 +337,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error("Setting start value year failed : " + err);
 					} else {
 						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value year for device : " + obj_array._id + " succeeded with value + " + calc_reading);
+						this.log.info("Setting start value year for device : " + obj_array._id + " succeeded with value + " + reading.val);
 					}
 				});
 			});
@@ -595,7 +590,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.silly("Current reading state : " + delivery + device + state_root);
 
-			// Create meassurement state used for calculations related w to kWh 
+			// Create meassurement state used for calculations related w to kWh
 			if (w_calc === true) {
 				state_root = ".Current_Reading_W";
 				await this.doStateCreate(delivery, device, state_root, "Current Reading W", "number", "value.current", "W", false, false, true);
@@ -625,7 +620,7 @@ class Sourceanalytix extends utils.Adapter {
 		let cost_t, del_t, cost_basic, cost_unit;
 		this.log.debug("Write calculations for : " + id._id);
 		this.log.debug("Instance name : " + inst_name);
-		
+
 		const date = new Date();
 
 		// replace "." in datapoints to "_"
@@ -659,9 +654,16 @@ class Sourceanalytix extends utils.Adapter {
 				cost_unit = this.config.unit_price_power;
 				cost_basic = this.config.basic_price_power;
 				break;
+
 			case "kWh_consumption_night":
 				this.log.debug("Case result : Electricity consumption night");
 				cost_unit = this.config.unit_price_power_night;
+				cost_basic = this.config.basic_price_power;
+				break;
+
+			case "impuls":
+				this.log.debug("Case result : Impuls");
+				cost_unit = this.config.unit_price_power;
 				cost_basic = this.config.basic_price_power;
 				break;
 
@@ -724,6 +726,17 @@ class Sourceanalytix extends utils.Adapter {
 			await this.setState(obj_root + ".Meter_Readings.Current_Reading", { val: calc_reading ,ack: true });
 
 		} else {
+
+			// Handle impuls counters
+			if (obj_cust.state_type == "impuls"){
+
+				// cancel calculation in case of impuls counter
+				return;
+	
+			}
+
+
+
 			// Get previous reading of W and its related timestammps
 			const Prev_Reading = await this.getStateAsync(obj_id + ".Meter_Readings.Current_Reading_W");
 			this.log.debug("Previous_reading from state : " + JSON.stringify(Prev_Reading));
@@ -779,7 +792,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Handle meter history : " + obj_cust.meter_values);
 
 		// temporary set to sero, this value will be used later to handle period calculations
-		const reading_start = 0; //obj_cust.start_meassure; 
+		const reading_start = 0; //obj_cust.start_meassure;
 		const day_bval = obj_cust.start_day;
 		const week_bval = obj_cust.start_week;
 		const month_bval = obj_cust.start_month;
@@ -936,10 +949,11 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		return unit;
-		
+
 	}
 
 }
+
 
 //@ts-ignore .parent exists
 if (module.parent) {
@@ -951,4 +965,5 @@ if (module.parent) {
 } else {
 	// otherwise start the instance directly
 	new Sourceanalytix();
+
 }

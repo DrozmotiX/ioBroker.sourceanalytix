@@ -1,9 +1,21 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.2.41",
+        "version": "0.2.5",
         "news": {
-            "0.2.29": {
+            "0.2.5": {
+                "en": "Fix wrong storage of start meter values, thank you xXBJXx",
+                "de": "Fehler beim Speichern der Startzählerwerte behoben, danke xXBJXx",
+                "ru": "Исправьте неправильное хранение значений стартового счетчика, спасибо xXBJXx",
+                "pt": "Corrigir o armazenamento errado dos valores do medidor inicial, obrigado xXBJXx",
+                "nl": "Herstel verkeerde opslag van startmeterwaarden, bedankt xXBJXx",
+                "fr": "Correction du mauvais stockage des valeurs initiales du compteur, merci xXBJXx",
+                "it": "Correggi l'archiviazione errata dei valori del misuratore di avvio, grazie xXBJXx",
+                "es": "Arregle el almacenamiento incorrecto de los valores de inicio del medidor, gracias xXBJXx",
+                "pl": "Napraw nieprawidłowe przechowywanie początkowych wartości liczników, dziękuję xXBJXx",
+                "zh-cn": "修复了启动仪表值的错误存储，谢谢xXBJXx"
+            }, 
+            "0.2.41": {
                 "en": "Calculation w to kWh implemented & several code improvements",
                 "de": "Berechnung w bis kWh implementiert & mehrere Code-Verbesserungen",
                 "ru": "Выполнен расчет с использованием кВтч и несколько улучшений кода",
@@ -164,6 +176,9 @@
         "authors": [
             "DutchmanNL <rdrozda@hotmail.com>"
         ],
+        "contributors": [
+			"xXBJXx"
+		  ],
         "keywords": [
             "energy",
             "power",
@@ -220,6 +235,7 @@
         "basic_price_oil" : 31,
         "unit_price_gas": 0.12,
         "basic_price_gas" : 31,
+        "impuls": 400,
         "status_logging": false
     },
     "objects": [
