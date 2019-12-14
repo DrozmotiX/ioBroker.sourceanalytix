@@ -372,6 +372,9 @@ class Sourceanalytix extends utils.Adapter {
 			case "m3":
 				calc_value = value;
 				break;
+			case "m³":
+				calc_value = value;
+				break;
 			case "l":
 				calc_value = value / 1000;
 				break;
