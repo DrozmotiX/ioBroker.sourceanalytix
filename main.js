@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*
  * Created with @iobroker/create-adapter v1.11.0
@@ -6,32 +6,42 @@
 
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
-const utils = require("@iobroker/adapter-core");
+const utils = require('@iobroker/adapter-core');
+const adapterName = require('./package.json').name.split('.').pop();
 
 // Lets make sure we know all days and months
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
+const stateDeletion = false;
+
 // Create variables for object arrays
 const history = {}, w_values = {}, aliasMap = {}, cron_set = [], state_set = [];
+let currentYear = null;
 // Load Time Modules
-const cron = require("node-cron"); // Cron Scheduler
+const schedule = require('node-schedule'); // New Cron Scheduler
 
 class Sourceanalytix extends utils.Adapter {
-
 	/**
 	 * @param {Partial<ioBroker.AdapterOptions>} [options={}]
 	 */
 	constructor(options) {
+		// @ts-ignore
 		super({
 			...options,
-			name: "sourceanalytix",
+			name: adapterName,
 		});
-		this.on("ready", this.onReady.bind(this));
-		this.on("objectChange", this.onObjectChange.bind(this));
-		this.on("stateChange", this.onStateChange.bind(this));
-		// this.on("message", this.onMessage.bind(this));
-		this.on("unload", this.onUnload.bind(this));
+
+		this.on('ready', this.onReady.bind(this));
+		// this.on('objectChange', this.onObjectChange.bind(this));
+		// this.on('stateChange', this.onStateChange.bind(this));
+		// this.on('message', this.onMessage.bind(this));
+		// this.on('unload', this.onUnload.bind(this));
+
+		this.activeStates = {}; // Array of activated states for SourceAnalytix
+		this.state_set = [];
+		this.cron_set = [];
+		this.test_obj_cust = {};
 	}
 
 	/**
@@ -39,71 +49,222 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async onReady() {
 		// Initialize your adapter here
-		this.log.info("Adapter SourceAnalytix startet :-)");
-
-		// // initialize all SourceAnalytix enabled states
-		this.log.info("Initializing all enabled states for SourceAnalytix");
+		this.log.info('Welcome to SourceAnalytix, making things ready ... ');
 
 		// Subscribe on all foreign states to ensure changes in objects are reflected
-		this.subscribeForeignObjects("*");
+		this.subscribeForeignObjects('*');
 
-		this.objects.getObjectView("custom", "state", {}, (err, doc) => {
-			this.log.debug("Result doc : " + JSON.stringify(doc));
-			if (doc && doc.rows) {
+		// // initialize all SourceAnalytix enabled states
+		this.log.info('Initializing enabled states for SourceAnalytix');
 
-				for (let i = 0, l = doc.rows.length; i < l; i++) {
-					if (doc.rows[i].value) {
-						let id = doc.rows[i].id;
+		// get all objects with custom configuraiton items
+		// @ts-ignore : getObjectViewAsync missing in definiton
+		const customStateArray = await this.getObjectViewAsync('custom', 'state', {});
+		this.log.debug(`All states with custom items : ${JSON.stringify(customStateArray)}`);
 
-						// temporary disable, should consider to have alias also in SourceAnalytix in case meters are changed
-						// const realId = id;
-						if (doc.rows[i].value[this.namespace] && doc.rows[i].value[this.namespace].aliasId) {
-							aliasMap[id] = doc.rows[i].value[this.namespace].aliasId;
-							this.log.debug("Found Alias: " + id + " --> " + aliasMap[id]);
-							id = aliasMap[id];
-						}
-						history[id] = doc.rows[i].value;
+		// Get all active state for Sou
+		if (customStateArray && customStateArray.rows) {
 
-						if (history[id].enabled !== undefined) {
-							history[id] = history[id].enabled ? { "history.0": history[id] } : null;
-							if (!history[id]) {
-								this.log.info("undefined id");
-								// delete history[id];
-								continue;
-							}
-						}
-						if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
+			for (let i = 0, l = customStateArray.rows.length; i < l; i++) {
+				if (customStateArray.rows[i].value) {
+					let id = customStateArray.rows[i].id;
+
+					// temporary disable, should consider to have alias also in SourceAnalytix in case meters are changed
+					// const realId = id;
+					if (customStateArray.rows[i].value[this.namespace] && customStateArray.rows[i].value[this.namespace].aliasId) {
+						aliasMap[id] = customStateArray.rows[i].value[this.namespace].aliasId;
+						this.log.debug('Found Alias: ' + id + ' --> ' + aliasMap[id]);
+						id = aliasMap[id];
+					}
+					history[id] = customStateArray.rows[i].value;
+
+					if (history[id].enabled !== undefined) {
+						history[id] = history[id].enabled ? { 'history.0': history[id] } : null;
+						if (!history[id]) {
+							this.log.info('undefined id');
 							// delete history[id];
-						} else {
-							this.getForeignObject(id, (err, obj) => {
-								if (obj !== undefined && obj !== null) {
-									// Push object into variable array used for checks later
-									state_set.push(id);
-									this.log.silly(JSON.stringify(obj));
-									// run initialisation for objects
-									this.log.info("Activate SourceAnalytix for : " + obj._id);
-									this.initialize(obj);
-									this.log.debug("Object array : " + JSON.stringify(state_set));
+							continue;
+						}
+					}
+					if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
+						// Not SourceAnalytix relevant ignore
+					} else {
+
+						const stateInfo = await this.getForeignObjectAsync(id);
+
+						if (stateInfo !== undefined && stateInfo !== null
+							&& stateInfo.common !== undefined && stateInfo.common !== null
+							&& stateInfo.common.custom !== undefined && stateInfo.common.custom !== null) {
+							const customData = stateInfo.common.custom[this.namespace];
+
+							// Load state settings to memory
+
+							// To-Do added error handling in case values ar empty
+							this.activeStates[id] = {
+								alias: customData.alias,
+								consumption: customData.consumption,
+								costs: customData.costs,
+								enabled: true,
+								meter_values: customData.meter_values,
+								name: stateInfo.common.name,
+								start_day: customData.start_day,
+								start_month: customData.start_month,
+								start_quarter: customData.start_quarter,
+								start_week: customData.start_week,
+								start_year: customData.start_year,
+								state_type: customData.kWh_consumption,
+								state_unit: customData.state_unit,
+								unit: stateInfo.common.unit
+							};
+							this.log.info(`Enabled state ${id}: with content ${JSON.stringify(stateInfo)}`);
 								}
-							});
 						}
 					}
 				}
 			}
-		});
+
+		// // Initialize datapoints
+		let count = 1;
+		for (const stateID in this.activeStates) {
+
+			this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
+			await this.initialize(stateID);
+			count = count + 1;
+		}
+
+		this.log.info(`Initialized array : ${JSON.stringify(this.activeStates)}`);
+		this.log.info(`State initialisation finalized, will handle calculations ...`);
+
 	}
 
-	/**
-	 * Is called when adapter shuts down - callback has to be called under any circumstances!
-	 * @param {() => void} callback
-	 */
-	onUnload(callback) {
-		try {
-			this.log.info("Adapter SourceAnalytix stopped !");
-			callback();
-		} catch (e) {
-			callback();
+	// Create object tree and states for all devices to be handled
+	async initialize(stateID) {
+
+		this.log.debug(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
+		// Get current year to define object root
+		currentYear = (new Date().getFullYear());
+
+		// Prepare state configuration attributes
+		if (this.activeStates[stateID].state_type === 'kWh_delivery') {
+			this.activeStates[stateID].headCathegorie = 'delivered';
+			this.activeStates[stateID].financielCathegorie = 'earnings';
+		} else {
+			this.activeStates[stateID].headCathegorie = 'consumed';
+			this.activeStates[stateID].financielCathegorie = 'costs';
 		}
+
+		// *** Code Break
+		// Define propper unite cancel initialisation if no unit defined
+		this.activeStates[stateID].useUnit = await this.defineUnit(stateID);
+		if (!this.activeStates[stateID].useUnit || this.activeStates[stateID].useUnit === '') return;
+
+		// replace '.' in datapoints to '_' and store as device name
+		this.activeStates[stateID].deviceName = stateID.split('.').join('__');
+
+		// Shorten configuraiton details for easier access
+		const stateDetails = this.activeStates[stateID];
+		
+		this.log.debug(`stateDetails  ${JSON.stringify(stateDetails)}`);
+
+		let alias = stateDetails.name;
+		if (stateDetails.alias && stateDetails.alias !== '') {
+			alias = stateDetails.alias;
+		}
+		this.log.debug('Name after alias renaming' + alias);
+
+		// Create Device Object
+		await this.extendObjectAsync(stateDetails.deviceName, {
+			type: 'device',
+			common: {
+				name: alias
+			},
+			native: {},
+		});
+			
+		for (const day of Object.keys(weekdays)) {
+			
+			const curent_day = `this_week.${weekdays[day]}`;
+
+			if (this.config.store_days) {
+				this.log.debug(`Creating states for weekday ${curent_day}`);
+				await this.doLocalStateCreate(stateID, curent_day,weekdays[day]);
+			} else if (stateDeletion){
+				this.log.debug(`Deleting states for weekday ${curent_day} (if present)`);
+	}
+		}
+
+		// create states for weeks
+		let weekNr;
+		for (let y = 1; y < 54; y++) {
+
+			if (y < 10) {
+				weekNr = '0' + y;
+			} else {
+				weekNr = y;
+			}
+			const weekRoot = `weeks.${weekNr}`;
+
+			if (this.config.store_weeks) {
+				this.log.debug(`Creating states for week ${weekNr}`);
+				await this.doLocalStateCreate(stateID, weekRoot, weekNr);
+			} else if (stateDeletion){
+				this.log.debug(`Deleting states for week ${weekNr} (if present)`);
+			}
+		}
+
+		// create states for months
+		for (const month in months) {
+			const monthRoot = `months.${months[month]}`;
+
+			if (this.config.store_months) {
+				this.log.debug(`Creating states for month ${month}`);
+				await this.doLocalStateCreate(stateID, monthRoot, months[month]);
+			} else if (stateDeletion){
+				this.log.debug(`Deleting states for month ${month} (if present)`);
+			}
+		}
+
+		// create state for current day/week/quarters/month current value
+		let stateRoot = '01_current_day';
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Day ');
+		stateRoot = '02_current_week';
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Week ');
+		stateRoot = '03_current_month';
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Month ');
+		stateRoot = '04_current_quarter';
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Quarter');
+		stateRoot = '05_current_year';
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Year');
+		stateRoot = 'Current_Reading';
+		await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading');	
+
+
+		this.log.debug(`Initialization finished for : ${stateID}`);
+		// Subscribe state, every state change will trigger calculation
+		this.subscribeForeignStates(stateID);
+
+		/*
+			// Create meassurement state used for calculations related w to kWh
+			if (w_calc === true) {
+				stateRoot = '.Current_Reading_W';
+				await this.doStateCreate(delivery, device, stateRoot, 'Current Reading W', 'number', 'value.current', 'W', false, false, true);
+			}
+
+			// Calculate all values for the first time
+			await this.calculation_handler(obj);
+
+			// From version 0.2.8.1 always use current meter readings in kWh to handle resets
+			obj.MeterReading = this.namespace + '.' + device + '.Meter_Readings.Current_Reading';
+			this.reset_shedules(obj);
+
+		} else {
+
+			this.log.error('Sorry unite type ' + unit + ' not supported yet');
+
+		}
+
+	 */
+	}
 	}
 
 	/**
@@ -112,15 +273,16 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.Object | null | undefined} obj
 	 */
 	onObjectChange(id, obj) {
+		/*
 		let existing = false;
 		let array_id;
 
-		this.log.debug("Object array of all activated states : " + JSON.stringify(state_set));
-		this.log.debug("Object array of object trigger : " + JSON.stringify(obj));
+		this.log.debug('Object array of all activated states : ' + JSON.stringify(this.state_set));
+		this.log.debug('Object array of object trigger : ' + JSON.stringify(obj));
 		// Check if change object is part of array
-		for (const x in state_set) {
+		for (const x in this.state_set) {
 
-			if (state_set[x] === id) {
+			if (this.state_set[x] === id) {
 				existing = true;
 				array_id = x;
 			}
@@ -135,26 +297,27 @@ class Sourceanalytix extends utils.Adapter {
 		) {
 			// Verify if the object was already activated, if not initialize new device
 			if (existing === false) {
-				this.log.info("Enable SourceAnalytix for : " + id);
+				this.log.info('Enable SourceAnalytix for : ' + id);
 				// Add object to array
-				state_set.push(id);
+				this.state_set.push(id);
 				this.initialize(obj);
 			} else {
-				this.log.info("Updated SourceAnalytix configuration for : " + id);
+				this.log.info('Updated SourceAnalytix configuration for : ' + id);
 				this.initialize(obj);
 			}
 
-			this.log.debug("Complete object array : " + JSON.stringify(state_set));
+			this.log.debug('Complete object array : ' + JSON.stringify(this.state_set));
 
 		} else {
 
 			if (existing === true) {
-				this.log.info("Disable SourceAnalytix for : " + id);
+				this.log.info('Disable SourceAnalytix for : ' + id);
 				this.unsubscribeForeignStates(id);
 				// TODO: array_id is a string, but is used like a number
-				state_set.splice(array_id, 1);
+				this.state_set.splice(array_id, 1);
 			}
 		}
+		*/
 	}
 
 	/**
@@ -163,6 +326,7 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.State | null | undefined} state
 	 */
 	onStateChange(id, state) {
+		/*
 		if (state) {
 			// The state was changed
 			this.log.debug(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
@@ -229,37 +393,36 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (existing === false) {
 			// Store object id in array to prevent double run on shedules when object configuration changes
-			this.log.debug("Sheduled reset activate for : " + JSON.stringify(obj_array));
-			cron_set.push(obj_array._id);
+			this.log.debug('Sheduled reset activate for : ' + JSON.stringify(obj_array));
+			this.cron_set.push(obj_array._id);
 
 			// Prepare custom object
 			const obj = {};
 			obj.common = {};
 			obj.common.custom = {};
-			obj.common.custom[inst_name] = {};
+			obj.common.custom[this.namespace] = {};
 
-			// Reset day counter
-			cron.schedule("0 0 * * *", async () => {
+			schedule.scheduleJob('0 0 * * *', async () => {
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
 				if (!reading) return;
 
 				// Extend object with start value day
 				obj.common.custom[this.namespace].start_day = reading.val;
-				this.log.debug("Object content custom current : " + JSON.stringify(obj));
+				this.log.debug('Object content custom current : ' + JSON.stringify(obj));
 
 				this.extendForeignObject(obj_array._id, obj, (err) => {
 					if (err) {
-						this.log.error("Setting start value Day failed : " + err);
+						this.log.error('Setting start value Day failed : ' + err);
 					} else {
-						this.log.debug("Object content custom after start_day value reset : " + JSON.stringify(obj));
-						this.log.info("Setting start value Day for device : " + obj_array._id + " succeeded with value + " + reading.val);
+						this.log.debug('Object content custom after start_day value reset : ' + JSON.stringify(obj));
+						this.log.info('Setting start value Day for device : ' + obj_array._id + ' succeeded with value + ' + reading.val);
 					}
 				});
 			});
 
 			// Reset Week counter
-			cron.schedule("0 0 * * 1", async () => {
+			schedule.scheduleJob('0 0 * * 1', async () => {
 
 				// get current meter value
 				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
@@ -406,67 +569,62 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	// Function to handle state creation
-	async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
-		let head_cathegorie;
-		let financiel_cathegorie;
+	// async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
+	// await this.doStateCreate(delivery, device, curent_day, weekdays[x], 'number', 'value.day', unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
+	async doLocalStateCreate(stateID, stateRoot, name) {
+		const stateDetails = this.activeStates[stateID];
 
-		// create seperate channels for amounts, costs and current value
-		if (delivery) {
-			head_cathegorie = "delivery";
-			financiel_cathegorie = "earnings";
-		} else {
-			head_cathegorie = "consumption";
-			financiel_cathegorie = "cost";
+		const stateName = `${stateDetails.deviceName}.${currentYear}.${stateDetails.headCathegorie}.${stateRoot}`;
+		this.log.info(`Try creating states ${stateName}`);
+		if (stateDetails.consumption) {
+			// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+		// 	await this.setObjectNotExistsAsync(stateName, {
+		// 		type: 'state',
+		// 		common: {
+		// 			name: name,
+		// 			type: 'number',
+		// 			role: 'value',
+		// 			read: true,
+		// 			write: false,
+		// 			unit: stateDetails.useUnit,
+		// 			def: 0,
+		// 		},
+		// 		native: {},
+		// 	});
+		// 	// await this.set_zero_val(object);
 		}
 
-		let object = device + "." + head_cathegorie + id;
-
-		if (head) {
-			await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
-			await this.setObjectNotExistsAsync(object, {
-				type: "state",
+		if (stateDetails.costs) {
+			// await this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
+			// object = device + '.' + financiel_cathegorie + id;
+			await this.setObjectNotExistsAsync(stateName, {
+				type: 'state',
 				common: {
 					name: name,
-					type: type,
-					role: role,
+					type: 'number',
+					role: 'value',
 					read: true,
-					unit: unit,
+					write: false,
+					unit: stateDetails.useUnit,
 					def: 0,
 				},
 				native: {},
 			});
-			await this.set_zero_val(object);
+			// await this.set_zero_val(object);
 		}
-
-		if (financial) {
-			await this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
-			object = device + "." + financiel_cathegorie + id;
-			await this.setObjectNotExistsAsync(object, {
-				type: "state",
-				common: {
-					name: name,
-					type: type,
-					role: role,
-					read: true,
-					unit: "€",
-					def: 0,
-				},
-				native: {},
-			});
-			await this.set_zero_val(object);
-		}
-
+		/*
 		if (reading) {
 
-			object = device + "." + "Meter_Readings" + id;
-			await this.ChannelCreate(device, "Meter_Readings", "Meter_Readings");
+			object = device + '.' + 'Meter_Readings' + id;
+			await this.ChannelCreate(device, 'Meter_Readings', 'Meter_Readings');
 			await this.setObjectNotExistsAsync(object, {
-				type: "state",
+				type: 'state',
 				common: {
 					name: name,
-					type: type,
+					type: 'number',
 					role: role,
 					read: true,
+					write: false,
 					unit: unit,
 					def: 0,
 				},
@@ -474,163 +632,23 @@ class Sourceanalytix extends utils.Adapter {
 			});
 			await this.set_zero_val(object);
 		}
+		*/
 	}
 
-	// Create object tree and states for all devices to be handled
-	async initialize(obj) {
-		const inst_name = this.namespace;
-		const id = obj._id;
-		const obj_cust = obj.common.custom[inst_name];
-		let w_calc = false;
-		let unit = this.defineUnit(obj);
-
-		this.log.debug("instanze name : " + inst_name);
-		// const obj_cust = this.config.custom;
-		this.log.debug("Content custom of object : " + JSON.stringify(obj_cust));
-		this.log.debug("Custom object tree : " + JSON.stringify(obj_cust));
-
-		if ((unit === "kwh") || (unit === "m3") || (unit === "wh") || (unit === "l") || (unit == "w")) {
-
-			if (unit === "wh") { unit = "kWh"; }
-			if (unit === "w") { unit = "kWh"; w_calc = true; }
-			if (unit === "kwh") { unit = "kWh"; }
-			if (unit === "l") { unit = "m3"; }
-
-			// replace "." in datapoints to "_"
-			const device = id.split(".").join("__");
-
-			this.log.debug("Changed Device Name : " + device);
-
-			// Set type to consume or deliver
-			let delivery;
-			if (obj_cust.state_type === "kWh_delivery") {
-				delivery = true;
-			} else {
-				delivery = false;
-			}
-			this.log.debug("Delivery type : " + delivery);
-
-			// define device name, change with alias when required
-			let alias = obj.common.name;
-			this.log.debug("Name before alias renaming : " + alias);
-			this.log.debug("Device name : " + alias);
-			this.log.debug("State alias name : " + obj_cust.alias);
-			if (obj_cust.alias !== undefined && obj_cust.alias !== null && obj_cust.alias !== "") {
-				alias = obj_cust.alias;
-			}
-			this.log.debug("Name after alias renaming" + alias);
-
-			// Create new device object for every state in powermonitor tree
-			this.setObjectNotExistsAsync(device, {
-				type: "device",
-				common: {
-					name: alias
-				},
-				native: {},
-			});
-
-			// change device name when alias is updated
-			const objekt = {};
-			objekt.common = {
-				name: alias
-			};
-			this.extendObjectAsync(device, objekt, (err) => {
-				if (err !== null) {
-					this.log.error("Changing alias name failed with : " + err);
-				}
-			});
-
-			this.log.debug("Customized Device name = : " + alias);
-			this.log.debug("Days ? : " + this.config.store_days);
-			this.log.debug("Consumption ?  : " + obj_cust.consumption);
-			this.log.debug("Costs : " + obj_cust.costs);
-			this.log.debug("Meter History ? : " + obj_cust.meter_values);
-
-			if (this.config.store_days === true) {
-				this.log.debug("Creating weekdays");
-				// create states for weekdays
-				for (const x in weekdays) {
-					const curent_day = ".current_year.this_week." + weekdays[x];
-					await this.doStateCreate(delivery, device, curent_day, weekdays[x], "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
-				}
-			}
-
-			if (this.config.store_weeks) {
-				// create states for weeks
-				let weeknr;
-				for (let y = 1; y < 54; y++) {
-					if (y < 10) {
-						weeknr = "0" + y;
-					} else {
-						weeknr = y;
-					}
-					const state_root = ".current_year.weeks." + weeknr;
-					await this.doStateCreate(delivery, device, state_root, "week " + weeknr, "number", "value.day", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
-				}
-			}
-
-			if (this.config.store_months) {
-				// create states for months
-				for (const x in months) {
-					const curent_day = ".current_year.months." + months[x];
-					await this.doStateCreate(delivery, device, curent_day, months[x], "number", "value.month", unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
-				}
-			}
-
-			// create state for current day/week/quarters/month current value
-			let state_root = ".01_current_day";
-			await this.doStateCreate(delivery, device, state_root, "current Day ", "number", "value.week", unit, obj_cust.consumption, obj_cust.costs, false);
-			state_root = ".02_current_week";
-			await this.doStateCreate(delivery, device, state_root, "current Week ", "number", "value.week", unit, obj_cust.consumption, obj_cust.costs, false);
-			state_root = ".03_current_month";
-			await this.doStateCreate(delivery, device, state_root, "current Month ", "number", "value.month", unit, obj_cust.consumption, obj_cust.costs, false);
-			state_root = ".04_current_quarter";
-			await this.doStateCreate(delivery, device, state_root, "current Quarter", "number", "value.quarter", unit, obj_cust.consumption, obj_cust.costs, false);
-			state_root = ".05_current_year";
-			await this.doStateCreate(delivery, device, state_root, "current Year", "number", "value.year", unit, obj_cust.consumption, obj_cust.costs, false);
-			state_root = ".Current_Reading";
-			await this.doStateCreate(delivery, device, state_root, "Current Reading", "number", "value.current", unit, false, false, true);
-
-			this.log.silly("Current reading state : " + delivery + device + state_root);
-
-			// Create meassurement state used for calculations related w to kWh
-			if (w_calc === true) {
-				state_root = ".Current_Reading_W";
-				await this.doStateCreate(delivery, device, state_root, "Current Reading W", "number", "value.current", "W", false, false, true);
-			}
-
-			this.log.debug("Initialization finished for : " + device);
-			// Subscribe state, every state change will trigger calculation
-			this.subscribeForeignStates(obj._id);
-
-			// Calculate all values for the first time
-			await this.calculation_handler(obj);
-
-			// code here
-			// From version 0.2.8.1 always use current meter readings in kWh to handle resets
-			obj.MeterReading = this.namespace + "." + device + ".Meter_Readings.Current_Reading";
-			this.reset_shedules(obj);
-
-		} else {
-
-			this.log.error("Sorry unite type " + unit + " not supported yet");
-
-		}
-	}
 	// Calculation handler
 	async calculation_handler(id) {
-		const inst_name = this.namespace;
+		/*
 		let cost_t, del_t, cost_basic, cost_unit;
-		this.log.debug("Write calculations for : " + id._id);
-		this.log.debug("Instance name : " + inst_name);
+		this.log.debug('Write calculations for : ' + id._id);
+		current_year = (new Date().getFullYear());
 
 		const date = new Date();
 
-		// replace "." in datapoints to "_"
-		const obj_id = id._id.split(".").join("__");
-		const obj_root = this.namespace + "." + obj_id;
+		// replace '.' in datapoints to '_'
+		const obj_id = id._id.split('.').join('__');
+		const obj_root = this.namespace + '.' + obj_id;
 
-		this.log.debug("Calc obj root " + obj_root);
+		this.log.debug('Calc obj root ' + obj_root);
 
 		const obj_cont = await this.getForeignObjectAsync(id._id);
 
@@ -934,29 +952,20 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug("Meter Calculation executed");
 	}
 
-	defineUnit(obj) {
-
-		const inst_name = this.namespace;
-		const obj_cust = obj.common.custom[inst_name];
-		let unit = "";
-
-		// Check if unit is defined in state object, if not use custom value
-		if (obj.common.unit !== undefined) {
-			unit = obj.common.unit.toLowerCase().replace(/\s|\W|[#$%^&*()]/g, "");
-		} else if (obj_cust.state_unit !== undefined && obj_cust.state_unit !== "automatically") {
-			// Replace meassurement unit when selected in state setting
-			unit = obj_cust.state_unit.toLowerCase();
-			this.log.debug("Unit of state origing change to : " + unit);
-		} else {
-			this.log.error("Identifying unit failed, please ensure state has a propper unit assigned or the unit is manually choosen in state settings !");
+	/**
+	 * Is called when adapter shuts down - callback has to be called under any circumstances!
+	 * @param {() => void} callback
+	 */
+	onUnload(callback) {
+		try {
+			this.log.info('Adapter SourceAnalytix stopped !');
+			callback();
+		} catch (e) {
+			callback();
 		}
-
-		return unit;
-
 	}
 
 }
-
 
 //@ts-ignore .parent exists
 if (module.parent) {
