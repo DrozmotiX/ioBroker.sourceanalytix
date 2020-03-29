@@ -263,8 +263,57 @@ class Sourceanalytix extends utils.Adapter {
 
 		}
 
-	 */
+		*/
 	}
+
+	// Define propper unit notation 
+	async defineUnit(stateID) {
+		const stateDetails = this.activeStates[stateID];
+		let unit = null;
+
+		// Check if unit is defined in state object, if not use custom value
+		if (stateDetails.unit && stateDetails.state_unit === 'automatically') {
+			unit = stateDetails.unit.toLowerCase().replace(/\s|\W|[#$%^&*()]/g, '');
+		} else if (stateDetails.state_unit && stateDetails.state_unit !== 'automatically') {
+			// Replace meassurement unit when selected in state setting
+			unit = stateDetails.state_unit.toLowerCase();
+			this.log.info(`Unit manually assignd : ${unit}`);
+		} else {
+			this.log.error('Identifying unit failed, please ensure state has a propper unit assigned or the unit is manually choosen in state settings !');
+		}
+
+		switch (unit) {
+
+			case 'kwh':
+				stateDetails.unit = 'kWh';
+				break;
+
+			case 'l':
+				stateDetails.unit = 'm3';
+				break;
+
+			case 'm³':
+				stateDetails.unit = 'm3';
+				break;
+
+			case 'm3':
+				break;
+
+			case 'w':
+				stateDetails.unit = 'kWh';
+				stateDetails.w_calc = true;
+				break;
+
+			case 'wh':
+				stateDetails.unit = 'kWh';
+				break;
+
+			default:
+
+				this.log.error(`Sorry unite type ${stateDetails.unit} not supported (yet), ${stateID} will be ignored from calculations!`);
+
+		}
+		return unit;
 	}
 
 	/**
