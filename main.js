@@ -13,7 +13,7 @@ const adapterName = require('./package.json').name.split('.').pop();
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
-const stateDeletion = false;
+const stateDeletion = true;
 
 // Create variables for object arrays
 const history = {}, w_values = {}, aliasMap = {}, cron_set = [], state_set = [];
@@ -190,7 +190,8 @@ class Sourceanalytix extends utils.Adapter {
 				await this.doLocalStateCreate(stateID, curent_day,weekdays[day]);
 			} else if (stateDeletion){
 				this.log.debug(`Deleting states for weekday ${curent_day} (if present)`);
-	}
+				await this.doLocalStateCreate(stateID, curent_day,weekdays[day], null , true);
+			}
 		}
 
 		// create states for weeks
@@ -209,6 +210,7 @@ class Sourceanalytix extends utils.Adapter {
 				await this.doLocalStateCreate(stateID, weekRoot, weekNr);
 			} else if (stateDeletion){
 				this.log.debug(`Deleting states for week ${weekNr} (if present)`);
+				await this.doLocalStateCreate(stateID, weekRoot, weekNr, null , true);
 			}
 		}
 
@@ -221,6 +223,7 @@ class Sourceanalytix extends utils.Adapter {
 				await this.doLocalStateCreate(stateID, monthRoot, months[month]);
 			} else if (stateDeletion){
 				this.log.debug(`Deleting states for month ${month} (if present)`);
+				await this.doLocalStateCreate(stateID, monthRoot, months[month], null , true);
 			}
 		}
 
@@ -623,7 +626,7 @@ class Sourceanalytix extends utils.Adapter {
 	// Function to handle state creation
 	// async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
 	// await this.doStateCreate(delivery, device, curent_day, weekdays[x], 'number', 'value.day', unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
-	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot) {
+	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState) {
 		const stateDetails = this.activeStates[stateID];
 		let stateName = null;
 
@@ -640,28 +643,67 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (!atDeviceRoot){
 
-			if (stateDetails.consumption) {
-				// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
-				
-				stateName = `${stateDetails.deviceName}.${currentYear}.${stateDetails.headCathegorie}.${stateRoot}`;
-				this.log.info(`Try creating states ${stateName}`);
-				await this.localSetObject(stateName, commonData);
-			// 	// await this.set_zero_val(object);
+			if (!deleteState && stateDetails.consumption) {
+				switch(stateDetails.headCathegorie){
+					case 'consumed':
+						// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`, commonData);
+						await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
+						break;
+
+					case 'delivered':
+						// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`, commonData);
+						await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
+						break;
+
+					default:
+						
+				}
+
+			} else if (deleteState || !stateDetails.consumption){
+
+				// If state deletion choosen, clean everyting up  else define statename
+				await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
+				this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
+				await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
+				this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
+
 			}
-	
-			
-			if (stateDetails.costs) {
-				// await this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
-				stateName = `${stateDetails.deviceName}.${currentYear}.${stateDetails.financielCathegorie}.${stateRoot}`;
-				this.log.info(`Try creating states ${stateName}`);
-				await this.localSetObject(stateName, commonData);
-				// await this.set_zero_val(object);
+
+			if (!deleteState && stateDetails.costs) {
+
+				switch(stateDetails.financielCathegorie){
+					case 'costs':
+						// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`, commonData);
+						await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`);
+						break;
+
+					case 'earnings':
+						// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`, commonData);
+						await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`);
+						break;
+
+					default:
+						
+				}
+
+			} else if (!stateDetails.costs){
+
+				// If state deletion choosen, clean everyting up else define statename
+				await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`);
+				this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`);
+				await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`);
+				this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`);
+
 			}
 
 		} else{
 
 			stateName = `${stateDetails.deviceName}.${currentYear}.${stateRoot}`;
-			this.log.info(`Try creating states ${stateName}`);
+			this.log.debug(`Try creating states ${stateName}`);
 			await this.localSetObject(stateName, commonData);
 
 		}
@@ -698,6 +740,18 @@ class Sourceanalytix extends utils.Adapter {
 		});
 	}
 
+	async localDeleteState(state) {
+		try {
+			if (stateDeletion){
+			const obj = await this.getObjectAsync(state);
+				if (obj) {
+					await this.delObjectAsync(state);
+				}
+			}
+		} catch (error) {
+			// do nothing
+		}
+	}
 	// Calculation handler
 	async calculation_handler(id) {
 		/*
