@@ -112,7 +112,7 @@ class Sourceanalytix extends utils.Adapter {
 								start_quarter: customData.start_quarter,
 								start_week: customData.start_week,
 								start_year: customData.start_year,
-								state_type: customData.kWh_consumption,
+								state_type: customData.state_type,
 								state_unit: customData.state_unit,
 								unit: stateInfo.common.unit
 							};
@@ -226,17 +226,17 @@ class Sourceanalytix extends utils.Adapter {
 
 		// create state for current day/week/quarters/month current value
 		let stateRoot = '01_current_day';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Day ');
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Day ', true);
 		stateRoot = '02_current_week';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Week ');
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Week ', true);
 		stateRoot = '03_current_month';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Month ');
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Month ', true);
 		stateRoot = '04_current_quarter';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Quarter');
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Quarter', true);
 		stateRoot = '05_current_year';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Year');
+		await this.doLocalStateCreate(stateID, stateRoot, 'current Year', true);
 		stateRoot = 'Current_Reading';
-		await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading');	
+		await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
 
 		this.log.debug(`Initialization finished for : ${stateID}`);
@@ -623,47 +623,49 @@ class Sourceanalytix extends utils.Adapter {
 	// Function to handle state creation
 	// async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
 	// await this.doStateCreate(delivery, device, curent_day, weekdays[x], 'number', 'value.day', unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
-	async doLocalStateCreate(stateID, stateRoot, name) {
+	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot) {
 		const stateDetails = this.activeStates[stateID];
+		let stateName = null;
 
-		const stateName = `${stateDetails.deviceName}.${currentYear}.${stateDetails.headCathegorie}.${stateRoot}`;
-		this.log.info(`Try creating states ${stateName}`);
-		if (stateDetails.consumption) {
-			// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
-		// 	await this.setObjectNotExistsAsync(stateName, {
-		// 		type: 'state',
-		// 		common: {
-		// 			name: name,
-		// 			type: 'number',
-		// 			role: 'value',
-		// 			read: true,
-		// 			write: false,
-		// 			unit: stateDetails.useUnit,
-		// 			def: 0,
-		// 		},
-		// 		native: {},
-		// 	});
-		// 	// await this.set_zero_val(object);
-		}
+		// Common object content
+		const commonData = {
+			name: name,
+			type: 'number',
+			role: 'value',
+			read: true,
+			write: false,
+			unit: stateDetails.useUnit,
+			def: 0,
+		};
 
-		if (stateDetails.costs) {
-			// await this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
-			// object = device + '.' + financiel_cathegorie + id;
-			await this.setObjectNotExistsAsync(stateName, {
-				type: 'state',
-				common: {
-					name: name,
-					type: 'number',
-					role: 'value',
-					read: true,
-					write: false,
-					unit: stateDetails.useUnit,
-					def: 0,
-				},
-				native: {},
-			});
-			// await this.set_zero_val(object);
+		if (!atDeviceRoot){
+
+			if (stateDetails.consumption) {
+				// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
+				
+				stateName = `${stateDetails.deviceName}.${currentYear}.${stateDetails.headCathegorie}.${stateRoot}`;
+				this.log.info(`Try creating states ${stateName}`);
+				await this.localSetObject(stateName, commonData);
+			// 	// await this.set_zero_val(object);
+			}
+	
+			
+			if (stateDetails.costs) {
+				// await this.ChannelCreate(device, financiel_cathegorie, financiel_cathegorie);
+				stateName = `${stateDetails.deviceName}.${currentYear}.${stateDetails.financielCathegorie}.${stateRoot}`;
+				this.log.info(`Try creating states ${stateName}`);
+				await this.localSetObject(stateName, commonData);
+				// await this.set_zero_val(object);
+			}
+
+		} else{
+
+			stateName = `${stateDetails.deviceName}.${currentYear}.${stateRoot}`;
+			this.log.info(`Try creating states ${stateName}`);
+			await this.localSetObject(stateName, commonData);
+
 		}
+		
 		/*
 		if (reading) {
 
@@ -685,6 +687,15 @@ class Sourceanalytix extends utils.Adapter {
 			await this.set_zero_val(object);
 		}
 		*/
+	}
+
+	// Set object routine to simplify code
+	async localSetObject(stateName, commonData){
+		await this.setObjectNotExistsAsync(stateName, {
+			type: 'state',
+			common: commonData,
+			native: {},
+		});
 	}
 
 	// Calculation handler
