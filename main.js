@@ -105,7 +105,7 @@ class Sourceanalytix extends utils.Adapter {
 			await this.initialize(stateID);
 			count = count + 1;
 		}
-		this.log.info(`Initialized array : ${JSON.stringify(this.activeStates)}`);
+		this.log.info(`Active state array after initialisation : ${JSON.stringify(this.activeStates)}`);
 		this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ...`);
 	}
 
@@ -319,52 +319,40 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} id
 	 * @param {ioBroker.Object | null | undefined} obj
 	 */
-	onObjectChange(id, obj) {
-		/*
-		let existing = false;
-		let array_id;
+	async onObjectChange(id, obj) {
+		const stateID = id;
 
-		this.log.debug('Object array of all activated states : ' + JSON.stringify(this.state_set));
-		this.log.debug('Object array of object trigger : ' + JSON.stringify(obj));
-		// Check if change object is part of array
-		for (const x in this.state_set) {
+		// let existing = false;
+		// let array_id;
 
-			if (this.state_set[x] === id) {
-				existing = true;
-				array_id = x;
-			}
-
-		}
+		this.log.debug(`Object array of all activated states : ${JSON.stringify(this.activeStates)}`);
+		this.log.debug(`Object array of onObjectChange trigger : ${JSON.stringify(obj)}`);
 
 		// Check if object is activated for SourceAnalytix
-		if (obj && obj.common &&
-			(
-				(obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled)
-			)
-		) {
+		if (obj && obj.common) {
+			
+			// Verify if custom information is available regaring SourceAnalytix
+			if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled){
 			// Verify if the object was already activated, if not initialize new device
-			if (existing === false) {
-				this.log.info('Enable SourceAnalytix for : ' + id);
-				// Add object to array
-				this.state_set.push(id);
-				this.initialize(obj);
-			} else {
-				this.log.info('Updated SourceAnalytix configuration for : ' + id);
-				this.initialize(obj);
+				if(!this.activeStates[stateID]) {
+					this.log.info(`Enable SourceAnalytix for : ${stateID}`);
+					await this.buildStateDetailsArray(id);
+					this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+				} else {
+					this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
+					await this.buildStateDetailsArray(id);
+					this.log.info(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+				}
+			} else if (this.activeStates[stateID]){
+				this.activeStates[stateID] = null;
+				this.log.info(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+				this.unsubscribeForeignStates(stateID);
 			}
-
-			this.log.debug('Complete object array : ' + JSON.stringify(this.state_set));
 
 		} else {
-
-			if (existing === true) {
-				this.log.info('Disable SourceAnalytix for : ' + id);
-				this.unsubscribeForeignStates(id);
-				// TODO: array_id is a string, but is used like a number
-				this.state_set.splice(array_id, 1);
-			}
+			// Object change not related to this adapter, ignoring
 		}
-		*/
+
 	}
 
 	/**
