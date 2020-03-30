@@ -164,8 +164,8 @@ class Sourceanalytix extends utils.Adapter {
 
 		// Define propper unite cancel initialisation if no unit defined
 		this.activeStates[stateID].useUnit = await this.defineUnit(stateID);
-		if (!this.activeStates[stateID].stateDetails.useUnit || this.activeStates[stateID].stateDetails.useUnit === '') return;
-
+		this.log.error(`unit defined ${this.activeStates[stateID].useUnit}`);
+		if (!this.activeStates[stateID].useUnit || this.activeStates[stateID].useUnit === '') return;
 		// ************************************************
 		// ****************** Code Break ******************
 		// ************************************************
@@ -563,51 +563,37 @@ class Sourceanalytix extends utils.Adapter {
 	}
 	
 	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
-	unit_calc_fact(obj, value) {
-		/*
-		this.log.debug('Object array input for unit factore calculation : ' + JSON.stringify(obj));
-		this.log.debug('State value input for unit factore calculation : ' + JSON.stringify(value));
+	async calcFac(stateID, value) {
+		const stateDetails = this.activeStates[stateID].stateDetails;
 		if (value === null) {
-			this.log.error('Data error ! NULL value received for current reading of device : ' + obj._id);
+			this.log.error(`Data error ! NULL value received for current reading of device : ${stateID}`);
 		}
 
-		const unit = this.defineUnit(obj);
-
-		this.log.debug('Test unit : ' + unit);
-
-		let calc_value;
-
-		switch (unit) {
+		switch (stateDetails.unit.toLowerCase()) {
 			case 'kwh':
-				calc_value = value;
+				// Keep value
 				break;
 			case 'wh':
-				calc_value = value / 1000;
+				value = value / 1000;
 				break;
 			case 'm3':
-				calc_value = value;
+				// Keep value
 				break;
 			case 'm³':
-				calc_value = value;
+				// Keep value
 				break;
 			case 'l':
-				calc_value = value / 1000;
+				value = value / 1000;
 				break;
 			case 'w':
-				calc_value = value;
+				// Keep value
 				break;
 			default:
-				this.log.error('Case error : value received for calculation with unit : ' + unit + ' which is currenlty not (yet) supported');
+				this.log.error(`Case error : ${stateID} received for calculation with unit : ${stateDetails.unit} which is currenlty not (yet) supported`);
 		}
 
-		if (calc_value === null) {
-			this.log.error('Data error ! NULL value received for current reading of device : ' + obj._id);
-		}
-
-		this.log.debug('State value output of unit factore calculation : ' + JSON.stringify(calc_value));
-
-		return calc_value;
-		*/
+		return value;
+		
 	}
 
 	// Function to handle channel creation
@@ -625,7 +611,7 @@ class Sourceanalytix extends utils.Adapter {
 	// async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
 	// await this.doStateCreate(delivery, device, curent_day, weekdays[x], 'number', 'value.day', unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState) {
-		const stateDetails = this.activeStates[stateID].stateDetails;;
+		const stateDetails = this.activeStates[stateID].stateDetails;
 		let stateName = null;
 
 		// Common object content
@@ -750,8 +736,6 @@ class Sourceanalytix extends utils.Adapter {
 			// do nothing
 		}
 	}
-	// Calculation handler
-	async calculationHandler(stateID, value) {
 
 	// Define which calculation factor must be used
 	async priceDeclaration (stateID){
@@ -760,41 +744,6 @@ class Sourceanalytix extends utils.Adapter {
 		let basicPrice = null;
 
 		switch (stateDetails.state_type) {
-		let cost_t, del_t, cost_basic, cost_unit;
-		this.log.debug('Write calculations for : ' + id._id);
-		current_year = (new Date().getFullYear());
-
-		const date = new Date();
-
-		// replace '.' in datapoints to '_'
-		const obj_id = id._id.split('.').join('__');
-		const obj_root = this.namespace + '.' + obj_id;
-
-		this.log.debug('Calc obj root ' + obj_root);
-
-		const obj_cont = await this.getForeignObjectAsync(id._id);
-
-		if (obj_cont === undefined || obj_cont === null) {
-			return;
-		}
-		this.log.debug('State object content: ' + JSON.stringify(obj_cont));
-
-		if (obj_cont.common.custom === undefined) {
-			return;
-		}
-
-		// Read custom attributes to memory
-		const obj_cust = obj_cont.common.custom[this.namespace];
-		this.log.info('State object custom content: ' + JSON.stringify(obj_cust));
-
-		this.test_obj_cust[id._id] = obj_cont.common.custom[this.namespace];
-		this.log.info('State constructor custom content: ' + JSON.stringify(this.test_obj_cust));
-
-		// Define unit
-		const unit = await this.defineUnit(obj_cont);
-
-		// Define which calculation factor must be used
-		switch (obj_cust.state_type) {
 
 			case 'kWh_consumption':
 				this.log.debug('Case result : Electricity consumption');
@@ -857,20 +806,17 @@ class Sourceanalytix extends utils.Adapter {
 
 		// Return values
 		return {unitPrice, basicPrice};
+	}
+	// Calculation handler
+	async calculationHandler(stateID, value) {
+		const stateDetails = this.activeStates[stateID].stateDetails;
+		this.log.info(`Calculation for  ${stateID} with value : ${value} and configuration : ${JSON.stringify(stateDetails)}`);
 
-		if (!reading) {
-			this.log.error('Current value cannot be read during calculation of state : ' + id._id);
-			return;
-		}
 
-		// Declare variable containing meassurement
-		let calc_reading;
-
-		// Different logic for W values, calculate to kWh first
+		const date = new Date();
 		if (unit !== 'w') {
 
-			calc_reading = await this.unit_calc_fact(id, reading.val);
-			await this.setState(obj_root + '.Meter_Readings.Current_Reading', { val: calc_reading ,ack: true });
+		const stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
 		} else {
 
@@ -880,9 +826,11 @@ class Sourceanalytix extends utils.Adapter {
 				// cancel calculation in case of impuls counter
 				return;
 	
-			}
+		const reading = await this.calcFac(stateID, value);
+		this.log.info(`Recalculated value ${reading}`);
+		if (!reading) return;
 
-			// Get previous reading of W and its related timestammps
+		await this.setState(`${stateDetails.deviceName}.${currentYear}.Current_Reading`, { val: reading ,ack: true });
 			const Prev_Reading = await this.getStateAsync(obj_id + '.Meter_Readings.Current_Reading_W');
 			this.log.debug('Previous_reading from state : ' + JSON.stringify(Prev_Reading));
 			if (!Prev_Reading) return;
