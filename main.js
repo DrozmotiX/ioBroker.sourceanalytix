@@ -33,10 +33,10 @@ class Sourceanalytix extends utils.Adapter {
 		});
 
 		this.on('ready', this.onReady.bind(this));
-		// this.on('objectChange', this.onObjectChange.bind(this));
+		this.on('objectChange', this.onObjectChange.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		// this.on('message', this.onMessage.bind(this));
-		// this.on('unload', this.onUnload.bind(this));
+		this.on('unload', this.onUnload.bind(this));
 
 		this.activeStates = {}; // Array of activated states for SourceAnalytix
 		this.state_set = [];
@@ -86,44 +86,18 @@ class Sourceanalytix extends utils.Adapter {
 							continue;
 						}
 					}
+
+					// If enabled for SourceAnalytix, handle routine to store relevant date to memory
 					if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
 						// Not SourceAnalytix relevant ignore
 					} else {
-
-						const stateInfo = await this.getForeignObjectAsync(id);
-
-						if (stateInfo !== undefined && stateInfo !== null
-							&& stateInfo.common !== undefined && stateInfo.common !== null
-							&& stateInfo.common.custom !== undefined && stateInfo.common.custom !== null) {
-							const customData = stateInfo.common.custom[this.namespace];
-
-							// Load state settings to memory
-
-							// To-Do added error handling in case values ar empty
-							this.activeStates[id] = {
-								alias: customData.alias,
-								consumption: customData.consumption,
-								costs: customData.costs,
-								enabled: true,
-								meter_values: customData.meter_values,
-								name: stateInfo.common.name,
-								start_day: customData.start_day,
-								start_month: customData.start_month,
-								start_quarter: customData.start_quarter,
-								start_week: customData.start_week,
-								start_year: customData.start_year,
-								state_type: customData.state_type,
-								state_unit: customData.state_unit,
-								unit: stateInfo.common.unit
-							};
-							this.log.info(`Enabled state ${id}: with content ${JSON.stringify(stateInfo)}`);
-								}
-						}
+						await this.buildStateDetailsArray(id);
 					}
 				}
 			}
+		}
 
-		// // Initialize datapoints
+		// // Handle initialisation for all discovered states
 		let count = 1;
 		for (const stateID in this.activeStates) {
 
@@ -131,10 +105,43 @@ class Sourceanalytix extends utils.Adapter {
 			await this.initialize(stateID);
 			count = count + 1;
 		}
+		this.log.info(`Initialized array : ${JSON.stringify(this.activeStates)}`);
+		this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ...`);
+	}
 
-		this.log.debug(`Initialized array : ${JSON.stringify(this.activeStates)}`);
-		this.log.info(`State initialisation finalized, will handle calculations ...`);
+	async buildStateDetailsArray (stateID){
+		const stateInfo = await this.getForeignObjectAsync(stateID);
 
+		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
+			const customData = stateInfo.common.custom[this.namespace];
+			const stateType = customData.state_type;
+
+			// Load state settings to memory
+			// To-Do added error handling in case values ar empty
+			this.activeStates[stateID] = {
+				stateDetails : {
+					alias: customData.alias,
+					consumption: customData.consumption,
+					costs: customData.costs,
+					deviceName: stateID.split('.').join('__'),
+					financielCathegorie : stateType === 'kWh_delivery' ? 'earnings' : 'costs',
+					headCathegorie : stateType === 'kWh_delivery' ? 'delivered' : 'consumed',
+					meter_values: customData.meter_values,
+					name: stateInfo.common.name,
+					state_type: customData.state_type,
+					state_unit: customData.state_unit,
+					unit: stateInfo.common.unit
+				},
+				stateStartValues : {
+					start_day: customData.start_day,
+					start_month: customData.start_month,
+					start_quarter: customData.start_quarter,
+					start_week: customData.start_week,
+					start_year: customData.start_year,
+				}
+			};
+			this.log.info(`Enabled state ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);						
+		}
 	}
 
 	// Create object tree and states for all devices to be handled
@@ -144,25 +151,13 @@ class Sourceanalytix extends utils.Adapter {
 		// Get current year to define object root
 		currentYear = (new Date().getFullYear());
 
-		// Prepare state configuration attributes
-		if (this.activeStates[stateID].state_type === 'kWh_delivery') {
-			this.activeStates[stateID].headCathegorie = 'delivered';
-			this.activeStates[stateID].financielCathegorie = 'earnings';
-		} else {
-			this.activeStates[stateID].headCathegorie = 'consumed';
-			this.activeStates[stateID].financielCathegorie = 'costs';
-		}
-
 		// *** Code Break
 		// Define propper unite cancel initialisation if no unit defined
 		this.activeStates[stateID].useUnit = await this.defineUnit(stateID);
-		if (!this.activeStates[stateID].useUnit || this.activeStates[stateID].useUnit === '') return;
-
-		// replace '.' in datapoints to '_' and store as device name
-		this.activeStates[stateID].deviceName = stateID.split('.').join('__');
+		if (!this.activeStates[stateID].stateDetails.useUnit || this.activeStates[stateID].stateDetails.useUnit === '') return;
 
 		// Shorten configuraiton details for easier access
-		const stateDetails = this.activeStates[stateID];
+		const stateDetails = this.activeStates[stateID].stateDetails;
 		
 		this.log.debug(`stateDetails  ${JSON.stringify(stateDetails)}`);
 
@@ -271,7 +266,7 @@ class Sourceanalytix extends utils.Adapter {
 
 	// Define propper unit notation 
 	async defineUnit(stateID) {
-		const stateDetails = this.activeStates[stateID];
+		const stateDetails = this.activeStates[stateID].stateDetails;
 		let unit = null;
 
 		// Check if unit is defined in state object, if not use custom value
@@ -630,7 +625,7 @@ class Sourceanalytix extends utils.Adapter {
 	// async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
 	// await this.doStateCreate(delivery, device, curent_day, weekdays[x], 'number', 'value.day', unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState) {
-		const stateDetails = this.activeStates[stateID];
+		const stateDetails = this.activeStates[stateID].stateDetails;;
 		let stateName = null;
 
 		// Common object content
@@ -1084,7 +1079,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	onUnload(callback) {
 		try {
-			this.log.info('Adapter SourceAnalytix stopped !');
+			this.log.info(`SourceAnalytix stopped, now you have to calculate by yourself :'( ...`);
 			callback();
 		} catch (e) {
 			callback();
