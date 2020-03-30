@@ -34,7 +34,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		this.on('ready', this.onReady.bind(this));
 		// this.on('objectChange', this.onObjectChange.bind(this));
-		// this.on('stateChange', this.onStateChange.bind(this));
+		this.on('stateChange', this.onStateChange.bind(this));
 		// this.on('message', this.onMessage.bind(this));
 		// this.on('unload', this.onUnload.bind(this));
 
@@ -132,7 +132,7 @@ class Sourceanalytix extends utils.Adapter {
 			count = count + 1;
 		}
 
-		this.log.info(`Initialized array : ${JSON.stringify(this.activeStates)}`);
+		this.log.debug(`Initialized array : ${JSON.stringify(this.activeStates)}`);
 		this.log.info(`State initialisation finalized, will handle calculations ...`);
 
 	}
@@ -242,7 +242,7 @@ class Sourceanalytix extends utils.Adapter {
 		await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
 
-		this.log.debug(`Initialization finished for : ${stateID}`);
+		this.log.info(`Initialization finished for : ${stateID}`);
 		// Subscribe state, every state change will trigger calculation
 		this.subscribeForeignStates(stateID);
 
@@ -378,19 +378,22 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.State | null | undefined} state
 	 */
 	onStateChange(id, state) {
-		/*
+
 		if (state) {
 			// The state was changed
 			this.log.debug(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
 
-			this.getForeignObject(id, (err, obj) => {
-				if (obj !== undefined && obj !== null) {
-					this.calculation_handler(obj);
-				}
-			});
+			this.calculationHandler(id, state.val);
+
+
+			// this.getForeignObject(id, (err, obj) => {
+			// 	if (obj !== undefined && obj !== null) {
+			// 		this.calculation_handler(obj);
+			// 	}
+			// });
 		}
 	}
-
+/*
 	// null values must be set 0 to avoid issue in later processing, def: 0 at object creation possible n js-controler 2.0
 	async set_zero_val(id) {
 
@@ -420,9 +423,9 @@ class Sourceanalytix extends utils.Adapter {
 		}
 		// Return array of year and week number
 		return [weekNo];
-		*/
+		
 	}
-
+*/
 	// Function to calculate current quarter
 	// function quarter_of_the_year(){
 	// 		const date = new Date();
@@ -753,7 +756,10 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 	// Calculation handler
-	async calculation_handler(id) {
+	async calculationHandler(stateID, value) {
+
+		this.log.info(`state ${stateID} calculation with value : ${value}`);
+
 		/*
 		let cost_t, del_t, cost_basic, cost_unit;
 		this.log.debug('Write calculations for : ' + id._id);
