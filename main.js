@@ -347,16 +347,20 @@ class Sourceanalytix extends utils.Adapter {
 			
 			// Verify if custom information is available regaring SourceAnalytix
 			if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled){
+
 			// Verify if the object was already activated, if not initialize new device
 				if(!this.activeStates[stateID]) {
 					this.log.info(`Enable SourceAnalytix for : ${stateID}`);
 					await this.buildStateDetailsArray(id);
 					this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+					await this.initialize(stateID);
 				} else {
 					this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
 					await this.buildStateDetailsArray(id);
 					this.log.info(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+					await this.initialize(stateID);
 				}
+
 			} else if (this.activeStates[stateID]){
 				this.activeStates[stateID] = null;
 				this.log.info(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
