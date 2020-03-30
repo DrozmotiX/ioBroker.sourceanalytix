@@ -151,15 +151,29 @@ class Sourceanalytix extends utils.Adapter {
 		// Get current year to define object root
 		currentYear = (new Date().getFullYear());
 
-		// *** Code Break
+		// ************************************************
+		// ****************** Code Break ******************
+		// ************************************************
+
+		// Define propper calculation values based on system configuration
+		const prices = await this.priceDeclaration(stateID);
+		// Skip initialisation if values are null
+		if (! prices || !prices.basicPrice || !prices.unitPrice) return;
+		this.activeStates[stateID].basicPrice = prices.basicPrice;
+		this.activeStates[stateID].unitPrice = prices.unitPrice;
+
 		// Define propper unite cancel initialisation if no unit defined
 		this.activeStates[stateID].useUnit = await this.defineUnit(stateID);
 		if (!this.activeStates[stateID].stateDetails.useUnit || this.activeStates[stateID].stateDetails.useUnit === '') return;
 
+		// ************************************************
+		// ****************** Code Break ******************
+		// ************************************************
+
 		// Shorten configuraiton details for easier access
 		const stateDetails = this.activeStates[stateID].stateDetails;
 		
-		this.log.debug(`stateDetails  ${JSON.stringify(stateDetails)}`);
+		this.log.debug(`Defined calculation attributes for ${stateID} : ${JSON.stringify(this.activeStates[stateID])}`);
 
 		let alias = stateDetails.name;
 		if (stateDetails.alias && stateDetails.alias !== '') {
@@ -368,12 +382,6 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.calculationHandler(id, state.val);
 
-
-			// this.getForeignObject(id, (err, obj) => {
-			// 	if (obj !== undefined && obj !== null) {
-			// 		this.calculation_handler(obj);
-			// 	}
-			// });
 		}
 	}
 /*
@@ -741,9 +749,13 @@ class Sourceanalytix extends utils.Adapter {
 	// Calculation handler
 	async calculationHandler(stateID, value) {
 
-		this.log.info(`state ${stateID} calculation with value : ${value}`);
+	// Define which calculation factor must be used
+	async priceDeclaration (stateID){
+		const stateDetails = this.activeStates[stateID].stateDetails;
+		let unitPrice = null;
+		let basicPrice = null;
 
-		/*
+		switch (stateDetails.state_type) {
 		let cost_t, del_t, cost_basic, cost_unit;
 		this.log.debug('Write calculations for : ' + id._id);
 		current_year = (new Date().getFullYear());
@@ -782,65 +794,65 @@ class Sourceanalytix extends utils.Adapter {
 
 			case 'kWh_consumption':
 				this.log.debug('Case result : Electricity consumption');
-				cost_unit = this.config.unit_price_power;
-				cost_basic = this.config.basic_price_power;
+				unitPrice = this.config.unit_price_power;
+				basicPrice = this.config.basic_price_power;
 				break;
 
 			case 'kWh_consumption_night':
 				this.log.debug('Case result : Electricity consumption night');
-				cost_unit = this.config.unit_price_power_night;
-				cost_basic = this.config.basic_price_power;
+				unitPrice = this.config.unit_price_power_night;
+				basicPrice = this.config.basic_price_power;
 				break;
 
 			case 'impuls':
 				this.log.debug('Case result : Impuls');
-				cost_unit = this.config.unit_price_power;
-				cost_basic = this.config.basic_price_power;
+				unitPrice = this.config.unit_price_power;
+				basicPrice = this.config.basic_price_power;
 				break;
 
 			case 'kWh_delivery':
 				this.log.debug('Case result : Electricity delivery');
-				cost_unit = this.config.unit_price_power_delivery;
-				cost_basic = this.config.basic_price_power;
+				unitPrice = this.config.unit_price_power_delivery;
+				basicPrice = this.config.basic_price_power;
 				break;
 
 			case 'kWh_heatpomp':
 				this.log.debug('Case result : Heat Pump');
-				cost_unit = this.config.unit_price_heatpump;
-				cost_basic = this.config.basic_price_heatpump;
+				unitPrice = this.config.unit_price_heatpump;
+				basicPrice = this.config.basic_price_heatpump;
 				break;
 
 			case 'kWh_heatpomp_night':
 				this.log.debug('Case result : Heat Pump night');
-				cost_unit = this.config.unit_price_heatpump_night;
-				cost_basic = this.config.basic_price_heatpump;
+				unitPrice = this.config.unit_price_heatpump_night;
+				basicPrice = this.config.basic_price_heatpump;
 				break;
 
 			case 'gas':
 				this.log.debug('Case result : Gas');
-				cost_unit = this.config.unit_price_gas;
-				cost_basic = this.config.basic_price_gas;
+				unitPrice = this.config.unit_price_gas;
+				basicPrice = this.config.basic_price_gas;
 				break;
 
 			case 'water_m3':
 				this.log.debug('Case result : Water');
-				cost_unit = this.config.unit_price_water;
-				cost_basic = this.config.basic_price_water;
+				unitPrice = this.config.unit_price_water;
+				basicPrice = this.config.basic_price_water;
 				break;
 
 			case 'oil_m3':
 				this.log.debug('Case result : Oil');
-				cost_unit = this.config.unit_price_oil;
-				cost_basic = this.config.basic_price_oil;
+				unitPrice = this.config.unit_price_oil;
+				basicPrice = this.config.basic_price_oil;
 				break;
 
 			default:
-				this.log.error('Error in case handling of cost type identificaton : ' + obj_cust.state_type);
+				this.log.error(`Error in case handling of cost type identificaton for state ${stateID} state_type : ${stateDetails.state_type}`);
 				return;
 		}
 
-		// Get current value from meter
-		const reading = await this.getForeignStateAsync(id._id);
+		// Return values
+		return {unitPrice, basicPrice};
 
 		if (!reading) {
 			this.log.error('Current value cannot be read during calculation of state : ' + id._id);
