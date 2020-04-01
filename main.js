@@ -17,7 +17,7 @@ const stateDeletion = true;
 
 // Create variables for object arrays
 const history = {}, w_values = {}, aliasMap = {}, cron_set = [], state_set = [];
-let currentYear = null;
+let currentYear = null, currentQuarter = null, currentMonth = null, currentWeek = null, currentDay = null;
 // Load Time Modules
 const schedule = require('node-schedule'); // New Cron Scheduler
 
@@ -154,11 +154,9 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 
 			this.log.debug(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
-			// Get current year to define object root
-		currentYear = (new Date().getFullYear());
 
-		// ************************************************
-		// ****************** Code Break ******************
+			// ************************************************
+			// ****************** Code Break ******************
 		// ************************************************
 
 			// Define propper calculation values based on system configuration
@@ -247,26 +245,28 @@ class Sourceanalytix extends utils.Adapter {
 			// Create basic states
 			for (const state of basicValues) {
 
-				this.log.info(`Create basicValue ${state}`);
 				const stateRoot = state;
 				await this.doLocalStateCreate(stateID, stateRoot, state);
 
 			}
 
 
-			// create state for current day/week/quarters/month current value
-			let stateRoot = '01_current_day';
-			await this.doLocalStateCreate(stateID, stateRoot, 'current Day ', true);
-		stateRoot = '02_current_week';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Week ', true);
-		stateRoot = '03_current_month';
-		await this.doLocalStateCreate(stateID, stateRoot, 'current Month ', true);
-		stateRoot = '04_current_quarter';
-			await this.doLocalStateCreate(stateID, stateRoot, 'current Quarter', true);
-			stateRoot = '05_current_year';
-			await this.doLocalStateCreate(stateID, stateRoot, 'current Year', true);
 			
-			stateRoot = 'Current_Reading';
+
+
+
+			// let stateRoot = '01_current_day';
+			// await this.doLocalStateCreate(stateID, stateRoot, 'current Day ', true);
+			// stateRoot = '02_current_week';
+			// await this.doLocalStateCreate(stateID, stateRoot, 'current Week ', true);
+			// stateRoot = '03_current_month';
+			// await this.doLocalStateCreate(stateID, stateRoot, 'current Month ', true);
+			// stateRoot = '04_current_quarter';
+			// await this.doLocalStateCreate(stateID, stateRoot, 'current Quarter', true);
+			// stateRoot = '05_current_year';
+			// await this.doLocalStateCreate(stateID, stateRoot, 'current Year', true);
+			
+			const stateRoot = 'Current_Reading';
 			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
 
@@ -447,13 +447,6 @@ class Sourceanalytix extends utils.Adapter {
 		return [weekNo];
 		
 	}
-
-	// Function to calculate current quarter
-	// function quarter_of_the_year(){
-	// 		const date = new Date();
-	// 		const m = date.getMonth()+1;
-	// 		return Math.ceil(m/3);
-	// }
 
 	// Function to reset start values for each day, week, month, quarter, year
 	async reset_shedules(obj_array) {
@@ -949,88 +942,51 @@ class Sourceanalytix extends utils.Adapter {
 				priceQuarter: await this.roundCosts(statePrices.unitPrice * calculations.consumedQuarter),
 				priceYear: await this.roundCosts(statePrices.unitPrice * calculations.consumedYear),
 			};
-			this.log.info(`Consumed data for  ${stateID} : ${JSON.stringify(calculations)}`);
 
-			// Always write generic meterReadings for current year
-			stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.headCathegorie}.meterReadings`;
-			this.setState(`${stateName}.01_current_day`, { val: calculationRounded.consumedDay, ack: true });
-			this.setState(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
-			this.setState(`${stateName}.03_current_month`, { val: calculationRounded.consumedMonth, ack: true });
-			this.setState(`${stateName}.04_current_quarter`, { val: calculationRounded.consumedQuarter, ack: true });
-			this.setState(`${stateName}.05_current_year`, { val: calculationRounded.consumedYear, ack: true });
+			this.log.info(`Consumed data for ${stateID} : ${JSON.stringify(calculations)}`);
 
-			// // calculate consumption
+			// Store consumption
 			if (stateDetails.consumption) {
+				// Always write generic meterReadings for current year
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.headCathegorie}`;
+				await this.setState(`${stateName}.01_current_day`, { val: calculationRounded.consumedDay, ack: true });
+				await this.setState(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
+				await this.setState(`${stateName}.03_current_month`, { val: calculationRounded.consumedMonth, ack: true });
+				await this.setState(`${stateName}.04_current_quarter`, { val: calculationRounded.consumedQuarter, ack: true });
+				await this.setState(`${stateName}.05_current_year`, { val: calculationRounded.consumedYear, ack: true });
 
-				// Store current amounts to states
-
-				// 	// Week
-				this.setState(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
-				// 	// Month
-				this.setState(`${stateName}.03_current_month`, { val: calculationRounded.consumedMonth, ack: true });
-				this.setState(`${stateName}.months.${months[date.getMonth()]}`, { val: calculationRounded.consumedMonth, ack: true });
-				// 	// Quarter
-				this.setState(`${stateName}.04_current_quarter`, { val: calculationRounded.consumedQuarter, ack: true });
-				// 	// Year
-				this.setState(`${stateName}.05_current_year`, { val: calculationRounded.consumedYear, ack: true });
-
-				// 	// Calculate consumption
-				// 	// Weekday & current day
-				// this.log.info('calculated reading day : ' + consumed.day);
-				// stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}`;
-				// this.setState(`${stateName}.01_current_day`, { val: consumed.day, ack: true });
-				// 	this.setState(obj_root + del_t + 'current_year.this_week.' + weekdays[date.getDay()], { val: state_val, ack: true });
-
-				// 	// Week
-				// this.setState(`${stateName}.02_current_week`, { val: consumed.week, ack: true });
-				// 	this.setState(obj_root + del_t + 'current_year.weeks.' + this.getWeekNumber(new Date()), { val: state_val, ack: true });
-
-				// 	// Month
-				// this.setState(`${stateName}.03_current_month`, { val: consumed.month, ack: true });
-				// 	this.setState(obj_root + del_t + 'current_year.months.' + months[date.getMonth()], { val: state_val, ack: true });
-
-				// 	// Quarter
-				// this.setState(`${stateName}.04_current_quarter`, { val: consumed.quarter, ack: true });
-				// 	this.setState(obj_root + del_t + '04_current_quarter', { val: state_val, ack: true });
-
-				// 	// Year
-				// this.setState(`${stateName}.05_current_year`, { val: consumed.year, ack: true });
-				// 	this.setState(obj_root + del_t + '05_current_year', { val: state_val, ack: true });
+				// Week
+				await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
+				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.consumedWeek, ack: true });
+				// Month
+				await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.consumedMonth, ack: true });
+				// Quarter
+				await this.setState(`${stateName}.quarters.${currentQuarter}`, { val: calculationRounded.consumedQuarter, ack: true });
 			}
 
-			// this.log.info(`Day value for  ${stateID} : ${consumed.day}`);
-			// this.log.info(`unitPrice for  ${stateID} : ${stateDetails.unitPrice}`);
-			try {
-				// this.log.info(`costs =   ${stateDetails.costs}`);
 
 				// Calculate costs
 				if (stateDetails.costs) {
 
 					stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.financielCathegorie}`;
-					// Weekday & current day
 					await this.setState(`${stateName}.01_current_day`, { val: calculationRounded.priceDay, ack: true });
-					// this.setState(obj_root + cost_t + 'current_year.this_week.' + weekdays[date.getDay()], { val: calcPrice, ack: true });
-
-					// // Week
-					// this.log.info('calculated cost week : ' + calcPrice);
 					await this.setState(`${stateName}.02_current_week`, { val: calculationRounded.priceWeek, ack: true });
-					// // this.setState(obj_root + cost_t + 'current_year.weeks.' + this.getWeekNumber(new Date()), { val: calcPrice, ack: true });
-
-					// // Month
 					await this.setState(`${stateName}.03_current_month`, { val: calculationRounded.priceMonth, ack: true });
-					// // this.setState(obj_root + cost_t + 'current_year.months.' + months[date.getMonth()], { val: calcPrice, ack: true });
+				await this.setState(`${stateName}.04_current_quarter`, { val: calculationRounded.priceQuarter, ack: true });
+				await this.setState(`${stateName}.05_current_year`, { val: calculationRounded.priceYear, ack: true });
 
-					// // Quarter
-					await this.setState(`${stateName}.04_current_quarter`, { val: calculationRounded.priceQuarter, ack: true });
+				// Week
+				await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.priceDay, ack: true });
+				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.priceWeek, ack: true });
+				// Month
+				await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.priceMonth, ack: true });
+				// Quarter
+				await this.setState(`${stateName}.quarters.${currentQuarter}`, { val: calculationRounded.priceQuarter, ack: true });
 
-					// // Year
-					await this.setState(`${stateName}.05_current_year`, { val: calculationRounded.priceYear, ack: true });
-				}
-				this.log.info('Meter Calculation executed');
-
-			} catch (error) {
-				this.log.error(error);
 			}
+
+			this.log.info('Meter Calculation executed');
+
 		} catch (error) {
 			this.log.error(`[calculationHandler ${stateID}] error: ${error.message}, stack: ${error.stack}`);
 		}
@@ -1045,7 +1001,7 @@ class Sourceanalytix extends utils.Adapter {
 			return rounded;
 
 		} catch (error) {
-			this.log.error(`[rounddigits ${value}`);
+			this.log.error(`[roundDigits ${value}`);
 		}
 	}
 
@@ -1053,11 +1009,11 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			let rounded = Number(value);
 			rounded = Math.round(rounded * 100) / 100;
-			this.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+			this.log.debug(`roundCosts with ${value} rounded ${rounded}`);
 			return rounded;
 
 		} catch (error) {
-			this.log.error(`[rounddigits ${value}`);
+			this.log.error(`[roundCosts ${value}`);
 		}
 	}
 
@@ -1106,6 +1062,15 @@ class Sourceanalytix extends utils.Adapter {
 		// 		}
 		// 	}
 		// }
+	}
+
+	async resetDates(){
+		const today = new Date();
+		currentDay = weekdays[today.getDay()];
+		currentWeek = await this.getWeekNumber(new Date());
+		currentMonth = months[today.getMonth()];
+		currentQuarter = Math.floor((today.getMonth() + 3) / 3);
+		currentYear = (new Date().getFullYear());
 	}
 
 	/**
