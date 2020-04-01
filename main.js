@@ -80,13 +80,13 @@ class Sourceanalytix extends utils.Adapter {
 					}
 					history[id] = customStateArray.rows[i].value;
 
-					if (history[id].enabled !== undefined) {
-						history[id] = history[id].enabled ? { 'history.0': history[id] } : null;
-						if (!history[id]) {
-							this.log.info('undefined id');
-							// delete history[id];
-							continue;
-						}
+						if (history[id].enabled !== undefined) {
+							history[id] = history[id].enabled ? { 'history.0': history[id] } : null;
+							if (!history[id]) {
+								this.log.warn('undefined id');
+								// delete history[id];
+								continue;
+							}
 					}
 
 					// If enabled for SourceAnalytix, handle routine to store relevant date to memory
@@ -104,10 +104,10 @@ class Sourceanalytix extends utils.Adapter {
 		for (const stateID in this.activeStates) {
 
 			this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
-			await this.initialize(stateID);
-			count = count + 1;
-		}
-			this.log.info(`Active state array after initialisation : ${JSON.stringify(this.activeStates)}`);
+				await this.initialize(stateID);
+				count = count + 1;
+			}
+			this.log.debug(`Active state array after initialisation : ${JSON.stringify(this.activeStates)}`);
 			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ...`);
 		} catch (error) {
 			this.log.error(`[onReady] error: ${error.message}, stack: ${error.stack}`);
@@ -146,7 +146,7 @@ class Sourceanalytix extends utils.Adapter {
 				},
 				prices: {}
 			};
-			this.log.info(`Enabled state ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.debug(`buildStateDetailsArray of ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
 		}
 	}
 
@@ -169,7 +169,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Define propper unite cancel initialisation if no unit defined
 			this.activeStates[stateID].useUnit = await this.defineUnit(stateID);
-			this.log.info(`unit defined ${this.activeStates[stateID].useUnit}`);
+			this.log.debug(`unit defined ${this.activeStates[stateID].useUnit}`);
 			if (!this.activeStates[stateID].useUnit || this.activeStates[stateID].useUnit === '') return;
 			// ************************************************
 			// ****************** Code Break ******************
@@ -265,9 +265,9 @@ class Sourceanalytix extends utils.Adapter {
 			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
 
-		this.log.info(`Initialization finished for : ${stateID}`);
-		// Subscribe state, every state change will trigger calculation
-		this.subscribeForeignStates(stateID);
+			this.log.debug(`Initialization finished for : ${stateID}`);
+			// Subscribe state, every state change will trigger calculation
+			this.subscribeForeignStates(stateID);
 
 		/*
 			// Create meassurement state used for calculations related w to kWh
@@ -304,13 +304,13 @@ class Sourceanalytix extends utils.Adapter {
 		// Check if unit is defined in state object, if not use custom value
 		if (stateDetails.unit && stateDetails.state_unit === 'automatically') {
 			unit = stateDetails.unit.toLowerCase().replace(/\s|\W|[#$%^&*()]/g, '');
-		} else if (stateDetails.state_unit && stateDetails.state_unit !== 'automatically') {
-			// Replace meassurement unit when selected in state setting
-			unit = stateDetails.state_unit.toLowerCase();
-			this.log.info(`Unit manually assignd : ${unit}`);
-		} else {
-			this.log.error('Identifying unit failed, please ensure state has a propper unit assigned or the unit is manually choosen in state settings !');
-		}
+			} else if (stateDetails.state_unit && stateDetails.state_unit !== 'automatically') {
+				// Replace meassurement unit when selected in state setting
+				unit = stateDetails.state_unit.toLowerCase();
+				this.log.debug(`Unit manually assignd : ${unit}`);
+			} else {
+				this.log.error('Identifying unit failed, please ensure state has a propper unit assigned or the unit is manually choosen in state settings !');
+			}
 
 		switch (unit) {
 
@@ -373,18 +373,18 @@ class Sourceanalytix extends utils.Adapter {
 				if (!this.activeStates[stateID]) {
 					this.log.info(`Enable SourceAnalytix for : ${stateID}`);
 					await this.buildStateDetailsArray(id);
-					this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+					this.log.debug(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
 					await this.initialize(stateID);
 				} else {
 					this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
 					await this.buildStateDetailsArray(id);
-					this.log.info(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+					this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
 					await this.initialize(stateID);
 				}
 
 			} else if (this.activeStates[stateID]) {
 				this.activeStates[stateID] = null;
-				this.log.info(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+				this.log.debug(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
 				this.unsubscribeForeignStates(stateID);
 			}
 
@@ -403,7 +403,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (state) {
 			// The state was changed
-			this.log.info(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
+			this.log.debug(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
 
 			// Implement x ignore time (configurable) to avoid overload of uneeded calculations
 			this.calculationHandler(id, state.val);
@@ -855,7 +855,7 @@ class Sourceanalytix extends utils.Adapter {
 		const stateDetails = this.activeStates[stateID].stateDetails;
 		const statePrices = this.activeStates[stateID].prices;
 		const startValues = this.activeStates[stateID].startValues;
-		this.log.info(`Calculation for  ${stateID} with value : ${value} and configuration : ${JSON.stringify(stateDetails)}`);
+			this.log.debug(`Calculation for  ${stateID} with value : ${value} and configuration : ${JSON.stringify(stateDetails)}`);
 
 
 		const date = new Date();
@@ -866,10 +866,10 @@ class Sourceanalytix extends utils.Adapter {
 		} else {
 
 		const reading = await this.calcFac(stateID, value);
-		this.log.info(`Recalculated value ${reading}`);
+			this.log.debug(`Recalculated value ${reading}`);
 		if (!reading) return;
 			await this.setState(`${stateDetails.deviceName}.${currentYear}.Current_Reading`, { val: await this.roundDigits(reading), ack: true });
-			this.log.info(`Set current value ${reading} on state : ${stateDetails.deviceName}.${currentYear}.Current_Reading}`);
+			this.log.debug(`Set current value ${reading} on state : ${stateDetails.deviceName}.${currentYear}.Current_Reading}`);
 			// } else {
 
 			// 	// Handle impuls counters
@@ -938,7 +938,7 @@ class Sourceanalytix extends utils.Adapter {
 				priceYear: await this.roundCosts(statePrices.unitPrice * calculations.consumedYear),
 			};
 
-			this.log.info(`Consumed data for ${stateID} : ${JSON.stringify(calculations)}`);
+			this.log.debug(`Consumed data for ${stateID} : ${JSON.stringify(calculations)}`);
 
 			// Store consumption
 			if (stateDetails.consumption) {
