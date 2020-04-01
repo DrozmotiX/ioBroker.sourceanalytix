@@ -51,6 +51,7 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 		// Initialize your adapter here
 		this.log.info('Welcome to SourceAnalytix, making things ready ... ');
+			await this.resetDates();
 
 		// Subscribe on all foreign states to ensure changes in objects are reflected
 		this.subscribeForeignObjects('*');
@@ -191,26 +192,25 @@ class Sourceanalytix extends utils.Adapter {
 			common: {
 				name: alias
 			},
-			native: {},
-		});
-			
-		for (const day of Object.keys(weekdays)) {
-			
-			const curent_day = `this_week.${weekdays[day]}`;
+				native: {},
+			});
 
-				if (this.config.store_days) {
-					this.log.debug(`Creating states for weekday ${curent_day}`);
-					await this.doLocalStateCreate(stateID, curent_day, weekdays[day]);
-				} else if (stateDeletion) {
-					this.log.debug(`Deleting states for weekday ${curent_day} (if present)`);
-					await this.doLocalStateCreate(stateID, curent_day, weekdays[day], null, true);
-				}
-			}
+			// for (const day of Object.keys(weekdays)) {
 
-		// create states for weeks
-		let weekNr;
-		for (let y = 1; y < 54; y++) {
+			// 	const curent_day = `this_week.${weekdays[day]}`;
 
+			// 	if (this.config.store_days) {
+			// 		this.log.debug(`Creating states for weekday ${curent_day}`);
+			// 		await this.doLocalStateCreate(stateID, curent_day, weekdays[day]);
+			// 	} else if (stateDeletion) {
+			// 		this.log.debug(`Deleting states for weekday ${curent_day} (if present)`);
+			// 		await this.doLocalStateCreate(stateID, curent_day, weekdays[day], null, true);
+			// 	}
+			// }
+
+			// create states for weeks
+			for (let y = 1; y < 54; y++) {
+				let weekNr;
 			if (y < 10) {
 				weekNr = '0' + y;
 			} else {
@@ -227,11 +227,11 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
-		// create states for months
-		for (const month in months) {
-			const monthRoot = `months.${months[month]}`;
+			// create states for months
+			for (const month of months) {
+				const monthRoot = `months.${months[month]}`;
 
-			if (this.config.store_months) {
+				if (this.config.store_months) {
 				this.log.debug(`Creating states for month ${month}`);
 				await this.doLocalStateCreate(stateID, monthRoot, months[month]);
 				} else if (stateDeletion) {
@@ -240,9 +240,20 @@ class Sourceanalytix extends utils.Adapter {
 			}
 		}
 
-			const basicValues = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
+			for (let y = 1; y < 5; y++) {
 
-			// Create basic states
+				const quarterRoot = `quarters.Q${y}`;
+				if (this.config.store_quarters) {
+					this.log.debug(`Creating states for quarter ${quarterRoot}`);
+					await this.doLocalStateCreate(stateID, quarterRoot, `Q${y}`);
+				} else if (stateDeletion) {
+					this.log.debug(`Deleting states for quarter ${quarterRoot} (if present)`);
+					await this.doLocalStateCreate(stateID, quarterRoot, quarterRoot, null, true);
+				}
+			}
+
+			const basicValues = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
+			// Always create states for meter readings 
 			for (const state of basicValues) {
 
 				const stateRoot = state;
@@ -250,22 +261,6 @@ class Sourceanalytix extends utils.Adapter {
 
 			}
 
-
-			
-
-
-
-			// let stateRoot = '01_current_day';
-			// await this.doLocalStateCreate(stateID, stateRoot, 'current Day ', true);
-			// stateRoot = '02_current_week';
-			// await this.doLocalStateCreate(stateID, stateRoot, 'current Week ', true);
-			// stateRoot = '03_current_month';
-			// await this.doLocalStateCreate(stateID, stateRoot, 'current Month ', true);
-			// stateRoot = '04_current_quarter';
-			// await this.doLocalStateCreate(stateID, stateRoot, 'current Quarter', true);
-			// stateRoot = '05_current_year';
-			// await this.doLocalStateCreate(stateID, stateRoot, 'current Year', true);
-			
 			const stateRoot = 'Current_Reading';
 			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
@@ -949,6 +944,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (stateDetails.consumption) {
 				// Always write generic meterReadings for current year
 				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.headCathegorie}`;
+				// Generic
 				await this.setState(`${stateName}.01_current_day`, { val: calculationRounded.consumedDay, ack: true });
 				await this.setState(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
 				await this.setState(`${stateName}.03_current_month`, { val: calculationRounded.consumedMonth, ack: true });
@@ -956,19 +952,19 @@ class Sourceanalytix extends utils.Adapter {
 				await this.setState(`${stateName}.05_current_year`, { val: calculationRounded.consumedYear, ack: true });
 
 				// Week
-				await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
+				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
 				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.consumedWeek, ack: true });
 				// Month
 				await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.consumedMonth, ack: true });
 				// Quarter
-				await this.setState(`${stateName}.quarters.${currentQuarter}`, { val: calculationRounded.consumedQuarter, ack: true });
+				await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.consumedQuarter, ack: true });
 			}
 
+			// Store prices
+			if (stateDetails.costs) {
 
-				// Calculate costs
-				if (stateDetails.costs) {
-
-					stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.financielCathegorie}`;
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.financielCathegorie}`;
+				// Generic
 					await this.setState(`${stateName}.01_current_day`, { val: calculationRounded.priceDay, ack: true });
 					await this.setState(`${stateName}.02_current_week`, { val: calculationRounded.priceWeek, ack: true });
 					await this.setState(`${stateName}.03_current_month`, { val: calculationRounded.priceMonth, ack: true });
@@ -976,12 +972,12 @@ class Sourceanalytix extends utils.Adapter {
 				await this.setState(`${stateName}.05_current_year`, { val: calculationRounded.priceYear, ack: true });
 
 				// Week
-				await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.priceDay, ack: true });
+				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.priceDay, ack: true });
 				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.priceWeek, ack: true });
 				// Month
 				await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.priceMonth, ack: true });
 				// Quarter
-				await this.setState(`${stateName}.quarters.${currentQuarter}`, { val: calculationRounded.priceQuarter, ack: true });
+				await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.priceQuarter, ack: true });
 
 			}
 
