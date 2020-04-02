@@ -901,6 +901,7 @@ class Sourceanalytix extends utils.Adapter {
 
 	async wattToKwh(stateID, value) {
 		const calcValues = this.activeStates[stateID].calcValues;
+		const stateDetails = this.activeStates[stateID].stateDetails;
 
 		this.log.silly(`Watt to kWh for ${stateID} current reading : ${value.val} previousReading : ${JSON.stringify(this.activeStates[stateID])}`);
 
@@ -918,7 +919,6 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
 
-
 			// Calculation logic W to kWh
 			calckWh = (((readingData.currentReadingWattTs - readingData.previousReadingWattTs) / 1000) * readingData.previousReadingWatt / 3600000);
 			this.log.debug(`Calc kWh current timing : ${calckWh} adding current value ${readingData.currentValuekWh}`);
@@ -935,6 +935,16 @@ class Sourceanalytix extends utils.Adapter {
 			// Update timestamp current reading to memory
 			this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
 			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
+
+			// Check if previous reading xist in state (current and <4 version )
+			const previousReading = await this.getStateAsync(`${stateDetails.deviceName}.Current_Reading`) 
+			|| await this.getStateAsync(`${stateDetails.deviceName}.Meter_Readings.Current_Reading`);
+			if (!previousReading){
+				return;
+			} else {
+				calckWh = previousReading.val; // use previous stored vlaue
+				this.log.silly(`Previous watt calculated reading used`);
+			}
 
 		}
 
