@@ -39,7 +39,6 @@ class Sourceanalytix extends utils.Adapter {
 		this.on('unload', this.onUnload.bind(this));
 
 		this.activeStates = {}; // Array of activated states for SourceAnalytix
-		this.cron_set = [];
 	}
 
 	/**
@@ -339,6 +338,7 @@ class Sourceanalytix extends utils.Adapter {
 		// Check if object is activated for SourceAnalytix
 		if (obj && obj.common) {
 
+			// @ts-ignore : from does exist on states	
 			if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
 			// Verify if custom information is available regaring SourceAnalytix
 			if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
@@ -407,138 +407,74 @@ class Sourceanalytix extends utils.Adapter {
 
 	}
 
-	// Function to reset start values for each day, week, month, quarter, year
-	async reset_shedules() {
-		/*
-		let existing = false;
-		for (const x in this.cron_set) {
+	// Cronjobs startvalue reset for each day, week, month, quarter, year
+	async resetShedules() {
 
-			// check if cronjob is already running, if not initiate
-			if (this.cron_set[x] === obj_array._id) {
-				existing = true;
+		schedule.scheduleJob('0 0 * * *', async () => {
+			await this.resetDates; // Reset date values in memory
+			await this.resestValues('start_day');
+
+		});
+
+		// Reset Week counter
+		schedule.scheduleJob('0 0 * * 1', async () => {
+			await this.resetDates; // Reset date values in memory
+			await this.resestValues('start_week');
+
+		});
+
+		// Reset month counter
+		schedule.scheduleJob('0 0 1 * *', async () => {
+			await this.resetDates; // Reset date values in memory
+			await this.resestValues('start_month');
+
+		});
+
+		// Reset quarter counter
+		schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
+			await this.resetDates; // Reset date values in memory
+			await this.resestValues('start_quarter');
+
+		});
+
+		// Reset year counter
+		schedule.scheduleJob('0 0 1 1 *', async () => {
+			await this.resetDates; // Reset date values in memory
+
+			// create object structure for new year
+			for (const stateID in this.activeStates) {
+				await this.initialize(stateID);
 			}
 
+			await this.resestValues('start_year');
+
+		});
+
+	}
+
+	async resestValues(type) {
+
+		// Read state array and write Data for every active state
+		for (const stateID in this.activeStates) {
+		// Prepare custom object
+		const obj = {};
+		obj.common = {};
+		obj.common.custom = {};
+		obj.common.custom[this.namespace] = {};
+			// get current meter value
+			const reading = this.activeStates[stateID].calcValues.currentValuekWh;
+			if (!reading) return;
+
+			this.log.info(`Resetting startvalue for ${stateID} type ${type} with value ${reading}`);
+
+			// Extend object with start value [type] & updat memory
+			obj.common.custom[this.namespace][type] = reading;
+			this.activeStates[stateID].calcValues[type] = reading;
+
+			await this.extendForeignObject(stateID, obj);
+			this.log.info(`startvalue for ${stateID} resettet`);
 		}
-
-		if (existing === false) {
-			// Store object id in array to prevent double run on shedules when object configuration changes
-			this.log.debug('Sheduled reset activate for : ' + JSON.stringify(obj_array));
-			this.cron_set.push(obj_array._id);
-
-			// Prepare custom object
-			const obj = {};
-			obj.common = {};
-			obj.common.custom = {};
-			obj.common.custom[this.namespace] = {};
-
-			schedule.scheduleJob('0 0 * * *', async () => {
-				// get current meter value
-				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
-				if (!reading) return;
-
-				// Extend object with start value day
-				obj.common.custom[this.namespace].start_day = reading.val;
-				this.log.debug('Object content custom current : ' + JSON.stringify(obj));
-
-				this.extendForeignObject(obj_array._id, obj, (err) => {
-					if (err) {
-						this.log.error('Setting start value Day failed : ' + err);
-					} else {
-						this.log.debug('Object content custom after start_day value reset : ' + JSON.stringify(obj));
-						this.log.info('Setting start value Day for device : ' + obj_array._id + ' succeeded with value + ' + reading.val);
-					}
-				});
-			});
-
-			// Reset Week counter
-			schedule.scheduleJob('0 0 * * 1', async () => {
-
-				// get current meter value
-				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
-				if (!reading) return;
-
-				// Extend object with start value week
-				obj.common.custom[this.namespace].start_week = reading.val;
-				this.log.debug('Object content custom current : ' + JSON.stringify(obj));
-
-				this.extendForeignObject(obj_array._id, obj, (err) => {
-					if (err) {
-						this.log.error('Setting start value Week failed : ' + err);
-					} else {
-						this.log.debug('Object content custom after start_day value reset : ' + JSON.stringify(obj));
-						this.log.info('Setting start value Week for device : ' + obj_array._id + ' succeeded with value + ' + reading.val);
-					}
-				});
-			});
-
-			// Reset month counter
-			schedule.scheduleJob('0 0 1 * *', async () => {
-
-				// get current meter value
-				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
-				if (!reading) return;
-
-				// Extend object with start value month
-				obj.common.custom[this.namespace].start_month = reading.val;
-				this.log.debug('Object content custom current : ' + JSON.stringify(obj));
-
-				this.extendForeignObject(obj_array._id, obj, (err) => {
-					if (err) {
-						this.log.error('Setting start value month failed : ' + err);
-					} else {
-						this.log.debug('Object content custom after start_day value reset : ' + JSON.stringify(obj));
-						this.log.info('Setting start value month for device : ' + obj_array._id + ' succeeded with value + ' + reading.val);
-					}
-				});
-			});
-
-			// Reset quarter counter
-			schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
-
-				// get current meter value
-				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
-				if (!reading) return;
-
-				// Extend object with start value quarter
-				obj.common.custom[this.namespace].start_quarter = reading.val;
-				this.log.debug('Object content custom current : ' + JSON.stringify(obj));
-
-				this.extendForeignObject(obj_array._id, obj, (err) => {
-					if (err) {
-						this.log.error('Setting start value quarter failed : ' + err);
-					} else {
-						this.log.debug('Object content custom after start_day value reset : ' + JSON.stringify(obj));
-						this.log.info('Setting start value quarter for device : ' + obj_array._id + ' succeeded with value + ' + reading.val);
-					}
-				});
-			});
-
-			// Reset year counter
-			schedule.scheduleJob('0 0 1 1 *', async () => {
-
-				// get current meter value
-				const reading = await this.getForeignStateAsync(obj_array.MeterReading);
-				if (!reading) return;
-
-				// Extend object with start value year
-				obj.common.custom[this.namespace].start_year = reading.val;
-				this.log.debug('Object content custom current : ' + JSON.stringify(obj));
-
-				this.extendForeignObject(obj_array._id, obj, (err) => {
-					if (err) {
-						this.log.error('Setting start value year failed : ' + err);
-					} else {
-						this.log.debug('Object content custom after start_day value reset : ' + JSON.stringify(obj));
-						this.log.info('Setting start value year for device : ' + obj_array._id + ' succeeded with value + ' + reading.val);
-					}
-				});
-			});
-		} else {
-
-			this.log.debug('shedule already present, do nothing');
-
-		}
-		*/
+		// this.log.info(`Array after reset ${JSON.stringify(this.activeStates)}`);
 	}
 
 	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
@@ -996,7 +932,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Update timestamp current reading to memory
 			this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
 			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
-			
+
 		}
 
 		this.log.debug(`Watt to kWh outcome for ${stateID} : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
