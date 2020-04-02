@@ -16,7 +16,7 @@ const months = JSON.parse('["01_January","02_February","03_March","04_April","05
 const stateDeletion = true;
 
 // Create variables for object arrays
-const history = {}, w_values = {}, aliasMap = {}, cron_set = [], state_set = [];
+const history = {}, aliasMap = {};
 let currentYear = null, currentQuarter = null, currentMonth = null, currentWeek = null, currentDay = null;
 // Load Time Modules
 const schedule = require('node-schedule'); // New Cron Scheduler
@@ -116,6 +116,17 @@ class Sourceanalytix extends utils.Adapter {
 
 	async buildStateDetailsArray(stateID) {
 		const stateInfo = await this.getForeignObjectAsync(stateID);
+		const newDeviceName = stateID.split('.').join('__');
+		const stateValue = await this.getStateAsync(`${newDeviceName}.Current_Reading`);
+
+		let currentValue = null;
+		if (!stateValue){
+			currentValue = 0;
+		} else {
+			currentValue = stateValue.val;
+		}
+
+		this.log.debug(`Build array with current value ${stateValue} state data : ${JSON.stringify(stateInfo)}`);
 
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
@@ -128,7 +139,7 @@ class Sourceanalytix extends utils.Adapter {
 					alias: customData.alias,
 					consumption: customData.consumption,
 					costs: customData.costs,
-					deviceName: stateID.split('.').join('__'),
+					deviceName: newDeviceName,
 					financielCathegorie: stateType === 'kWh_delivery' ? 'earnings' : 'costs',
 					headCathegorie: stateType === 'kWh_delivery' ? 'delivered' : 'consumed',
 					meter_values: customData.meter_values,
@@ -137,15 +148,20 @@ class Sourceanalytix extends utils.Adapter {
 					state_unit: customData.state_unit,
 					unit: stateInfo.common.unit
 				},
-				startValues: {
+				calcValues: {
+					currentValuekWh: currentValue,
 					start_day: customData.start_day,
 					start_month: customData.start_month,
 					start_quarter: customData.start_quarter,
 					start_week: customData.start_week,
 					start_year: customData.start_year,
 				},
-				prices: {}
+				prices: {},
 			};
+			if (stateInfo.common.unit === 'w') {
+				this.activeStates[stateID].calcValues.previousReadingWatt = null;
+				this.activeStates[stateID].calcValues.previousReadingWattTs = null;
+			}
 			this.log.debug(`buildStateDetailsArray of ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
 		}
 	}
@@ -169,7 +185,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Define propper unite cancel initialisation if no unit defined
 			this.activeStates[stateID].useUnit = await this.defineUnit(stateID);
-			this.log.debug(`unit defined ${this.activeStates[stateID].useUnit}`);
+			this.log.debug(`useUnit defined ${this.activeStates[stateID].useUnit}`);
 			if (!this.activeStates[stateID].useUnit || this.activeStates[stateID].useUnit === '') return;
 			// ************************************************
 			// ****************** Code Break ******************
@@ -195,19 +211,6 @@ class Sourceanalytix extends utils.Adapter {
 				native: {},
 			});
 
-			// for (const day of Object.keys(weekdays)) {
-
-			// 	const curent_day = `this_week.${weekdays[day]}`;
-
-			// 	if (this.config.store_days) {
-			// 		this.log.debug(`Creating states for weekday ${curent_day}`);
-			// 		await this.doLocalStateCreate(stateID, curent_day, weekdays[day]);
-			// 	} else if (stateDeletion) {
-			// 		this.log.debug(`Deleting states for weekday ${curent_day} (if present)`);
-			// 		await this.doLocalStateCreate(stateID, curent_day, weekdays[day], null, true);
-			// 	}
-			// }
-
 			// create states for weeks
 			for (let y = 1; y < 54; y++) {
 				let weekNr;
@@ -228,7 +231,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// create states for months
-			for (const month of months) {
+			for (const month in months) {
 				const monthRoot = `months.${months[month]}`;
 
 				if (this.config.store_months) {
@@ -237,9 +240,10 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (stateDeletion) {
 				this.log.debug(`Deleting states for month ${month} (if present)`);
 					await this.doLocalStateCreate(stateID, monthRoot, months[month], null, true);
+				}
 			}
-		}
 
+			// create states for quarters
 			for (let y = 1; y < 5; y++) {
 
 				const quarterRoot = `quarters.Q${y}`;
@@ -263,7 +267,6 @@ class Sourceanalytix extends utils.Adapter {
 
 			const stateRoot = 'Current_Reading';
 			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
-
 
 			this.log.debug(`Initialization finished for : ${stateID}`);
 			// Subscribe state, every state change will trigger calculation
@@ -403,24 +406,13 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (state) {
 			// The state was changed
-			this.log.debug(`state ${id} changed : ${state.val} SourceAnalytix calculation executed`);
+			this.log.debug(`state ${id} changed : ${JSON.stringify(state)} SourceAnalytix calculation executed`);
 
 			// Implement x ignore time (configurable) to avoid overload of uneeded calculations
-			this.calculationHandler(id, state.val);
+			this.calculationHandler(id, state);
 
 		}
 	}
-
-	// null values must be set 0 to avoid issue in later processing, def: 0 at object creation possible n js-controler 2.0
-	// async set_zero_val(id) {
-
-	// 	const reading = await this.getForeignStateAsync(this.namespace + '.' + id);
-
-	// 	if (reading === null) {
-	// 		this.log.debug('Zero val at initalisation, target state : ' + this.namespace + '.' + id);
-	// 		this.setState(this.namespace + '.' + id, { val: 0, ack: true });
-	// 	}
-	// }
 
 	// Function to calculate current week number
 	getWeekNumber(d) {
@@ -627,8 +619,6 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	// Function to handle state creation
-	// async doStateCreate(delivery, device, id, name, type, role, unit, head, financial, reading) {
-	// await this.doStateCreate(delivery, device, curent_day, weekdays[x], 'number', 'value.day', unit, obj_cust.consumption, obj_cust.costs, obj_cust.meter_values);
 	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState) {
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
@@ -645,10 +635,10 @@ class Sourceanalytix extends utils.Adapter {
 				def: 0,
 			};
 
+			// Define if state should be created at root level
 			if (atDeviceRoot) {
 
-				// commonData.unit = stateDetails.useUnit; // Switch Unit to money
-				stateName = `${stateDetails.deviceName}.${currentYear}.${stateRoot}`;
+				stateName = `${stateDetails.deviceName}.${stateRoot}`;
 				this.log.debug(`Try creating states ${stateName} Data : ${JSON.stringify(commonData)}`);
 				await this.localSetObject(stateName, commonData);
 
@@ -659,13 +649,11 @@ class Sourceanalytix extends utils.Adapter {
 					switch (stateDetails.headCathegorie) {
 
 						case 'consumed':
-							// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
 							await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`, commonData);
 						await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
 						break;
 
 					case 'delivered':
-						// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
 						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`, commonData);
 						await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
 						break;
@@ -676,7 +664,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				} else if (deleteState || !stateDetails.consumption) {
 
-					// If state deletion choosen, clean everyting up  else define statename
+					// If state deletion choosen, clean everyting up else define statename
 					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
 				this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
 				await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
@@ -853,23 +841,31 @@ class Sourceanalytix extends utils.Adapter {
 	async calculationHandler(stateID, value) {
 		try {
 		const stateDetails = this.activeStates[stateID].stateDetails;
-		const statePrices = this.activeStates[stateID].prices;
-		const startValues = this.activeStates[stateID].startValues;
-			this.log.debug(`Calculation for  ${stateID} with value : ${value} and configuration : ${JSON.stringify(stateDetails)}`);
+			const statePrices = this.activeStates[stateID].prices;
+			this.log.debug(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(stateDetails)}`);
 
+			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
-		const date = new Date();
-		if (unit !== 'w') {
-
-		let stateName = `${this.namespace}.${stateDetails.deviceName}`;
-
+			// Different logic for W values, calculate to kWh first
+			let reading = null;
+			if (stateDetails.unit.toLowerCase() === 'w') {
+				this.log.debug(`Wat value ${value} and array ${JSON.stringify(this.activeStates[stateID])}`);
+				reading = await this.wattToKwh(stateID, value);
+				this.log.debug(`Result of Watt to kWh calculation ${reading}`);
 		} else {
+				reading = await this.calcFac(stateID, value.val);
+				this.log.debug(`non Watt value ${value.val} and array ${JSON.stringify(this.activeStates[stateID])}`);
+			}
 
-		const reading = await this.calcFac(stateID, value);
 			this.log.debug(`Recalculated value ${reading}`);
 		if (!reading) return;
-			await this.setState(`${stateDetails.deviceName}.${currentYear}.Current_Reading`, { val: await this.roundDigits(reading), ack: true });
-			this.log.debug(`Set current value ${reading} on state : ${stateDetails.deviceName}.${currentYear}.Current_Reading}`);
+
+			this.log.info(`Set current value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
+			// Update current value to memory
+			this.activeStates[stateID]['calcValues'].currentValuekWh = reading;
+			const calcValues = this.activeStates[stateID].calcValues;
+			await this.setState(`${stateDetails.deviceName}.Current_Reading`, { val: await this.roundDigits(reading), ack: true });
+
 			// } else {
 
 			// 	// Handle impuls counters
@@ -914,18 +910,18 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			const calculations = {
-				consumedDay: ((reading - startValues.start_day) - reading_start),
-				consumedWeek: ((reading - startValues.start_week) - reading_start),
-				consumedMonth: ((reading - startValues.start_month) - reading_start),
-				consumedQuarter: ((reading - startValues.start_quarter) - reading_start),
-				consumedYear: ((reading - startValues.start_year) - reading_start),
-				priceDay: statePrices.unitPrice * ((reading - startValues.start_day) - reading_start),
-				priceWeek: statePrices.unitPrice * ((reading - startValues.start_week) - reading_start),
-				priceMonth: statePrices.unitPrice * ((reading - startValues.start_month) - reading_start),
-				priceQuarter: statePrices.unitPrice * ((reading - startValues.start_quarter) - reading_start),
-				priceYear: statePrices.unitPrice * ((reading - startValues.start_year) - reading_start),
+				consumedDay: ((reading - calcValues.start_day) - reading_start),
+				consumedWeek: ((reading - calcValues.start_week) - reading_start),
+				consumedMonth: ((reading - calcValues.start_month) - reading_start),
+				consumedQuarter: ((reading - calcValues.start_quarter) - reading_start),
+				consumedYear: ((reading - calcValues.start_year) - reading_start),
+				priceDay: statePrices.unitPrice * ((reading - calcValues.start_day) - reading_start),
+				priceWeek: statePrices.unitPrice * ((reading - calcValues.start_week) - reading_start),
+				priceMonth: statePrices.unitPrice * ((reading - calcValues.start_month) - reading_start),
+				priceQuarter: statePrices.unitPrice * ((reading - calcValues.start_quarter) - reading_start),
+				priceYear: statePrices.unitPrice * ((reading - calcValues.start_year) - reading_start),
 			};
-			const calculationRounded   = {
+			const calculationRounded = {
 				consumedDay: await this.roundDigits(calculations.consumedDay),
 				consumedWeek: await this.roundDigits(calculations.consumedWeek),
 				consumedMonth: await this.roundDigits(calculations.consumedMonth),
@@ -1013,54 +1009,50 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 
-	async wattToKwh() {
-		// 	// Get previous reading of W and its related timestammps
-		// 	const Prev_Reading = await this.getStateAsync(obj_id + '.Meter_Readings.Current_Reading_W');
-		// 	this.log.debug('Previous_reading from state : ' + JSON.stringify(Prev_Reading));
-		// 	if (!Prev_Reading) return;
+	async wattToKwh(stateID, value) {
+		const calcValues = this.activeStates[stateID].calcValues;
 
-		// 	// Get current calculated kWh value, if not present in memory read from states
-		// 	let Prev_calc_reading = 0;
-		// 	this.log.debug('W value from memory : ' + JSON.stringify(w_values));
-		// 	this.log.debug('W value from memory_2 : ' + JSON.stringify(w_values.calc_reading));
-		// 	if (w_values.calc_reading !== undefined && w_values.calc_reading !== null && (w_values.calc_reading[obj_id] !== undefined && w_values.calc_reading[obj_id] !== null)) {
-		// 		Prev_calc_reading = w_values.calc_reading[obj_id];
-		// 		this.log.debug('Previous_calc_reading from memory : ' + JSON.stringify(Prev_calc_reading));
+		this.log.info(`Watt to kWh for ${stateID} current reading : ${value.val} previousReading : ${JSON.stringify(this.activeStates[stateID])}`);
 
-		// 		// Calculation logic W to kWh
-		// 		calc_reading = Prev_calc_reading + (((reading.ts - Prev_Reading.ts) / 1000) * Prev_Reading.val / 3600000);
-		// 		// Update variable with new value for next calculation cyclus
-		// 		w_values.calc_reading[obj_id] = calc_reading;
-		// 		this.log.debug('New calculated reading : ' + JSON.stringify(calc_reading));
-		// 		this.log.debug('new W value from memory : ' + JSON.stringify(w_values));
+		// Prepare needed data to handle calculations
+		const readingData = {
+			currentValuekWh: Number(calcValues.currentValuekWh),
+			previousReadingWatt: Number(calcValues.previousReadingWatt),
+			previousReadingWattTs: Number(calcValues.previousReadingWattTs),
+			currentReadingWatt: Number(value.val),
+			currentReadingWattTs: Number(value.ts),
+		};
 
-		// 		// Write values to state
-		// 		await this.setState(obj_root + '.Meter_Readings.Current_Reading', { val: calc_reading ,ack: true });
-		// 		await this.setState(obj_root + '.Meter_Readings.Current_Reading_W', { val: reading.val ,ack: true });
+		// Prepeare function return
+		let calckWh = null;
 
-		// 	} else {
-		// 		this.log.debug('Else clause no value in memory present');
-		// 		const temp_reading = await this.getStateAsync(obj_root + '.Meter_Readings.Current_Reading');
-		// 		if (temp_reading !== undefined && temp_reading !== null) {
-		// 			Prev_calc_reading = parseFloat(temp_reading.val);
-		// 			if(w_values.calc_reading !== undefined && w_values.calc_reading !== null) {
-		// 				w_values.calc_reading[obj_id] = Prev_calc_reading;
-		// 			} else {
-		// 				w_values.calc_reading = {
-		// 					[obj_id]: Prev_calc_reading
-		// 				};
-		// 			}
+		if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
 
-		// 			await this.setState(obj_root + '.Meter_Readings.Current_Reading_W', { val: reading.val ,ack: true });
-		// 			this.log.debug('Previous_calc_reading from state : ' + JSON.stringify(Prev_calc_reading));
-		// 			this.log.debug('W value from state : ' + JSON.stringify(w_values));
-		// 			return;
-		// 		}
-		// 	}
-		// }
+
+			// Calculation logic W to kWh
+			calckWh = (((readingData.currentReadingWattTs - readingData.previousReadingWattTs) / 1000) * readingData.previousReadingWatt / 3600000);
+			this.log.debug(`Calc kWh current timing : ${calckWh} adding current value ${readingData.currentValuekWh}`);
+			// add current meassurement to previous kWh total
+			calckWh = calckWh + readingData.currentValuekWh;
+			this.log.debug(`Calc kWh total : ${calckWh}`);
+
+			// Update timestamp current reading to memory
+			this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
+			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
+
+		} else {
+
+			// Update timestamp current reading to memory
+			this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
+			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
+			
+		}
+
+		this.log.debug(`Watt to kWh outcome for ${stateID} : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+		return calckWh;
 	}
 
-	async resetDates(){
+	async resetDates() {
 		const today = new Date();
 		currentDay = weekdays[today.getDay()];
 		currentWeek = await this.getWeekNumber(new Date());
