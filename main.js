@@ -312,33 +312,33 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.error('Identifying unit failed, please ensure state has a propper unit assigned or the unit is manually choosen in state settings !');
 			}
 
-		switch (unit) {
+			switch (unit) {
 
-			case 'kwh':
-				stateDetails.unit = 'kWh';
-				break;
+				case 'kwh':
+					unit = 'kWh';
+					break;
 
-			case 'l':
-				stateDetails.unit = 'm3';
-				break;
+				case 'l':
+					unit = 'm3';
+					break;
 
-			case 'm³':
-				stateDetails.unit = 'm3';
-				break;
+				case 'm³':
+					unit = 'm3';
+					break;
 
-			case 'm3':
-				break;
+				case 'm3':
+					break;
 
-			case 'w':
-				stateDetails.unit = 'kWh';
-				stateDetails.w_calc = true;
-				break;
+				case 'w':
+					unit = 'kWh';
+					stateDetails.w_calc = true;
+					break;
 
-			case 'wh':
-				stateDetails.unit = 'kWh';
-				break;
+				case 'wh':
+					unit = 'kWh';
+					break;
 
-			default:
+				default:
 
 				this.log.error(`Sorry unite type ${stateDetails.unit} not supported (yet), ${stateID} will be ignored from calculations!`);
 
