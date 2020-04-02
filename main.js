@@ -114,16 +114,8 @@ class Sourceanalytix extends utils.Adapter {
 	async buildStateDetailsArray(stateID) {
 		const stateInfo = await this.getForeignObjectAsync(stateID);
 		const newDeviceName = stateID.split('.').join('__');
-		const stateValue = await this.getStateAsync(`${newDeviceName}.Current_Reading`);
 
-		let currentValue = null;
-		if (!stateValue) {
-			currentValue = 0;
-		} else {
-			currentValue = stateValue.val;
-		}
-
-		this.log.silly(`[buildStateDetailsArray] with current value ${stateValue} state data : ${JSON.stringify(stateInfo)}`);
+		this.log.silly(`[buildStateDetailsArray] with current value ${stateID} state data : ${JSON.stringify(stateInfo)}`);
 
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
@@ -146,7 +138,7 @@ class Sourceanalytix extends utils.Adapter {
 					unit: stateInfo.common.unit
 				},
 				calcValues: {
-					currentValuekWh: currentValue,
+					currentValuekWh: null,
 					start_day: customData.start_day,
 					start_month: customData.start_month,
 					start_quarter: customData.start_quarter,
@@ -943,7 +935,7 @@ class Sourceanalytix extends utils.Adapter {
 				return;
 			} else {
 				calckWh = previousReading.val; // use previous stored vlaue
-				this.log.info(`Previous watt calculated reading used ${JSON.stringify(previousReading)}`);
+				this.log.info(`for state ${stateID} Previous watt calculated reading used ${JSON.stringify(previousReading)}`);
 			}
 
 		}
