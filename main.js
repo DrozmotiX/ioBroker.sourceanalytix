@@ -117,7 +117,7 @@ class Sourceanalytix extends utils.Adapter {
 		const stateValue = await this.getStateAsync(`${newDeviceName}.Current_Reading`);
 
 		let currentValue = null;
-		if (!stateValue){
+		if (!stateValue) {
 			currentValue = 0;
 		} else {
 			currentValue = stateValue.val;
@@ -339,6 +339,7 @@ class Sourceanalytix extends utils.Adapter {
 		// Check if object is activated for SourceAnalytix
 		if (obj && obj.common) {
 
+			if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
 			// Verify if custom information is available regaring SourceAnalytix
 			if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
 
