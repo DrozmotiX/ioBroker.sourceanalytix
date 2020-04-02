@@ -943,7 +943,7 @@ class Sourceanalytix extends utils.Adapter {
 				return;
 			} else {
 				calckWh = previousReading.val; // use previous stored vlaue
-				this.log.silly(`Previous watt calculated reading used`);
+				this.log.info(`Previous watt calculated reading used ${JSON.stringify(previousReading)}`);
 			}
 
 		}
