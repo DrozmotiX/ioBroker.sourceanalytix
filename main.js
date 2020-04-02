@@ -14,6 +14,7 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
 const stateDeletion = true;
+let calcBlock = null;
 
 // Create variables for object arrays
 const history = {}, aliasMap = {};
@@ -454,13 +455,14 @@ class Sourceanalytix extends utils.Adapter {
 
 	async resestValues(type) {
 
+		calcBlock = true; // Pauze all calculations
 		// Read state array and write Data for every active state
 		for (const stateID in this.activeStates) {
 		// Prepare custom object
-		const obj = {};
-		obj.common = {};
-		obj.common.custom = {};
-		obj.common.custom[this.namespace] = {};
+			const obj = {};
+			obj.common = {};
+			obj.common.custom = {};
+			obj.common.custom[this.namespace] = {};
 			// get current meter value
 			const reading = this.activeStates[stateID].calcValues.currentValuekWh;
 			if (!reading) return;
@@ -474,7 +476,7 @@ class Sourceanalytix extends utils.Adapter {
 			await this.extendForeignObject(stateID, obj);
 			this.log.info(`startvalue for ${stateID} resettet`);
 		}
-		// this.log.info(`Array after reset ${JSON.stringify(this.activeStates)}`);
+		calcBlock = true; // Enable all calculations
 	}
 
 	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
@@ -727,6 +729,7 @@ class Sourceanalytix extends utils.Adapter {
 	}
 	// Calculation handler
 	async calculationHandler(stateID, value) {
+		if (calcBlock) return; // cancel operation if calculcaiton block is activate
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const statePrices = this.activeStates[stateID].prices;
