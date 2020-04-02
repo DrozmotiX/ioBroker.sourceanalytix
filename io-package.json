@@ -222,7 +222,6 @@
         ]
     },
     "native": {
-        "store_year": true,
         "store_days" : true,
         "store_weeks" : false,
         "store_months" : true,

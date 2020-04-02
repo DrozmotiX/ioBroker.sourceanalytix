@@ -476,7 +476,7 @@ class Sourceanalytix extends utils.Adapter {
 			await this.extendForeignObject(stateID, obj);
 			this.log.info(`startvalue for ${stateID} resettet`);
 		}
-		calcBlock = true; // Enable all calculations
+		calcBlock = false; // Enable all calculations
 	}
 
 	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
