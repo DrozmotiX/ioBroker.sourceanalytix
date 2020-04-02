@@ -929,13 +929,17 @@ class Sourceanalytix extends utils.Adapter {
 			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
 
 			// Check if previous reading xist in state (current and <4 version )
-			const previousReading = await this.getStateAsync(`${stateDetails.deviceName}.Current_Reading`) 
-			|| await this.getStateAsync(`${stateDetails.deviceName}.Meter_Readings.Current_Reading`);
-			if (!previousReading){
-				return;
+			const previousReadingV4 = await this.getStateAsync(`${stateDetails.deviceName}.Current_Reading`);
+
+			if (!previousReadingV4 || previousReadingV4.val === 0){
+
+				const previousReadingVold = await this.getStateAsync(`${stateDetails.deviceName}.Meter_Readings.Current_Reading`);
+				if (!previousReadingVold || previousReadingVold.val === 0) return;
+				calckWh = previousReadingVold.val;
+
 			} else {
-				calckWh = previousReading.val; // use previous stored vlaue
-				this.log.info(`for state ${stateID} Previous watt calculated reading used ${JSON.stringify(previousReading)}`);
+				calckWh = previousReadingV4.val; // use previous stored vlaue
+				this.log.info(`for state ${stateID} Previous watt calculated reading used ${JSON.stringify(previousReadingV4)}`);
 			}
 
 		}
