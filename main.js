@@ -104,6 +104,9 @@ class Sourceanalytix extends utils.Adapter {
 				await this.initialize(stateID);
 				count = count + 1;
 			}
+
+			this.resetShedules();
+
 			this.log.debug(`Active state array after initialisation : ${JSON.stringify(this.activeStates)}`);
 			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ...`);
 		} catch (error) {
