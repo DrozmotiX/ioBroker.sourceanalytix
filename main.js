@@ -332,7 +332,7 @@ class Sourceanalytix extends utils.Adapter {
 		if (obj && obj.common) {
 
 			// @ts-ignore : from does exist on states	
-			if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
+			// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
 			// Verify if custom information is available regaring SourceAnalytix
 			if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
 
