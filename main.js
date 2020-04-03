@@ -261,7 +261,14 @@ class Sourceanalytix extends utils.Adapter {
 			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
 			this.log.silly(`Initialization finished for : ${stateID}`);
-			// Subscribe state, every state change will trigger calculation
+
+			// Handle first time calculation
+			const value = await this.getForeignStateAsync(stateID);
+			if (value) {
+				await this.calculationHandler(stateID, value.val);
+			}
+
+			// Subscribe state, every state change will trigger calculation now automatically
 			this.subscribeForeignStates(stateID);
 
 		} catch (error) {
