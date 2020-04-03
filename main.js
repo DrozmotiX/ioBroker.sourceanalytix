@@ -466,7 +466,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.activeStates[stateID].calcValues[type] = reading;
 
 			await this.extendForeignObject(stateID, obj);
-			this.log.info(`startvalue for ${stateID} resettet`);
+			this.log.debug(`startvalue for ${stateID} resettet`);
 		}
 		calcBlock = false; // Enable all calculations
 	}
@@ -930,16 +930,21 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Check if previous reading xist in state (current and <4 version )
 			const previousReadingV4 = await this.getStateAsync(`${stateDetails.deviceName}.Current_Reading`);
+			// temporary indicate source of kWh value
+			let valueSource = null;
 
 			if (!previousReadingV4 || previousReadingV4.val === 0){
 
 				const previousReadingVold = await this.getStateAsync(`${stateDetails.deviceName}.Meter_Readings.Current_Reading`);
 				if (!previousReadingVold || previousReadingVold.val === 0) return;
 				calckWh = previousReadingVold.val;
+				// temporary indicate source of kWh value
+				valueSource = 'Version < 4'
 
 			} else {
 				calckWh = previousReadingV4.val; // use previous stored vlaue
-				this.log.info(`for state ${stateID} Previous watt calculated reading used ${JSON.stringify(previousReadingV4)}`);
+				valueSource = 'Version > 4';
+				this.log.info(`for state ${stateID} Previous watt calculated reading used ${valueSource} from ${JSON.stringify(previousReadingV4)}`);
 			}
 
 		}
