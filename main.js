@@ -820,31 +820,16 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Store meter values
 			if (stateDetails.meter_values === true) {
-
-				// this.log.debug('Start meter value calculations');
-
-				// // Calculate consumption
-				// // Weekday & current day
-				// const state_val = calc_reading.toFixed(3);
-
-				// this.log.debug('calculated reading day : ' + state_val);
-				// this.setState(obj_root + '.Meter_Readings.current_year.this_week.' + weekdays[date.getDay()], { val: state_val, ack: true });
-
-				// // Week
-				// this.log.debug('calculated reading week : ' + state_val);
-				// this.setState(obj_root + '.Meter_Readings.current_year.weeks.' + this.getWeekNumber(new Date()), { val: state_val, ack: true });
-
-				// // Month
-				// this.log.debug('calculated reading month : ' + state_val);
-				// this.setState(obj_root + '.Meter_Readings.current_year.months.' + months[date.getMonth()], { val: state_val, ack: true });
-
-				// // // Quarter
-				// // state_val = ((calc_reading - quarter_bval) - reading_start).toFixed(3);
-				// // this.log.debug('calculated reading quarter : ' + state_val);
-
-				// // Year
-				// this.log.debug('calculated reading day : ' + state_val);
-				// this.setState(obj_root + '.Meter_Readings.05_current_year', { val: state_val, ack: true });
+				// Always write generic meterReadings for current year
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.meterReadings`;
+				const readingRounded = await this.roundDigits(reading)
+				// Week
+				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
+				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: readingRounded, ack: true });
+				// Month
+				await this.setState(`${stateName}.months.${currentMonth}`, { val: readingRounded, ack: true });
+				// Quarter
+				await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: readingRounded, ack: true });
 
 			}
 
