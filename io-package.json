@@ -209,7 +209,7 @@
         "enabled": true,
         "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
         "readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
-        "loglevel": "info",
+        "loglevel": "warn",
         "mode": "daemon",
         "type": "energy",
         "compact": true,
