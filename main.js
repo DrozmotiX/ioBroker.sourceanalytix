@@ -101,15 +101,14 @@ class Sourceanalytix extends utils.Adapter {
 			// // Handle initialisation for all discovered states
 			let count = 1;
 			for (const stateID in this.activeStates) {
-				this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
+				this.log.debug(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
 				await this.initialize(stateID);
 				count = count + 1;
 			}
 
 			this.resetShedules();
 
-			this.log.debug(`Active state array after initialisation : ${JSON.stringify(this.activeStates)}`);
-			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ...`);
+			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for : ${JSON.stringify(this.activeStates)}`);
 		} catch (error) {
 			this.log.error(`[onReady] error: ${error.message}, stack: ${error.stack}`);
 		}
@@ -118,8 +117,6 @@ class Sourceanalytix extends utils.Adapter {
 	async buildStateDetailsArray(stateID) {
 		const stateInfo = await this.getForeignObjectAsync(stateID);
 		const newDeviceName = stateID.split('.').join('__');
-
-		this.log.silly(`[buildStateDetailsArray] with current value ${stateID} state data : ${JSON.stringify(stateInfo)}`);
 
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
@@ -160,7 +157,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.activeStates[stateID].calcValues.previousReadingWatt = null;
 				this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 			}
-			this.log.silly(`[buildStateDetailsArray] of ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.debug(`[buildStateDetailsArray] of ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
 		}
 	}
 
@@ -168,7 +165,7 @@ class Sourceanalytix extends utils.Adapter {
 	async initialize(stateID) {
 		try {
 
-			this.log.silly(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.info(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
 
 			// ************************************************
 			// ****************** Code Break ******************
@@ -192,7 +189,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Shorten configuraiton details for easier access
 			const stateDetails = this.activeStates[stateID].stateDetails;
 
-			this.log.silly(`Defined calculation attributes for ${stateID} : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.info(`Defined calculation attributes for ${stateID} : ${JSON.stringify(this.activeStates[stateID])}`);
 
 			let alias = stateDetails.name;
 			if (stateDetails.alias && stateDetails.alias !== '') {
@@ -263,8 +260,6 @@ class Sourceanalytix extends utils.Adapter {
 			const stateRoot = 'Current_Reading';
 			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
 
-			this.log.silly(`Initialization finished for : ${stateID}`);
-
 			// Handle first time calculation
 			const value = await this.getForeignStateAsync(stateID);
 			if (value) {
@@ -273,6 +268,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Subscribe state, every state change will trigger calculation now automatically
 			this.subscribeForeignStates(stateID);
+			this.log.info(`Initialization finished for : ${stateID}`);
 
 		} catch (error) {
 			this.log.error(`[initialize ${stateID}] error: ${error.message}, stack: ${error.stack}`);
@@ -338,43 +334,44 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.Object | null | undefined} obj
 	 */
 	async onObjectChange(id, obj) {
-		const stateID = id;
+		try {
+			const stateID = id;
 
-		this.log.debug(`Object array of all activated states : ${JSON.stringify(this.activeStates)}`);
-		this.log.debug(`Object array of onObjectChange trigger : ${JSON.stringify(obj)}`);
+			// Check if object is activated for SourceAnalytix
+			if (obj && obj.common) {
 
-		// Check if object is activated for SourceAnalytix
-		if (obj && obj.common) {
+				// @ts-ignore : from does exist on states	
+				// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
+				// Verify if custom information is available regaring SourceAnalytix
+				if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
+					this.log.info(`Object array of SourceAnalytix activated state changed : ${JSON.stringify(this.activeStates)}`);
 
-			// @ts-ignore : from does exist on states	
-			// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
-			// Verify if custom information is available regaring SourceAnalytix
-			if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
+					// Verify if the object was already activated, if not initialize new device
+					if (!this.activeStates[stateID]) {
+						this.log.info(`Enable SourceAnalytix for : ${stateID}`);
+						await this.buildStateDetailsArray(id);
+						this.log.debug(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+						await this.initialize(stateID);
+					} else {
+						this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
+						await this.buildStateDetailsArray(id);
+						this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+						await this.initialize(stateID);
+					}
 
-				// Verify if the object was already activated, if not initialize new device
-				if (!this.activeStates[stateID]) {
-					this.log.info(`Enable SourceAnalytix for : ${stateID}`);
-					await this.buildStateDetailsArray(id);
-					this.log.debug(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
-					await this.initialize(stateID);
-				} else {
-					this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
-					await this.buildStateDetailsArray(id);
-					this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
-					await this.initialize(stateID);
+				} else if (this.activeStates[stateID]) {
+					this.activeStates[stateID] = null;
+					this.log.info(`Disabled SourceAnalytix for : ${stateID}`);
+					this.log.debug(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+					this.unsubscribeForeignStates(stateID);
 				}
 
-			} else if (this.activeStates[stateID]) {
-				this.activeStates[stateID] = null;
-				this.log.info(`Disabled SourceAnalytix for : ${stateID}`);
-				this.log.debug(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
-				this.unsubscribeForeignStates(stateID);
+			} else {
+				// Object change not related to this adapter, ignoring
 			}
-
-		} else {
-			// Object change not related to this adapter, ignoring
+		} catch (error) {
+			this.log.error(`[obObjectChange ${JSON.stringify(obj)}] error: ${error.message}, stack: ${error.stack}`);
 		}
-
 	}
 
 	/**
@@ -383,14 +380,17 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.State | null | undefined} state
 	 */
 	onStateChange(id, state) {
+		try {
+			if (state) {
+				// The state was changed
+				this.log.debug(`state ${id} changed : ${JSON.stringify(state)} SourceAnalytix calculation executed`);
 
-		if (state) {
-			// The state was changed
-			this.log.debug(`state ${id} changed : ${JSON.stringify(state)} SourceAnalytix calculation executed`);
+				// Implement x ignore time (configurable) to avoid overload of uneeded calculations
+				this.calculationHandler(id, state);
 
-			// Implement x ignore time (configurable) to avoid overload of uneeded calculations
-			this.calculationHandler(id, state);
-
+			}
+		} catch (error) {
+			this.log.error(`[onStateChane ${id}] error: ${error.message}, stack: ${error.stack}`);
 		}
 	}
 
@@ -417,73 +417,79 @@ class Sourceanalytix extends utils.Adapter {
 
 	// Cronjobs startvalue reset for each day, week, month, quarter, year
 	async resetShedules() {
+		try {
+			schedule.scheduleJob('0 0 * * *', async () => {
+				await this.resetDates; // Reset date values in memory
+				await this.resestValues('start_day');
 
-		schedule.scheduleJob('0 0 * * *', async () => {
-			await this.resetDates; // Reset date values in memory
-			await this.resestValues('start_day');
+			});
 
-		});
+			// Reset Week counter
+			schedule.scheduleJob('0 0 * * 1', async () => {
+				await this.resetDates; // Reset date values in memory
+				await this.resestValues('start_week');
 
-		// Reset Week counter
-		schedule.scheduleJob('0 0 * * 1', async () => {
-			await this.resetDates; // Reset date values in memory
-			await this.resestValues('start_week');
+			});
 
-		});
+			// Reset month counter
+			schedule.scheduleJob('0 0 1 * *', async () => {
+				await this.resetDates; // Reset date values in memory
+				await this.resestValues('start_month');
 
-		// Reset month counter
-		schedule.scheduleJob('0 0 1 * *', async () => {
-			await this.resetDates; // Reset date values in memory
-			await this.resestValues('start_month');
+			});
 
-		});
+			// Reset quarter counter
+			schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
+				await this.resetDates; // Reset date values in memory
+				await this.resestValues('start_quarter');
 
-		// Reset quarter counter
-		schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
-			await this.resetDates; // Reset date values in memory
-			await this.resestValues('start_quarter');
+			});
 
-		});
+			// Reset year counter
+			schedule.scheduleJob('0 0 1 1 *', async () => {
+				await this.resetDates; // Reset date values in memory
 
-		// Reset year counter
-		schedule.scheduleJob('0 0 1 1 *', async () => {
-			await this.resetDates; // Reset date values in memory
+				// create object structure for new year
+				for (const stateID in this.activeStates) {
+					await this.initialize(stateID);
+				}
 
-			// create object structure for new year
-			for (const stateID in this.activeStates) {
-				await this.initialize(stateID);
-			}
+				await this.resestValues('start_year');
 
-			await this.resestValues('start_year');
-
-		});
-
+			});
+		} catch (error) {
+			this.log.error(`[reset shedules error: ${error.message}, stack: ${error.stack}`);
+		}
 	}
 
 	async resestValues(type) {
+		try {
 
-		calcBlock = true; // Pauze all calculations
-		// Read state array and write Data for every active state
-		for (const stateID in this.activeStates) {
-			// Prepare custom object
-			const obj = {};
-			obj.common = {};
-			obj.common.custom = {};
-			obj.common.custom[this.namespace] = {};
-			// get current meter value
-			const reading = this.activeStates[stateID].calcValues.currentValuekWh;
-			if (!reading) return;
+			calcBlock = true; // Pauze all calculations
+			// Read state array and write Data for every active state
+			for (const stateID in this.activeStates) {
+				// Prepare custom object
+				const obj = {};
+				obj.common = {};
+				obj.common.custom = {};
+				obj.common.custom[this.namespace] = {};
+				// get current meter value
+				const reading = this.activeStates[stateID].calcValues.currentValuekWh;
+				if (!reading) return;
 
-			this.log.info(`Resetting startvalue for ${stateID} type ${type} with value ${reading}`);
+				this.log.info(`Resetting startvalue for ${stateID} type ${type} with value ${reading}`);
 
-			// Extend object with start value [type] & updat memory
-			obj.common.custom[this.namespace][type] = reading;
-			this.activeStates[stateID].calcValues[type] = reading;
+				// Extend object with start value [type] & updat memory
+				obj.common.custom[this.namespace][type] = reading;
+				this.activeStates[stateID].calcValues[type] = reading;
 
-			await this.extendForeignObject(stateID, obj);
-			this.log.debug(`startvalue for ${stateID} resettet`);
+				await this.extendForeignObject(stateID, obj);
+				this.log.debug(`startvalue for ${stateID} resettet`);
+			}
+			calcBlock = false; // Enable all calculations
+		} catch (error) {
+			this.log.error(`[reset values ${type}] error: ${error.message}, stack: ${error.stack}`);
 		}
-		calcBlock = false; // Enable all calculations
 	}
 
 	// Ensure always the calculation factor is correctly applied (example Wh to kWh, we calculate always in kilo)
@@ -756,14 +762,14 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const statePrices = this.activeStates[stateID].prices;
-			this.log.debug(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.info(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
 			// Different logic for W values, calculate to kWh first
 			let reading = null;
 			if (stateDetails.unit.toLowerCase() === 'w') {
-				this.log.debug(`Wat value ${value} and array ${JSON.stringify(this.activeStates[stateID])}`);
+				this.log.debug(`Wat value ${value} received configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 				reading = await this.wattToKwh(stateID, value);
 				this.log.debug(`Result of Watt to kWh calculation ${reading}`);
 			} else {
@@ -811,7 +817,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`New reading ${reading} bigger than stored value ${this.activeStates[stateID].calcValues.currentValuekWh} processing normally`);
 			}
 
-			this.log.debug(`Set current value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
+			this.log.info(`Set calculated value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
 			// Update current value to memory
 			this.activeStates[stateID]['calcValues'].currentValuekWh = reading;
 			const calcValues = this.activeStates[stateID].calcValues;
@@ -869,8 +875,6 @@ class Sourceanalytix extends utils.Adapter {
 				priceYear: await this.roundCosts(statePrices.unitPrice * calculations.consumedYear),
 			};
 
-			this.log.silly(`Consumed data for ${stateID} : ${JSON.stringify(calculations)}`);
-
 			// Store consumption
 			if (stateDetails.consumption) {
 				// Always write generic meterReadings for current year
@@ -912,7 +916,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			}
 
-			this.log.silly('Meter Calculation executed');
+			this.log.info('Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculations)}');
 
 		} catch (error) {
 			this.log.error(`[calculationHandler ${stateID}] error: ${error.message}, stack: ${error.stack}`);
@@ -945,48 +949,52 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	async wattToKwh(stateID, value) {
-		const calcValues = this.activeStates[stateID].calcValues;
-		const stateDetails = this.activeStates[stateID].stateDetails;
+		try {
+			const calcValues = this.activeStates[stateID].calcValues;
+			const stateDetails = this.activeStates[stateID].stateDetails;
 
-		this.log.silly(`Watt to kWh for ${stateID} current reading : ${value.val} previousReading : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.debug(`Watt to kWh for ${stateID} current reading : ${value.val} previousReading : ${JSON.stringify(this.activeStates[stateID])}`);
 
-		// Prepare needed data to handle calculations
-		const readingData = {
-			currentValuekWh: Number(calcValues.currentValuekWh),
-			previousReadingWatt: Number(calcValues.previousReadingWatt),
-			previousReadingWattTs: Number(calcValues.previousReadingWattTs),
-			currentReadingWatt: Number(value.val),
-			currentReadingWattTs: Number(value.ts),
-		};
+			// Prepare needed data to handle calculations
+			const readingData = {
+				currentValuekWh: Number(calcValues.currentValuekWh),
+				previousReadingWatt: Number(calcValues.previousReadingWatt),
+				previousReadingWattTs: Number(calcValues.previousReadingWattTs),
+				currentReadingWatt: Number(value.val),
+				currentReadingWattTs: Number(value.ts),
+			};
 
-		// Prepeare function return
-		let calckWh = null;
+			// Prepeare function return
+			let calckWh = null;
 
-		if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
+			if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
 
-			// Calculation logic W to kWh
-			calckWh = (((readingData.currentReadingWattTs - readingData.previousReadingWattTs) / 1000) * readingData.previousReadingWatt / 3600000);
-			this.log.debug(`Calc kWh current timing : ${calckWh} adding current value ${readingData.currentValuekWh}`);
-			// add current meassurement to previous kWh total
-			calckWh = calckWh + readingData.currentValuekWh;
-			this.log.debug(`Calc kWh total : ${calckWh}`);
+				// Calculation logic W to kWh
+				calckWh = (((readingData.currentReadingWattTs - readingData.previousReadingWattTs) / 1000) * readingData.previousReadingWatt / 3600000);
+				this.log.debug(`Calc kWh current timing : ${calckWh} adding current value ${readingData.currentValuekWh}`);
+				// add current meassurement to previous kWh total
+				calckWh = calckWh + readingData.currentValuekWh;
+				this.log.debug(`Calc kWh total : ${calckWh}`);
 
-			// Update timestamp current reading to memory
-			this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
-			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
+				// Update timestamp current reading to memory
+				this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
+				this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
 
-		} else {
+			} else {
 
-			// Update timestamp current reading to memory
-			this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
-			this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
+				// Update timestamp current reading to memory
+				this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
+				this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
 
-			calckWh = await this.getCurrentTotal(stateID, stateDetails.deviceName);
+				calckWh = await this.getCurrentTotal(stateID, stateDetails.deviceName);
 
+			}
+
+			this.log.debug(`Watt to kWh outcome for ${stateID} : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+			return calckWh;
+		} catch (error) {
+			this.log.error(`[wattToKwh ${stateID}] vaule ${value} error: ${error.message}, stack: ${error.stack}`);
 		}
-
-		this.log.debug(`Watt to kWh outcome for ${stateID} : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
-		return calckWh;
 	}
 
 	// Read current calculated totals, needed to ensure komulative calculations
