@@ -10,6 +10,7 @@ const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
 
 // Lets make sure we know all days and months
+const basicValues = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
@@ -251,7 +252,6 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
-			const basicValues = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
 			// Always create states for meter readings 
 			for (const state of basicValues) {
 				const stateRoot = state;
@@ -587,6 +587,15 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
 
 				}
+				if (!deleteState && stateDetails.meter_values) {
+						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.meterReadings.${stateRoot}`, commonData);
+				} else if (deleteState || !stateDetails.meter_values) {
+
+					// If state deletion choosen, clean everyting up else define statename
+					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.meterReadings.${stateRoot}`);
+
+				}
+
 				// Create cost states
 				if (!deleteState && stateDetails.costs) {
 
