@@ -124,6 +124,7 @@ class Sourceanalytix extends utils.Adapter {
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
 			const valueAtDeviceReset = (customData.valueAtDeviceReset && customData.valueAtDeviceReset !== 0) ? customData.valueAtDeviceReset : 0;
+			/** @type {number} */
 			let currentValuekWh = await this.getCurrentTotal(stateID, newDeviceName);
 			currentValuekWh = currentValuekWh ? currentValuekWh : 0;
 			const stateType = customData.state_type;

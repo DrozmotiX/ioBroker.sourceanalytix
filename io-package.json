@@ -177,19 +177,19 @@
             "zh-cn": "SourceAnalytix"
         },
         "desc": {
-            "en": "Provide detailed consumption calculations for daily, weekly, monthly and yearly consumption data",
-            "de": "Stellen Sie detaillierte Verbrauchsberechnungen für tägliche, wöchentliche, monatliche und jährliche Verbrauchsdaten bereit",
-            "ru": "Предоставить подробные расчеты потребления для ежедневных, еженедельных, ежемесячных и годовых данных потребления",
-            "pt": "Fornecer cálculos detalhados de consumo para dados de consumo diários, semanais, mensais e anuais",
-            "nl": "Geef gedetailleerde verbruiksberekeningen voor dagelijkse, wekelijkse, maandelijkse en jaarlijkse verbruiksgegevens",
-            "fr": "Fournir des calculs de consommation détaillés pour les données de consommation quotidiennes, hebdomadaires, mensuelles et annuelles",
-            "it": "Fornire calcoli dettagliati sui consumi per i dati di consumo giornalieri, settimanali, mensili e annuali",
-            "es": "Proporcionar cálculos de consumo detallados para datos de consumo diarios, semanales, mensuales y anuales",
-            "pl": "Podaj szczegółowe obliczenia zużycia dla dziennych, tygodniowych, miesięcznych i rocznych danych o zużyciu",
-            "zh-cn": "提供每日，每周，每月和每年消费数据的详细消费计算"
+            "en": "Detailed statistics of your energy, gas and liquid consumption. Allows annual report and details according to weekly, monthly and quarterly consumption data.",
+            "de": "Detaillierte Statistiken Ihres Energie-, Gas- und Flüssigkeitsverbrauchs. Ermöglicht Jahresberichte und Details gemäß wöchentlichen, monatlichen und vierteljährlichen Verbrauchsdaten.",
+            "ru": "Подробная статистика вашего потребления энергии, газа и жидкости. Позволяет годовой отчет и подробную информацию в соответствии с еженедельными, ежемесячными и квартальными данными потребления.",
+            "pt": "Estatísticas detalhadas de seu consumo de energia, gás e líquido. Permite relatório anual e detalhes de acordo com dados de consumo semanais, mensais e trimestrais.",
+            "nl": "Gedetailleerde statistieken van uw energie-, gas- en vloeistofverbruik. Staat jaarverslag en details toe op basis van wekelijkse, maandelijkse en driemaandelijkse verbruiksgegevens.",
+            "fr": "Statistiques détaillées de votre consommation d'énergie, de gaz et de liquide. Permet un rapport annuel et des détails selon les données de consommation hebdomadaires, mensuelles et trimestrielles.",
+            "it": "Statistiche dettagliate sul consumo di energia, gas e liquidi. Consente report e dettagli annuali in base ai dati di consumo settimanali, mensili e trimestrali.",
+            "es": "Estadísticas detalladas de su consumo de energía, gas y líquido. Permite informes anuales y detalles según datos de consumo semanal, mensual y trimestral.",
+            "pl": "Szczegółowe statystyki zużycia energii, gazu i cieczy. Umożliwia raport roczny i szczegóły zgodnie z tygodniowymi, miesięcznymi i kwartalnymi danymi dotyczącymi zużycia.",
+            "zh-cn": "您的能源，气体和液体消耗的详细统计信息。允许根据每周，每月和每季度的消费数据提供年度报告和详细信息。"
         },
         "authors": [
-            "DutchmanNL <rdrozda@hotmail.com>"
+            "DutchmanNL <rdrozda86@gmail.com>"
         ],
         "contributors": [
 			"xXBJXx"
