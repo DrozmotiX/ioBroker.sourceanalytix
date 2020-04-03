@@ -13,7 +13,7 @@ const adapterName = require('./package.json').name.split('.').pop();
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
-const stateDeletion = true;
+const stateDeletion = true, deviceResetHandled = [];
 let calcBlock = null;
 
 // Create variables for object arrays
@@ -122,6 +122,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
+			const valueAtDeviceReset = customData.valueAtDeviceReset ? customData.valueAtDeviceReset !== 0 || customData.valueAtDeviceReset : 0;
 			let currentValuekWh = await this.getCurrentTotal(stateID, newDeviceName);
 			currentValuekWh = currentValuekWh ? currentValuekWh : 0;
 			const stateType = customData.state_type;
@@ -149,6 +150,7 @@ class Sourceanalytix extends utils.Adapter {
 					start_quarter: customData.start_quarter,
 					start_week: customData.start_week,
 					start_year: customData.start_year,
+					valueAtDeviceReset : valueAtDeviceReset,
 				},
 				prices: {},
 			};
@@ -755,6 +757,34 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`Recalculated value ${reading}`);
 			if (!reading) return;
 
+			// Detect meter reset & ensure komulative calculation
+			if (reading < this.activeStates[stateID].calcValues.currentValuekWh) {
+
+				// Treshold of 1 kWh to detect reset of meter
+				if (reading < 1 && !deviceResetHandled[stateID]) {
+					deviceResetHandled[stateID] = true;
+
+					// Prepare object array for extension
+					const obj = {};
+					obj.common = {};
+					obj.common.custom = {};
+					obj.common.custom[this.namespace] = {};
+					obj.common.custom[this.namespace].calcValues = {};
+		
+					// Extend valueAtDeviceReset with currentValuekWh at object and memory
+					obj.common.custom[this.namespace].calcValues.valueAtDeviceReset = this.activeStates[stateID].calcValues.currentValuekWh;
+					this.activeStates[stateID].calcValues.valueAtDeviceReset = this.activeStates[stateID].calcValues.currentValuekWh;
+					await this.extendForeignObject(stateID, obj);
+
+					// Calculate propper reading
+					reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
+				} else if (reading > 1 && !deviceResetHandled[stateID])
+
+					// Add current reading to value in memory
+					reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
+
+			}
+
 			this.log.silly(`Set current value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
 			// Update current value to memory
 			this.activeStates[stateID]['calcValues'].currentValuekWh = reading;
@@ -952,12 +982,13 @@ class Sourceanalytix extends utils.Adapter {
 	async getCurrentTotal(stateID, deviceName) {
 		let calckWh = null;
 
-		// Check if previous reading exist in state (current and <4 version )
+		// Check if previous reading exist in state
 		const previousReadingV4 = await this.getStateAsync(`${deviceName}.Current_Reading`);
 		
 		// temporary indicate source of kWh value
 		let valueSource = null;
 
+		// Check if previous reading exist in state (routine for <4 version )
 		if (!previousReadingV4 || previousReadingV4.val === 0){
 
 			const previousReadingVold = await this.getStateAsync(`${deviceName}.Meter_Readings.Current_Reading`);
