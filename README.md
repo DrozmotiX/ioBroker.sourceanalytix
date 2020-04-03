@@ -209,7 +209,7 @@ To-Do : Migration from < 0.4.0 to new datastructure
 ## License
 MIT License
 
-Copyright (c) 2018 Dutchman
+Copyright (c) 2020 Dutchman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
