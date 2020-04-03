@@ -122,6 +122,8 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
+			let currentValuekWh = await this.getCurrentTotal(stateID, newDeviceName);
+			currentValuekWh = currentValuekWh ? currentValuekWh : 0;
 			const stateType = customData.state_type;
 
 			// Load state settings to memory
@@ -141,7 +143,7 @@ class Sourceanalytix extends utils.Adapter {
 					unit: stateInfo.common.unit
 				},
 				calcValues: {
-					currentValuekWh: null,
+					currentValuekWh: currentValuekWh,
 					start_day: customData.start_day,
 					start_month: customData.start_month,
 					start_quarter: customData.start_quarter,
