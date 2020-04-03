@@ -123,7 +123,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		if (stateInfo && stateInfo.common && stateInfo.common.custom) {
 			const customData = stateInfo.common.custom[this.namespace];
-			const valueAtDeviceReset = customData.valueAtDeviceReset ? customData.valueAtDeviceReset !== 0 || customData.valueAtDeviceReset : 0;
+			const valueAtDeviceReset = (customData.valueAtDeviceReset && customData.valueAtDeviceReset !== 0) ? customData.valueAtDeviceReset : 0;
 			let currentValuekWh = await this.getCurrentTotal(stateID, newDeviceName);
 			currentValuekWh = currentValuekWh ? currentValuekWh : 0;
 			const stateType = customData.state_type;
@@ -151,7 +151,7 @@ class Sourceanalytix extends utils.Adapter {
 					start_quarter: customData.start_quarter,
 					start_week: customData.start_week,
 					start_year: customData.start_year,
-					valueAtDeviceReset : valueAtDeviceReset,
+					valueAtDeviceReset: valueAtDeviceReset,
 				},
 				prices: {},
 			};
@@ -464,7 +464,7 @@ class Sourceanalytix extends utils.Adapter {
 		calcBlock = true; // Pauze all calculations
 		// Read state array and write Data for every active state
 		for (const stateID in this.activeStates) {
-		// Prepare custom object
+			// Prepare custom object
 			const obj = {};
 			obj.common = {};
 			obj.common.custom = {};
@@ -755,7 +755,7 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const statePrices = this.activeStates[stateID].prices;
-			this.log.silly(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(stateDetails)}`);
+			this.log.debug(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
@@ -775,9 +775,12 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Detect meter reset & ensure komulative calculation
 			if (reading < this.activeStates[stateID].calcValues.currentValuekWh) {
+				this.log.debug(`New reading ${reading} lower than stored value ${this.activeStates[stateID].calcValues.currentValuekWh}`);
+				this.log.debug(`deviceResetHandled ${JSON.stringify(deviceResetHandled)}`);
 
 				// Treshold of 1 kWh to detect reset of meter
 				if (reading < 1 && !deviceResetHandled[stateID]) {
+					this.log.warn(`Device reset detected store current value ${this.activeStates[stateID].calcValues.currentValuekWh} to value of reset`);
 					deviceResetHandled[stateID] = true;
 
 					// Prepare object array for extension
@@ -785,23 +788,29 @@ class Sourceanalytix extends utils.Adapter {
 					obj.common = {};
 					obj.common.custom = {};
 					obj.common.custom[this.namespace] = {};
-					obj.common.custom[this.namespace].calcValues = {};
-		
+
 					// Extend valueAtDeviceReset with currentValuekWh at object and memory
-					obj.common.custom[this.namespace].calcValues.valueAtDeviceReset = this.activeStates[stateID].calcValues.currentValuekWh;
+					obj.common.custom[this.namespace].valueAtDeviceReset = this.activeStates[stateID].calcValues.currentValuekWh;
 					this.activeStates[stateID].calcValues.valueAtDeviceReset = this.activeStates[stateID].calcValues.currentValuekWh;
 					await this.extendForeignObject(stateID, obj);
 
 					// Calculate propper reading
 					reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
-				} else if (reading > 1 && !deviceResetHandled[stateID])
+				} else {
+					this.log.debug(`Adding ${reading} to stored value ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
 
 					// Add current reading to value in memory
 					reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
+					this.log.debug(`Calculation outcome ${reading} valueAtDeviceReset ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
+					// Reset device reset variable
+					if (reading > 1) deviceResetHandled[stateID] = true;
 
+				}
+			} else {
+				this.log.debug(`New reading ${reading} bigger than stored value ${this.activeStates[stateID].calcValues.currentValuekWh} processing normally`);
 			}
 
-			this.log.silly(`Set current value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
+			this.log.debug(`Set current value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
 			// Update current value to memory
 			this.activeStates[stateID]['calcValues'].currentValuekWh = reading;
 			const calcValues = this.activeStates[stateID].calcValues;
@@ -822,7 +831,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (stateDetails.meter_values === true) {
 				// Always write generic meterReadings for current year
 				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.meterReadings`;
-				const readingRounded = await this.roundDigits(reading)
+				const readingRounded = await this.roundDigits(reading);
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
 				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: readingRounded, ack: true });
@@ -985,12 +994,12 @@ class Sourceanalytix extends utils.Adapter {
 
 		// Check if previous reading exist in state
 		const previousReadingV4 = await this.getStateAsync(`${deviceName}.Current_Reading`);
-		
+
 		// temporary indicate source of kWh value
 		let valueSource = null;
 
 		// Check if previous reading exist in state (routine for <4 version )
-		if (!previousReadingV4 || previousReadingV4.val === 0){
+		if (!previousReadingV4 || previousReadingV4.val === 0) {
 
 			const previousReadingVold = await this.getStateAsync(`${deviceName}.Meter_Readings.Current_Reading`);
 			if (!previousReadingVold || previousReadingVold.val === 0) return;
