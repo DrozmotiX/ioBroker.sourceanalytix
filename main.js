@@ -587,8 +587,15 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
 
 				}
+
+				// Create MeterReading states
 				if (!deleteState && stateDetails.meter_values) {
+
+					// Do not create StateRoot values
+					if (!basicValues.includes(stateRoot)) {
 						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.meterReadings.${stateRoot}`, commonData);
+					}
+
 				} else if (deleteState || !stateDetails.meter_values) {
 
 					// If state deletion choosen, clean everyting up else define statename
