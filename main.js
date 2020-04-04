@@ -58,7 +58,6 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.info('Initializing enabled states for SourceAnalytix');
 
 			// get all objects with custom configuraiton items
-			// @ts-ignore : getObjectViewAsync missing in definiton
 			const customStateArray = await this.getObjectViewAsync('custom', 'state', {});
 			this.log.debug(`All states with custom items : ${JSON.stringify(customStateArray)}`);
 
