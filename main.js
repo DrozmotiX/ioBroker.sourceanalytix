@@ -8,6 +8,7 @@
 // you need to create an adapter
 const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
+const schedule = require('cron').CronJob; // Cron Scheduler
 
 // Lets make sure we know all days and months
 const basicValues = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
@@ -20,8 +21,6 @@ let calcBlock = null;
 // Create variables for object arrays
 const history = {}, aliasMap = {};
 let currentYear = null, currentQuarter = null, currentMonth = null, currentWeek = null, currentDay = null;
-// Load Time Modules
-const schedule = require('node-schedule'); // New Cron Scheduler
 
 class Sourceanalytix extends utils.Adapter {
 	/**
@@ -418,35 +417,37 @@ class Sourceanalytix extends utils.Adapter {
 	// Cronjobs startvalue reset for each day, week, month, quarter, year
 	async resetShedules() {
 		try {
-			schedule.scheduleJob('0 0 * * *', async () => {
+
+			// Define shedules
+			const resetDay = new schedule('0 0 * * *', async () => {
 				await this.resetDates; // Reset date values in memory
 				await this.resestValues('start_day');
 
 			});
 
 			// Reset Week counter
-			schedule.scheduleJob('0 0 * * 1', async () => {
+			const resetWeek = new schedule('0 0 * * 1', async () => {
 				await this.resetDates; // Reset date values in memory
 				await this.resestValues('start_week');
 
 			});
 
 			// Reset month counter
-			schedule.scheduleJob('0 0 1 * *', async () => {
+			const resetMonth = new schedule('0 0 1 * *', async () => {
 				await this.resetDates; // Reset date values in memory
 				await this.resestValues('start_month');
 
 			});
 
 			// Reset quarter counter
-			schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
+			const resetQuarter = new schedule('0 0 1 1,4,7,10 *', async () => {
 				await this.resetDates; // Reset date values in memory
 				await this.resestValues('start_quarter');
 
 			});
 
 			// Reset year counter
-			schedule.scheduleJob('0 0 1 1 *', async () => {
+			const resetYear = new schedule('0 0 1 1 *', async () => {
 				await this.resetDates; // Reset date values in memory
 
 				// create object structure for new year
@@ -457,6 +458,14 @@ class Sourceanalytix extends utils.Adapter {
 				await this.resestValues('start_year');
 
 			});
+
+			// Start shedules
+			resetDay.start();
+			resetMonth.start();
+			resetQuarter.start();
+			resetWeek.start();
+			resetYear.start();
+
 		} catch (error) {
 			this.log.error(`[reset shedules error: ${error.message}, stack: ${error.stack}`);
 		}
