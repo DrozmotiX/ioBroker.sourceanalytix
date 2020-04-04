@@ -349,7 +349,7 @@ class Sourceanalytix extends utils.Adapter {
 
 						// Verify if the object was already activated, if not initialize new device
 						if (!this.activeStates[stateID]) {
-							this.log.info(`Enable SourceAnalytix for : ${stateID}`);
+							this.log.warn(`Enable SourceAnalytix for : ${stateID}`);
 							await this.buildStateDetailsArray(id);
 							this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
 							await this.initialize(stateID);
@@ -790,7 +790,7 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const statePrices = this.activeStates[stateID].prices;
-			this.log.warn(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.info(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
