@@ -16,7 +16,7 @@ const basicValues = ['01_current_day', '02_current_week', '03_current_month', '0
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
 const stateDeletion = true, deviceResetHandled = [];
-let calcBlock = null;
+let calcBlock = null, previousCalculationRounded = {};
 
 // Create variables for object arrays
 const history = {}, aliasMap = {};
@@ -790,7 +790,7 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const statePrices = this.activeStates[stateID].prices;
-			this.log.info(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.warn(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
@@ -944,7 +944,11 @@ class Sourceanalytix extends utils.Adapter {
 
 			}
 
-			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculations)}`);
+			// Store results of current calculation to memory
+			previousCalculationRounded[stateID] = calculationRounded;
+			this.log.debug(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
+
+			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
 		} catch (error) {
 			this.log.error(`[calculationHandler ${stateID}] error: ${error.message}, stack: ${error.stack}`);
