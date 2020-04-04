@@ -12,7 +12,7 @@ const schedule = require('cron').CronJob; // Cron Scheduler
 
 // Lets make sure we know all days and months
 const basicValues = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
-const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
+// const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
 const stateDeletion = true, deviceResetHandled = [];
@@ -20,7 +20,7 @@ let calcBlock = null;
 
 // Create variables for object arrays
 const history = {}, aliasMap = {};
-let currentYear = null, currentQuarter = null, currentMonth = null, currentWeek = null, currentDay = null;
+let currentYear = null, currentQuarter = null, currentMonth = null, currentWeek = null; //, currentDay = null;
 
 class Sourceanalytix extends utils.Adapter {
 	/**
@@ -343,7 +343,27 @@ class Sourceanalytix extends utils.Adapter {
 				// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
 				// Verify if custom information is available regaring SourceAnalytix
 				if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
-					this.log.info(`Object array of SourceAnalytix activated state changed : ${JSON.stringify(this.activeStates)}`);
+
+					// ignore object changes when caused by SA (memory is handled automatically)
+					if (obj.from !== `system.adapter.${this.namespace}`) {
+						this.log.info(`Object array of SourceAnalytix activated state changed : ${JSON.stringify(obj)} stored config : ${JSON.stringify(this.activeStates)}`);
+
+						// Verify if the object was already activated, if not initialize new device
+						if (!this.activeStates[stateID]) {
+							this.log.info(`Enable SourceAnalytix for : ${stateID}`);
+							await this.buildStateDetailsArray(id);
+							this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+							await this.initialize(stateID);
+						} else {
+							this.log.warn(`Updated SourceAnalytix configuration for : ${stateID}`);
+							await this.buildStateDetailsArray(id);
+							this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+							await this.initialize(stateID);
+						}
+
+					} else {
+						this.log.debug(`Object change by adapter detected, ignoring`);
+					}
 
 					// Verify if the object was already activated, if not initialize new device
 					if (!this.activeStates[stateID]) {
@@ -925,7 +945,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			}
 
-			this.log.info('Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculations)}');
+			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculations)}`);
 
 		} catch (error) {
 			this.log.error(`[calculationHandler ${stateID}] error: ${error.message}, stack: ${error.stack}`);
@@ -1035,7 +1055,7 @@ class Sourceanalytix extends utils.Adapter {
 
 	async resetDates() {
 		const today = new Date();
-		currentDay = weekdays[today.getDay()];
+		// currentDay = weekdays[today.getDay()];
 		currentWeek = await this.getWeekNumber(new Date());
 		currentMonth = months[today.getMonth()];
 		currentQuarter = Math.floor((today.getMonth() + 3) / 3);
