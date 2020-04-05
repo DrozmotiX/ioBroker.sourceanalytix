@@ -15,8 +15,8 @@ const basicValues = ['01_current_day', '02_current_week', '03_current_month', '0
 // const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
-const stateDeletion = true, deviceResetHandled = [];
-let calcBlock = null, previousCalculationRounded = {};
+const stateDeletion = true, deviceResetHandled = [], previousCalculationRounded = {}, storeSettings = {};
+let calcBlock = null;
 
 // Create variables for object arrays
 const history = {}, aliasMap = {};
@@ -50,6 +50,11 @@ class Sourceanalytix extends utils.Adapter {
 			// Initialize your adapter here
 			this.log.info('Welcome to SourceAnalytix, making things ready ... ');
 			await this.resetDates();
+
+			// Load global store store settings
+			storeSettings.storeWeeks = this.config.store_weeks;
+			storeSettings.storeMonths = this.config.store_months;
+			storeSettings.storeQuarters = this.config.store_quarters;
 
 			// Subscribe on all foreign states to ensure changes in objects are reflected
 			this.subscribeForeignObjects('*');
@@ -869,11 +874,11 @@ class Sourceanalytix extends utils.Adapter {
 				const readingRounded = await this.roundDigits(reading);
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
-				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: readingRounded, ack: true });
+				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${currentWeek}`, { val: readingRounded, ack: true });
 				// Month
-				await this.setState(`${stateName}.months.${currentMonth}`, { val: readingRounded, ack: true });
+				if (storeSettings.storeMonths) await this.setState(`${stateName}.months.${currentMonth}`, { val: readingRounded, ack: true });
 				// Quarter
-				await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: readingRounded, ack: true });
+				if (storeSettings.storeQuarters) await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: readingRounded, ack: true });
 
 			}
 
@@ -916,11 +921,11 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
-				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.consumedWeek, ack: true });
+				if (storeSettings.store_weeks) await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.consumedWeek, ack: true });
 				// Month
-				await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.consumedMonth, ack: true });
+				if (storeSettings.store_quarters) await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.consumedMonth, ack: true });
 				// Quarter
-				await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.consumedQuarter, ack: true });
+				if (storeSettings.storeMonths) await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.consumedQuarter, ack: true });
 			}
 
 			// Store prices
@@ -936,11 +941,11 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.priceDay, ack: true });
-				await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.priceWeek, ack: true });
+				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.priceWeek, ack: true });
 				// Month
-				await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.priceMonth, ack: true });
+				if (storeSettings.storeMonths) await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.priceMonth, ack: true });
 				// Quarter
-				await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.priceQuarter, ack: true });
+				if (storeSettings.storeQuarters) await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.priceQuarter, ack: true });
 
 			}
 
