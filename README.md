@@ -1,5 +1,5 @@
-#  [Dev - in Progress] SourceAnalytix
-# { !!! Do not install from git !!!}
+# SourceAnalytix
+# { Dev - in Progress, version 0.4.0  stable candidate }
 [![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
 ![Number of Installations](http://iobroker.live/badges/sourceanalytix-installed.svg) ![Number of Installations](http://iobroker.live/badges/sourceanalytix-stable.svg) [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
@@ -30,10 +30,8 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## To-Do
 * [ ] Documentation
-* [ ] Cost default value to 0 with error message if not provided
 * [ ] recalcalation based on meter values (configurable by date)
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
-* [ ] storage of meter values for every state
 
 ## Support me
 If you like my work, please consider a personal donation  
@@ -42,12 +40,13 @@ If you like my work, please consider a personal donation
 
 ## Changelog
 
-### 0.4.0 (Development in progress)
+### 0.4.0 (2020-04-05) Adapter completely redesigned, please test carefully
 * (Dutchman) Complete code rebuild
-* (Dutchman) Complete code rebuild & optimalisation
 * (Dutchman) Change datapoints to root by year
 * (Dutchman) Delete unneded states automatically
-* (Dutchman) Rebuild calculation logic to use memory instead of object DB (performance)
+* (Dutchman) Calculation by quarter implemented
+* (Dutchman) Storage of meter values implemented
+* (Dutchman) Rebuild calculation logic to handle in memory instead of object DB (performance)
 
 To-Do : Migration from < 0.4.0 to new datastructure
 

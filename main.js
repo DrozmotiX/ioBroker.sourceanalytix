@@ -951,7 +951,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Store results of current calculation to memory
 			previousCalculationRounded[stateID] = calculationRounded;
-			this.log.warn(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
+			this.log.info(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
 			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
