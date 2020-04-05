@@ -7,7 +7,7 @@ assignees: 'DutchmanNL'
 ---
 
 **!!! Before you start !!!!**  
-1. Verify if there is not already an issue requesting the same Enhancement
+Verify if there is not already an issue requesting the same Enhancement
 
 **Describe wanted Enhancement !**  
 A clear description of the wanted functionality

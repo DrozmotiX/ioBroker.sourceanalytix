@@ -349,7 +349,7 @@ class Sourceanalytix extends utils.Adapter {
 
 						// Verify if the object was already activated, if not initialize new device
 						if (!this.activeStates[stateID]) {
-							this.log.warn(`Enable SourceAnalytix for : ${stateID}`);
+							this.log.info(`Enable SourceAnalytix for : ${stateID}`);
 							await this.buildStateDetailsArray(id);
 							this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
 							await this.initialize(stateID);
@@ -946,7 +946,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Store results of current calculation to memory
 			previousCalculationRounded[stateID] = calculationRounded;
-			this.log.debug(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
+			this.log.warn(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
 			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
