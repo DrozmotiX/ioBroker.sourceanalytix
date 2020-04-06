@@ -5,17 +5,17 @@
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Greenkeeper badge](https://badges.greenkeeper.io/iobroker-community-adapters/ioBroker.sourceanalytix.svg)](https://greenkeeper.io/)
 
-ioBroker SourceAnalytix allows you to keep track & trace of consumption, cost and meter values for your devices.
-You need data as input (total amount of Wh, l/h or m3 used) from your devices and this adapter will :
+Detailed analysis of your Energy, gas and liquid consumptions
+Any source (kWh, Wh, Watt, l/h or m3 )can be used for data analyses :
 
 * Trace comsumption daily, weekly, monthly, quarterly, yearly
 * calculate costs (current price is configurable)
 * Can be used for Power Consumption, liquids, and GAS
-* Input values can be wh/kWh/m3/l
+* Input values can be wh/kWh/Watt/m3/l
 
 ## How-To
 
-* [ ] To-Do
+Please provide your feedback here https://forum.iobroker.net/topic/31932/major-update-sourceanalytix-0-4-0-complete-code-rebuild
 
 This adapter has is roots with thanks to pix back in 2016 
 https://forum.iobroker.net/viewtopic.php?f=21&t=2262

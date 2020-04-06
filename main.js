@@ -15,7 +15,7 @@ const basicValues = ['01_current_day', '02_current_week', '03_current_month', '0
 // const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
-const stateDeletion = true, deviceResetHandled = [], previousCalculationRounded = {}, storeSettings = {};
+const stateDeletion = true, deviceResetHandled = [], previousCalculationRounded = {}, storeSettings = {}, previousStateVal = {};
 let calcBlock = null;
 
 // Create variables for object arrays
@@ -265,6 +265,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Handle first time calculation
 			const value = await this.getForeignStateAsync(stateID);
+			this.log.info(`First time calc result after initialising`);
 			if (value) {
 				await this.calculationHandler(stateID, value.val);
 			}
@@ -409,7 +410,14 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`state ${id} changed : ${JSON.stringify(state)} SourceAnalytix calculation executed`);
 
 				// Implement x ignore time (configurable) to avoid overload of uneeded calculations
-				this.calculationHandler(id, state);
+				// Avoid uneeded calculation run
+				if (previousStateVal[id] !== state.val) {
+					this.calculationHandler(id, state);
+					previousStateVal[id] = state.val;
+
+				} else {
+					this.log.debug(`Update osf state ${id} received with equal value ${state.val} ignoring`);
+				}
 
 			}
 		} catch (error) {
