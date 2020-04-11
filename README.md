@@ -40,6 +40,13 @@ If you like my work, please consider a personal donation
 
 ## Changelog
 
+### 0.4.1 (2020-04-11) Fix issue with daily resets
+* (Dutchman) Translations updated
+* (Dutchman) Bugfix : Values not resettet at new day start
+* (Dutchman) Bugfix : Hanlde calculations when reading = 0
+* (Dutchman) Bugfix : Pauze all calculation during day-reset
+* (Dutchman) Do not calculate values is state is update with same value as previous
+
 ### 0.4.0 (2020-04-05) Adapter completely redesigned, please test carefully
 * (Dutchman) Complete code rebuild
 * (Dutchman) Change datapoints to root by year
