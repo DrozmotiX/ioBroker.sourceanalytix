@@ -3,6 +3,18 @@
         "name": "sourceanalytix",
         "version": "0.4.1",
         "news": {
+            "0.4.1": {
+                "en": "Bugfixes",
+                "de": "Fehlerbehebung",
+                "ru": "Исправление ошибок",
+                "pt": "Correções de bugs",
+                "nl": "Bugfixes",
+                "fr": "Corrections de bugs",
+                "it": "Correzioni di bug",
+                "es": "Corrección de errores",
+                "pl": "Poprawki błędów",
+                "zh-cn": "Bug修复"
+            },
             "0.4.0": {
                 "en": "Adapter completely redesigned, please test carefully",
                 "de": "Adapter komplett neu gestaltet, bitte sorgfältig testen",
