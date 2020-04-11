@@ -17,7 +17,21 @@
 	<link rel="stylesheet" type="text/css" href="style.css" />
 	<script type="text/javascript" src="words.js"></script>
 
+	<style>
+		.table_header {
+			background-color: blue;
+			color: white;
+		}
+
+		.ip {
+			width: 150px;
+			text-align: right;
+		}
+	</style>
+
 	<script type="text/javascript">
+		var unitConfig = [];
+		var pricesConfig = [];
 		// This will be called by the admin adapter when the settings page loads
 		function load(settings, onChange) {
 			// example: select elements with id=key and class=value and insert value
@@ -38,7 +52,12 @@
 						;
 				}
 			});
+			unitConfig = settings.unitConfig || [];
+			pricesConfig = settings.pricesConfig || [];
 			onChange(false);
+
+			values2table('unitConfig', unitConfig, onChange);
+			values2table('pricesConfig', pricesConfig, onChange);
 			// reinitialize all the Materialize labels on the page if you are dynamically adding inputs:
 			if (M) M.updateTextFields();
 		}
@@ -55,6 +74,9 @@
 					obj[$this.attr('id')] = $this.val();
 				}
 			});
+			obj.unitConfig = table2values('unitConfig');
+			obj.pricesConfig = table2values('pricesConfig');
+
 			callback(obj);
 		}
 	</script>
@@ -63,201 +85,245 @@
 
 <body>
 
-		<div class="m adapter-container">
-				<!-- Put your content here -->
-				<h3>SourceAnalytix</h3>
+	<div class="m adapter-container">
+		<!-- Put your content here -->
+		<h3>SourceAnalytix</h3>
+		<div class="row">
+			<div class="col s12">
+				<ul class="tabs">
+					<li class="tab col s3"><a href="#tab-main" class="translate active">Main settings</a></li>
+					<li class="tab col s3"><a href="#tab-calculations" class="translate active">calculations</a></li>
+					<li class="tab col s3"><a href="#tab-unitConfig" class="translate active">Unit definitions</a></li>
+					<li class="tab col s3"><a href="#tab-pricesConfig" class="translate active">Price definitions</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<!-- Tab main -->
+		<div class="row">
+			<div id="tab-main" class="col s12 page">
+
+				<p class="translate title">Analyse the whole year</p>
+
 				<div class="row">
-				   <div class="col s12">
-					  <ul class="tabs">
-						 <li class="tab col s6"><a href="#tab-main" class="translate active">Main settings</a></li>
-						 <li class="tab col s6"><a href="#tab-calculations" class="translate active">calculations</a></li>
-					  </ul>
-				   </div>
-				</div>
-				<div class="row">
-				   <div id="tab-main" class="col s12 page">
-					  <div class="section">
-						 <h6 class="translate">Analyse the whole year</h6>
-					  </div>
-					  <div class="row">
-						 <div class="input-field col s2">
-							<input type="checkbox" class="value" id="store_days"/>
-							<span class="translate">Days</span>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="checkbox" class="value" id="store_weeks"/>
-							<span class="translate">Weeks</span>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="checkbox" class="value" id="store_months"/>
-							<span class="translate">Months</span>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="checkbox" class="value" id="store_quarters"/>
-							<span class="translate">Quarter</span>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="checkbox" class="value" id="store_years"/>
-							<span class="translate">Years</span>
-						 </div>
-					  </div>
-					  <div class="section">
-							<div class="divider"></div>
-						 </div>
-					  <div class="section">
-							<h6 class="translate">Analyse the previous x period (not yet implemented)</h6>
-						 </div>
-					  <div class="row">
-						 <div class="input-field col s2">
-							<input type="checkbox" class="value" id="store_periode" />
-							<span class="translate">period of time</span>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="number" class="value" id="keep_days">
-							<label for="keep_days" class="translate">number of days</label>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="number" class="value" id="keep_weeks">
-							<label for="keep_weeks" class="translate">Number of weeks</label>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="number" class="value" id="keep_months">
-							<label for="keep_months" class="translate">number of months</label>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="number" class="value" id="keep_quarters">
-							<label for="keep_quarter" class="translate">Number of quarters</label>
-						 </div>
-						 <div class="input-field col s2">
-							<input type="number" class="value" id="keep_years">
-							<label for="keep_years" class="translate">Number of years</label>
-						 </div>
-					  </div>
-					  <!-- Remove intervall from configuration screen, currenlty handle by subscribe
-					  <div class="section">
-						 <div class="divider"></div>
-					  </div>
-					  <div class="row">
-						 <div class="input-field col s2">
-						 </div>
-						 <div class="input-field col s4">
-							<input type="number" class="value" id="intervall"/>
-							<label for="intervall" class="translate">Calculation is done every x minutes</label>
-						 </div> -->				   
-						 <div class="section">
-							<div class="divider"></div>
-						</div>							 
-						 <div class="section">
-							<h6 class="translate">Logging settings</h6>
-						 </div>			
-					<div class="row">
-						<div class="input-field col s3">
-							<input type="checkbox" class="value" id="status_logging" />
-							<span class="translate">Status messages to log</span>
-						</div>
-					</div>					
+					<div class="input-field col s2">
+						<input type="checkbox" class="value" id="store_days" />
+						<span class="translate">Days</span>
+					</div>
+					<div class="input-field col s2">
+						<input type="checkbox" class="value" id="store_weeks" />
+						<span class="translate">Weeks</span>
+					</div>
+					<div class="input-field col s2">
+						<input type="checkbox" class="value" id="store_months" />
+						<span class="translate">Months</span>
+					</div>
+					<div class="input-field col s2">
+						<input type="checkbox" class="value" id="store_quarters" />
+						<span class="translate">Quarter</span>
+					</div>
+					<div class="input-field col s2">
+						<input type="checkbox" class="value" id="store_years" />
+						<span class="translate">Years</span>
 					</div>
 				</div>
-				<div class="row"></div>
-				<div id="tab-calculations" class="col s12 page">
-				   <div class="row">
-					  <div class="text col s2">
-						 <p class="translate">Electricity</p>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="unit_price_power" />
-						 <label for="unit_price_power" class="translate">Price per unit (€/kWh)</label>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="unit_price_power_night" />
-						 <label for="unit_price_power_night" class="translate">Price per unit night current (€/kWh)</label>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="basic_price_power" />
-						 <label for="basic_price_power" class="translate">Monthly base price</label>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="unit_price_power_delivery" />
-						 <label for="unit_price_power_delivery" class="translate">Profit per unit (€/kWh)</label>
-					  </div>			 
-				   </div>
-				   <div class="row">
-						<div class="text col s2">
-						   <p class="translate">Heat pump</p>
-						</div>
-						<div class="input-field col s2">
-						   <input type="number" class="value" id="unit_price_heatpump" />
-						   <label for="unit_price_heatpump" class="translate">Price per unit (€/kWh)</label>
-						</div>
-						<div class="input-field col s2">
-						   <input type="number" class="value" id="unit_price_heatpump_night" />
-						   <label for="unit_price_heatpump_night" class="translate">Price per unit night current (€/kWh)</label>
-						</div>
-						<div class="input-field col s2">
-						   <input type="number" class="value" id="basic_price_heatpump" />
-						   <label for="basic_price_heatpump" class="translate">Monthly base price</label>
-						</div>		 
-					 </div>
-				   <div class="row">
-					  <div class="text col s2">
-						 <p class="translate">Gas</p>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="unit_price_gas" />
-						 <label for="unit_price_gas" class="translate">Price per unit (€/m3)</label>
-					  </div>
-					  <div class="input-field col s2">
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="basic_price_gas" />
-						 <label for="basic_price_gas" class="translate">Monthly base price</label>
-					  </div>
-				   </div>
-				   <div class="row">
-					  <div class="text col s2">
-						 <p class="translate">Water</p>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="unit_price_water" />
-						 <label for="unit_price_water" class="translate">Price per unit (€/m3)</label>
-					  </div>
-					  <div class="input-field col s2">
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="basic_price_water" />
-						 <label for="basic_price_water" class="translate">Monthly base price</label>
-					  </div>
-				   </div>
-				   <div class="row">
-					  <div class="text col s2">
-						 <p class="translate">Oil</p>
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="unit_price_oil" />
-						 <label for="unit_price_oil" class="translate">Price per unit (€/m3)</label>
-					  </div>
-					  <div class="input-field col s2">
-					  </div>
-					  <div class="input-field col s2">
-						 <input type="number" class="value" id="basic_price_oil" />
-						 <label for="basic_price_oil" class="translate">Monthly base price</label>
-					  </div>
-				   </div>
+				<div class="section">
+					<div class="divider"></div>
 				</div>
+				<div class="section">
+					<h6 class="translate">Analyse the previous x period (not yet implemented)</h6>
+				</div>
+				<div class="row">
+					<div class="input-field col s2">
+						<input type="checkbox" class="value" id="store_periode" />
+						<span class="translate">period of time</span>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="keep_days">
+						<label for="keep_days" class="translate">number of days</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="keep_weeks">
+						<label for="keep_weeks" class="translate">Number of weeks</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="keep_months">
+						<label for="keep_months" class="translate">number of months</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="keep_quarters">
+						<label for="keep_quarter" class="translate">Number of quarters</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="keep_years">
+						<label for="keep_years" class="translate">Number of years</label>
+					</div>
+				</div>
+
+				<div class="section">
+					<div class="divider"></div>
+				</div>
+				<div class="section">
+					<h6 class="translate">Logging settings</h6>
+				</div>
+				<div class="row">
+					<div class="input-field col s3">
+						<input type="checkbox" class="value" id="status_logging" />
+						<span class="translate">Status messages to log</span>
+					</div>
 				</div>
 			</div>
-			 <!--
-				<table><tr>
-					<td style="padding-top: 20px;padding-left: 10px"><h7 class="translate">Go to the wanted object states and activate SourceAnalytix</h7></td>
-					<td><img src="settings_open.png" width="64px" height="64px"></td>	
-				</tr></table>
-				-->
-			 <!--
-				<table><tr>
-					<td><img src="settings_details.png" width="100%" height="60%"></td>	
-				</tr></table>
-				-->
-			 </div>
+		</div>
+		<!-- Tab main -->
+		<!-- Tab unit definition old -->
+		<div class="row">
+			<div id="tab-calculations" class="col s12 page">
+				<div class="row">
+					<div class="text col s2">
+						<p class="translate">Electricity</p>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_power" />
+						<label for="unit_price_power" class="translate">Price per unit (€/kWh)</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_power_night" />
+						<label for="unit_price_power_night" class="translate">Price per unit night current
+							(€/kWh)</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="basic_price_power" />
+						<label for="basic_price_power" class="translate">Monthly base price</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_power_delivery" />
+						<label for="unit_price_power_delivery" class="translate">Profit per unit (€/kWh)</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="text col s2">
+						<p class="translate">Heat pump</p>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_heatpump" />
+						<label for="unit_price_heatpump" class="translate">Price per unit (€/kWh)</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_heatpump_night" />
+						<label for="unit_price_heatpump_night" class="translate">Price per unit night current
+							(€/kWh)</label>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="basic_price_heatpump" />
+						<label for="basic_price_heatpump" class="translate">Monthly base price</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="text col s2">
+						<p class="translate">Gas</p>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_gas" />
+						<label for="unit_price_gas" class="translate">Price per unit (€/m3)</label>
+					</div>
+					<div class="input-field col s2">
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="basic_price_gas" />
+						<label for="basic_price_gas" class="translate">Monthly base price</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="text col s2">
+						<p class="translate">Water</p>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_water" />
+						<label for="unit_price_water" class="translate">Price per unit (€/m3)</label>
+					</div>
+					<div class="input-field col s2">
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="basic_price_water" />
+						<label for="basic_price_water" class="translate">Monthly base price</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="text col s2">
+						<p class="translate">Oil</p>
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="unit_price_oil" />
+						<label for="unit_price_oil" class="translate">Price per unit (€/m3)</label>
+					</div>
+					<div class="input-field col s2">
+					</div>
+					<div class="input-field col s2">
+						<input type="number" class="value" id="basic_price_oil" />
+						<label for="basic_price_oil" class="translate">Monthly base price</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Tab unit definition old -->
+
+		<!-- Tab unit configuration -->
+		<div class="row">
+			<div id="tab-unitConfig" class="col s12 page">
+				<p class="translate title">Unite configuration table</p>
+				<section>
+					<div class="col s12" id="unitConfig">
+						<a class="btn-floating waves-effect waves-light blue table-button-add"><i
+								class="material-icons">add</i></a>
+						<div class="table-values-div">
+							<table class="table-values">
+								<thead>
+									<tr>
+										<th data-name="uName" style="width: 10%" class="translate">Unit Name</th>
+										<th data-name="uDes" style="width: 40%" class="translate">Description</th>
+										<th data-name="uStore" style="width: 10%" class="translate">Store as</th>
+										<th data-name="uFactor" style="width: 20%" class="translate">Calculation Factor
+										</th>
+										<th data-buttons="delete up down" style="width: 120px"></th>
+									</tr>
+								</thead>
+							</table>
+						</div>
+					</div>
+				</section>
+			</div>
+		</div>
+		<!-- Tab unit configuration -->
+
+		<!-- Tab prices configuration -->
+		<div class="row">
+			<div id="tab-pricesConfig" class="col s12 page">
+				<p class="translate title">Prices configuration table</p>
+				<section>
+					<div class="col s12" id="pricesConfig">
+						<a class="btn-floating waves-effect waves-light blue table-button-add"><i
+								class="material-icons">add</i></a>
+						<div class="table-values-div">
+							<table class="table-values">
+								<thead>
+									<tr>
+										<th data-name="uCat" style="width: 20%" class="translate">Cathegorie</th>
+										<th data-name="uDes" style="width: 30%" class="translate">Description</th>
+										<th data-name="uPpU" style="width: 10%" class="translate">Price p/unit</th>
+										<th data-name="uPpM" style="width: 10%" class="translate">price p/m</th>
+										<th data-buttons="delete up down" style="width: 120px"></th>
+									</tr>
+								</thead>
+							</table>
+						</div>
+					</div>
+				</section>
+
+			</div>
+		</div>
+		<!-- Tab prices configuration -->
+
+	</div>
 </body>
 
 </html>

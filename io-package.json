@@ -246,6 +246,82 @@
         ]
     },
     "native": {
+        "unitConfig": [
+            {
+              "uName": "kWh",
+              "uDes": "Power kiloWatt hours",
+              "uStore": "kWh",
+              "uFactor": "1"
+            },
+            {
+              "uName": "w",
+              "uDes": "Power watt to kiloWatt hours",
+              "uStore": "kWh",
+              "uFactor": "1000"
+            },
+            {
+              "uName": "m3",
+              "uDes": "Volumes kubieke meters m3 to m³",
+              "uStore": "m³",
+              "uFactor": "1"
+            },
+            {
+              "uName": "m³ ",
+              "uDes": "Volumes kubieke meters m³ ",
+              "uStore": "m³",
+              "uFactor": "1"
+            },
+            {
+              "uName": "l",
+              "uDes": "Volumes liters to kubieke meters m³ ",
+              "uStore": "m³",
+              "uFactor": "1000"
+            }
+          ],
+        "pricesConfig":[
+            {
+              "uCat": "ElectricityDay",
+              "uDes": "Electricity consumption Day price",
+              "uPpU": "0,27",
+              "uPpM": "15"
+            },
+            {
+              "uCat": "ElectricityDelivery",
+              "uDes": "Electricity Delivery Earnings",
+              "uPpU": "0,17",
+              "uPpM": "15"
+            },
+            {
+              "uCat": "ElectricityNight",
+              "uDes": "Electricity consumption Night price",
+              "uPpU": "0,24",
+              "uPpM": "15"
+            },
+            {
+              "uCat": "Heatpump",
+              "uDes": "Heatpomp costs by unit",
+              "uPpU": "0,24",
+              "uPpM": "31"
+            },
+            {
+              "uCat": "Gas",
+              "uDes": "Gas costs by unit",
+              "uPpU": "0,12",
+              "uPpM": "31"
+            },
+            {
+              "uCat": "Oil",
+              "uDes": "Oil costs by unit",
+              "uPpU": "0,12",
+              "uPpM": "7,38"
+            },
+            {
+              "uCat": "Water",
+              "uDes": "Water costs by unit",
+              "uPpU": "0,07",
+              "uPpM": "22"
+            }
+          ],
         "store_days": true,
         "store_weeks": false,
         "store_months": true,
