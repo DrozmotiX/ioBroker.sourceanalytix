@@ -17,10 +17,10 @@ const months = JSON.parse('["01_January","02_February","03_March","04_April","05
 
 const stateDeletion = true, deviceResetHandled = [], previousCalculationRounded = {}, storeSettings = {}, previousStateVal = {};
 let calcBlock = null;
+let delay = null;
 
 // Create variables for object arrays
-const history = {}, aliasMap = {};
-let currentYear = null, currentQuarter = null, currentMonth = null, currentWeek = null; //, currentDay = null;
+const history = {}, aliasMap = {}, actualDate = {}; //, currentDay = null;
 
 class Sourceanalytix extends utils.Adapter {
 	/**
@@ -59,12 +59,11 @@ class Sourceanalytix extends utils.Adapter {
 			// Subscribe on all foreign states to ensure changes in objects are reflected
 			this.subscribeForeignObjects('*');
 
-			// initialize all SourceAnalytix enabled states
-			this.log.info('Initializing enabled states for SourceAnalytix');
+			console.log('Initializing enabled states for SourceAnalytix');
 
 			// get all objects with custom configuraiton items
 			const customStateArray = await this.getObjectViewAsync('custom', 'state', {});
-			this.log.debug(`All states with custom items : ${JSON.stringify(customStateArray)}`);
+			console.log(`All states with custom items : ${JSON.stringify(customStateArray)}`);
 
 			// Get all active state for Sou
 			if (customStateArray && customStateArray.rows) {
@@ -104,14 +103,16 @@ class Sourceanalytix extends utils.Adapter {
 			// // Handle initialisation for all discovered states
 			let count = 1;
 			for (const stateID in this.activeStates) {
-				this.log.debug(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
+				this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
 				await this.initialize(stateID);
 				count = count + 1;
 			}
 
-			this.resetShedules();
+			// Start Daily reset function by cron job
+			await this.resestStartValues();
 
 			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for : ${JSON.stringify(this.activeStates)}`);
+
 		} catch (error) {
 			this.log.error(`[onReady] error: ${error.message}, stack: ${error.stack}`);
 		}
@@ -338,6 +339,7 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.Object | null | undefined} obj
 	 */
 	async onObjectChange(id, obj) {
+		if (calcBlock) return; // cancel operation if calculcaiton block is activate
 		try {
 			const stateID = id;
 
@@ -350,25 +352,25 @@ class Sourceanalytix extends utils.Adapter {
 				if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
 
 					// ignore object changes when caused by SA (memory is handled automatically)
-					if (obj.from !== `system.adapter.${this.namespace}`) {
-						this.log.info(`Object array of SourceAnalytix activated state changed : ${JSON.stringify(obj)} stored config : ${JSON.stringify(this.activeStates)}`);
+					// if (obj.from !== `system.adapter.${this.namespace}`) {
+					this.log.debug(`Object array of SourceAnalytix activated state changed : ${JSON.stringify(obj)} stored config : ${JSON.stringify(this.activeStates)}`);
 
-						// Verify if the object was already activated, if not initialize new device
-						if (!this.activeStates[stateID]) {
-							this.log.info(`Enable SourceAnalytix for : ${stateID}`);
-							await this.buildStateDetailsArray(id);
-							this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
-							await this.initialize(stateID);
-						} else {
-							this.log.warn(`Updated SourceAnalytix configuration for : ${stateID}`);
-							await this.buildStateDetailsArray(id);
-							this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
-							await this.initialize(stateID);
-						}
-
+					// Verify if the object was already activated, if not initialize new device
+					if (!this.activeStates[stateID]) {
+						this.log.info(`Enable SourceAnalytix for : ${stateID}`);
+						await this.buildStateDetailsArray(id);
+						this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+						await this.initialize(stateID);
 					} else {
-						this.log.debug(`Object change by adapter detected, ignoring`);
+						this.log.warn(`Updated SourceAnalytix configuration for : ${stateID}`);
+						await this.buildStateDetailsArray(id);
+						this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+						await this.initialize(stateID);
 					}
+
+					// } else {
+					// 	this.log.debug(`Object change by adapter detected, ignoring`);
+					// }
 
 					// Verify if the object was already activated, if not initialize new device
 					if (!this.activeStates[stateID]) {
@@ -404,6 +406,7 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.State | null | undefined} state
 	 */
 	onStateChange(id, state) {
+		if (calcBlock) return; // cancel operation if calculcaiton block is activate
 		try {
 			if (state) {
 				// The state was changed
@@ -446,90 +449,63 @@ class Sourceanalytix extends utils.Adapter {
 
 	}
 
-	// Cronjobs startvalue reset for each day, week, month, quarter, year
-	async resetShedules() {
+	async resestStartValues() {
 		try {
-
-			// Define shedules
 			const resetDay = new schedule('0 0 * * *', async () => {
-				await this.resetDates; // Reset date values in memory
-				await this.resestValues('start_day');
+				calcBlock = true; // Pauze all calculations
+				const beforeReset = await this.resetDates(); // Reset date values in memory
 
-			});
+				// Read state array and write Data for every active state
 
-			// Reset Week counter
-			const resetWeek = new schedule('0 0 * * 1', async () => {
-				await this.resetDates; // Reset date values in memory
-				await this.resestValues('start_week');
-
-			});
-
-			// Reset month counter
-			const resetMonth = new schedule('0 0 1 * *', async () => {
-				await this.resetDates; // Reset date values in memory
-				await this.resestValues('start_month');
-
-			});
-
-			// Reset quarter counter
-			const resetQuarter = new schedule('0 0 1 1,4,7,10 *', async () => {
-				await this.resetDates; // Reset date values in memory
-				await this.resestValues('start_quarter');
-
-			});
-
-			// Reset year counter
-			const resetYear = new schedule('0 0 1 1 *', async () => {
-				await this.resetDates; // Reset date values in memory
-
-				// create object structure for new year
 				for (const stateID in this.activeStates) {
-					await this.initialize(stateID);
+					// console.log(this.activeStates.length());
+					console.log(stateID);
+
+					const stateValues = this.activeStates[stateID].calcValues;
+
+					// get current meter value
+					const reading = this.activeStates[stateID].calcValues.currentValuekWh;
+					if (reading === null || reading === undefined) {
+						console.error(`Reading failed : ${reading}`);
+					} else {
+						console.error(`Reading succeeded : ${reading}`);
+					}
+					this.log.error(`startvalues for ${stateID} before reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+
+					// Prepare custom object and store correct values
+					const obj = {};
+					obj.common = {};
+					obj.common.custom = {};
+					obj.common.custom[this.namespace] = {
+						start_day: reading,
+						start_week: beforeReset.week === actualDate.week ? stateValues.week : reading,
+						start_month: beforeReset.month === actualDate.month ? stateValues.month : reading,
+						start_quarter: beforeReset.quarter === actualDate.quarter ? stateValues.quarter : reading,
+						start_year: beforeReset.year === actualDate.year ? stateValues.year : reading,
+					};
+
+					// Extend object with start value [type] & updat memory
+					obj.common.custom[this.namespace].start_day = reading;
+					this.activeStates[stateID].calcValues.start_day = reading;
+
+					await this.extendForeignObject(stateID, obj);
+					this.log.error(`startvalues for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+					this.calculationHandler(stateID, reading);
 				}
 
-				await this.resestValues('start_year');
-
+				// Enable all calculations with timeout of 500 ms
+				if (delay) { clearTimeout(delay); delay = null; }
+				delay = setTimeout(function () {
+					calcBlock = false;
+				}, 500);
+				
 			});
 
-			// Start shedules
 			resetDay.start();
-			resetMonth.start();
-			resetQuarter.start();
-			resetWeek.start();
-			resetYear.start();
 
 		} catch (error) {
-			this.log.error(`[reset shedules error: ${error.message}, stack: ${error.stack}`);
-		}
-	}
-
-	async resestValues(type) {
-		try {
-
-			calcBlock = true; // Pauze all calculations
-			// Read state array and write Data for every active state
-			for (const stateID in this.activeStates) {
-				// Prepare custom object
-				const obj = {};
-				obj.common = {};
-				obj.common.custom = {};
-				obj.common.custom[this.namespace] = {};
-				// get current meter value
-				const reading = this.activeStates[stateID].calcValues.currentValuekWh;
-				if (!reading) return;
-
-				this.log.info(`Resetting startvalue for ${stateID} type ${type} with value ${reading}`);
-
-				// Extend object with start value [type] & updat memory
-				obj.common.custom[this.namespace][type] = reading;
-				this.activeStates[stateID].calcValues[type] = reading;
-
-				await this.extendForeignObject(stateID, obj);
-				this.log.debug(`startvalue for ${stateID} resettet`);
-			}
-			calcBlock = false; // Enable all calculations
-		} catch (error) {
-			this.log.error(`[reset values ${type}] error: ${error.message}, stack: ${error.stack}`);
+			this.log.error(`[reset values error: ${error.message}, stack: ${error.stack}`);
+			calcBlock = false; // Pauze all calculations
 		}
 	}
 
@@ -613,13 +589,13 @@ class Sourceanalytix extends utils.Adapter {
 					switch (stateDetails.headCathegorie) {
 
 						case 'consumed':
-							await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
 							break;
 
 						case 'delivered':
-							await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
 							break;
 
 						default:
@@ -629,10 +605,10 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (deleteState || !stateDetails.consumption) {
 
 					// If state deletion choosen, clean everyting up else define statename
-					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.consumed.${stateRoot}`);
-					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.delivered.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
 
 				}
 
@@ -641,13 +617,13 @@ class Sourceanalytix extends utils.Adapter {
 
 					// Do not create StateRoot values
 					if (!basicValues.includes(stateRoot)) {
-						await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.meterReadings.${stateRoot}`, commonData);
+						await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.meterReadings.${stateRoot}`, commonData);
 					}
 
 				} else if (deleteState || !stateDetails.meter_values) {
 
 					// If state deletion choosen, clean everyting up else define statename
-					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.meterReadings.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.meterReadings.${stateRoot}`);
 
 				}
 
@@ -660,14 +636,14 @@ class Sourceanalytix extends utils.Adapter {
 
 						case 'costs':
 							// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
-							await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
 							break;
 
 						case 'earnings':
 							// await this.ChannelCreate(device, head_cathegorie, head_cathegorie);
-							await this.localSetObject(`${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
 							break;
 
 						default:
@@ -677,10 +653,10 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (!stateDetails.costs) {
 
 					// If state deletion choosen, clean everyting up else define statename
-					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.costs.${stateRoot}`);
-					await this.localDeleteState(`${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${currentYear}.earnings.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
 				}
 			}
 
@@ -799,12 +775,11 @@ class Sourceanalytix extends utils.Adapter {
 	}
 	// Calculation handler
 	async calculationHandler(stateID, value) {
-		if (calcBlock) return; // cancel operation if calculcaiton block is activate
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const statePrices = this.activeStates[stateID].prices;
-			this.log.info(`Calculation for  ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
-
+			this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.info(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
 			// Different logic for W values, calculate to kWh first
@@ -819,7 +794,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			this.log.debug(`Recalculated value ${reading}`);
-			if (!reading) return;
+			if (reading !== null || reading !== undefined) return;
 
 			// Detect meter reset & ensure komulative calculation
 			if (reading < this.activeStates[stateID].calcValues.currentValuekWh) {
@@ -878,15 +853,15 @@ class Sourceanalytix extends utils.Adapter {
 			// Store meter values
 			if (stateDetails.meter_values === true) {
 				// Always write generic meterReadings for current year
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.meterReadings`;
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
 				const readingRounded = await this.roundDigits(reading);
 				// Week
-				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
-				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${currentWeek}`, { val: readingRounded, ack: true });
+				// await this.setState(`${stateName}.this_week.${actualDate.Day}`, { val: calculationRounded.consumedDay, ack: true });
+				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${actualDate.week}`, { val: readingRounded, ack: true });
 				// Month
-				if (storeSettings.storeMonths) await this.setState(`${stateName}.months.${currentMonth}`, { val: readingRounded, ack: true });
+				if (storeSettings.storeMonths) await this.setState(`${stateName}.months.${actualDate.month}`, { val: readingRounded, ack: true });
 				// Quarter
-				if (storeSettings.storeQuarters) await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: readingRounded, ack: true });
+				if (storeSettings.storeQuarters) await this.setState(`${stateName}.quarters.Q${actualDate.quarter}`, { val: readingRounded, ack: true });
 
 			}
 
@@ -919,7 +894,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Store consumption
 			if (stateDetails.consumption) {
 				// Always write generic meterReadings for current year
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.headCathegorie}`;
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.${stateDetails.headCathegorie}`;
 				// Generic
 				await this.setState(`${stateName}.01_current_day`, { val: calculationRounded.consumedDay, ack: true });
 				await this.setState(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
@@ -929,17 +904,17 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
-				if (storeSettings.store_weeks) await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.consumedWeek, ack: true });
+				if (storeSettings.store_weeks) await this.setState(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.consumedWeek, ack: true });
 				// Month
-				if (storeSettings.store_quarters) await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.consumedMonth, ack: true });
+				if (storeSettings.store_quarters) await this.setState(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
 				// Quarter
-				if (storeSettings.storeMonths) await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.consumedQuarter, ack: true });
+				if (storeSettings.storeMonths) await this.setState(`${stateName}.quarters.Q${actualDate.quarter}`, { val: calculationRounded.consumedQuarter, ack: true });
 			}
 
 			// Store prices
 			if (stateDetails.costs) {
 
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${currentYear}.${stateDetails.financielCathegorie}`;
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.${stateDetails.financielCathegorie}`;
 				// Generic
 				await this.setState(`${stateName}.01_current_day`, { val: calculationRounded.priceDay, ack: true });
 				await this.setState(`${stateName}.02_current_week`, { val: calculationRounded.priceWeek, ack: true });
@@ -949,11 +924,11 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.priceDay, ack: true });
-				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${currentWeek}`, { val: calculationRounded.priceWeek, ack: true });
+				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.priceWeek, ack: true });
 				// Month
-				if (storeSettings.storeMonths) await this.setState(`${stateName}.months.${currentMonth}`, { val: calculationRounded.priceMonth, ack: true });
+				if (storeSettings.storeMonths) await this.setState(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.priceMonth, ack: true });
 				// Quarter
-				if (storeSettings.storeQuarters) await this.setState(`${stateName}.quarters.Q${currentQuarter}`, { val: calculationRounded.priceQuarter, ack: true });
+				if (storeSettings.storeQuarters) await this.setState(`${stateName}.quarters.Q${actualDate.quarter}`, { val: calculationRounded.priceQuarter, ack: true });
 
 			}
 
@@ -1069,13 +1044,25 @@ class Sourceanalytix extends utils.Adapter {
 		return calckWh;
 	}
 
+	// Daily reset of start values for states
 	async resetDates() {
-		const today = new Date();
-		// currentDay = weekdays[today.getDay()];
-		currentWeek = await this.getWeekNumber(new Date());
-		currentMonth = months[today.getMonth()];
-		currentQuarter = Math.floor((today.getMonth() + 3) / 3);
-		currentYear = (new Date().getFullYear());
+		const today = new Date(); // Get current date in Unix time format
+		// Store current used data memory
+		const previousDates = {
+			// day: actualDate.day,
+			week: actualDate.week,
+			month: actualDate.month,
+			quarter: actualDate.quarter,
+			year: actualDate.year
+		};
+
+		// actualDate.Day = weekdays[today.getDay()];
+		actualDate.week = await this.getWeekNumber(new Date());
+		actualDate.month = months[today.getMonth()];
+		actualDate.quarter = Math.floor((today.getMonth() + 3) / 3);
+		actualDate.year = (new Date().getFullYear());
+
+		return previousDates;
 	}
 
 	/**

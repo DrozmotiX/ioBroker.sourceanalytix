@@ -23,6 +23,7 @@ appveyor.yaml
 # Type checking configuration
 tsconfig.json
 tsconfig.*.json
+launch.json
 
 # ESLint configuration
 .eslintrc.json
