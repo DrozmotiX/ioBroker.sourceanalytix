@@ -794,7 +794,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			this.log.debug(`Recalculated value ${reading}`);
-			if (reading !== null || reading !== undefined) return;
+			if (reading === null || reading === undefined) return;
 
 			// Detect meter reset & ensure komulative calculation
 			if (reading < this.activeStates[stateID].calcValues.currentValuekWh) {
