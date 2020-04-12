@@ -193,7 +193,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Shorten configuraiton details for easier access
 			const stateDetails = this.activeStates[stateID].stateDetails;
 
-			this.log.info(`Defined calculation attributes for ${stateID} : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.debug(`Defined calculation attributes for ${stateID} : ${JSON.stringify(this.activeStates[stateID])}`);
 
 			let alias = stateDetails.name;
 			if (stateDetails.alias && stateDetails.alias !== '') {
@@ -268,7 +268,7 @@ class Sourceanalytix extends utils.Adapter {
 			const value = await this.getForeignStateAsync(stateID);
 			this.log.info(`First time calc result after initialising`);
 			if (value) {
-				await this.calculationHandler(stateID, value.val);
+				await this.calculationHandler(stateID, value);
 			}
 
 			// Subscribe state, every state change will trigger calculation now automatically
@@ -359,10 +359,10 @@ class Sourceanalytix extends utils.Adapter {
 					if (!this.activeStates[stateID]) {
 						this.log.info(`Enable SourceAnalytix for : ${stateID}`);
 						await this.buildStateDetailsArray(id);
-						this.log.info(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
+						this.log.debug(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
 						await this.initialize(stateID);
 					} else {
-						this.log.warn(`Updated SourceAnalytix configuration for : ${stateID}`);
+						this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
 						await this.buildStateDetailsArray(id);
 						this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
 						await this.initialize(stateID);
@@ -444,8 +444,8 @@ class Sourceanalytix extends utils.Adapter {
 		if (weekNo.length === 1) {
 			weekNo = '0' + weekNo;
 		}
-		// Return array of year and week number
-		return [weekNo];
+		// Return week number
+		return weekNo;
 
 	}
 
@@ -465,12 +465,9 @@ class Sourceanalytix extends utils.Adapter {
 
 					// get current meter value
 					const reading = this.activeStates[stateID].calcValues.currentValuekWh;
-					if (reading === null || reading === undefined) {
-						console.error(`Reading failed : ${reading}`);
-					} else {
-						console.error(`Reading succeeded : ${reading}`);
-					}
-					this.log.error(`startvalues for ${stateID} before reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+					if (reading === null || reading === undefined) continue;
+					
+					this.log.info(`startvalues for ${stateID} before reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
 
 					// Prepare custom object and store correct values
 					const obj = {};
@@ -486,10 +483,10 @@ class Sourceanalytix extends utils.Adapter {
 
 					// Extend object with start value [type] & updat memory
 					obj.common.custom[this.namespace].start_day = reading;
-					this.activeStates[stateID].calcValues.start_day = reading;
+					this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
 
 					await this.extendForeignObject(stateID, obj);
-					this.log.error(`startvalues for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+					this.log.info(`startvalues for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
 					this.calculationHandler(stateID, reading);
 				}
 
@@ -498,7 +495,7 @@ class Sourceanalytix extends utils.Adapter {
 				delay = setTimeout(function () {
 					calcBlock = false;
 				}, 500);
-				
+
 			});
 
 			resetDay.start();
@@ -904,9 +901,9 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Week
 				// await this.setState(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
-				if (storeSettings.store_weeks) await this.setState(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.consumedWeek, ack: true });
+				if (storeSettings.storeWeeks) await this.setState(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.consumedWeek, ack: true });
 				// Month
-				if (storeSettings.store_quarters) await this.setState(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
+				if (storeSettings.storeQuarters) await this.setState(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
 				// Quarter
 				if (storeSettings.storeMonths) await this.setState(`${stateName}.quarters.Q${actualDate.quarter}`, { val: calculationRounded.consumedQuarter, ack: true });
 			}
@@ -934,9 +931,9 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Store results of current calculation to memory
 			previousCalculationRounded[stateID] = calculationRounded;
-			this.log.info(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
+			this.log.debug(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
-			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
+			this.log.info(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculationRounded)}`);
 
 		} catch (error) {
 			this.log.error(`[calculationHandler ${stateID}] error: ${error.message}, stack: ${error.stack}`);

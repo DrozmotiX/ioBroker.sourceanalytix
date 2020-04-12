@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.1",
+        "version": "0.4.2",
         "news": {
-            "0.4.1": {
+            "0.4.2": {
                 "en": "Bugfixes",
                 "de": "Fehlerbehebung",
                 "ru": "Исправление ошибок",

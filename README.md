@@ -40,10 +40,11 @@ If you like my work, please consider a personal donation
 
 ## Changelog
 
-### 0.4.1 (2020-04-11) Fix issue with daily resets
+### 0.4.2 (2020-04-12) BugFixes
 * (Dutchman) Translations updated
 * (Dutchman) Bugfix : Values not resettet at new day start
-* (Dutchman) Bugfix : Hanlde calculations when reading = 0
+* (Dutchman) Bugfix : Handle calculations when reading = 0
+* (Dutchman) Bugfix : Handle calculations at initialisation
 * (Dutchman) Bugfix : Pauze all calculation during day-reset
 * (Dutchman) Do not calculate values is state is update with same value as previous
 
