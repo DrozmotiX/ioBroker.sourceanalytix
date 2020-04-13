@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.2",
+        "version": "0.4.3",
         "news": {
             "0.4.2": {
                 "en": "Bugfixes",
@@ -235,6 +235,11 @@
         "type": "energy",
         "compact": true,
         "materialize": true,
+        "plugins": {
+			"sentry": {
+				"dsn": "https://2cd80ab3d4b94677b1b513547054e480@sentry.iobroker.net/241"
+			}
+		},
         "supportCustoms": true,
         "dependencies": [
             {

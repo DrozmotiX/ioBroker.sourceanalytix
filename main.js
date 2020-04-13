@@ -216,7 +216,7 @@ class Sourceanalytix extends utils.Adapter {
 				if (y < 10) {
 					weekNr = '0' + y;
 				} else {
-					weekNr = y;
+					weekNr = y.toString();
 				}
 				const weekRoot = `weeks.${weekNr}`;
 

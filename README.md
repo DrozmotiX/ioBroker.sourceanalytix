@@ -39,6 +39,8 @@ If you like my work, please consider a personal donation
 [![Donate](https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/button.png)](http://paypal.me/DutchmanNL)
 
 ## Changelog
+### 0.4.3 work in progress
+* (Dutchman)Implement Sentry
 
 ### 0.4.2 (2020-04-12) BugFixes
 * (Dutchman) Translations updated
