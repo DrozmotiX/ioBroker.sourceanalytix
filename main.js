@@ -114,7 +114,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for : ${JSON.stringify(this.activeStates)}`);
 
 		} catch (error) {
-			this.log.error(`[onReady] error: ${error.message}, stack: ${error.stack}`);
+			this.errorHandling('onReady', error);
 		}
 	}
 
@@ -1060,6 +1060,16 @@ class Sourceanalytix extends utils.Adapter {
 		actualDate.year = (new Date().getFullYear());
 
 		return previousDates;
+	}
+
+	async errorHandling (codePart, error) {
+		this.log.error(`[${codePart}] error: ${error.message}, stack: ${error.stack}`);
+		if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
+			const sentryInstance = this.getPluginInstance('sentry');
+			if (sentryInstance) {
+				sentryInstance.getSentryObject().captureException(error);
+			}
+		}
 	}
 
 	/**
