@@ -237,7 +237,7 @@
         "materialize": true,
         "plugins": {
 			"sentry": {
-				"dsn": "https://2cd80ab3d4b94677b1b513547054e480@sentry.iobroker.net/241"
+				"dsn": "https://2cd80ab3d4b94677b1b513547054e480@sentry.iobroker.net/24"
 			}
 		},
         "supportCustoms": true,
