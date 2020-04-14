@@ -50,7 +50,6 @@ class Sourceanalytix extends utils.Adapter {
 			// Initialize your adapter here
 			this.log.info('Welcome to SourceAnalytix, making things ready ... ');
 			await this.resetDates();
-			setTimeout(huhu, 10000);
 			// Load global store store settings
 			storeSettings.storeWeeks = this.config.store_weeks;
 			storeSettings.storeMonths = this.config.store_months;
