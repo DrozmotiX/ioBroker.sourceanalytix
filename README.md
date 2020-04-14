@@ -40,7 +40,8 @@ If you like my work, please consider a personal donation
 
 ## Changelog
 ### 0.4.3 work in progress
-* (Dutchman)Implement Sentry
+* (Dutchman) Implement Sentry
+* (Dutchman) Bugfix : Warn message for week creations (js-controller 3.x)
 
 ### 0.4.2 (2020-04-12) BugFixes
 * (Dutchman) Translations updated
