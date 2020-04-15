@@ -1,9 +1,15 @@
 # SourceAnalytix
 # { Dev - in Progress, version 0.4.0  stable candidate }
-[![Tests](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix.svg?branch=master)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
-![Number of Installations](http://iobroker.live/badges/sourceanalytix-installed.svg) ![Number of Installations](http://iobroker.live/badges/sourceanalytix-stable.svg) [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+![Number of Installations (latest)](http://iobroker.live/badges/coronavirus-statistics-installed.svg)
+![Number of Installations (stable)](http://iobroker.live/badges/coronavirus-statistics-stable.svg)
+[![Dependency Status](https://img.shields.io/david/iobroker-community-adapters/iobroker.sourceanalytix.svg)](https://david-dm.org/iobroker-community-adapters/iobroker.sourceanalytix)
+[![Known Vulnerabilities](https://snyk.io/test/github/iobroker-community-adapters/iobroker.sourceanalytix/badge.svg)](https://snyk.io/test/github/iobroker-community-adapters/iobroker.sourceanalytix)
 
+[![NPM](https://nodei.co/npm/iobroker.sourceanalytix.png?downloads=true)](https://nodei.co/npm/iobroker.sourceanalytix/)
+
+**Tests:**: [![Travis-CI](http://img.shields.io/travis/iobroker-community-adapters/iobroker.sourceanalytix/master.svg)](https://travis-ci.org/iobroker-community-adapters/iobroker.sourceanalytix)
 
 Detailed analysis of your Energy, gas and liquid consumptions
 Any source (kWh, Wh, Watt, l/h or m3 )can be used for data analyses :
