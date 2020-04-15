@@ -2,8 +2,8 @@
 # { Dev - in Progress, version 0.4.0  stable candidate }
 [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
-![Number of Installations (latest)](http://iobroker.live/badges/coronavirus-statistics-installed.svg)
-![Number of Installations (stable)](http://iobroker.live/badges/coronavirus-statistics-stable.svg)
+![Number of Installations (latest)](http://iobroker.live/badges/sourceanalytix-installed.svg)
+![Number of Installations (stable)](http://iobroker.live/badges/sourceanalytix-stable.svg)
 [![Dependency Status](https://img.shields.io/david/iobroker-community-adapters/iobroker.sourceanalytix.svg)](https://david-dm.org/iobroker-community-adapters/iobroker.sourceanalytix)
 [![Known Vulnerabilities](https://snyk.io/test/github/iobroker-community-adapters/iobroker.sourceanalytix/badge.svg)](https://snyk.io/test/github/iobroker-community-adapters/iobroker.sourceanalytix)
 
