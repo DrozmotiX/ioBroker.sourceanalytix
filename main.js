@@ -20,7 +20,7 @@ let calcBlock = null;
 let delay = null;
 
 // Create variables for object arrays
-const history = {}, aliasMap = {}, actualDate = {}; //, currentDay = null;
+const history = {}, actualDate = {}; //, currentDay = null;
 
 class Sourceanalytix extends utils.Adapter {
 	/**
@@ -30,6 +30,7 @@ class Sourceanalytix extends utils.Adapter {
 		// @ts-ignore
 		super({
 			...options,
+			// @ts-ignore
 			name: adapterName,
 		});
 
@@ -49,6 +50,9 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			// Initialize your adapter here
 			this.log.info('Welcome to SourceAnalytix, making things ready ... ');
+
+			this.buildConfigDetails();
+
 			await this.resetDates();
 			// Load global store store settings
 			storeSettings.storeWeeks = this.config.store_weeks;
@@ -64,20 +68,13 @@ class Sourceanalytix extends utils.Adapter {
 			const customStateArray = await this.getObjectViewAsync('custom', 'state', {});
 			console.log(`All states with custom items : ${JSON.stringify(customStateArray)}`);
 
-			// Get all active state for Sou
+			// Get all active state for Sourceanalytix
 			if (customStateArray && customStateArray.rows) {
 
 				for (let i = 0, l = customStateArray.rows.length; i < l; i++) {
 					if (customStateArray.rows[i].value) {
-						let id = customStateArray.rows[i].id;
+						const id = customStateArray.rows[i].id;
 
-						// temporary disable, should consider to have alias also in SourceAnalytix in case meters are changed
-						// const realId = id;
-						if (customStateArray.rows[i].value[this.namespace] && customStateArray.rows[i].value[this.namespace].aliasId) {
-							aliasMap[id] = customStateArray.rows[i].value[this.namespace].aliasId;
-							this.log.debug('Found Alias: ' + id + ' --> ' + aliasMap[id]);
-							id = aliasMap[id];
-						}
 						history[id] = customStateArray.rows[i].value;
 
 						if (history[id].enabled !== undefined) {
@@ -1061,7 +1058,7 @@ class Sourceanalytix extends utils.Adapter {
 		return previousDates;
 	}
 
-	async errorHandling (codePart, error) {
+	async errorHandling(codePart, error) {
 		this.log.error(`[${codePart}] error: ${error.message}, stack: ${error.stack}`);
 		if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
 			const sentryInstance = this.getPluginInstance('sentry');
@@ -1069,6 +1066,17 @@ class Sourceanalytix extends utils.Adapter {
 				sentryInstance.getSentryObject().captureException(error);
 			}
 		}
+	}
+
+	async buildConfigDetails(){
+
+		const settings = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+
+		console.log(`Configuration settings : ${JSON.stringify(`system.adapter.sourceanalytix.0`)}`);
+
+
+
+
 	}
 
 	/**

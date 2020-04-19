@@ -32,6 +32,7 @@
 	<script type="text/javascript">
 		var unitConfig = [];
 		var pricesConfig = [];
+		
 		// This will be called by the admin adapter when the settings page loads
 		function load(settings, onChange) {
 			// example: select elements with id=key and class=value and insert value
@@ -93,10 +94,8 @@
 				<ul class="tabs">
 					<li class="tab col s3"><a href="#tab-main" class="translate active">Main settings</a></li>
 					<li class="tab col s3"><a href="#tab-calculations" class="translate active">calculations</a></li>
-					<!--
 					<li class="tab col s3"><a href="#tab-unitConfig" class="translate active">Unit definitions</a></li>
 					<li class="tab col s3"><a href="#tab-pricesConfig" class="translate active">Price definitions</a>
-					-->
 					</li>
 				</ul>
 			</div>
@@ -107,7 +106,7 @@
 
 				<p class="translate title">Analyse the whole year</p>
 
-				<div class="row">
+				<div class="row">					
 					<div class="input-field col s2">
 						<input type="checkbox" class="value" id="store_days" />
 						<span class="translate">Days</span>
@@ -129,12 +128,9 @@
 						<span class="translate">Years</span>
 					</div>
 				</div>
-				<div class="section">
-					<div class="divider"></div>
-				</div>
-				<div class="section">
-					<h6 class="translate">Analyse the previous x period (not yet implemented)</h6>
-				</div>
+
+				<p class="translate title">Analyse the previous x period (not yet implemented)</p>
+
 				<div class="row">
 					<div class="input-field col s2">
 						<input type="checkbox" class="value" id="store_periode" />
@@ -162,12 +158,8 @@
 					</div>
 				</div>
 
-				<div class="section">
-					<div class="divider"></div>
-				</div>
-				<div class="section">
-					<h6 class="translate">Logging settings</h6>
-				</div>
+				<p class="translate title">Logging settings</p>
+
 				<div class="row">
 					<div class="input-field col s3">
 						<input type="checkbox" class="value" id="status_logging" />
@@ -309,7 +301,7 @@
 							<table class="table-values">
 								<thead>
 									<tr>
-										<th data-name="uCat" style="width: 20%" class="translate">Cathegorie</th>
+										<th data-name="pCat" style="width: 20%" class="translate">Cathegorie</th>
 										<th data-name="uDes" style="width: 30%" class="translate">Description</th>
 										<th data-name="uPpU" style="width: 10%" class="translate">Price p/unit</th>
 										<th data-name="uPpM" style="width: 10%" class="translate">price p/m</th>

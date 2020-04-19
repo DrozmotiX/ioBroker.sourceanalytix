@@ -1,136 +1,212 @@
 <script type="text/x-iobroker" data-template-name="sourceanalytix">
-    <!--
-    <div class="section">
-        <div class="divider"></div>
-        <h4 class="translate">Basic settings</h4>
-    </div> 
-    --> 
-    <div class="row">    
-        <div class="input-field col s2">
-            <input type="checkbox" data-field="enabled" data-default="false"/>
-            <span class="translate">enabled</span>
-        </div>
-        <div class="input-field col s4">
-            <input placeholder="Leave empty to use object's name" type="text" data-field="alias"/>
-            <label for="alias" class="translate">Alias</label>
-        </div>            
-        <div class="input-field col s2">
-            <select class="value" data-field="state_type">
-                <option value="kWh_consumption" class="translate">Electricity consumption</option>
-                <option value="kWh_consumption_night" class="translate">Electricity consumption night</option>
-                <!--
-                <option value="kWh_counter" class="translate">kWh counter</option>
-                -->
-                <option value="kWh_delivery" class="translate">Electricity delivery</option>
-                <option value="kWh_heatpomp" class="translate">Heat pump</option>
-                <option value="kWh_heatpomp_night" class="translate">Heat pump night</option>
-                <option value="gas" class="translate">Gas</option>
-                <option value="water_m3" class="translate">Water</option>
-                <option value="oil_m3" class="translate">Oil</option>
-            </select>
-            <label for="language" class="translate">Measurement type</label>
-        </div>
-        <div class="input-field col s2">
-            <select class="value" data-field="state_unit">
-                <option value="automatically" class="translate">automatically</option>
-                <option value="kWh" class="translate">kWh</option>
-                <option value="wh" class="translate">Wh</option>
-                <option value="w" class="translate">W</option>
-                <option value="m3" class="translate">m3</option>
-                <option value="l" class="translate">l</option>
-            </select>
-            <label for="language" class="translate">Measurement unit</label>
-        </div>
-        <!--
-        <div class="input-field col s2">
-            <input data-field="impuls" type="number" data-default="400" />
-            <label for="impuls" class="translate">counter pulse</label>
-        </div>
-        -->
-    </div>
-    <div class="section">
-        <div class="divider"></div>
-        <h6 class="translate">What should be evaluated</h6>
-    </div>
+
+    <p class="translate title">Main settings</p>
+
+    <section>
         <div class="row">
-            <!--
-            <div class="input-field col s1">
-            </div>
-            -->
+    
             <div class="input-field col s2">
-                <input type="checkbox" data-field="costs" data-default="false"/>
+                <input type="checkbox" data-field="enabled" data-default="false" />
+                <span class="translate">enabled</span>
+            </div>
+    
+    
+            <div class="input-field col s4">
+                <input placeholder="Leave empty to use object's name" type="text" data-field="alias" />
+                <label for="alias" class="translate">Alias</label>
+            </div>
+    
+            <div class="input-field col s3">
+                <select id="elements-select-priceCat" data-field="selectedPrice">
+                    <option value="" disabled selected>Choose option</option>
+                </select>
+                <label for="elements-select-priceCat" class="translate">Select</label>
+            </div>
+    
+            <div class="input-field col s3">
+                <select id="elements-select-unitCat" data-field="selectedUnit">
+                    <option value="" disabled selected>Choose option</option>
+                </select>
+                <label for="elements-select-unitCat" class="translate">Select</label>
+            </div>
+    
+    
+            <!--
+                <div class="input-field col s2">
+                    <input data-field="impuls" type="number" data-default="400" />
+                    <label for="impuls" class="translate">counter pulse</label>
+                </div>
+                -->
+    
+        </div>
+    </section>
+    
+    <p class="translate title">Storage configuration</p>
+    
+    <section>
+    
+        <div class="row">
+    
+            <div class="input-field col s2">
+                <input type="checkbox" data-field="costs" data-default="false" />
                 <span class="translate">Costs</span>
             </div>
-
+    
+    
             <div class="switch col s4">
                 <label>
-                    (without basic charge)
-                <input type="checkbox">
-                <span class="lever"></span>
-                    (including basic charge)
+                    <span class="translate">(without basic charge)</span>
+                    <input type="checkbox" class="value" id="basicCharge"/>
+                    
+                    <span class="lever"></span>
+                    <span class="translate">(including basic charge)</span>
                 </label>
             </div>
-
-            
-            <!--
-            <div class="input-field col s3">
-                <input type="checkbox" data-field="costs" data-default="false"/>
-                <span class="translate">(without basic charge)</span>
-            </div>
-            -->
-            
+    
+    
+            <!-- <div class="switch col s4">
+                <label>
+                    (without basic charge)
+                    <input type="checkbox">
+                    <span class="lever"></span>
+                    (including basic charge)
+                </label>
+            </div> -->
+    
+    
             <div class="input-field col s2">
-                <input type="checkbox" data-field="consumption" data-default="false"/>
+                <input type="checkbox" data-field="consumption" data-default="false" />
                 <span class="translate">consumption</span>
             </div>
+    
             <div class="input-field col s2">
-                <input type="checkbox" data-field="meter_values" data-default="false"/>
+                <input type="checkbox" data-field="meter_values" data-default="false" />
                 <span class="translate">counter values</span>
             </div>
         </div>
-    <div class="section">
-        <div class="divider"></div>
-        <h6 class="translate">Please enter start values in kWh or m3 !</h6>
-    </div>
+    
+    </section>
+    
+    <p class="translate title">Please enter start values</p>
+    
+    <section>
+        <!-- <h6 class="translate">Please enter start values in kWh or m3 !</h6> -->
+    
         <div class="row">
-        <div class="input-field col s2">
-        </div>
-        <!-- Remove start value, not need for this moment pending calculation logic periode start     
-        <div class="input-field col s2">
-                <input data-field="start_meassure" type="number" data-default="0" />
-                <label for="start_meassure" class="translate">start_meassure</label>
-        </div>
-        -->
-        <div class="input-field col s2">
+            <div class="input-field col s2">
+            </div>
+            <div class="input-field col s2">
                 <input data-field="start_day" type="number" data-default="0" />
                 <label for="start_day" class="translate">Meter reading at day start</label>
-        </div>
-        <div class="input-field col s2">
+            </div>
+            <div class="input-field col s2">
                 <input data-field="start_week" type="number" data-default="0" />
                 <label for="start_week" class="translate">Meter reading at week start</label>
-        </div>
-        <div class="input-field col s2">
+            </div>
+            <div class="input-field col s2">
                 <input data-field="start_month" type="number" data-default="0" />
                 <label for="start_month" class="translate">Meter reading at month start</label>
-        </div>
-        <div class="input-field col s2">
+            </div>
+            <div class="input-field col s2">
                 <input data-field="start_quarter" type="number" data-default="0" />
                 <label for="start_quarter" class="translate">Meter reading at quarter start</label>
-        </div>
-        <div class="input-field col s2">
+            </div>
+            <div class="input-field col s2">
                 <input data-field="start_year" type="number" data-default="0" />
                 <label for="start_year" class="translate">Meter reading at year start</label>
+            </div>
         </div>
-        </div>
-
-</script>
-
-<!-- translations to-do = ALL !-->
-<script type="text/javascript">
-
-$.get( "adapter/sourceanalytix/words.js", function(script) {
-    let translation = script.substring(script.indexOf('{'), script.length); 
-    translation = translation.substring(0, translation.lastIndexOf(';'));   
-    $.extend(systemDictionary, JSON.parse(translation));
-    });
-</script>
+    </section>
+    
+    </script>
+    
+    <!-- translations to-do = ALL !-->
+    <script type="text/javascript">
+        var pricesConfig = [];
+        var unitConfig = [];
+        var priceCat = [];
+        var unitCat = [];
+    
+        /**
+        // initialize dropdown menu for table function
+        * If class as identifier is, you have to reinitialise all select elements.
+         * @param {string }selector - id or class name, id: #myID, class: .myClass
+         * @param {array} data - as array where the data has to be sorted in which order you like to display them
+         */
+        function fillSelect(selector, data, unit) {
+            $(selector).unbind('change');
+    
+            let selectInstance = M.FormSelect.getInstance($(selector));
+            if (selectInstance) {
+                selectInstance.destroy();
+            }
+    
+            $(selector).empty();
+            if (unit) {
+                $(selector).append('<option vlaue="" selected>' + _('automatically') + '</option>');
+            } else {
+                $(selector).append('<option vlaue="" selected>' + _('Choose') + '</option>');
+    
+            }
+            console.log(`Selector ${selector} of data ${data}`)
+    
+            for (let d in data) {
+                console.log(`Data D ${d} of data ${data}`)
+                $(selector).append('<option vlaue="' + data[d] + '">' + data[d] + '</option>');
+            }
+    
+            // instances = M.FormSelect.init($(selector));
+    
+            $(selector).on('change', (event) => {
+                // _onChange();
+            })
+    
+        }
+    
+    
+        $.get({
+            url: 'adapter/sourceanalytix/words.js',
+            success: function (result) {
+                if (result.isOk) {
+                    let translation = script.substring(script.indexOf('{'), script.length);
+                    translation = translation.substring(0, translation.lastIndexOf(';'));
+                    $.extend(systemDictionary, JSON.parse(translation));
+                }
+            },
+            async: false
+        })
+    
+        if (typeof customPostInits !== 'undefined') {
+            customPostInits.sourceanalytix = function ($div, values, instanceObj, type, role) {
+                try {
+                    if (instanceObj && instanceObj.native) {
+                        pricesConfig = instanceObj.native.pricesConfig;
+                        unitConfig = instanceObj.native.unitConfig;
+    
+                        for (const array in pricesConfig) {
+                            // console.log(pricesConfig[array].pCat);
+                            priceCat.push(pricesConfig[array].pCat);
+                        }
+    
+                        for (const array in unitConfig) {
+                            // console.log(unitConfig[array].uName);
+                            unitCat.push(unitConfig[array].uName);
+                        }
+    
+                    }
+    
+                    // console.log(`priceCat : ${priceCat} | unitCat ${unitCat}`)
+                    console.log(`UnitCat ${unitCat}`)
+                    fillSelect('#elements-select-unitCat', unitCat, true);
+                    fillSelect('#elements-select-priceCat', priceCat);
+    
+                } catch (err) {
+                    console.error(`error: ${err.message}, stack: ${err.stack}`);
+                }
+    
+                // getObjectTest();
+    
+            }
+        }
+    
+    </script>
