@@ -38,7 +38,75 @@
 
 	<script type="text/javascript">
 		var unitConfig = [];
-		var pricesConfig = [];
+		var pricesDefinition = [];
+		var unitCat = []
+		const units = {
+			"electricity": {
+				"Watt": [
+					{ "unit": "GW", "exponent": 9 },
+					{ "unit": "MW", "exponent": 6 },
+					{ "unit": "kW", "exponent": 3 },
+					{ "unit": "W", "exponent": 0 },
+					{ "unit": "mW", "exponent": -3 }
+				],
+				"Watt_hour": [
+					{ "unit": "GWh", "exponent": 9 },
+					{ "unit": "MWh", "exponent": 6 },
+					{ "unit": "kWh", "exponent": 3 },
+					{ "unit": "Wh", "exponent": 0 },
+					{ "unit": "mWh", "exponent": -3 }
+				]
+			},
+			"volume": {
+				"Cubic_meter": [
+					{ "unit": "km³", "exponent": 3 },
+					{ "unit": "m³", "exponent": 0 },
+					{ "unit": "dm³", "exponent": -1 },
+					{ "unit": "cm³", "exponent": -2 },
+					{ "unit": "mm³", "exponent": -3 }
+				],
+				"Liter": [
+					{ "unit": "hl", "exponent": 2 },
+					{ "unit": "l", "exponent": 0 },
+					{ "unit": "dl", "exponent": -1 },
+					{ "unit": "cl", "exponent": -2 },
+					{ "unit": "ml", "exponent": -3 }
+				]
+			}
+		};
+
+		// Function to build dropdown menu
+		function fillSelect(selector, data, unit) {
+			$(selector).unbind('change');
+
+			// let selectInstance = M.FormSelect.getInstance($(selector));
+			// if (selectInstance) {
+			// 	selectInstance.destroy();
+			// }
+
+			$(selector).empty();
+			if (unit) {
+				$(selector).append('<option vlaue="" selected>' + _('automatically') + '</option>');
+			} else {
+				$(selector).append('<option vlaue="" selected>' + _('Choose') + '</option>');
+
+			}
+			// console.log(`Selector ${selector} of data ${data}`)
+
+
+			for (let d in data) {
+				if (d !== 'remove' && d == 'undefined') {
+					// console.log(`Data D ${d} of data ${data[d]}`)	
+					$(selector).append('<option vlaue="' + data[d] + '">' + data[d] + '</option>');
+				}
+			}
+
+			// instances = M.FormSelect.init($(selector));
+
+			// $(selector).on('change', (event) => {
+			// _onChange();
+			// })
+		}
 
 		// This will be called by the admin adapter when the settings page loads
 		function load(settings, onChange) {
@@ -61,11 +129,22 @@
 				}
 			});
 			unitConfig = settings.unitConfig || [];
-			pricesConfig = settings.pricesConfig || [];
+			pricesDefinition = settings.pricesDefinition || [];
 			onChange(false);
 
-			values2table('unitConfig', unitConfig, onChange);
-			values2table('pricesConfig', pricesConfig, onChange);
+			// Read values for drop down menu of unit configuraiton
+			for (const cath in units) {
+				for (const array in units[cath]) {
+					for (const unit in units[cath][array]) {
+						// console.log(`Unit found in array ${JSON.stringify(units[cath][array][unit].unit)}`);
+						if (units[cath][array][unit].unit) {
+							unitCat.push(units[cath][array][unit].unit)
+						}
+					}
+				}
+			}
+
+			values2table('pricesDefinition', pricesDefinition, onChange);
 			// reinitialize all the Materialize labels on the page if you are dynamically adding inputs:
 			if (M) M.updateTextFields();
 		}
@@ -82,8 +161,7 @@
 					obj[$this.attr('id')] = $this.val();
 				}
 			});
-			obj.unitConfig = table2values('unitConfig');
-			obj.pricesConfig = table2values('pricesConfig');
+			obj.pricesDefinition = table2values('pricesDefinition');
 
 			callback(obj);
 		}
@@ -99,10 +177,8 @@
 		<div class="row">
 			<div class="col s12">
 				<ul class="tabs">
-					<li class="tab col s3"><a href="#tab-main" class="translate active">Main settings</a></li>
-					<li class="tab col s3"><a href="#tab-calculations" class="translate active">calculations</a></li>
-					<li class="tab col s3"><a href="#tab-unitConfig" class="translate active">Unit definitions</a></li>
-					<li class="tab col s3"><a href="#tab-pricesConfig" class="translate active">Price definitions</a>
+					<li class="tab col s6"><a href="#tab-main" class="translate active">Main settings</a></li>
+					<li class="tab col s6"><a href="#tab-pricesDefinition" class="translate active">Price definitions</a>
 					</li>
 				</ul>
 			</div>
@@ -176,149 +252,29 @@
 			</div>
 		</div>
 		<!-- Tab main -->
-		<!-- Tab unit definition old -->
-		<div class="row">
-			<div id="tab-calculations" class="col s12 page">
-				<div class="row">
-					<div class="text col s2">
-						<p class="translate">Electricity</p>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_power" />
-						<label for="unit_price_power" class="translate">Price per unit (€/kWh)</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_power_night" />
-						<label for="unit_price_power_night" class="translate">Price per unit night current
-							(€/kWh)</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="basic_price_power" />
-						<label for="basic_price_power" class="translate">Monthly base price</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_power_delivery" />
-						<label for="unit_price_power_delivery" class="translate">Profit per unit (€/kWh)</label>
-					</div>
-				</div>
-				<div class="row">
-					<div class="text col s2">
-						<p class="translate">Heat pump</p>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_heatpump" />
-						<label for="unit_price_heatpump" class="translate">Price per unit (€/kWh)</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_heatpump_night" />
-						<label for="unit_price_heatpump_night" class="translate">Price per unit night current
-							(€/kWh)</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="basic_price_heatpump" />
-						<label for="basic_price_heatpump" class="translate">Monthly base price</label>
-					</div>
-				</div>
-				<div class="row">
-					<div class="text col s2">
-						<p class="translate">Gas</p>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_gas" />
-						<label for="unit_price_gas" class="translate">Price per unit (€/m3)</label>
-					</div>
-					<div class="input-field col s2">
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="basic_price_gas" />
-						<label for="basic_price_gas" class="translate">Monthly base price</label>
-					</div>
-				</div>
-				<div class="row">
-					<div class="text col s2">
-						<p class="translate">Water</p>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_water" />
-						<label for="unit_price_water" class="translate">Price per unit (€/m3)</label>
-					</div>
-					<div class="input-field col s2">
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="basic_price_water" />
-						<label for="basic_price_water" class="translate">Monthly base price</label>
-					</div>
-				</div>
-				<div class="row">
-					<div class="text col s2">
-						<p class="translate">Oil</p>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="unit_price_oil" />
-						<label for="unit_price_oil" class="translate">Price per unit (€/m3)</label>
-					</div>
-					<div class="input-field col s2">
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="basic_price_oil" />
-						<label for="basic_price_oil" class="translate">Monthly base price</label>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Tab unit definition old -->
-
-		<!-- Tab unit configuration -->
-		<div class="row">
-			<div id="tab-unitConfig" class="col s12 page">
-				<p class="translate title">Unite configuration table</p>
-				<section>
-					<div class="col s12" id="unitConfig">
-						<a class="btn-floating waves-effect waves-light blue table-button-add"><i
-								class="material-icons">add</i></a>
-						<div class="table-values-div select">
-							<table class="table-values">
-								<thead>
-									<tr>
-										<th data-name="uName" style="width: 10%" class="translate">Unit Name</th>
-										<th data-name="uDes" style="width: 30%" class="translate">Description</th>
-
-										<th data-name="uStore" style="width: 10%" class="translate">Store as</th>
-
-										<th data-name="calcFactor" class="translate"
-											style="width: 15%;" data-selected="none"
-											data-type="select" data-style=""
-											data-options="none; : 1000; : 100 ; : 10 ;  ; * 10 ; * 100; * 1000">
-											Calculation Factor</th>
-
-										<th data-buttons="delete up down" style="width: 120px"></th>
-									</tr>
-								</thead>
-							</table>
-						</div>
-					</div>
-				</section>
-			</div>
-		</div>
-		<!-- Tab unit configuration -->
 
 		<!-- Tab prices configuration -->
 		<div class="row">
-			<div id="tab-pricesConfig" class="col s12 page">
+			<div id="tab-pricesDefinition" class="col s12 page">
 				<p class="translate title">Prices configuration table</p>
 				<section>
-					<div class="col s12" id="pricesConfig">
+					<div class="col s12" id="pricesDefinition">
 						<a class="btn-floating waves-effect waves-light blue table-button-add"><i
 								class="material-icons">add</i></a>
 						<div class="table-values-div">
 							<table class="table-values">
 								<thead>
 									<tr>
-										<th data-name="pCat" style="width: 20%" class="translate">Cathegorie</th>
-										<th data-name="uDes" style="width: 30%" class="translate">Description</th>
+										<th data-name="cat" style="width: 20%" class="translate">Cathegorie</th>
+										<th data-name="des" style="width: 30%" class="translate">Description</th>
 										<th data-name="costType" class="translate"
-										style="width: 10%; text-align: center;" data-default="20" data-type="select"
-										data-style="text-align: center" data-options="costs;earnings">Cost Type</th>
+											style="width: 10%; text-align: center;" data-default="20" data-type="select"
+											data-style="text-align: center" data-options="costs;earnings">Cost Type</th>
+										<th data-name="unitType" class="translate"
+											style="width: 10%; text-align: center;" data-default="kWh"
+											data-type="select" data-style="text-align: center"
+											data-options="GW;MW;kW;W;mW;GWh;MWh;kWh;Wh;mWh;km³;m³;dm³;cm³;mm³;hl;l;dl;cl;ml">
+											Unit</th>
 										<th data-name="uPpU" style="width: 10%" class="translate">Price p/unit</th>
 										<th data-name="uPpM" style="width: 10%" class="translate">price p/m</th>
 										<th data-buttons="delete up down" style="width: 120px"></th>
@@ -328,11 +284,9 @@
 						</div>
 					</div>
 				</section>
-
 			</div>
 		</div>
 		<!-- Tab prices configuration -->
-
 	</div>
 </body>
 

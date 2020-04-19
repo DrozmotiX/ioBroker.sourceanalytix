@@ -1,6 +1,6 @@
 <script type="text/x-iobroker" data-template-name="sourceanalytix">
 
-    <p class="translate title">Main settings</p>
+    <p class="center translate title">Main settings</p>
 
     <section>
         <div class="row">
@@ -41,7 +41,7 @@
         </div>
     </section>
     
-    <p class="translate title">Storage configuration</p>
+    <p class="center translate title">Storage configuration</p>
     
     <section>
     
@@ -87,7 +87,7 @@
     
     </section>
     
-    <p class="translate title">Please enter start values</p>
+    <p class="center translate title">Please enter start values</p>
     
     <section>
         <!-- <h6 class="translate">Please enter start values in kWh or m3 !</h6> -->
@@ -119,94 +119,145 @@
     </section>
     
     </script>
-    
-    <!-- translations to-do = ALL !-->
-    <script type="text/javascript">
-        var pricesConfig = [];
-        var unitConfig = [];
-        var priceCat = [];
-        var unitCat = [];
-    
-        /**
-        // initialize dropdown menu for table function
-        * If class as identifier is, you have to reinitialise all select elements.
-         * @param {string }selector - id or class name, id: #myID, class: .myClass
-         * @param {array} data - as array where the data has to be sorted in which order you like to display them
-         */
-        function fillSelect(selector, data, unit) {
-            $(selector).unbind('change');
-    
-            let selectInstance = M.FormSelect.getInstance($(selector));
-            if (selectInstance) {
-                selectInstance.destroy();
-            }
-    
-            $(selector).empty();
-            if (unit) {
-                $(selector).append('<option vlaue="" selected>' + _('automatically') + '</option>');
-            } else {
-                $(selector).append('<option vlaue="" selected>' + _('Choose') + '</option>');
-    
-            }
-            console.log(`Selector ${selector} of data ${data}`)
-    
-            for (let d in data) {
-                console.log(`Data D ${d} of data ${data}`)
+
+<!-- translations to-do = ALL !-->
+<script type="text/javascript">
+    // Temporary array to load units definitions, currently only electricity and volume, should be handled by library later
+    var unitsDefinitions = {
+        "electricity": {
+            "Watt": [
+                { "unit": "GW", "exponent": 9 },
+                { "unit": "MW", "exponent": 6 },
+                { "unit": "kW", "exponent": 3 },
+                { "unit": "W", "exponent": 0 },
+                { "unit": "mW", "exponent": -3 }
+            ],
+            "Watt_hour": [
+                { "unit": "GWh", "exponent": 9 },
+                { "unit": "MWh", "exponent": 6 },
+                { "unit": "kWh", "exponent": 3 },
+                { "unit": "Wh", "exponent": 0 },
+                { "unit": "mWh", "exponent": -3 }
+            ]
+        },
+        "volume": {
+            "Cubic_meter": [
+                { "unit": "km³", "exponent": 3 },
+                { "unit": "m³", "exponent": 0 },
+                { "unit": "dm³", "exponent": -1 },
+                { "unit": "cm³", "exponent": -2 },
+                { "unit": "mm³", "exponent": -3 }
+            ],
+            "Liter": [
+                { "unit": "hl", "exponent": 2 },
+                { "unit": "l", "exponent": 0 },
+                { "unit": "dl", "exponent": -1 },
+                { "unit": "cl", "exponent": -2 },
+                { "unit": "ml", "exponent": -3 }
+            ]
+        }
+    };
+    var pricesDefinition = [];
+    var unitConfig = [];
+    var priceCat = [];
+    var unitCat = [];
+
+    /**
+    // initialize dropdown menu for table function
+    * If class as identifier is, you have to reinitialise all select elements.
+     * @param {string }selector - id or class name, id: #myID, class: .myClass
+     * @param {array} data - as array where the data has to be sorted in which order you like to display them
+     */
+    function fillSelect(selector, data, unit) {
+        $(selector).unbind('change');
+
+        let selectInstance = M.FormSelect.getInstance($(selector));
+        if (selectInstance) {
+            selectInstance.destroy();
+        }
+
+        $(selector).empty();
+        if (unit) {
+            $(selector).append('<option vlaue="" selected>' + _('automatically') + '</option>');
+        } else {
+            $(selector).append('<option vlaue="" selected>' + _('Choose') + '</option>');
+
+        }
+        // console.log(`Selector ${selector} of data ${data}`)
+
+
+        for (let d in data) {
+            if (d !== 'remove') {
+                // console.log(`Data D ${d} of data ${data[d]}`)
                 $(selector).append('<option vlaue="' + data[d] + '">' + data[d] + '</option>');
             }
-    
-            // instances = M.FormSelect.init($(selector));
-    
-            $(selector).on('change', (event) => {
-                // _onChange();
-            })
-    
         }
-    
-    
-        $.get({
-            url: 'adapter/sourceanalytix/words.js',
-            success: function (result) {
-                if (result.isOk) {
-                    let translation = script.substring(script.indexOf('{'), script.length);
-                    translation = translation.substring(0, translation.lastIndexOf(';'));
-                    $.extend(systemDictionary, JSON.parse(translation));
-                }
-            },
-            async: false
-        })
-    
-        if (typeof customPostInits !== 'undefined') {
-            customPostInits.sourceanalytix = function ($div, values, instanceObj, type, role) {
-                try {
-                    if (instanceObj && instanceObj.native) {
-                        pricesConfig = instanceObj.native.pricesConfig;
-                        unitConfig = instanceObj.native.unitConfig;
-    
-                        for (const array in pricesConfig) {
-                            // console.log(pricesConfig[array].pCat);
-                            priceCat.push(pricesConfig[array].pCat);
-                        }
-    
-                        for (const array in unitConfig) {
-                            // console.log(unitConfig[array].uName);
-                            unitCat.push(unitConfig[array].uName);
-                        }
-    
-                    }
-    
-                    // console.log(`priceCat : ${priceCat} | unitCat ${unitCat}`)
-                    console.log(`UnitCat ${unitCat}`)
-                    fillSelect('#elements-select-unitCat', unitCat, true);
-                    fillSelect('#elements-select-priceCat', priceCat);
-    
-                } catch (err) {
-                    console.error(`error: ${err.message}, stack: ${err.stack}`);
-                }
-    
-                // getObjectTest();
-    
+
+        // instances = M.FormSelect.init($(selector));
+
+        // $(selector).on('change', (event) => {
+        // _onChange();
+        // })
+    }
+
+    $.get({
+        url: 'adapter/sourceanalytix/words.js',
+        success: function (result) {
+            if (result.isOk) {
+                let translation = script.substring(script.indexOf('{'), script.length);
+                translation = translation.substring(0, translation.lastIndexOf(';'));
+                $.extend(systemDictionary, JSON.parse(translation));
             }
+        },
+        async: false
+    })
+
+    if (typeof customPostInits !== 'undefined') {
+        customPostInits.sourceanalytix = function ($div, values, instanceObj, type, role) {
+            try {
+
+                // console.log(`PriceArray before ${JSON.stringify(priceCat)}`)
+                if (instanceObj && instanceObj.native) {
+                    pricesDefinition = instanceObj.native.pricesDefinition;
+                    unitConfig = instanceObj.native.unitConfig;
+
+                    for (const array in pricesDefinition) {
+                        if (pricesDefinition[array].cat !== undefined) {
+                            // console.log(`Get Prices cathegories ${pricesDefinition[array].cat}`);s
+                            priceCat.push(pricesDefinition[array].cat);
+                        }
+                    }
+
+                }
+
+                // console.log(`priceCat : ${priceCat} | unitCat ${unitCat}`)
+                // console.log(`UnitCat ${unitCat}`)
+
+                for (const cath in unitsDefinitions) {
+                    for (const array in unitsDefinitions[cath])
+
+                        for (const unit in unitsDefinitions[cath][array]) {
+                            // console.log(`Unit found in array ${JSON.stringify(unitsDefinitions[cath][array][unit].unit)}`);
+
+                            if (unitsDefinitions[cath][array][unit].unit) {
+                                unitCat.push(unitsDefinitions[cath][array][unit].unit)
+                            }
+
+                        }
+
+                    // unitCat.push(unitsDefinitions[cath][unit].unit);
+                }
+
+                fillSelect('#elements-select-unitCat', unitCat, true);
+                fillSelect('#elements-select-priceCat', priceCat);
+
+            } catch (err) {
+                console.error(`error: ${err.message}, stack: ${err.stack}`);
+            }
+
+            // getObjectTest();
+
         }
-    
-    </script>
+    }
+
+</script>
