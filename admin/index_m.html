@@ -27,12 +27,19 @@
 			width: 150px;
 			text-align: right;
 		}
+
+		.select {
+			text-align-last: center;
+			/* text-align: center; */
+			/* -ms-text-align-last: center;
+	-moz-text-align-last: center; */
+		}
 	</style>
 
 	<script type="text/javascript">
 		var unitConfig = [];
 		var pricesConfig = [];
-		
+
 		// This will be called by the admin adapter when the settings page loads
 		function load(settings, onChange) {
 			// example: select elements with id=key and class=value and insert value
@@ -106,7 +113,7 @@
 
 				<p class="translate title">Analyse the whole year</p>
 
-				<div class="row">					
+				<div class="row">
 					<div class="input-field col s2">
 						<input type="checkbox" class="value" id="store_days" />
 						<span class="translate">Days</span>
@@ -269,15 +276,21 @@
 					<div class="col s12" id="unitConfig">
 						<a class="btn-floating waves-effect waves-light blue table-button-add"><i
 								class="material-icons">add</i></a>
-						<div class="table-values-div">
+						<div class="table-values-div select">
 							<table class="table-values">
 								<thead>
 									<tr>
 										<th data-name="uName" style="width: 10%" class="translate">Unit Name</th>
-										<th data-name="uDes" style="width: 40%" class="translate">Description</th>
+										<th data-name="uDes" style="width: 30%" class="translate">Description</th>
+
 										<th data-name="uStore" style="width: 10%" class="translate">Store as</th>
-										<th data-name="uFactor" style="width: 20%" class="translate">Calculation Factor
-										</th>
+
+										<th data-name="calcFactor" class="translate"
+											style="width: 15%;" data-selected="none"
+											data-type="select" data-style=""
+											data-options="none; : 1000; : 100 ; : 10 ;  ; * 10 ; * 100; * 1000">
+											Calculation Factor</th>
+
 										<th data-buttons="delete up down" style="width: 120px"></th>
 									</tr>
 								</thead>
@@ -303,6 +316,9 @@
 									<tr>
 										<th data-name="pCat" style="width: 20%" class="translate">Cathegorie</th>
 										<th data-name="uDes" style="width: 30%" class="translate">Description</th>
+										<th data-name="costType" class="translate"
+										style="width: 10%; text-align: center;" data-default="20" data-type="select"
+										data-style="text-align: center" data-options="costs;earnings">Cost Type</th>
 										<th data-name="uPpU" style="width: 10%" class="translate">Price p/unit</th>
 										<th data-name="uPpM" style="width: 10%" class="translate">price p/m</th>
 										<th data-buttons="delete up down" style="width: 120px"></th>
