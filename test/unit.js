@@ -4,6 +4,6 @@ const { tests } = require("@iobroker/testing");
 // Run unit tests - See https://github.com/ioBroker/testing for a detailed explanation and further options
 tests.unit(path.join(__dirname, ".."),{
     defineMockBehavior(db, adapter) {
-        adapter.objects.getObjectView.returns({rows: []});
+        adapter.getObjectView.returns({rows: []});
     }
 });

@@ -1001,13 +1001,11 @@ class Sourceanalytix extends utils.Adapter {
 
 		// Check if previous reading exist in state (routine for <4 version )
 		if (!previousReadingV4 || previousReadingV4.val === 0) {
-
 			const previousReadingVold = await this.getStateAsync(`${deviceName}.Meter_Readings.Current_Reading`);
 			if (!previousReadingVold || previousReadingVold.val === 0) return;
 			calckWh = previousReadingVold.val;
 			// temporary indicate source of kWh value
 			valueSource = 'Version < 4';
-
 		} else {
 			calckWh = previousReadingV4.val; // use previous stored vlaue
 			valueSource = 'Version > 4';
