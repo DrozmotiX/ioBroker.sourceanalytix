@@ -134,6 +134,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 	}
+	//ToDO: Remove adapter is not using messaging
 	// /**
 	//  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
 	//  * Using this method requires "common.message" property to be set to true in io-package.json
@@ -535,6 +536,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				for (const stateID in this.activeStates) {
 					// console.log(this.activeStates.length());
+					this.log.info(`Executing reset for : ${stateID}`)
 					console.log(stateID);
 
 					const stateValues = this.activeStates[stateID].calcValues;
@@ -544,7 +546,8 @@ class Sourceanalytix extends utils.Adapter {
 					//TODO: Possible cause of NULL value, if NULL in calcvalues functioin continues instead of value write
 					if (reading === null || reading === undefined) continue;
 
-					this.log.info(`startvalues for ${stateID} before reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+					this.log.info(`Memory values for ${stateID} before reset : ${JSON.stringify(this.activeStates[stateID])}`);
+					this.log.info(`Current known state values : ${JSON.stringify(stateValues)}`)
 
 					// Prepare custom object and store correct values
 					const obj = {};
@@ -563,7 +566,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
 
 					await this.extendForeignObject(stateID, obj);
-					this.log.info(`startvalues for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID].calcValues)}`);
+					this.log.info(`Memory values for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID])}`);
 					this.calculationHandler(stateID, reading);
 				}
 
@@ -743,7 +746,7 @@ class Sourceanalytix extends utils.Adapter {
 			const currentCath =  this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
 			
-			this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			this.log.info(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 			console.log(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
@@ -780,10 +783,10 @@ class Sourceanalytix extends utils.Adapter {
 			}
 			
 
-			this.log.debug(`Recalculated value ${reading}`);
+			this.log.info(`Recalculated value ${reading}`);
 			if (reading === null || reading === undefined) return;
 
-			// Detect meter reset & ensure komulative calculation
+			// Detect meter reset & ensure Cumulative calculation
 			if (reading < calcValues.currentValue && currentCath !== 'Watt') {
 				this.log.debug(`New reading ${reading} lower than stored value ${calcValues.currentValue}`);
 
@@ -817,13 +820,13 @@ class Sourceanalytix extends utils.Adapter {
 
 				}
 			} else {
-				this.log.debug(`New reading ${reading} bigger than stored value ${calcValues.currentValue} processing normally`);
+				this.log.info(`New reading ${reading} bigger than stored value ${calcValues.currentValue} processing normally`);
 			}
 
-			this.log.debug(`Set calculated value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
+			this.log.info(`Set calculated value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
 			// Update current value to memory
 			this.activeStates[stateID]['calcValues'].currentValue = reading;
-			
+			this.log.info(`ActiveStatesArray ${JSON.stringify(this.activeStates[stateID]['calcValues'])})`)
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.Current_Reading`, { val: await this.roundDigits(reading), ack: true });
 
 			// 	// Handle impuls counters
@@ -836,6 +839,8 @@ class Sourceanalytix extends utils.Adapter {
 
 			// temporary set to sero, this value will be used later to handle period calculations
 			const reading_start = 0; //obj_cust.start_meassure;
+
+			this.log.info(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
 
 			// Store meter values
 			if (stateDetails.meter_values === true) {
@@ -921,7 +926,8 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Store results of current calculation to memory
 			previousCalculationRounded[stateID] = calculationRounded;
-			this.log.debug(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
+			this.log.info(`Calculation for ${stateID} : ${JSON.stringify(calculations)}`);
+			this.log.info(`CalculationRounded for ${stateID} : ${JSON.stringify(calculationRounded)}`);
 
 			this.log.debug(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculationRounded)}`);
 
