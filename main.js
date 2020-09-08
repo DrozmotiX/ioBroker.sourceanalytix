@@ -115,8 +115,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Start Daily reset function by cron job
-			//TODO: Temporary disabled for debugging purposes
-			// await this.resetStartValues();
+			await this.resetStartValues();
 
 			// Subscribe on all foreign objects to detect (de)activation of sourceanalytix enabled states
 			this.subscribeForeignObjects('*');
@@ -527,8 +526,9 @@ class Sourceanalytix extends utils.Adapter {
 
 	async resetStartValues() {
 		try {
-			// TODO: Temporary disabled daily reset for debugging purpose
+			// TODO: Temporary disabled daily reset for debugging purpose, for now run every minute
 			// const resetDay = new schedule('0 0 * * *', async () => {
+			const resetDay = new schedule('* * * * *', async () => {
 				calcBlock = true; // Pause all calculations
 				const beforeReset = await this.refreshDates(); // Reset date values in memory
 
@@ -576,9 +576,9 @@ class Sourceanalytix extends utils.Adapter {
 					calcBlock = false;
 				}, 500);
 
-			// });
+			});
 
-			// resetDay.start();
+			resetDay.start();
 
 		} catch (error) {
 			this.log.error(`[reset values error: ${error.message}, stack: ${error.stack}`);
