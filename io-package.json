@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.6-beta.5",
+        "version": "0.4.6-beta.6",
         "news": {
             "0.4.6-beta.1": {
                 "en": "Work in progress"

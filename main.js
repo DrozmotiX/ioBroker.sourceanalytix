@@ -167,7 +167,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		// Load volumes definitions
-		catArray = ['Liter'];
+		catArray = ['Liter', "Cubic_meter"];
 		for (const item in catArray) {
 			// Load watt definitions
 			const unitItem = adapterHelpers.units.volume[catArray[item]];
@@ -750,7 +750,7 @@ class Sourceanalytix extends utils.Adapter {
 			console.log(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
-			// Define propper calculcation value
+			// Define proper calculation value
 			let reading = null;
 
 			// Convert watt to watt hours
