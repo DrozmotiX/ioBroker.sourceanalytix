@@ -46,6 +46,9 @@ If you like my work, please consider a personal donation
 [![Donate](https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/button.png)](http://paypal.me/DutchmanNL)
 
 ## Changelog
+
+### 0.4.6-beta.x Dev version do not install !!!
+
 ### 0.4.5 work in progress
 * (Dutchman) Implement Sentry
 * (Dutchman) Bugfix : Warn message for week creations (js-controller 3.x)
