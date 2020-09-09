@@ -527,8 +527,8 @@ class Sourceanalytix extends utils.Adapter {
 	async resetStartValues() {
 		try {
 			// TODO: Temporary disabled daily reset for debugging purpose, for now run every minute
-			// const resetDay = new schedule('0 0 * * *', async () => {
-			const resetDay = new schedule('* * * * *', async () => {
+			const resetDay = new schedule('0 0 * * *', async () => {
+			// const resetDay = new schedule('* * * * *', async () => { //  testing schedule
 				calcBlock = true; // Pause all calculations
 				const beforeReset = await this.refreshDates(); // Reset date values in memory
 

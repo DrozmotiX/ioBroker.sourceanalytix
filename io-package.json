@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.6-beta.9",
+        "version": "0.4.7-alpha.0",
         "news": {
+            "0.4.7-alpha.0": {
+                "en": "Implement Sentry\nFix NULL value issue  at daily reset\nImplement configuration for Price definitions\nFix categories issue (read value of undefined\nSolved wrong reading value for Watt initialisation\nFix wrong interpretation of start values at value resets\nBugfix : Warnings at object creations (js-controller 3.x)",
+                "de": "Implementieren Sie Sentry\nBehebung des NULL-Wertproblems beim täglichen Zurücksetzen\nImplementieren Sie die Konfiguration für Preisdefinitionen\nProblem mit Kategorien behoben (Lesewert von undefined\nFalscher Lesewert für Watt-Initialisierung behoben\nKorrigieren Sie die falsche Interpretation der Startwerte beim Zurücksetzen des Werts\nBugfix: Warnungen bei Objekterstellung (js-controller 3.x)",
+                "ru": "Реализовать Sentry\nИсправить проблему с нулевым значением при ежедневном сбросе\nВнедрить конфигурацию для определения цены\nИсправить проблему категорий (прочтите значение undefined\nРешено неправильное значение чтения для инициализации ватт\nИсправить неправильную интерпретацию начальных значений при сбросе значений\nИсправление: предупреждения при создании объекта (js-controller 3.x)",
+                "pt": "Implementar Sentinela\nCorrigir problema de valor NULL na redefinição diária\nImplementar configuração para definições de preço\nCorrija o problema das categorias (leia o valor de indefinido\nValor de leitura incorreto resolvido para inicialização de Watt\nCorrija a interpretação errada dos valores iniciais nas redefinições de valor\nCorreção de bug: Avisos na criação de objetos (js-controller 3.x)",
+                "nl": "Implementeer Sentry\nFix NULL-waardeprobleem bij dagelijkse reset\nImplementeer configuratie voor prijsdefinities\nProblemen met categorieën oplossen (lees waarde van undefined\nOplossing voor verkeerde afleeswaarde voor Watt-initialisatie\nHerstel verkeerde interpretatie van startwaarden bij resets van waarden\nBugfix: waarschuwingen bij objectcreaties (js-controller 3.x)",
+                "fr": "Mettre en œuvre Sentry\nCorrection du problème de valeur NULL lors de la réinitialisation quotidienne\nImplémenter la configuration des définitions de prix\nCorrection du problème des catégories (lecture de la valeur non définie\nRésolution d'une mauvaise valeur de lecture pour l'initialisation des watts\nCorrection d'une mauvaise interprétation des valeurs de départ lors de la réinitialisation des valeurs\nCorrectif: avertissements lors de la création d'objets (js-controller 3.x)",
+                "it": "Implementa Sentry\nRisolto il problema del valore NULL durante il ripristino giornaliero\nImplementare la configurazione per le definizioni dei prezzi\nRisolto il problema delle categorie (valore letto di undefined\nRisolto valore di lettura errato per inizializzazione Watt\nCorreggere l'interpretazione errata dei valori iniziali al ripristino dei valori\nBugfix: avvisi durante la creazione di oggetti (js-controller 3.x)",
+                "es": "Implementar Sentry\nSoluciona el problema del valor NULO en el reinicio diario\nImplementar la configuración para las definiciones de precios\nSolucionar problema de categorías (leer valor de indefinido\nValor de lectura incorrecto resuelto para la inicialización de Watt\nCorrija la interpretación incorrecta de los valores iniciales en los restablecimientos de valores\nCorrección de error: advertencias en la creación de objetos (js-controller 3.x)",
+                "pl": "Zaimplementuj Sentry\nNapraw problem z wartością NULL przy codziennym resetowaniu\nZaimplementuj konfigurację dla definicji cen\nNapraw problem z kategoriami (odczyt wartości undefined\nRozwiązano nieprawidłową wartość odczytu dla inicjalizacji Watt\nNapraw błędną interpretację wartości początkowych przy resetowaniu wartości\nPoprawka: ostrzeżenia przy tworzeniu obiektów (js-controller 3.x)",
+                "zh-cn": "实施哨兵\n每天重置时修复NULL值问题\n实施价格定义的配置\n修复类别问题（读取值未定义\n解决了瓦特初始化的错误读取值\n修复值重置时对起始值的错误解释\n错误修正：对象创建时的警告（js-controller 3.x）"
+            },
             "0.4.6-beta.1": {
                 "en": "Work in progress"
             },
@@ -10,231 +22,231 @@
                 "en": "Bugfixes",
                 "de": "Fehlerbehebung",
                 "ru": "Исправление ошибок",
-          "pt": "Correções de bugs",
-          "nl": "Bugfixes",
-          "fr": "Corrections de bugs",
-          "it": "Correzioni di bug",
-          "es": "Corrección de errores",
-          "pl": "Poprawki błędów",
-          "zh-cn": "Bug修复"
+                "pt": "Correções de bugs",
+                "nl": "Bugfixes",
+                "fr": "Corrections de bugs",
+                "it": "Correzioni di bug",
+                "es": "Corrección de errores",
+                "pl": "Poprawki błędów",
+                "zh-cn": "Bug修复"
+            },
+            "0.4.0": {
+                "en": "Adapter completely redesigned, please test carefully",
+                "de": "Adapter komplett neu gestaltet, bitte sorgfältig testen",
+                "ru": "Адаптер полностью переработан, пожалуйста, проверьте внимательно",
+                "pt": "Adaptador completamente redesenhado, teste com cuidado",
+                "nl": "Adapter volledig opnieuw ontworpen, test zorgvuldig",
+                "fr": "Adaptateur entièrement repensé, veuillez tester soigneusement",
+                "it": "Adattatore completamente riprogettato, si prega di testare attentamente",
+                "es": "Adaptador completamente rediseñado, por favor pruebe cuidadosamente",
+                "pl": "Adapter całkowicie przeprojektowany, proszę przetestować dokładnie",
+                "zh-cn": "适配器完全重新设计，请仔细测试"
+            },
+            "0.3.0": {
+                "en": "m³ Implemented",
+                "de": "m³ umgesetzt",
+                "ru": "м³ Реализовано",
+                "pt": "m³ implementado",
+                "nl": "m³ geïmplementeerd",
+                "fr": "m³ mis en œuvre",
+                "it": "m³ Implementato",
+                "es": "m³ Implementado",
+                "pl": "m³ Wdrożony",
+                "zh-cn": "已实施m³"
+            },
+            "0.2.5": {
+                "en": "Fix wrong storage of start meter values, thank you xXBJXx",
+                "de": "Fehler beim Speichern der Startzählerwerte behoben, danke xXBJXx",
+                "ru": "Исправьте неправильное хранение значений стартового счетчика, спасибо xXBJXx",
+                "pt": "Corrigir o armazenamento errado dos valores do medidor inicial, obrigado xXBJXx",
+                "nl": "Herstel verkeerde opslag van startmeterwaarden, bedankt xXBJXx",
+                "fr": "Correction du mauvais stockage des valeurs initiales du compteur, merci xXBJXx",
+                "it": "Correggi l'archiviazione errata dei valori del misuratore di avvio, grazie xXBJXx",
+                "es": "Arregle el almacenamiento incorrecto de los valores de inicio del medidor, gracias xXBJXx",
+                "pl": "Napraw nieprawidłowe przechowywanie początkowych wartości liczników, dziękuję xXBJXx",
+                "zh-cn": "修复了启动仪表值的错误存储，谢谢xXBJXx"
+            },
+            "0.2.41": {
+                "en": "Calculation w to kWh implemented & several code improvements",
+                "de": "Berechnung w bis kWh implementiert & mehrere Code-Verbesserungen",
+                "ru": "Выполнен расчет с использованием кВтч и несколько улучшений кода",
+                "pt": "Cálculo w para kWh implementado e várias melhorias de código",
+                "nl": "Berekening w tot kWh geïmplementeerd & verschillende codeverbeteringen",
+                "fr": "Calcul w en kWh mis en œuvre & plusieurs améliorations de code",
+                "it": "Calcolo w in kWh implementato e numerosi miglioramenti del codice",
+                "es": "Cálculo w a kWh implementado y varias mejoras de código.",
+                "pl": "Wprowadzono obliczenia w do kWh i wprowadzono kilka ulepszeń kodu",
+                "zh-cn": "计算w到kWh实施和几个代码改进"
+            },
+            "0.2.27": {
+                "en": "Fixed issue related to multihost installations with slave as target",
+                "de": "Problem bei Multihost-Installationen mit Slave als Ziel behoben",
+                "ru": "Исправлена ​​проблема, связанная с установкой нескольких хостов с ведомым в качестве цели",
+                "pt": "Corrigido problema relacionado a instalações multi-host com escravo como alvo",
+                "nl": "Probleem opgelost met multihost-installaties met slaaf als doelwit",
+                "fr": "Résolution du problème lié aux installations multihôtes avec esclave comme cible",
+                "it": "Risolto il problema relativo alle installazioni multihost con slave come destinazione",
+                "es": "Se solucionó el problema relacionado con las instalaciones multihost con esclavo como destino",
+                "pl": "Naprawiono problem związany z instalacjami multihost z niewolnikiem jako celem",
+                "zh-cn": "修复了与slave作为目标的多主机安装相关的问题"
+            },
+            "0.2.26": {
+                "en": "Fix issue in calculations for gas environments and liquids",
+                "de": "Problem in Berechnungen für Gasumgebungen und Flüssigkeiten behoben",
+                "ru": "Исправлена ​​ошибка в расчетах для газовых сред и жидкостей.",
+                "pt": "Corrigir problema em cálculos para ambientes de gás e líquidos",
+                "nl": "Probleem verhelpen bij berekeningen voor gasomgevingen en vloeistoffen",
+                "fr": "Correction d'un problème dans les calculs pour les environnements de gaz et les liquides",
+                "it": "Risolto il problema nei calcoli per ambienti a gas e liquidi",
+                "es": "Solucionar el problema en los cálculos para ambientes de gas y líquidos.",
+                "pl": "Napraw problem w obliczeniach dla środowisk gazowych i cieczy",
+                "zh-cn": "解决气体环境和液体计算中的问题"
+            },
+            "0.2.25": {
+                "en": "add option in state setting to automatically OR manually choose the meassurement unit",
+                "de": "Option in Zustandseinstellung hinzufügen, um die Maßeinheit automatisch ODER manuell auszuwählen",
+                "ru": "добавить опцию в настройке состояния, чтобы автоматически или вручную выбрать единицу измерения",
+                "pt": "adicione a opção na configuração de estado para automaticamente OU escolha manualmente a unidade de medida",
+                "nl": "optie toevoegen in de statusinstelling om automatisch of handmatig de meeteenheid te kiezen",
+                "fr": "ajout d'option dans le réglage d'état pour choisir automatiquement OU manuellement l'unité de mesure",
+                "it": "aggiungere l'opzione nell'impostazione dello stato automaticamente O selezionare manualmente l'unità di misura",
+                "es": "Agregue la opción en la configuración de estado para seleccionar automáticamente O manualmente la unidad de medida",
+                "pl": "dodać opcję w ustawieniu stanu, aby automatycznie LUB ręcznie wybrać jednostkę miary",
+                "zh-cn": "在状态设置中添加选项以自动或手动选择测量单位"
+            },
+            "0.2.24": {
+                "en": "add support for heating pumps",
+                "de": "Unterstützung für Heizungspumpen hinzufügen",
+                "ru": "добавить поддержку для тепловых насосов",
+                "pt": "adicione suporte para bombas de aquecimento",
+                "nl": "voeg ondersteuning toe voor verwarmingspompen",
+                "fr": "ajouter un support pour les pompes à chaleur",
+                "it": "aggiungere il supporto per le pompe di calore",
+                "es": "añadir soporte para bombas de calor",
+                "pl": "dodaj wsparcie dla pomp grzewczych",
+                "zh-cn": "增加对加热泵的支持"
+            },
+            "0.2.2": {
+                "en": "Final fix for start values, several code improvements",
+                "de": "Endfix für Startwerte, verschiedene Code-Verbesserungen",
+                "ru": "Окончательное исправление для начальных значений, несколько улучшений кода",
+                "pt": "Correção final para valores iniciais, várias melhorias no código",
+                "nl": "Laatste fix voor startwaarden, verschillende codeverbeteringen",
+                "fr": "Correctif final pour les valeurs de départ, plusieurs améliorations de code",
+                "it": "Correzione finale per i valori iniziali, diversi miglioramenti del codice",
+                "es": "Arreglo final para valores de inicio, varias mejoras de código",
+                "pl": "Ostateczna poprawka wartości początkowych, kilka ulepszeń kodu",
+                "zh-cn": "0.2.2起始值的最终修复，几个代码改进"
+            },
+            "0.2.1": {
+                "en": "Several bugs fixed",
+                "de": "Mehrere Fehler behoben",
+                "ru": "Исправлено несколько ошибок",
+                "pt": "Vários bugs corrigidos",
+                "nl": "Verschillende bugs verholpen",
+                "fr": "Plusieurs bugs corrigés",
+                "it": "Diversi errori risolti",
+                "es": "Varios errores corregidos",
+                "pl": "Naprawiono kilka błędów",
+                "zh-cn": "修复了几个错误"
+            },
+            "0.2.0": {
+                "en": "Public Release candidate",
+                "de": "Öffentlicher Release-Kandidat",
+                "ru": "Публичный релиз кандидата",
+                "pt": "Candidato de lançamento público",
+                "nl": "Public Release-kandidaat",
+                "fr": "Candidat à la diffusion publique",
+                "it": "Candidato a rilascio pubblico",
+                "es": "Candidato de lanzamiento público",
+                "pl": "Kandydat na Public Release",
+                "zh-cn": "公开发布候选人"
+            },
+            "0.1.9": {
+                "en": "Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
+                "de": "Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
+                "ru": "Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
+                "pt": "Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
+                "nl": "Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
+                "fr": "Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
+                "it": "Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
+                "es": "Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
+                "pl": "Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
+                "zh-cn": "准备稳定的0.2.0，重新设计计算逻辑和配置接口"
+            },
+            "0.1.0": {
+                "en": "Public beta release",
+                "de": "Öffentliche Betaversion",
+                "ru": "публичная бета-версия",
+                "pt": "versão beta pública",
+                "nl": "Public beta-release",
+                "fr": "Version bêta publique 0.1.0",
+                "it": "Versione beta pubblica",
+                "es": "Public beta pública",
+                "pl": "Publiczne wydanie beta",
+                "zh-cn": "0.1.0公开测试版"
+            },
+            "0.0.9": {
+                "en": "Prepare Public Beta",
+                "de": "Erste öffentliche Beta",
+                "ru": "Первая публичная бета",
+                "pt": "Primeiro beta público",
+                "nl": "Eerste openbare bèta",
+                "fr": "Première bêta publique",
+                "it": "Prima beta pubblica",
+                "es": "Primera beta pública",
+                "pl": "Pierwsza publiczna beta",
+                "zh-cn": "首次公开测试版"
+            }
         },
-        "0.4.0": {
-          "en": "Adapter completely redesigned, please test carefully",
-          "de": "Adapter komplett neu gestaltet, bitte sorgfältig testen",
-          "ru": "Адаптер полностью переработан, пожалуйста, проверьте внимательно",
-          "pt": "Adaptador completamente redesenhado, teste com cuidado",
-          "nl": "Adapter volledig opnieuw ontworpen, test zorgvuldig",
-          "fr": "Adaptateur entièrement repensé, veuillez tester soigneusement",
-          "it": "Adattatore completamente riprogettato, si prega di testare attentamente",
-          "es": "Adaptador completamente rediseñado, por favor pruebe cuidadosamente",
-          "pl": "Adapter całkowicie przeprojektowany, proszę przetestować dokładnie",
-          "zh-cn": "适配器完全重新设计，请仔细测试"
+        "title": "SourceAnalytix",
+        "titleLang": {
+            "en": "SourceAnalytix",
+            "de": "SourceAnalytix",
+            "ru": "SourceAnalytix",
+            "pt": "SourceAnalytix",
+            "nl": "SourceAnalytix",
+            "fr": "SourceAnalytix",
+            "it": "SourceAnalytix",
+            "es": "SourceAnalytix",
+            "pl": "SourceAnalytix",
+            "zh-cn": "SourceAnalytix"
         },
-        "0.3.0": {
-          "en": "m³ Implemented",
-          "de": "m³ umgesetzt",
-          "ru": "м³ Реализовано",
-          "pt": "m³ implementado",
-          "nl": "m³ geïmplementeerd",
-          "fr": "m³ mis en œuvre",
-          "it": "m³ Implementato",
-          "es": "m³ Implementado",
-          "pl": "m³ Wdrożony",
-          "zh-cn": "已实施m³"
+        "desc": {
+            "en": "Detailed statistics of your energy, gas and liquid consumption. Allows annual report and details according to weekly, monthly and quarterly consumption data.",
+            "de": "Detaillierte Statistiken Ihres Energie-, Gas- und Flüssigkeitsverbrauchs. Ermöglicht Jahresberichte und Details gemäß wöchentlichen, monatlichen und vierteljährlichen Verbrauchsdaten.",
+            "ru": "Подробная статистика вашего потребления энергии, газа и жидкости. Позволяет годовой отчет и подробную информацию в соответствии с еженедельными, ежемесячными и квартальными данными потребления.",
+            "pt": "Estatísticas detalhadas de seu consumo de energia, gás e líquido. Permite relatório anual e detalhes de acordo com dados de consumo semanais, mensais e trimestrais.",
+            "nl": "Gedetailleerde statistieken van uw energie-, gas- en vloeistofverbruik. Staat jaarverslag en details toe op basis van wekelijkse, maandelijkse en driemaandelijkse verbruiksgegevens.",
+            "fr": "Statistiques détaillées de votre consommation d'énergie, de gaz et de liquide. Permet un rapport annuel et des détails selon les données de consommation hebdomadaires, mensuelles et trimestrielles.",
+            "it": "Statistiche dettagliate sul consumo di energia, gas e liquidi. Consente report e dettagli annuali in base ai dati di consumo settimanali, mensili e trimestrali.",
+            "es": "Estadísticas detalladas de su consumo de energía, gas y líquido. Permite informes anuales y detalles según datos de consumo semanal, mensual y trimestral.",
+            "pl": "Szczegółowe statystyki zużycia energii, gazu i cieczy. Umożliwia raport roczny i szczegóły zgodnie z tygodniowymi, miesięcznymi i kwartalnymi danymi dotyczącymi zużycia.",
+            "zh-cn": "您的能源，气体和液体消耗的详细统计信息。允许根据每周，每月和每季度的消费数据提供年度报告和详细信息。"
         },
-        "0.2.5": {
-          "en": "Fix wrong storage of start meter values, thank you xXBJXx",
-          "de": "Fehler beim Speichern der Startzählerwerte behoben, danke xXBJXx",
-          "ru": "Исправьте неправильное хранение значений стартового счетчика, спасибо xXBJXx",
-          "pt": "Corrigir o armazenamento errado dos valores do medidor inicial, obrigado xXBJXx",
-          "nl": "Herstel verkeerde opslag van startmeterwaarden, bedankt xXBJXx",
-          "fr": "Correction du mauvais stockage des valeurs initiales du compteur, merci xXBJXx",
-          "it": "Correggi l'archiviazione errata dei valori del misuratore di avvio, grazie xXBJXx",
-          "es": "Arregle el almacenamiento incorrecto de los valores de inicio del medidor, gracias xXBJXx",
-          "pl": "Napraw nieprawidłowe przechowywanie początkowych wartości liczników, dziękuję xXBJXx",
-          "zh-cn": "修复了启动仪表值的错误存储，谢谢xXBJXx"
-        },
-        "0.2.41": {
-          "en": "Calculation w to kWh implemented & several code improvements",
-          "de": "Berechnung w bis kWh implementiert & mehrere Code-Verbesserungen",
-          "ru": "Выполнен расчет с использованием кВтч и несколько улучшений кода",
-          "pt": "Cálculo w para kWh implementado e várias melhorias de código",
-          "nl": "Berekening w tot kWh geïmplementeerd & verschillende codeverbeteringen",
-          "fr": "Calcul w en kWh mis en œuvre & plusieurs améliorations de code",
-          "it": "Calcolo w in kWh implementato e numerosi miglioramenti del codice",
-          "es": "Cálculo w a kWh implementado y varias mejoras de código.",
-          "pl": "Wprowadzono obliczenia w do kWh i wprowadzono kilka ulepszeń kodu",
-          "zh-cn": "计算w到kWh实施和几个代码改进"
-        },
-        "0.2.27": {
-          "en": "Fixed issue related to multihost installations with slave as target",
-          "de": "Problem bei Multihost-Installationen mit Slave als Ziel behoben",
-          "ru": "Исправлена ​​проблема, связанная с установкой нескольких хостов с ведомым в качестве цели",
-          "pt": "Corrigido problema relacionado a instalações multi-host com escravo como alvo",
-          "nl": "Probleem opgelost met multihost-installaties met slaaf als doelwit",
-          "fr": "Résolution du problème lié aux installations multihôtes avec esclave comme cible",
-          "it": "Risolto il problema relativo alle installazioni multihost con slave come destinazione",
-          "es": "Se solucionó el problema relacionado con las instalaciones multihost con esclavo como destino",
-          "pl": "Naprawiono problem związany z instalacjami multihost z niewolnikiem jako celem",
-          "zh-cn": "修复了与slave作为目标的多主机安装相关的问题"
-        },
-        "0.2.26": {
-          "en": "Fix issue in calculations for gas environments and liquids",
-          "de": "Problem in Berechnungen für Gasumgebungen und Flüssigkeiten behoben",
-          "ru": "Исправлена ​​ошибка в расчетах для газовых сред и жидкостей.",
-          "pt": "Corrigir problema em cálculos para ambientes de gás e líquidos",
-          "nl": "Probleem verhelpen bij berekeningen voor gasomgevingen en vloeistoffen",
-          "fr": "Correction d'un problème dans les calculs pour les environnements de gaz et les liquides",
-          "it": "Risolto il problema nei calcoli per ambienti a gas e liquidi",
-          "es": "Solucionar el problema en los cálculos para ambientes de gas y líquidos.",
-          "pl": "Napraw problem w obliczeniach dla środowisk gazowych i cieczy",
-          "zh-cn": "解决气体环境和液体计算中的问题"
-        },
-        "0.2.25": {
-          "en": "add option in state setting to automatically OR manually choose the meassurement unit",
-          "de": "Option in Zustandseinstellung hinzufügen, um die Maßeinheit automatisch ODER manuell auszuwählen",
-          "ru": "добавить опцию в настройке состояния, чтобы автоматически или вручную выбрать единицу измерения",
-          "pt": "adicione a opção na configuração de estado para automaticamente OU escolha manualmente a unidade de medida",
-          "nl": "optie toevoegen in de statusinstelling om automatisch of handmatig de meeteenheid te kiezen",
-          "fr": "ajout d'option dans le réglage d'état pour choisir automatiquement OU manuellement l'unité de mesure",
-          "it": "aggiungere l'opzione nell'impostazione dello stato automaticamente O selezionare manualmente l'unità di misura",
-          "es": "Agregue la opción en la configuración de estado para seleccionar automáticamente O manualmente la unidad de medida",
-          "pl": "dodać opcję w ustawieniu stanu, aby automatycznie LUB ręcznie wybrać jednostkę miary",
-          "zh-cn": "在状态设置中添加选项以自动或手动选择测量单位"
-        },
-        "0.2.24": {
-          "en": "add support for heating pumps",
-          "de": "Unterstützung für Heizungspumpen hinzufügen",
-          "ru": "добавить поддержку для тепловых насосов",
-          "pt": "adicione suporte para bombas de aquecimento",
-          "nl": "voeg ondersteuning toe voor verwarmingspompen",
-          "fr": "ajouter un support pour les pompes à chaleur",
-          "it": "aggiungere il supporto per le pompe di calore",
-          "es": "añadir soporte para bombas de calor",
-          "pl": "dodaj wsparcie dla pomp grzewczych",
-          "zh-cn": "增加对加热泵的支持"
-        },
-        "0.2.2": {
-          "en": "Final fix for start values, several code improvements",
-          "de": "Endfix für Startwerte, verschiedene Code-Verbesserungen",
-          "ru": "Окончательное исправление для начальных значений, несколько улучшений кода",
-          "pt": "Correção final para valores iniciais, várias melhorias no código",
-          "nl": "Laatste fix voor startwaarden, verschillende codeverbeteringen",
-          "fr": "Correctif final pour les valeurs de départ, plusieurs améliorations de code",
-          "it": "Correzione finale per i valori iniziali, diversi miglioramenti del codice",
-          "es": "Arreglo final para valores de inicio, varias mejoras de código",
-          "pl": "Ostateczna poprawka wartości początkowych, kilka ulepszeń kodu",
-          "zh-cn": "0.2.2起始值的最终修复，几个代码改进"
-        },
-        "0.2.1": {
-          "en": "Several bugs fixed",
-          "de": "Mehrere Fehler behoben",
-          "ru": "Исправлено несколько ошибок",
-          "pt": "Vários bugs corrigidos",
-          "nl": "Verschillende bugs verholpen",
-          "fr": "Plusieurs bugs corrigés",
-          "it": "Diversi errori risolti",
-          "es": "Varios errores corregidos",
-          "pl": "Naprawiono kilka błędów",
-          "zh-cn": "修复了几个错误"
-        },
-        "0.2.0": {
-          "en": "Public Release candidate",
-          "de": "Öffentlicher Release-Kandidat",
-          "ru": "Публичный релиз кандидата",
-          "pt": "Candidato de lançamento público",
-          "nl": "Public Release-kandidaat",
-          "fr": "Candidat à la diffusion publique",
-          "it": "Candidato a rilascio pubblico",
-          "es": "Candidato de lanzamiento público",
-          "pl": "Kandydat na Public Release",
-          "zh-cn": "公开发布候选人"
-        },
-        "0.1.9": {
-          "en": "Preparation of stable 0.2.0, calculation logic and configuration interface redesigned",
-          "de": "Vorbereitung von 0.2.0 stabilisiert, Berechnungslogik und Konfigurationsschnittstelle neu gestaltet",
-          "ru": "Подготовка стабильной версии 0.2.0, логика расчета и интерфейс конфигурации переработаны",
-          "pt": "Preparação do estável 0.2.0, lógica de cálculo e interface de configuração redesenhada",
-          "nl": "Voorbereiding van stabiele 0.2.0, berekeningslogica en configuratie-interface opnieuw ontworpen",
-          "fr": "Préparation de la version stable 0.2.0, de la logique de calcul et de l'interface de configuration repensés",
-          "it": "Preparazione di 0.2.0 stabile, logica di calcolo e interfaccia di configurazione ridisegnata",
-          "es": "Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
-          "pl": "Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
-          "zh-cn": "准备稳定的0.2.0，重新设计计算逻辑和配置接口"
-        },
-        "0.1.0": {
-          "en": "Public beta release",
-          "de": "Öffentliche Betaversion",
-          "ru": "публичная бета-версия",
-          "pt": "versão beta pública",
-          "nl": "Public beta-release",
-          "fr": "Version bêta publique 0.1.0",
-          "it": "Versione beta pubblica",
-          "es": "Public beta pública",
-          "pl": "Publiczne wydanie beta",
-          "zh-cn": "0.1.0公开测试版"
-        },
-        "0.0.9": {
-          "en": "Prepare Public Beta",
-          "de": "Erste öffentliche Beta",
-          "ru": "Первая публичная бета",
-          "pt": "Primeiro beta público",
-          "nl": "Eerste openbare bèta",
-          "fr": "Première bêta publique",
-          "it": "Prima beta pubblica",
-          "es": "Primera beta pública",
-          "pl": "Pierwsza publiczna beta",
-          "zh-cn": "首次公开测试版"
-        }
-      },
-      "title": "SourceAnalytix",
-      "titleLang": {
-        "en": "SourceAnalytix",
-        "de": "SourceAnalytix",
-        "ru": "SourceAnalytix",
-        "pt": "SourceAnalytix",
-        "nl": "SourceAnalytix",
-        "fr": "SourceAnalytix",
-        "it": "SourceAnalytix",
-        "es": "SourceAnalytix",
-        "pl": "SourceAnalytix",
-        "zh-cn": "SourceAnalytix"
-      },
-      "desc": {
-        "en": "Detailed statistics of your energy, gas and liquid consumption. Allows annual report and details according to weekly, monthly and quarterly consumption data.",
-        "de": "Detaillierte Statistiken Ihres Energie-, Gas- und Flüssigkeitsverbrauchs. Ermöglicht Jahresberichte und Details gemäß wöchentlichen, monatlichen und vierteljährlichen Verbrauchsdaten.",
-        "ru": "Подробная статистика вашего потребления энергии, газа и жидкости. Позволяет годовой отчет и подробную информацию в соответствии с еженедельными, ежемесячными и квартальными данными потребления.",
-        "pt": "Estatísticas detalhadas de seu consumo de energia, gás e líquido. Permite relatório anual e detalhes de acordo com dados de consumo semanais, mensais e trimestrais.",
-        "nl": "Gedetailleerde statistieken van uw energie-, gas- en vloeistofverbruik. Staat jaarverslag en details toe op basis van wekelijkse, maandelijkse en driemaandelijkse verbruiksgegevens.",
-        "fr": "Statistiques détaillées de votre consommation d'énergie, de gaz et de liquide. Permet un rapport annuel et des détails selon les données de consommation hebdomadaires, mensuelles et trimestrielles.",
-        "it": "Statistiche dettagliate sul consumo di energia, gas e liquidi. Consente report e dettagli annuali in base ai dati di consumo settimanali, mensili e trimestrali.",
-        "es": "Estadísticas detalladas de su consumo de energía, gas y líquido. Permite informes anuales y detalles según datos de consumo semanal, mensual y trimestral.",
-        "pl": "Szczegółowe statystyki zużycia energii, gazu i cieczy. Umożliwia raport roczny i szczegóły zgodnie z tygodniowymi, miesięcznymi i kwartalnymi danymi dotyczącymi zużycia.",
-        "zh-cn": "您的能源，气体和液体消耗的详细统计信息。允许根据每周，每月和每季度的消费数据提供年度报告和详细信息。"
-      },
-      "authors": [
-        "DutchmanNL <rdrozda86@gmail.com>"
-      ],
-      "contributors": [
-        "xXBJXx"
-      ],
-      "keywords": [
-        "energy",
-        "power",
-        "analytics",
-        "consumption",
-        "meassurement",
-        "data"
-      ],
-      "license": "MIT",
-      "platform": "Javascript/Node.js",
-      "main": "main.js",
-      "icon": "sourceanalytix.png",
-      "enabled": true,
-      "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
-      "readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
-      "loglevel": "warn",
-      "mode": "daemon",
+        "authors": [
+            "DutchmanNL <rdrozda86@gmail.com>"
+        ],
+        "contributors": [
+            "xXBJXx"
+        ],
+        "keywords": [
+            "energy",
+            "power",
+            "analytics",
+            "consumption",
+            "meassurement",
+            "data"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "sourceanalytix.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
+        "readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
+        "loglevel": "warn",
+        "mode": "daemon",
         "type": "energy",
         "compact": true,
         "materialize": true,
@@ -246,80 +258,80 @@
         "supportCustoms": true,
         "dependencies": [
             {
-          "admin": ">=3.0.0"
-        },
+                "admin": ">=3.0.0"
+            },
             {
                 "js-controller": ">=1.4.2"
             }
         ]
     },
     "native": {
-      "pricesDefinition": [
-        {
-          "cat": "ElectricityDay",
-          "des": "Electricity consumption Day price",
-          "costType": "costs",
-          "unitType": "kWh",
-          "uPpU": "0.27",
-          "uPpM": "15"
-        },
-        {
-          "cat": "ElectricityDelivery",
-          "des": "Electricity Delivery Earnings",
-          "costType": "earnings",
-          "unitType": "kWh",
-          "uPpU": "0.17",
-          "uPpM": "15"
-        },
-        {
-          "cat": "ElectricityNight",
-          "des": "Electricity consumption Night price",
-          "costType": "costs",
-          "unitType": "kWh",
-          "uPpU": "0.24",
-          "uPpM": "15"
-        },
-        {
-          "cat": "Heatpump",
-          "des": "Heatpomp costs by unit",
-          "costType": "costs",
-          "unitType": "kWh",
-          "uPpU": "0.24",
-          "uPpM": "31"
-        },
-        {
-          "cat": "Gas",
-          "des": "Gas costs by unit",
-          "costType": "costs",
-          "unitType": "m³",
-          "uPpU": "0.12",
-          "uPpM": "31"
-        },
-        {
-          "cat": "Oil",
-          "des": "Oil costs by unit",
-          "costType": "costs",
-          "unitType": "m³",
-          "uPpU": "0.12",
-          "uPpM": "7.38"
-        },
-        {
-          "cat": "Water",
-          "des": "Water costs by unit",
-          "costType": "costs",
-          "unitType": "m³",
-          "uPpU": "0.07",
-          "uPpM": "22"
-        }
-      ],
-      "store_days": true,
-      "store_weeks": false,
-      "store_months": true,
-      "store_quarters": false,
-      "store_years": false,
-      "store_period": false,
-      "keep_days": 7,
-      "keep_weeks": 4,
+        "pricesDefinition": [
+            {
+                "cat": "ElectricityDay",
+                "des": "Electricity consumption Day price",
+                "costType": "costs",
+                "unitType": "kWh",
+                "uPpU": "0.27",
+                "uPpM": "15"
+            },
+            {
+                "cat": "ElectricityDelivery",
+                "des": "Electricity Delivery Earnings",
+                "costType": "earnings",
+                "unitType": "kWh",
+                "uPpU": "0.17",
+                "uPpM": "15"
+            },
+            {
+                "cat": "ElectricityNight",
+                "des": "Electricity consumption Night price",
+                "costType": "costs",
+                "unitType": "kWh",
+                "uPpU": "0.24",
+                "uPpM": "15"
+            },
+            {
+                "cat": "Heatpump",
+                "des": "Heatpomp costs by unit",
+                "costType": "costs",
+                "unitType": "kWh",
+                "uPpU": "0.24",
+                "uPpM": "31"
+            },
+            {
+                "cat": "Gas",
+                "des": "Gas costs by unit",
+                "costType": "costs",
+                "unitType": "m³",
+                "uPpU": "0.12",
+                "uPpM": "31"
+            },
+            {
+                "cat": "Oil",
+                "des": "Oil costs by unit",
+                "costType": "costs",
+                "unitType": "m³",
+                "uPpU": "0.12",
+                "uPpM": "7.38"
+            },
+            {
+                "cat": "Water",
+                "des": "Water costs by unit",
+                "costType": "costs",
+                "unitType": "m³",
+                "uPpU": "0.07",
+                "uPpM": "22"
+            }
+        ],
+        "store_days": true,
+        "store_weeks": false,
+        "store_months": true,
+        "store_quarters": false,
+        "store_years": false,
+        "store_period": false,
+        "keep_days": 7,
+        "keep_weeks": 4,
         "keep_quarters": 2,
         "keep_months": 4,
         "keep_years": 1,
@@ -327,15 +339,15 @@
         "status_logging": false
     },
     "objects": [
-      {
-        "_id": "_design/custom",
-        "language": "javascript",
-        "views": {
-          "state": {
-            "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
-          }
+        {
+            "_id": "_design/custom",
+            "language": "javascript",
+            "views": {
+                "state": {
+                    "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
+                }
+            }
         }
-      }
     ],
     "instanceObjects": []
-  }
+}

@@ -1,5 +1,4 @@
 # SourceAnalytix
-# { Dev - in Progress, version 0.4.0  stable candidate }
 
 [![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
@@ -11,6 +10,8 @@
 [![NPM](https://nodei.co/npm/iobroker.sourceanalytix.png?downloads=true)](https://nodei.co/npm/iobroker.sourceanalytix/)
 
 **Tests:**: [![Travis-CI](http://img.shields.io/travis/iobroker-community-adapters/ioBroker.sourceanalytix/master.svg)](https://travis-ci.org/iobroker-community-adapters/ioBroker.sourceanalytix)
+
+**This adapter uses the service [Sentry.io](https://sentry.io) to automatically report exceptions and code errors and new device schemas to me as the developer.** More details see below!
 
 Detailed analysis of your Energy, gas and liquid consumptions
 Any source (kWh, Wh, Watt, l/h or m3 )can be used for data analyses :
@@ -45,13 +46,25 @@ If you like my work, please consider a personal donation
 (this is an personal Donate link for DutchmanNL, no relation to the ioBroker Project !)  
 [![Donate](https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/button.png)](http://paypal.me/DutchmanNL)
 
-## Changelog
+## What is Sentry.io and what is reported to the servers of that company?
+Sentry.io is a service for developers to get an overview about errors from their applications. And exactly this is implemented in this adapter.
 
-### 0.4.6-beta.x Dev version do not install !!!
+When the adapter crashes or an other Code error happens, this error message that also appears in the ioBroker log is submitted to Sentry. When you allowed iobroker GmbH to collect diagnostic data then also your installation ID (this is just a unique ID **without** any additional infos about you, email, name or such) is included. This allows Sentry to group errors and show how many unique users are affected by such an error. All of this helps me to provide error free adapters that basically never crashs. 
 
-### 0.4.5 work in progress
+# Changelog
+<!--
+    Placeholder for the next version (at the beginning of the line):
+    ## __WORK IN PROGRESS__
+-->
+
+### 0.4.7-alpha.0 (2020-09-09) Alpha testing version !
 * (Dutchman) Implement Sentry
-* (Dutchman) Bugfix : Warn message for week creations (js-controller 3.x)
+* (Dutchman) Fix NULL value issue  at daily reset
+* (Dutchman) Implement configuration for Price definitions
+* (Dutchman) Fix categories issue (read value of undefined
+* (Dutchman) Solved wrong reading value for Watt initialisation
+* (Dutchman) Fix wrong interpretation of start values at value resets
+* (Dutchman) Bugfix : Warnings at object creations (js-controller 3.x)
 
 ### 0.4.2 (2020-04-12) BugFixes
 * (Dutchman) Translations updated
