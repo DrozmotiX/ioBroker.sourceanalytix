@@ -554,6 +554,7 @@ class Sourceanalytix extends utils.Adapter {
 					obj.common = {};
 					obj.common.custom = {};
 					obj.common.custom[this.namespace] = {
+						currentValue: reading,
 						start_day: reading,
 						start_week: beforeReset.week === actualDate.week ? stateValues.start_week : reading,
 						start_month: beforeReset.month === actualDate.month ? stateValues.start_month : reading,
@@ -567,7 +568,8 @@ class Sourceanalytix extends utils.Adapter {
 
 					await this.extendForeignObject(stateID, obj);
 					this.log.info(`Memory values for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID])}`);
-					this.calculationHandler(stateID, reading);
+					const test = await this.getForeignStateAsync(stateID)
+					this.calculationHandler(stateID, test);
 				}
 
 				// Enable all calculations with timeout of 500 ms
