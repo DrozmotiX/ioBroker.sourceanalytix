@@ -31,7 +31,7 @@ Which has been improved by @hadering and published on github
 https://github.com/hdering/homematic_verbrauchszaehler
 
 ## Known issues
-
+* [ ] Source Values are resettet to default value if default value is defined in object (bug in JS-Controller, fix needed in 2.3)
 * [ ] Period calculation selectable but not yet implemented
 * [ ] monthly costprice not yet implemented in calculation
 

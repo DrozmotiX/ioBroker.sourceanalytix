@@ -996,7 +996,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
 				this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
 
-				calckWh = 0;
+				calckWh = calcValues.currentValue;
 
 			}
 
