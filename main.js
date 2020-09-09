@@ -560,6 +560,7 @@ class Sourceanalytix extends utils.Adapter {
 						start_month: beforeReset.month === actualDate.month ? stateValues.start_month : reading,
 						start_quarter: beforeReset.quarter === actualDate.quarter ? stateValues.start_quarter : reading,
 						start_year: beforeReset.year === actualDate.year ? stateValues.start_year : reading,
+						valueAtDeviceReset: stateValues.valueAtDeviceReset !== undefined ? stateValues.valueAtDeviceReset : 0
 					};
 
 					// Extend object with start value [type] & update memory
@@ -768,6 +769,8 @@ class Sourceanalytix extends utils.Adapter {
 			} else if (currentCath === 'Cubic_meter' && targetCath === 'Liter'
 			) {
 				reading = value.val * 1000;
+			} else {
+				reading = value.val
 			}
 
 			const currentExponent = this.unitPriceDef.unitConfig[stateDetails.stateUnit].exponent;
@@ -818,7 +821,7 @@ class Sourceanalytix extends utils.Adapter {
 					reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
 					this.log.debug(`Calculation outcome ${reading} valueAtDeviceReset ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
 					// Reset device reset variable
-					if (reading > 1) deviceResetHandled[stateID] = true;
+					if (reading > 1) deviceResetHandled[stateID] = false;
 
 				}
 			} else {
@@ -831,6 +834,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`ActiveStatesArray ${JSON.stringify(this.activeStates[stateID]['calcValues'])})`)
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.Current_Reading`, { val: await this.roundDigits(reading), ack: true });
 
+			//TODO; implement counters
 			// 	// Handle impuls counters
 			// 	if (obj_cust.state_type == 'impuls'){
 
@@ -839,6 +843,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// 	}
 
+			//TODO: Implement periods
 			// temporary set to sero, this value will be used later to handle period calculations
 			const reading_start = 0; //obj_cust.start_meassure;
 
@@ -1020,10 +1025,13 @@ class Sourceanalytix extends utils.Adapter {
 		// Check if previous reading exist in state (routine for <4 version )
 		if (!previousReadingV4 || previousReadingV4.val === 0) {
 			const previousReadingVold = await this.getStateAsync(`${deviceName}.Meter_Readings.Current_Reading`);
-			if (!previousReadingVold || previousReadingVold.val === 0) return;
-			calckWh = previousReadingVold.val;
-			// temporary indicate source of kWh value
-			valueSource = 'Version < 4';
+			if (!previousReadingVold || previousReadingVold.val === 0) {
+				calckWh = 0;
+			} else {
+				calckWh = previousReadingVold.val;
+				// temporary indicate source of kWh value
+				valueSource = 'Version < 4';
+			}
 		} else {
 			calckWh = previousReadingV4.val; // use previous stored value
 			valueSource = 'Version > 4';
