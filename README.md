@@ -57,6 +57,9 @@ When the adapter crashes or an other Code error happens, this error message that
     ## __WORK IN PROGRESS__
 -->
 
+### 0.4.7-alpha.3 (2020-09-10)
+* (Dutchman) Bugfix: Issue found by in selection of category
+
 ### 0.4.7-alpha.2 (2020-09-10) Alpha testing version !
 * (Dutchman) Bugfix: Issue in storing meter values by month
 
