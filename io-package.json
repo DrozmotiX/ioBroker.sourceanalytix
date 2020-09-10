@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.7-alpha.3",
+        "version": "0.4.7-alpha.4",
         "news": {
+            "0.4.7-alpha.4": {
+                "en": "Bugfix: Issue found in selection of category",
+                "de": "Bugfix: Problem bei der Auswahl der Kategorie gefunden",
+                "ru": "Исправление: ошибка при выборе категории",
+                "pt": "Correção: problema encontrado na seleção da categoria",
+                "nl": "Bugfix: probleem gevonden in selectie van categorie",
+                "fr": "Correction de bug: problème trouvé dans la sélection de la catégorie",
+                "it": "Bugfix: problema riscontrato nella selezione della categoria",
+                "es": "Corrección de error: problema encontrado en la selección de categoría",
+                "pl": "Poprawka błędu: znaleziono problem w wyborze kategorii",
+                "zh-cn": "错误修正：选择类别时发现问题"
+            },
             "0.4.7-alpha.3": {
                 "en": "Bugfix: Issue found by in selection of category",
                 "de": "Bugfix: Problem gefunden bei Auswahl der Kategorie",
@@ -221,18 +233,6 @@
                 "es": "Public beta pública",
                 "pl": "Publiczne wydanie beta",
                 "zh-cn": "0.1.0公开测试版"
-            },
-            "0.0.9": {
-                "en": "Prepare Public Beta",
-                "de": "Erste öffentliche Beta",
-                "ru": "Первая публичная бета",
-                "pt": "Primeiro beta público",
-                "nl": "Eerste openbare bèta",
-                "fr": "Première bêta publique",
-                "it": "Prima beta pubblica",
-                "es": "Primera beta pública",
-                "pl": "Pierwsza publiczna beta",
-                "zh-cn": "首次公开测试版"
             }
         },
         "title": "SourceAnalytix",
