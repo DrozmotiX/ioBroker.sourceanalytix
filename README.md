@@ -38,7 +38,7 @@ https://github.com/hdering/homematic_verbrauchszaehler
 
 ## To-Do
 * [ ] Documentation
-* [ ] recalcalation based on meter values (configurable by date)
+* [ ] recalculation based on meter values (configurable by date)
 * [ ] add object states for previous [x]day, [x]week, [x]month, [x]quarter, [x]year configurable in adapter settings
 
 ## Support me
@@ -56,6 +56,9 @@ When the adapter crashes or an other Code error happens, this error message that
     Placeholder for the next version (at the beginning of the line):
     ## __WORK IN PROGRESS__
 -->
+
+### 0.4.7-alpha.2 (2020-09-10) Alpha testing version !
+* (Dutchman) Bugfix: Issue in storing meter values by month
 
 ### 0.4.7-alpha.1 (2020-09-10) Alpha testing version !
 * (Dutchman) Bugfix: Proper error message instead of code crash if no cost type defined

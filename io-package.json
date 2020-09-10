@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.7-alpha.1",
+        "version": "0.4.7-alpha.2",
         "news": {
+            "0.4.7-alpha.2": {
+                "en": "Bugfix: Issue in storing meter values by month",
+                "de": "Bugfix: Problem beim Speichern von Zählerwerten nach Monat",
+                "ru": "Исправление: проблема с сохранением значений счетчика по месяцам.",
+                "pt": "Correção: problema no armazenamento de valores do medidor por mês",
+                "nl": "Bugfix: probleem bij het opslaan van meterwaarden per maand",
+                "fr": "Correction de bug: problème de stockage des valeurs de compteur par mois",
+                "it": "Bugfix: problema nella memorizzazione dei valori del contatore per mese",
+                "es": "Corrección de error: problema al almacenar los valores del medidor por mes",
+                "pl": "Poprawka: problem z przechowywaniem wartości liczników według miesięcy",
+                "zh-cn": "错误修正：按月存储仪表值时出现问题"
+            },
             "0.4.7-alpha.1": {
                 "en": "Bugfix: Proper error message instead of code crash if no cost type defined\nAdd device name for log messages if device value < than currently known value",
                 "de": "Bugfix: Richtige Fehlermeldung statt Code-Absturz, wenn kein Kostentyp definiert ist\nFügen Sie den Gerätenamen für Protokollnachrichten hinzu, wenn der Gerätewert <als der derzeit bekannte Wert ist",
