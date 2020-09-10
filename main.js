@@ -254,8 +254,9 @@ class Sourceanalytix extends utils.Adapter {
 				}
 
 				// Load state price definition
-				if (!customData.selectedPrice || customData.selectedPrice === '') {
-					this.log.error(`No cost type defined for ${stateID}, cannot execute calculations !`);
+				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
+					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
+					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
 					return;
 				}
 
