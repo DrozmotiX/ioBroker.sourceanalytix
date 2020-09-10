@@ -276,7 +276,7 @@ class Sourceanalytix extends utils.Adapter {
 						consumption: customData.consumption,
 						costs: customData.costs,
 						deviceName: newDeviceName.toString(),
-						financielCategory: stateType,
+						financialCategory: stateType,
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
 						meter_values: customData.meter_values,
 						name: stateInfo.common.name,
@@ -420,7 +420,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (obj && obj.common) {
 
 				// @ts-ignore : from does exist on states	
-				// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by Source analytx to prevent overwrite 
+				// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by SourceAnalytix to prevent overwrite
 				// Verify if custom information is available regaring SourceAnalytix
 				if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
 
@@ -456,7 +456,7 @@ class Sourceanalytix extends utils.Adapter {
 					// } else {
 					// 	this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
 					// 	await this.buildStateDetailsArray(id);
-					// 	this.log.debug(`Active state array after updating configuraiton of ${stateID} : ${JSON.stringify(this.activeStates)}`);
+					// 	this.log.debug(`Active state array after updating configuration of ${stateID} : ${JSON.stringify(this.activeStates)}`);
 					// 	await this.initialize(stateID);
 					// }
 
@@ -488,7 +488,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`state ${id} changed : ${JSON.stringify(state)} SourceAnalytix calculation executed`);
 
 				// Implement x ignore time (configurable) to avoid overload of unneeded calculations
-				// Avoid uneeded calculation run
+				// Avoid unneeded calculation run
 				if (previousStateVal[id] !== state.val) {
 					this.calculationHandler(id, state);
 					previousStateVal[id] = state.val;
@@ -543,7 +543,7 @@ class Sourceanalytix extends utils.Adapter {
 
 					// get current meter value
 					const reading = this.activeStates[stateID].calcValues.currentValue;
-					//TODO: Possible cause of NULL value, if NULL in calcvalues functioin continues instead of value write
+					//TODO: Possible cause of NULL value, if NULL in calcvalues function continues instead of value write
 					if (reading === null || reading === undefined) continue;
 
 					this.log.info(`Memory values for ${stateID} before reset : ${JSON.stringify(this.activeStates[stateID])}`);
@@ -647,7 +647,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				} else if (deleteState || !stateDetails.consumption) {
 
-					// If state deletion choosen, clean everyting up else define statename
+					// If state deletion chosen, clean everything up else define state name
 					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
 					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
 					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
@@ -665,7 +665,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				} else if (deleteState || !stateDetails.meter_values) {
 
-					// If state deletion choosen, clean everyting up else define statename
+					// If state deletion chosen, clean everything up else define state name
 					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.meterReadings.${stateRoot}`);
 
 				}
@@ -675,7 +675,7 @@ class Sourceanalytix extends utils.Adapter {
 
 					commonData.unit = '€'; // Switch Unit to money
 
-					switch (stateDetails.financielCategory) {
+					switch (stateDetails.financialCategory) {
 
 						case 'costs':
 							// await this.ChannelCreate(device, head_category, head_category);
@@ -695,7 +695,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				} else if (!stateDetails.costs) {
 
-					// If state deletion choosen, clean everyting up else define statename
+					// If state deletion chosen, clean everything up else define state name
 					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
 					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
 					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
@@ -748,22 +748,20 @@ class Sourceanalytix extends utils.Adapter {
 			const statePrices = this.activeStates[stateID].prices;
 			const currentCath =  this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
-			
+
 			this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 			console.log(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
 			let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
 			// Define proper calculation value
-			let reading = null;
+			let reading;
 
-			// Convert watt to watt hours
-			if (currentCath === 'Watt'){
-				reading = await this.wattToWattHour(stateID, value);
-			}
-
-			// Convert volume liter to cubics
+			// Convert volume liter to cubic
 			//TODO: Should  be handle  by library
-			if (currentCath === 'Liter' && targetCath === 'Cubic_meter' 
+			if (currentCath === 'Watt'){
+				// Convert watt to watt hours
+				reading = await this.wattToWattHour(stateID, value);
+			} else if (currentCath === 'Liter' && targetCath === 'Cubic_meter'
 			) {
 				reading = value.val / 1000;
 			} else if (currentCath === 'Cubic_meter' && targetCath === 'Liter'
@@ -836,7 +834,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			//TODO; implement counters
 			// 	// Handle impuls counters
-			// 	if (obj_cust.state_type == 'impuls'){
+			// 	if (obj_cust.state_type == 'impulse'){
 
 			// 		// cancel calculation in case of impuls counter
 			// 		return;
@@ -844,7 +842,7 @@ class Sourceanalytix extends utils.Adapter {
 			// 	}
 
 			//TODO: Implement periods
-			// temporary set to sero, this value will be used later to handle period calculations
+			// temporary set to Zero, this value will be used later to handle period calculations
 			const reading_start = 0; //obj_cust.start_meassure;
 
 			this.log.debug(`previousCalculationRounded for ${stateID} : ${JSON.stringify(previousCalculationRounded)}`);
@@ -913,7 +911,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Store prices
 			if (stateDetails.costs) {
 
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.${stateDetails.financielCategory}`;
+				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.${stateDetails.financialCategory}`;
 				// Generic
 				await this.setStateChangedAsync(`${stateName}.01_current_day`, { val: calculationRounded.priceDay, ack: true });
 				await this.setStateChangedAsync(`${stateName}.02_current_week`, { val: calculationRounded.priceWeek, ack: true });
@@ -1014,13 +1012,13 @@ class Sourceanalytix extends utils.Adapter {
 
 	// Read current calculated totals, needed to ensure Cumulative calculations
 	async getCurrentTotal(stateID, deviceName) {
-		let calckWh = null;
+		let calckWh;
 
 		// Check if previous reading exist in state
 		const previousReadingV4 = await this.getStateAsync(`${deviceName}.Current_Reading`);
 
 		// temporary indicate source of kWh value
-		let valueSource = null;
+		let valueSource;
 
 		// Check if previous reading exist in state (routine for <4 version )
 		if (!previousReadingV4 || previousReadingV4.val === 0) {
