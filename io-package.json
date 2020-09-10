@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.7-alpha.0",
+        "version": "0.4.7-alpha.1",
         "news": {
+            "0.4.7-alpha.1": {
+                "en": "Bugfix: Proper error message instead of code crash if no cost type defined\nAdd device name for log messages if device value < than currently known value",
+                "de": "Bugfix: Richtige Fehlermeldung statt Code-Absturz, wenn kein Kostentyp definiert ist\nFügen Sie den Gerätenamen für Protokollnachrichten hinzu, wenn der Gerätewert <als der derzeit bekannte Wert ist",
+                "ru": "Исправление: правильное сообщение об ошибке вместо сбоя кода, если тип стоимости не определен\nДобавить имя устройства для сообщений журнала, если значение устройства <текущего известного значения",
+                "pt": "Correção de bug: mensagem de erro adequada em vez de falha de código se nenhum tipo de custo definido\nAdicione o nome do dispositivo para mensagens de log se o valor do dispositivo <do que o valor atualmente conhecido",
+                "nl": "Bugfix: Juiste foutmelding in plaats van code crash als er geen kostentype is gedefinieerd\nVoeg een apparaatnaam toe voor logboekberichten als de apparaatwaarde <de momenteel bekende waarde is",
+                "fr": "Correctif: message d'erreur correct au lieu d'un crash de code si aucun type de coût n'est défini\nAjouter un nom de périphérique pour les messages de journal si la valeur de périphérique <que la valeur actuellement connue",
+                "it": "Bugfix: messaggio di errore corretto invece di crash del codice se non è stato definito alcun tipo di costo\nAggiungi il nome del dispositivo per i messaggi di registro se il valore del dispositivo <del valore attualmente noto",
+                "es": "Corrección de errores: mensaje de error adecuado en lugar de bloqueo de código si no se define ningún tipo de costo\nAgregue el nombre del dispositivo para los mensajes de registro si el valor del dispositivo es <que el valor conocido actualmente",
+                "pl": "Poprawka: Właściwy komunikat o błędzie zamiast awarii kodu, jeśli nie zdefiniowano typu kosztu\nDodaj nazwę urządzenia dla komunikatów dziennika, jeśli wartość urządzenia jest mniejsza niż aktualnie znana wartość",
+                "zh-cn": "错误修正：如果未定义成本类型，则正确的错误消息而不是代码崩溃\n如果设备值小于当前已知值，则添加日志消息的设备名称"
+            },
             "0.4.7-alpha.0": {
                 "en": "Implement Sentry\nFix NULL value issue  at daily reset\nImplement configuration for Price definitions\nFix categories issue (read value of undefined\nSolved wrong reading value for Watt initialisation\nFix wrong interpretation of start values at value resets\nBugfix : Warnings at object creations (js-controller 3.x)",
                 "de": "Implementieren Sie Sentry\nBehebung des NULL-Wertproblems beim täglichen Zurücksetzen\nImplementieren Sie die Konfiguration für Preisdefinitionen\nProblem mit Kategorien behoben (Lesewert von undefined\nFalscher Lesewert für Watt-Initialisierung behoben\nKorrigieren Sie die falsche Interpretation der Startwerte beim Zurücksetzen des Werts\nBugfix: Warnungen bei Objekterstellung (js-controller 3.x)",

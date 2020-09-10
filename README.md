@@ -57,6 +57,10 @@ When the adapter crashes or an other Code error happens, this error message that
     ## __WORK IN PROGRESS__
 -->
 
+### 0.4.7-alpha.1 (2020-09-10) Alpha testing version !
+* (Dutchman) Bugfix: Proper error message instead of code crash if no cost type defined
+* (Dutchman) Add device name for log messages if device value < than currently known value
+
 ### 0.4.7-alpha.0 (2020-09-09) Alpha testing version !
 * (Dutchman) Implement Sentry
 * (Dutchman) Fix NULL value issue  at daily reset
