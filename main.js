@@ -569,8 +569,8 @@ class Sourceanalytix extends utils.Adapter {
 
 					await this.extendForeignObject(stateID, obj);
 					this.log.info(`Memory values for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID])}`);
-					const test = await this.getForeignStateAsync(stateID)
-					this.calculationHandler(stateID, test);
+					const value = await this.getForeignStateAsync(stateID)
+					this.calculationHandler(stateID, value);
 				}
 
 				// Enable all calculations with timeout of 500 ms
@@ -797,7 +797,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Threshold of 1 to detect reset of meter
 				if (reading < 1 && !deviceResetHandled[stateID]) {
-					this.log.warn(`Device reset detected store current value ${calcValues.currentValue} to value of reset`);
+					this.log.warn(`Device reset detected for ${stateID} store current value ${calcValues.currentValue} to value of reset`);
 					deviceResetHandled[stateID] = true;
 
 					// Prepare object array for extension
