@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.7-alpha.2",
+        "version": "0.4.7-alpha.3",
         "news": {
+            "0.4.7-alpha.3": {
+                "en": "Bugfix: Issue found by in selection of category",
+                "de": "Bugfix: Problem gefunden bei Auswahl der Kategorie",
+                "ru": "Исправление: проблема обнаружена при выборе категории",
+                "pt": "Correção de bug: problema encontrado por na seleção da categoria",
+                "nl": "Bugfix: probleem gevonden door in selectie van categorie",
+                "fr": "Correction de bug: problème trouvé par dans la sélection de la catégorie",
+                "it": "Bugfix: Problema trovato da nella selezione della categoria",
+                "es": "Corrección de error: problema encontrado por en la selección de categoría",
+                "pl": "Bugfix: Problem znaleziony przez w wyborze kategorii",
+                "zh-cn": "错误修正：在类别选择中发现的问题"
+            },
             "0.4.7-alpha.2": {
                 "en": "Bugfix: Issue in storing meter values by month",
                 "de": "Bugfix: Problem beim Speichern von Zählerwerten nach Monat",
