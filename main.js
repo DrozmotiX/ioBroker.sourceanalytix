@@ -904,9 +904,10 @@ class Sourceanalytix extends utils.Adapter {
 				// await this.setStateChangedAsync(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
 				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.consumedWeek, ack: true });
 				// Month
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
+				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
 				// Quarter
-				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, { val: calculationRounded.consumedQuarter, ack: true });
+				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, { val: calculationRounded.consumedQuarter, ack: true });
+
 			}
 
 			// Store prices
@@ -926,7 +927,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Month
 				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.priceMonth, ack: true });
 				// Quarter
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, { val: calculationRounded.priceQuarter, ack: true });
+				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, { val: calculationRounded.priceQuarter, ack: true });
 
 			}
 
