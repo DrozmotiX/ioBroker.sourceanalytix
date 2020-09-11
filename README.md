@@ -56,6 +56,8 @@ When the adapter crashes or an other Code error happens, this error message that
     Placeholder for the next version (at the beginning of the line):
     ## __WORK IN PROGRESS__
 -->
+### 0.4.7-alpha.5 (2020-09-11) Alpha testing version !
+* (Dutchman) Bugfix : Crash at adapter start if chosen Type is not present in instance configuration    
 
 ### 0.4.7-alpha.4 (2020-09-10) Alpha testing version !
 * (Dutchman) Bugfix: Issue found in selection of category

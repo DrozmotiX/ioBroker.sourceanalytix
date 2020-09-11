@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.7-alpha.4",
+        "version": "0.4.7-alpha.5",
         "news": {
+            "0.4.7-alpha.5": {
+                "en": "Bugfix : Crash at adapter start if chosen Type is not present in instance configuration",
+                "de": "Bugfix: Absturz beim Adapterstart, wenn der ausgewählte Typ in der Instanzkonfiguration nicht vorhanden ist",
+                "ru": "Исправление: сбой при запуске адаптера, если выбранный тип отсутствует в конфигурации экземпляра",
+                "pt": "Correção de bug: falha no início do adaptador se o tipo escolhido não estiver presente na configuração da instância",
+                "nl": "Bugfix: Crash bij het starten van de adapter als het gekozen Type niet aanwezig is in de instantieconfiguratie",
+                "fr": "Correctif: Crash au démarrage de l'adaptateur si le type choisi n'est pas présent dans la configuration de l'instance",
+                "it": "Errore corretto: arresto anomalo all'avvio dell'adattatore se il tipo scelto non è presente nella configurazione dell'istanza",
+                "es": "Corrección de error: falla al inicio del adaptador si el tipo elegido no está presente en la configuración de la instancia",
+                "pl": "Poprawka: Awaria podczas uruchamiania adaptera, jeśli wybrany typ nie występuje w konfiguracji instancji",
+                "zh-cn": "错误修正：如果实例配置中不存在所选类型，则适配器启动时会崩溃"
+            },
             "0.4.7-alpha.4": {
                 "en": "Bugfix: Issue found in selection of category",
                 "de": "Bugfix: Problem bei der Auswahl der Kategorie gefunden",
@@ -221,18 +233,6 @@
                 "es": "Preparación de estable 0.2.0, lógica de cálculo y configuración de interfaz rediseñada",
                 "pl": "Przygotowanie stabilnego 0.2.0, logika obliczeniowa i interfejs konfiguracyjny przeprojektowany",
                 "zh-cn": "准备稳定的0.2.0，重新设计计算逻辑和配置接口"
-            },
-            "0.1.0": {
-                "en": "Public beta release",
-                "de": "Öffentliche Betaversion",
-                "ru": "публичная бета-версия",
-                "pt": "versão beta pública",
-                "nl": "Public beta-release",
-                "fr": "Version bêta publique 0.1.0",
-                "it": "Versione beta pubblica",
-                "es": "Public beta pública",
-                "pl": "Publiczne wydanie beta",
-                "zh-cn": "0.1.0公开测试版"
             }
         },
         "title": "SourceAnalytix",
