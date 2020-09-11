@@ -254,9 +254,17 @@ class Sourceanalytix extends utils.Adapter {
 				}
 
 				// Load state price definition
-				if (!customData.selectedPrice || customData.selectedPrice === '' || !this.unitPriceDef.pricesConfig[customData.selectedPrice].costType || customData.selectedPrice === 'Choose') {
-					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
+				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
 					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
+					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
+					return;
+				}
+
+				if ( !this.unitPriceDef.pricesConfig[customData.selectedPrice]	 ) {
+					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
+					this.log.error(`Selected Type ${customData.selectedPrice} does not exist in Price Definitions`);
+					this.log.error(`Please choose proper type for state ${stateID} or add price definition`);
+					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
 					return;
 				}
 
@@ -808,7 +816,7 @@ class Sourceanalytix extends utils.Adapter {
 					// Extend valueAtDeviceReset with currentValue at object and memory
 					obj.common.custom[this.namespace].valueAtDeviceReset = calcValues.currentValue;
 					this.activeStates[stateID].calcValues.valueAtDeviceReset = calcValues.currentValue;
-					//TODO: Still  needed?
+					//TODO: Add all attributes to extend object ensuring propper obj values
 					await this.extendForeignObject(stateID, obj);
 
 					// Calculate proper reading
