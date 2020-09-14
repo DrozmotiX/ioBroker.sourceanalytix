@@ -5,9 +5,8 @@
 ![Number of Installations (latest)](http://iobroker.live/badges/sourceanalytix-installed.svg)
 ![Number of Installations (stable)](http://iobroker.live/badges/sourceanalytix-stable.svg)
 [![Dependency Status](https://img.shields.io/david/iobroker-community-adapters/iobroker.sourceanalytix.svg)](https://david-dm.org/iobroker-community-adapters/iobroker.sourceanalytix)
-<img src="https://flat.badgen.net/dependabot/thepracticaldev/dev.to?icon=dependabot" alt="Dependabot Badge" />
 [![NPM](https://nodei.co/npm/iobroker.sourceanalytix.png?downloads=true)](https://nodei.co/npm/iobroker.sourceanalytix/)
-
+![Test and Release](https://github.com/iobroker-community-adapters/ioBroker.coronavirus-statistics/workflows/Test%20and%20Release/badge.svg)
 **This adapter uses the service [Sentry.io](https://sentry.io) to automatically report exceptions and code errors and new device schemas to me as the developer.** More details see below!
 
 Detailed analysis of your Energy, gas and liquid consumptions
