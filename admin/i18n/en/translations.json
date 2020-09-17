@@ -8,6 +8,7 @@
     "Analyse the previous x period (not yet implemented)": "Analyse the previous x period (not yet implemented)",
     "Analyse the whole year": "Analyse the whole year",
     "Annual overview (recommended)": "Annual overview (recommended)",
+    "Calculation Factor": "",
     "Calculation is done every x minutes": "Calculation is done every x minutes",
     "Cathegorie": "",
     "Choose": "Choose",
@@ -38,6 +39,7 @@
     "Oil": "Oil",
     "Please enter start values": "Please enter start values",
     "Please set time periods here": "Please set time periods here",
+    "Price p/unit": "",
     "Price per unit (€/kWh)": "Price per unit (€/kWh)",
     "Price per unit (€/m3)": "Price per unit (€/m3)",
     "Price per unit (€/m³)": "",
@@ -47,6 +49,9 @@
     "Profit per unit (€/kWh)": "Profit per unit (€/kWh)",
     "Quarter": "Quarters",
     "Status messages to log": "Status messages to log",
+    "Store as": "",
+    "Unit Name": "",
+    "Unite configuration table": "",
     "Water": "Water",
     "Weeks": "Weeks",
     "What should be evaluated": "What should be evaluated",
@@ -60,6 +65,5 @@
     "number of months": "number of months",
     "period of time": "period of time",
     "price p/m": "",
-    "settings": "settings",
-    "Next Day": "Next Day"
+    "settings": "settings"
 }
