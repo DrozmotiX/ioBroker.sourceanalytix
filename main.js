@@ -13,7 +13,7 @@ const schedule = require('cron').CronJob; // Cron Scheduler
 
 // Store all days and months
 const basicStates = ['01_current_day', '02_current_week', '03_current_month', '04_current_quarter', '05_current_year'];
-// const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
+const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 
 const stateDeletion = true, deviceResetHandled = [], previousCalculationRounded = {};
@@ -344,6 +344,18 @@ class Sourceanalytix extends utils.Adapter {
 				},
 				native: {},
 			});
+
+			// create states for day storage to new structure
+			//TODO: adjust code for new data model
+			for (const x in weekdays) {
+				const currentDay = ".currentYear.this_week." + weekdays[x];
+				if (this.config.store_days === true) {
+					await this.doLocalStateCreate(stateID + currentDay, currentDay, weekdays[x], true)
+				} else if (stateDeletion) {
+					this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
+					await this.doLocalStateCreate(stateID + currentDay, currentDay, weekdays[x], true, true);
+				}
+			}
 
 			// create states for weeks
 			for (let y = 1; y < 54; y++) {
