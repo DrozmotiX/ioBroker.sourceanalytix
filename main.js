@@ -348,12 +348,20 @@ class Sourceanalytix extends utils.Adapter {
 			// create states for day storage to new structure
 			//TODO: adjust code for new data model
 			for (const x in weekdays) {
-				const currentDay = ".currentYear.this_week." + weekdays[x];
-				if (this.config.store_days === true) {
-					await this.doLocalStateCreate(stateID + currentDay, currentDay, weekdays[x], true)
+
+				if (this.config.currentYearDays === true) {
+					await this.doLocalStateCreate(stateID, `currentWeek.${weekdays[x]}`, weekdays[x], false, false, true)
 				} else if (stateDeletion) {
 					this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
-					await this.doLocalStateCreate(stateID + currentDay, currentDay, weekdays[x], true, true);
+					await this.doLocalStateCreate(stateID, `currentWeek.${weekdays[x]}`, weekdays[x], false, true,true);
+				}
+
+				if (this.config.currentYearPrevious === true) {
+					await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, false, true)
+				} else if (stateDeletion) {
+					this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
+					await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, true,true);
+
 				}
 			}
 
@@ -404,12 +412,12 @@ class Sourceanalytix extends utils.Adapter {
 			// Always create states for meter readings 
 			for (const state of basicStates) {
 
-				await this.doLocalStateCreate(stateID, state, state);
+				await this.doLocalStateCreate(stateID, state, state, false,false,true);
 
 			}
 
-			const stateRoot = 'Current_Reading';
-			await this.doLocalStateCreate(stateID, stateRoot, 'Current Reading', true);
+			const stateName = 'Current_Reading';
+			await this.doLocalStateCreate(stateID, stateName, 'Current Reading', true);
 
 			// Handle first time calculation
 			const value = await this.getForeignStateAsync(stateID);
@@ -623,9 +631,18 @@ class Sourceanalytix extends utils.Adapter {
 	// }
 
 	// Function to handle state creation
-	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState) {
+	/**
+     * @param {string | number} stateID
+     * @param {string} stateRoot
+     * @param {string} name
+     * @param {boolean | null | undefined} [atDeviceRoot]
+     * @param {boolean | undefined} [deleteState]
+	 * @param {boolean | null | undefined} [isCurrent]
+     */
+	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent) {
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
+			const dateRoot = isCurrent ? `currentYear` : actualDate.year;
 			let stateName = null;
 
 			// Common object content
@@ -653,13 +670,13 @@ class Sourceanalytix extends utils.Adapter {
 					switch (stateDetails.headCategory) {
 
 						case 'consumed':
-							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${dateRoot}.consumed.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.delivered.${stateRoot}`);
 							break;
 
 						case 'delivered':
-							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${dateRoot}.delivered.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.consumed.${stateRoot}`);
 							break;
 
 						default:
@@ -669,10 +686,10 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (deleteState || !stateDetails.consumption) {
 
 					// If state deletion chosen, clean everything up else define state name
-					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.consumed.${stateRoot}`);
-					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.delivered.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.consumed.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${dateRoot}.consumed.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.delivered.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${dateRoot}.delivered.${stateRoot}`);
 
 				}
 
@@ -681,13 +698,13 @@ class Sourceanalytix extends utils.Adapter {
 
 					// Do not create StateRoot values
 					if (!basicStates.includes(stateRoot)) {
-						await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.meterReadings.${stateRoot}`, commonData);
+						await this.localSetObject(`${stateDetails.deviceName}.${dateRoot}.meterReadings.${stateRoot}`, commonData);
 					}
 
 				} else if (deleteState || !stateDetails.meter_values) {
 
 					// If state deletion chosen, clean everything up else define state name
-					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.meterReadings.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.meterReadings.${stateRoot}`);
 
 				}
 
@@ -700,14 +717,14 @@ class Sourceanalytix extends utils.Adapter {
 
 						case 'costs':
 							// await this.ChannelCreate(device, head_category, head_category);
-							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${dateRoot}.costs.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.earnings.${stateRoot}`);
 							break;
 
 						case 'earnings':
 							// await this.ChannelCreate(device, head_category, head_category);
-							await this.localSetObject(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`, commonData);
-							await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
+							await this.localSetObject(`${stateDetails.deviceName}.${dateRoot}.earnings.${stateRoot}`, commonData);
+							await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.costs.${stateRoot}`);
 							break;
 
 						default:
@@ -717,10 +734,10 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (!stateDetails.costs) {
 
 					// If state deletion chosen, clean everything up else define state name
-					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.costs.${stateRoot}`);
-					await this.localDeleteState(`${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
-					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${actualDate.year}.earnings.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.costs.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${dateRoot}.costs.${stateRoot}`);
+					await this.localDeleteState(`${stateDetails.deviceName}.${dateRoot}.earnings.${stateRoot}`);
+					this.log.debug(`Try deleting state ${stateDetails.deviceName}.${dateRoot}.earnings.${stateRoot}`);
 				}
 			}
 
@@ -730,6 +747,7 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	// Set object routine to simplify code
+	//TODO: Check with JS-Controller 3.x if check is still required
 	async localSetObject(stateName, commonData) {
 		await this.setObjectNotExistsAsync(stateName, {
 			type: 'state',
@@ -769,6 +787,7 @@ class Sourceanalytix extends utils.Adapter {
 			const statePrices = this.activeStates[stateID].prices;
 			const currentCath =  this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
+			const date = new Date();
 
 			this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 			console.log(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
@@ -912,7 +931,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Store consumption
 			if (stateDetails.consumption) {
 				// Always write generic meterReadings for current year
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.${stateDetails.headCategory}`;
+				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.headCategory}`;
 				// Generic
 				await this.setStateChangedAsync(`${stateName}.01_current_day`, { val: calculationRounded.consumedDay, ack: true });
 				await this.setStateChangedAsync(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
@@ -920,8 +939,10 @@ class Sourceanalytix extends utils.Adapter {
 				await this.setStateChangedAsync(`${stateName}.04_current_quarter`, { val: calculationRounded.consumedQuarter, ack: true });
 				await this.setStateChangedAsync(`${stateName}.05_current_year`, { val: calculationRounded.consumedYear, ack: true });
 
+				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.consumedDay, ack: true });
+
 				// Week
-				// await this.setStateChangedAsync(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.consumedDay, ack: true });
+				stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}`;
 				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.consumedWeek, ack: true });
 				// Month
 				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
@@ -933,16 +954,17 @@ class Sourceanalytix extends utils.Adapter {
 			// Store prices
 			if (stateDetails.costs) {
 
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.${stateDetails.financialCategory}`;
+				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.financialCategory}`;
 				// Generic
 				await this.setStateChangedAsync(`${stateName}.01_current_day`, { val: calculationRounded.priceDay, ack: true });
 				await this.setStateChangedAsync(`${stateName}.02_current_week`, { val: calculationRounded.priceWeek, ack: true });
 				await this.setStateChangedAsync(`${stateName}.03_current_month`, { val: calculationRounded.priceMonth, ack: true });
 				await this.setStateChangedAsync(`${stateName}.04_current_quarter`, { val: calculationRounded.priceQuarter, ack: true });
 				await this.setStateChangedAsync(`${stateName}.05_current_year`, { val: calculationRounded.priceYear, ack: true });
+				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.priceDay, ack: true });
 
 				// Week
-				// await this.setStateChangedAsync(`${stateName}.this_week.${currentDay}`, { val: calculationRounded.priceDay, ack: true });
+				stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}`;
 				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.priceWeek, ack: true });
 				// Month
 				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.priceMonth, ack: true });

@@ -55,6 +55,12 @@ When the adapter crashes or an other Code error happens, this error message that
     ## __WORK IN PROGRESS__
 -->
 
+### __WORK IN PROGRESS__
+* (Dutchman) Add back "currentYear"
+* (Dutchman) **Breaking!!!** Move current values to current year
+* (Dutchman) Removed unneeded settings in configuration
+* (Dutchman) Implemented new configuration for "currentYear"
+
 ### 0.4.7 (2020-09-15) Solved NULL error's & daily resets
 * (Dutchman) Implement Sentry
 * (Dutchman) Implement configuration for Price definitions

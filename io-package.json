@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.7",
+        "version": "0.4.8-alpha.x",
         "news": {
             "0.4.7": {
                 "en": "Implement Sentry\nImplement configuration for Price definitions\nBugfix: NULL value issue  at daily reset\nBugfix: Issue found in selection of category\nBugfix: Category issue (read value of undefined)\nBugfix: Issue in storing meter values by month\nBugfix: Wrong reading value for Watt initialisation\nBugfix: Warnings at object creations (js-controller 3.x)\nBugfix: wrong interpretation of start values at value resets\nBugfix: Proper error message instead of code crash if no cost type defined\nAdd device name for log messages if device value < than currently known value\nBugfix : Crash at adapter start if chosen Type is not present in instance configuration",
@@ -285,6 +285,11 @@
                 "uPpM": "22"
             }
         ],
+        "currentYearDays": true,
+        "currentYearWeek": true,
+        "currentYearMonth": true,
+        "currentYearQuarter": true,
+        "currentYearPrevious": true,
         "store_days": true,
         "store_weeks": false,
         "store_months": true,
