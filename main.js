@@ -361,6 +361,7 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (stateDeletion) {
 					this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
 					await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, true,true);
+
 				}
 			}
 
