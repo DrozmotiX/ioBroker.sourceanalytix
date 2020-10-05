@@ -8,3 +8,6 @@
 }
 
 /* Add your styles here */
+.multiple-select-dropdown li span{
+	pointer-events: none;
+}
