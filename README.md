@@ -57,7 +57,11 @@ When the adapter crashes or an other Code error happens, this error message that
 
 ### __WORK IN PROGRESS__
 * (Dutchman) Add back "currentYear"
-* (Dutchman) **Breaking!!!** Move current values to current year
+* (Dutchman) **Breaking!!!** Move current values to current 
+* (Dutchman) Code cleanup
+* (Dutchman) Optimized error reporting (Sentry)
+* (Dutchman) implemented weekly reset of weekdays
+* (Dutchman) implemented calculation for all states
 * (Dutchman) Removed unneeded settings in configuration
 * (Dutchman) Implemented new configuration for "currentYear"
 
