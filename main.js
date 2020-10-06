@@ -115,6 +115,7 @@ class Sourceanalytix extends utils.Adapter {
 			for (const stateID in this.activeStates) {
 				this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
 				await this.initialize(stateID);
+				this.log.info(`Initialization (${count} of ${Object.keys(this.activeStates).length}) finished for : ${stateID}`);
 				count = count + 1;
 			}
 
@@ -305,7 +306,6 @@ class Sourceanalytix extends utils.Adapter {
 	async initialize(stateID) {
 		try {
 
-			this.log.info(`Initialising ${stateID}`);
 			this.log.debug(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
 
 			// Shorten configuration details for easier access
@@ -415,8 +415,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Subscribe state, every state change will trigger calculation now automatically
-			this.subscribeForeignStates(stateID);
-			this.log.info(`Initialization finished for : ${stateID}`);
+			this.subscribeForeignStates(stateID)
 
 		} catch (error) {
 			this.log.error(`[initialize failed for ${stateID}] error: ${error.message}, stack: ${error.stack}`);
@@ -912,33 +911,35 @@ class Sourceanalytix extends utils.Adapter {
 			// Store meter values
 			if (stateDetails.meter_values === true) {
 				// Always write generic meterReadings for current year
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.currentYear.${stateDetails.headCategory}.meterReadings`;
+				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.meterReadings`;
 				const readingRounded = await this.roundDigits(reading);
 
 				// Weekdays
-				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.priceDay, ack: true });
-
+				if (readingRounded){
+				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: readingRounded, ack: true });
 				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
 				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: readingRounded, ack: true });
 				// Month
 				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: readingRounded, ack: true });
 				// Quarter
 				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, { val: readingRounded, ack: true });
-
+				}
 			}
 
-			const calculations = {
-				consumedDay: ((reading - calcValues.start_day) - reading_start),
-				consumedWeek: ((reading - calcValues.start_week) - reading_start),
-				consumedMonth: ((reading - calcValues.start_month) - reading_start),
-				consumedQuarter: ((reading - calcValues.start_quarter) - reading_start),
-				consumedYear: ((reading - calcValues.start_year) - reading_start),
-				priceDay: statePrices.unitPrice * ((reading - calcValues.start_day) - reading_start),
-				priceWeek: statePrices.unitPrice * ((reading - calcValues.start_week) - reading_start),
-				priceMonth: statePrices.unitPrice * ((reading - calcValues.start_month) - reading_start),
-				priceQuarter: statePrices.unitPrice * ((reading - calcValues.start_quarter) - reading_start),
-				priceYear: statePrices.unitPrice * ((reading - calcValues.start_year) - reading_start),
-			};
+				const calculations = {
+					consumedDay: ((reading - calcValues.start_day) - reading_start),
+					consumedWeek: ((reading - calcValues.start_week) - reading_start),
+					consumedMonth: ((reading - calcValues.start_month) - reading_start),
+					consumedQuarter: ((reading - calcValues.start_quarter) - reading_start),
+					consumedYear: ((reading - calcValues.start_year) - reading_start),
+					priceDay: statePrices.unitPrice * ((reading - calcValues.start_day) - reading_start),
+					priceWeek: statePrices.unitPrice * ((reading - calcValues.start_week) - reading_start),
+					priceMonth: statePrices.unitPrice * ((reading - calcValues.start_month) - reading_start),
+					priceQuarter: statePrices.unitPrice * ((reading - calcValues.start_quarter) - reading_start),
+					priceYear: statePrices.unitPrice * ((reading - calcValues.start_year) - reading_start),
+
+				};
+
 
 			const calculationRounded = {
 				consumedDay: await this.roundDigits(calculations.consumedDay),
@@ -958,11 +959,11 @@ class Sourceanalytix extends utils.Adapter {
 				// Always write generic meterReadings for current year
 				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.headCategory}`;
 				// Generic
-				await this.setStateChangedAsync(`${stateName}.01_current_day`, { val: calculationRounded.consumedDay, ack: true });
-				await this.setStateChangedAsync(`${stateName}.02_current_week`, { val: calculationRounded.consumedWeek, ack: true });
-				await this.setStateChangedAsync(`${stateName}.03_current_month`, { val: calculationRounded.consumedMonth, ack: true });
-				await this.setStateChangedAsync(`${stateName}.04_current_quarter`, { val: calculationRounded.consumedQuarter, ack: true });
-				await this.setStateChangedAsync(`${stateName}.05_current_year`, { val: calculationRounded.consumedYear, ack: true });
+				await this.setStateChangedAsync(`${stateName}.01_currentDay`, { val: calculationRounded.consumedDay, ack: true });
+				await this.setStateChangedAsync(`${stateName}.02_currentWeek`, { val: calculationRounded.consumedWeek, ack: true });
+				await this.setStateChangedAsync(`${stateName}.03_currentMonth`, { val: calculationRounded.consumedMonth, ack: true });
+				await this.setStateChangedAsync(`${stateName}.04_currentQuarter`, { val: calculationRounded.consumedQuarter, ack: true });
+				await this.setStateChangedAsync(`${stateName}.05_currentYear`, { val: calculationRounded.consumedYear, ack: true });
 
 				// Weekdays
 				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.consumedDay, ack: true });
@@ -983,11 +984,11 @@ class Sourceanalytix extends utils.Adapter {
 
 				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.financialCategory}`;
 				// Generic
-				await this.setStateChangedAsync(`${stateName}.01_current_day`, { val: calculationRounded.priceDay, ack: true });
-				await this.setStateChangedAsync(`${stateName}.02_current_week`, { val: calculationRounded.priceWeek, ack: true });
-				await this.setStateChangedAsync(`${stateName}.03_current_month`, { val: calculationRounded.priceMonth, ack: true });
-				await this.setStateChangedAsync(`${stateName}.04_current_quarter`, { val: calculationRounded.priceQuarter, ack: true });
-				await this.setStateChangedAsync(`${stateName}.05_current_year`, { val: calculationRounded.priceYear, ack: true });
+				await this.setStateChangedAsync(`${stateName}.01_currentDay`, { val: calculationRounded.priceDay, ack: true });
+				await this.setStateChangedAsync(`${stateName}.02_currentWeek`, { val: calculationRounded.priceWeek, ack: true });
+				await this.setStateChangedAsync(`${stateName}.03_currentMonth`, { val: calculationRounded.priceMonth, ack: true });
+				await this.setStateChangedAsync(`${stateName}.04_currentQuarter`, { val: calculationRounded.priceQuarter, ack: true });
+				await this.setStateChangedAsync(`${stateName}.05_currentYear`, { val: calculationRounded.priceYear, ack: true });
 
 				// Weekdays
 				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.priceDay, ack: true });
@@ -1010,6 +1011,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.debug(`Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculationRounded)}`);
 
+
 		} catch (error) {
 			this.log.error(`[calculationHandler ${stateID}] error: ${error.message}, stack: ${error.stack}`);
 			this.errorHandling('calculationHandler', error)
@@ -1021,8 +1023,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {number} [value] - Number to round with , separator
 	 */
 	async roundDigits(value) {
+		let rounded
 		try {
-			let rounded = Number(value);
+			rounded = Number(value);
 			rounded = Math.round(rounded * 1000) / 1000;
 			this.log.debug(`roundDigits with ${value} rounded ${rounded}`);
 			if (!rounded) return value;
@@ -1030,6 +1033,8 @@ class Sourceanalytix extends utils.Adapter {
 		} catch (error) {
 			this.log.error(`[roundDigits ${value}`);
 			this.errorHandling('roundDigits', error)
+			rounded = value
+			return rounded;
 		}
 	}
 
@@ -1051,10 +1056,11 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * @param {string} [stateID]- ID of state
-	 * @param {number} [value] - Current value in wH
+	 * @param {object} [value] - Current value in wH
 	 */
 	async wattToWattHour(stateID, value) {
 		try {
+
 			const calcValues = this.activeStates[stateID].calcValues;
 
 			this.log.debug(`Watt to kWh for ${stateID} current reading : ${value.val} previousReading : ${JSON.stringify(this.activeStates[stateID])}`);
