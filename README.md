@@ -55,9 +55,9 @@ When the adapter crashes or an other Code error happens, this error message that
     ## __WORK IN PROGRESS__
 -->
 
-### __WORK IN PROGRESS__
+### 0.4.8-alpha.0 (2020-10-06)
+* (Dutchman) **Breaking!!! Move current values to currentYear**
 * (Dutchman) Add back "currentYear"
-* (Dutchman) **Breaking!!!** Move current values to current 
 * (Dutchman) Code cleanup
 * (Dutchman) Optimized error reporting (Sentry)
 * (Dutchman) implemented weekly reset of weekdays
