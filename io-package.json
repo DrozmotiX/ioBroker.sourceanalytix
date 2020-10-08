@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.0",
+        "version": "0.4.8-alpha.1",
         "news": {
+            "0.4.8-alpha.1": {
+                "en": "Fix calculations for \"previous\" values",
+                "de": "Korrekturberechnungen für \"vorherige\" Werte",
+                "ru": "Исправить расчеты для «предыдущих» значений",
+                "pt": "Corrija cálculos para valores \"anteriores\"",
+                "nl": "Herstel berekeningen voor \"vorige\" waarden",
+                "fr": "Correction des calculs pour les valeurs \"précédentes\"",
+                "it": "Correggi i calcoli per i valori \"precedenti\"",
+                "es": "Corregir cálculos para valores \"anteriores\"",
+                "pl": "Napraw obliczenia dla „poprzednich” wartości",
+                "zh-cn": "修正“上一个”值的计算"
+            },
             "0.4.8-alpha.0": {
                 "en": "**Breaking!!! Move current values to currentYear**\nAdd back \"currentYear\"\nCode cleanup\nOptimized error reporting (Sentry)\nimplemented weekly reset of weekdays\nimplemented calculation for all states\nRemoved unneeded settings in configuration\nImplemented new configuration for \"currentYear\"",
                 "de": "** Brechen !!! Verschieben Sie die aktuellen Werte nach currentYear **\nAdd \"currentYear\"\nCodebereinigung\nOptimierte Fehlerberichterstattung (Sentry)\nwöchentliches Zurücksetzen von Wochentagen implementiert\nBerechnung für alle Staaten implementiert\nNicht benötigte Einstellungen in der Konfiguration entfernt\nNeue Konfiguration für \"currentYear\" implementiert",

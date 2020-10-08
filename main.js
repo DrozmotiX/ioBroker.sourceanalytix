@@ -576,12 +576,12 @@ class Sourceanalytix extends utils.Adapter {
 										switch (stateDetails.headCategory) {
 
 											case 'consumed':
-												if (this.config.currentYearPrevious) await this.setStateAsync(`${stateID}.currentYear.consumed.previousWeek.${weekdays[x]}`, {val : this.getStateAsync(`${stateID}.currentYear.consumed.previousWeek.${weekdays[x]}`), ack: true})
+												await this.setPreviousValues(`${stateID}.currentYear.consumed.currentWeek${weekdays[x]}`, `${stateID}.currentYear.consumed.previousWeek.${weekdays[x]}`);
 												await this.setStateAsync(`${stateID}.currentYear.consumed.currentWeek${weekdays[x]}`, {val : 0, ack: true})
 												break;
 
 											case 'delivered':
-												if (this.config.currentYearPrevious)await this.setStateAsync(`${stateID}.currentYear.delivered.previousWeek.${weekdays[x]}`, {val : this.getStateAsync(`${stateID}.currentYear.delivered.previousWeek.${weekdays[x]}`), ack: true})
+												await this.setPreviousValues(`${stateID}.currentYear.delivered.currentWeek.${weekdays[x]}`, `${stateID}.currentYear.delivered.previousWeek.${weekdays[x]}`);
 												await this.setStateAsync(`${stateID}.currentYear.delivered.currentWeek${weekdays[x]}`, {val : 0, ack: true})
 												break;
 
@@ -595,12 +595,12 @@ class Sourceanalytix extends utils.Adapter {
 									switch (stateDetails.financialCategory) {
 
 										case 'costs':
-											if (this.config.currentYearPrevious)await this.setStateAsync(`${stateID}.currentYear.costs.previousWeek.${weekdays[x]}`, {val : this.getStateAsync(`${stateID}.currentYear.costs.previousWeek.${weekdays[x]}`), ack: true})
+											await this.setPreviousValues(`${stateID}.currentYear.costs.currentWeek.${weekdays[x]}`, `${stateID}.currentYear.costs.previousWeek.${weekdays[x]}`);
 											await this.setStateAsync(`${stateID}.currentYear.costs.currentWeek${weekdays[x]}`, {val : 0, ack: true})
 											break;
 
 										case 'earnings':
-											if (this.config.currentYearPrevious)await this.setStateAsync(`${stateID}.currentYear.earnings.previousWeek.${weekdays[x]}`, {val : this.getStateAsync(`${stateID}.currentYear.earnings.previousWeek.${weekdays[x]}`), ack: true})
+											await this.setPreviousValues(`${stateID}.currentYear.earnings.currentWeek.${weekdays[x]}`, `${stateID}.currentYear.earnings.previousWeek.${weekdays[x]}`);
 											await this.setStateAsync(`${stateID}.currentYear.earnings.currentWeek${weekdays[x]}`, {val : 0, ack: true})
 											break;
 
@@ -609,7 +609,7 @@ class Sourceanalytix extends utils.Adapter {
 									}
 
 									// Handle meter reading states
-									if (this.config.currentYearPrevious)await this.setStateAsync(`${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`, {val : this.getStateAsync(`${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`), ack: true})
+									await this.setPreviousValues(`${stateID}.currentYear.meterReadings.currentWeek.${weekdays[x]}`, `${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`);
 									await this.setStateAsync(`${stateID}.currentYear.meterReadings.currentWeek${weekdays[x]}`, {val : 0, ack: true})
 
 								}
@@ -625,76 +625,46 @@ class Sourceanalytix extends utils.Adapter {
 
 									case 'consumed':
 										if (beforeReset.day !== actualDate.day) {
-											await this.setStateAsync(`${stateID}.currentYear.consumed.01_previousDay`, {
-												val: this.getStateAsync(`${stateID}.currentYear.consumed.01_currentDay`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.consumed.01_currentDay`, `${stateID}.currentYear.consumed.01_previousDay`);
 										}
 
 										if (beforeReset.week !== actualDate.week) {
-											await this.setStateAsync(`${stateID}.currentYear.consumed.02_previousWeek`, {
-												val: this.getStateAsync(`${stateID}.currentYear.consumed.02_currentWeek`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.consumed.02_currentWeek`,`${stateID}.currentYear.consumed.02_previousWeek`);
 										}
 
 										if (beforeReset.month !== actualDate.month) {
-											await this.setStateAsync(`${stateID}.currentYear.consumed.03_previousMonth`, {
-												val: this.getStateAsync(`${stateID}.currentYear.consumed.03_currentMonth`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.consumed.03_currentMonth`, `${stateID}.currentYear.consumed.03_previousMonth`);
 										}
 
 										if (beforeReset.quarter !== actualDate.quarter) {
-											await this.setStateAsync(`${stateID}.currentYear.consumed.04_previousQuarter`, {
-												val: this.getStateAsync(`${stateID}.currentYear.consumed.04_currentQuarter`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.consumed.04_currentQuarter`, `${stateID}.currentYear.consumed.04_previousQuarter`);
 										}
 
 										if (beforeReset.year !== actualDate.year) {
-											await this.setStateAsync(`${stateID}.currentYear.consumed.05_previousYear`, {
-												val: this.getStateAsync(`${stateID}.currentYear.consumed.05_currentYear`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.consumed.05_currentYear`, `${stateID}.currentYear.consumed.05_previousYear`);
 										}
 
 										break;
 
 									case 'delivered':
 										if (beforeReset.day !== actualDate.day) {
-											await this.setStateAsync(`${stateID}.currentYear.delivered.01_previousDay`, {
-												val: this.getStateAsync(`${stateID}.currentYear.delivered.01_currentDay`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.delivered.01_currentDay`, `${stateID}.currentYear.delivered.01_previousDay`);
 										}
 
 										if (beforeReset.week !== actualDate.week) {
-											await this.setStateAsync(`${stateID}.currentYear.delivered.02_previousWeek`, {
-												val: this.getStateAsync(`${stateID}.currentYear.delivered.02_currentWeek`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.delivered.02_currentWeek`, `${stateID}.currentYear.delivered.02_previousWeek`);
 										}
 
 										if (beforeReset.month !== actualDate.month) {
-											await this.setStateAsync(`${stateID}.currentYear.delivered.03_previousMonth`, {
-												val: this.getStateAsync(`${stateID}.currentYear.delivered.03_currentMonth`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.delivered.03_currentMonth`, `${stateID}.currentYear.delivered.03_previousMonth`);
 										}
 
 										if (beforeReset.quarter !== actualDate.quarter) {
-											await this.setStateAsync(`${stateID}.currentYear.delivered.04_previousQuarter`, {
-												val: this.getStateAsync(`${stateID}.currentYear.delivered.04_currentQuarter`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.delivered.04_currentQuarter`, `${stateID}.currentYear.delivered.04_previousQuarter`);
 										}
 
 										if (beforeReset.year !== actualDate.year) {
-											await this.setStateAsync(`${stateID}.currentYear.delivered.05_previousYear`, {
-												val: this.getStateAsync(`${stateID}.currentYear.delivered.05_currentYear`),
-												ack: true
-											})
+											await this.setPreviousValues(`${stateID}.currentYear.delivered.05_currentYear`, `${stateID}.currentYear.delivered.05_previousYear`);
 										}
 										break;
 
@@ -709,75 +679,45 @@ class Sourceanalytix extends utils.Adapter {
 
 								case 'costs':
 									if (beforeReset.day !== actualDate.day) {
-										await this.setStateAsync(`${stateID}.currentYear.costs.01_previousDay`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.01_currentDay`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.01_currentDay`, `${stateID}.currentYear.costs.01_previousDay`);
 									}
 
 									if (beforeReset.week !== actualDate.week) {
-										await this.setStateAsync(`${stateID}.currentYear.costs.02_previousWeek`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.02_currentWeek`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.02_currentWeek`, `${stateID}.currentYear.costs.02_previousWeek`);
 									}
 
 									if (beforeReset.month !== actualDate.month) {
-										await this.setStateAsync(`${stateID}.currentYear.costs.03_previousMonth`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.03_currentMonth`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.03_currentMonth`, `${stateID}.currentYear.costs.03_previousMonth`);
 									}
 
 									if (beforeReset.quarter !== actualDate.quarter) {
-										await this.setStateAsync(`${stateID}.currentYear.costs.04_previousQuarter`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.04_currentQuarter`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.04_currentQuarter`, `${stateID}.currentYear.costs.04_previousQuarter`);
 									}
 
 									if (beforeReset.year !== actualDate.year) {
-										await this.setStateAsync(`${stateID}.currentYear.costs.05_previousYear`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.05_currentYear`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.05_currentYear`, `${stateID}.currentYear.costs.05_previousYear`);
 									}
 									break;
 
 								case 'earnings':
 									if (beforeReset.day !== actualDate.day) {
-										await this.setStateAsync(`${stateID}.currentYear.costs.01_previousDay`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.01_currentDay`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.01_currentDay`, `${stateID}.currentYear.costs.01_previousDay`);
 									}
 
 									if (beforeReset.week !== actualDate.week) {
-										await this.setStateAsync(`${stateID}.currentYear.earnings.02_previousWeek`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.02_currentWeek`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.02_currentWeek`, `${stateID}.currentYear.earnings.02_previousWeek`);
 									}
 
 									if (beforeReset.month !== actualDate.month) {
-										await this.setStateAsync(`${stateID}.currentYear.earnings.03_previousMonth`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.03_currentMonth`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.03_currentMonth`, `${stateID}.currentYear.earnings.03_previousMonth`);
 									}
 
 									if (beforeReset.quarter !== actualDate.quarter) {
-										await this.setStateAsync(`${stateID}.currentYear.earnings.04_previousQuarter`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.04_currentQuarter`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.04_currentQuarter`, `${stateID}.currentYear.earnings.04_previousQuarter`);
 									}
 
 									if (beforeReset.year !== actualDate.year) {
-										await this.setStateAsync(`${stateID}.currentYear.earnings.05_previousYear`, {
-											val: this.getStateAsync(`${stateID}.currentYear.costs.05_currentYear`),
-											ack: true
-										})
+										await this.setPreviousValues(`${stateID}.currentYear.costs.05_currentYear`, `${stateID}.currentYear.earnings.05_previousYear`);
 									}
 									break;
 
@@ -788,7 +728,7 @@ class Sourceanalytix extends utils.Adapter {
 							//ToDo: Think / discuss what to do with meter readings
 							// Handle meter reading states
 							// if (this.config.currentYearPrevious) await this.setStateAsync(`${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`, {
-							// 	val: this.getStateAsync(`${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`),
+							// 	val: await this.getStateAsync(`${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`),
 							// 	ack: true
 							// })
 
@@ -827,6 +767,30 @@ class Sourceanalytix extends utils.Adapter {
 
 	}
 
+	/**
+	 * Function to handle previousState values
+	 * @param {string} [currentState]- RAW state ID currentValue
+	 * @param {string} previousState - RAW state ID currentValue
+	 */
+	async setPreviousValues(currentState, previousState) {
+		// Only set previous state if option is chosen
+		if (this.config.currentYearPrevious) {
+			// Check if function input is correctly
+			if (currentState && previousState) {
+				// Get value of currentState
+				const currentVal = await this.getStateAsync(currentState);
+				if (currentVal) {
+					// Set current value to previous state
+					await this.setStateAsync(previousState, {
+						val: currentVal.val,
+						ack: true
+					})
+				}
+			} else {
+				this.log.debug(``)
+			}
+		}
+	}
 
 	/**
 	 * Function to handle state creation
