@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.1",
+        "version": "0.4.8-alpha.2",
         "news": {
+            "0.4.8-alpha.2": {
+                "en": "Bugfix : Cannot read property 'stateDetails' of null",
+                "de": "Bugfix: Die Eigenschaft 'stateDetails' von null kann nicht gelesen werden",
+                "ru": "Исправление: невозможно прочитать свойство stateDetails со значением null.",
+                "pt": "Correção de bug: não é possível ler a propriedade 'stateDetails' de nulo",
+                "nl": "Bugfix: kan eigenschap 'stateDetails' van null niet lezen",
+                "fr": "Correctif: impossible de lire la propriété 'stateDetails' de null",
+                "it": "Errore corretto: impossibile leggere la proprietà 'stateDetails' di null",
+                "es": "Corrección de error: no se puede leer la propiedad 'stateDetails' de nulo",
+                "pl": "Poprawka: nie można odczytać właściwości „stateDetails” o wartości null",
+                "zh-cn": "错误修正：无法读取null的属性“ stateDetails”"
+            },
             "0.4.8-alpha.1": {
                 "en": "Fix calculations for \"previous\" values",
                 "de": "Korrekturberechnungen für \"vorherige\" Werte",

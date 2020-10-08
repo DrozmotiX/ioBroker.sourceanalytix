@@ -309,6 +309,11 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
 
 			// Shorten configuration details for easier access
+			if (!this.activeStates[stateID]) {
+				this.log.error(`Cannot handle initialisation for ${stateID}`);
+				return;
+			}
+
 			const stateDetails = this.activeStates[stateID].stateDetails;
 
 			this.log.debug(`Defined calculation attributes for ${stateID} : ${JSON.stringify(this.activeStates[stateID])}`);
@@ -445,6 +450,7 @@ class Sourceanalytix extends utils.Adapter {
 					// ignore object changes when caused by SA (memory is handled internally)
 					// if (obj.from !== `system.adapter.${this.namespace}`) {
 					this.log.debug(`Object array of SourceAnalytix activated state changed : ${JSON.stringify(obj)} stored config : ${JSON.stringify(this.activeStates)}`);
+					const newDeviceName = stateID.split('.').join('__');
 
 					// Verify if the object was already activated, if not initialize new device
 					if (!this.activeStates[stateID]) {
