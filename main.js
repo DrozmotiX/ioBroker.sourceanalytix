@@ -52,6 +52,7 @@ class Sourceanalytix extends utils.Adapter {
 			pricesConfig: {}
 		};
 		this.activeStates = {}; // Array of activated states for SourceAnalytix
+		this.validStates = {}; // Array of all created states
 	}
 
 	/**
@@ -131,12 +132,19 @@ class Sourceanalytix extends utils.Adapter {
 				calcBlock = false;
 			}, 500);
 
-			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for : ${JSON.stringify(this.activeStates)}`);
+			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for : ${JSON.stringify(this.activeStates)}`)
+			this.cleanupUnused()
 
 		} catch (error) {
 			this.errorHandling('onReady', error);
 		}
 
+	}
+
+	//ToDo: Implement cleanup for unused states
+	async cleanupUnused () {
+		const allStates = await this.getAdapterObjectsAsync()
+		this.log.info((JSON.stringify(allStates)))
 	}
 
 	// Load calculation factors from helper library and store to memory
@@ -919,6 +927,7 @@ class Sourceanalytix extends utils.Adapter {
 	// Set object routine to simplify code
 	//TODO: Check with JS-Controller 3.x if check is still required
 	async localSetObject(stateName, commonData) {
+		this.validStates[stateName] = commonData;
 		await this.setObjectNotExistsAsync(stateName, {
 			type: 'state',
 			common: commonData,
@@ -1085,7 +1094,6 @@ class Sourceanalytix extends utils.Adapter {
 					priceMonth: statePrices.unitPrice * ((reading - calcValues.start_month) - reading_start),
 					priceQuarter: statePrices.unitPrice * ((reading - calcValues.start_quarter) - reading_start),
 					priceYear: statePrices.unitPrice * ((reading - calcValues.start_year) - reading_start),
-
 				};
 
 
