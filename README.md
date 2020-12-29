@@ -1,6 +1,7 @@
 # SourceAnalytix
 
-[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fiobroker-community-adapters%2FioBroker.sourceanalytix.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fiobroker-community-adapters%2FioBroker.sourceanalytix?ref=badge_shield)
+
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 ![Number of Installations (latest)](http://iobroker.live/badges/sourceanalytix-installed.svg)
 ![Number of Installations (stable)](http://iobroker.live/badges/sourceanalytix-stable.svg)
@@ -278,3 +279,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fiobroker-community-adapters%2FioBroker.sourceanalytix.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fiobroker-community-adapters%2FioBroker.sourceanalytix?ref=badge_large)
