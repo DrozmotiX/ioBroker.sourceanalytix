@@ -331,6 +331,14 @@
                 "unitType": "m³",
                 "uPpU": "0.07",
                 "uPpM": "22"
+            },
+            {
+                "cat": "Time",
+                "des": "Costs by unit",
+                "costType": "costs",
+                "unitType": "h",
+                "uPpU": "0.07",
+                "uPpM": "22"
             }
         ],
         "currentYearDays": true,
