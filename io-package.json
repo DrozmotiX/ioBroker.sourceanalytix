@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.2",
+        "version": "0.4.8-alpha.3",
         "news": {
+            "0.4.8-alpha.3": {
+                "en": "Bugfix : dev: 0 bug workaround\nBugfix : Bugfix : Calculation of previous states",
+                "de": "Bugfix: dev: 0 Fehlerumgehung\nBugfix: Bugfix: Berechnung früherer Zustände",
+                "ru": "Исправление: dev: обходной путь 0\nИсправление: Исправление: Расчет предыдущих состояний",
+                "pt": "Correção de bug: dev: 0 solução de bug\nBugfix: Bugfix: Cálculo de estados anteriores",
+                "nl": "Bugfix: dev: 0 bug workaround\nBugfix: Bugfix: Berekening van vorige toestanden",
+                "fr": "Correction de bogue: solution de contournement du bogue dev: 0\nBugfix: Bugfix: Calcul des états précédents",
+                "it": "Bugfix: dev: 0 soluzione del bug\nBugfix: Bugfix: Calcolo degli stati precedenti",
+                "es": "Corrección de error: dev: 0 solución de error\nCorrección de error: corrección de error: cálculo de estados anteriores",
+                "pl": "Bugfix: dev: obejście błędu 0\nBugfix: Bugfix: Obliczanie poprzednich stanów",
+                "zh-cn": "错误修正：dev：0错误的解决方法\n错误修正：错误修正：先前状态的计算"
+            },
             "0.4.8-alpha.2": {
                 "en": "Bugfix : Cannot read property 'stateDetails' of null",
                 "de": "Bugfix: Die Eigenschaft 'stateDetails' von null kann nicht gelesen werden",
