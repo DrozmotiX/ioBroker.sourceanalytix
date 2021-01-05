@@ -91,13 +91,13 @@ class Sourceanalytix extends utils.Adapter {
 					if (customStateArray.rows[i].value) {
 						const id = customStateArray.rows[i].id;
 
-						history[id] = customStateArray.rows[i].value;
+                        history[id] = customStateArray.rows[i].value;
 
-						if (history[id].enabled !== undefined) {
-							history[id] = history[id].enabled ? { 'history.0': history[id] } : null;
-							if (!history[id]) {
-								this.log.warn('undefined id');
-								continue;
+                        if (history[id].enabled !== undefined) {
+                            history[id] = history[id].enabled ? {'history.0': history[id]} : null;
+                            if (!history[id]) {
+                                this.log.warn('undefined id');
+                                continue;
 							}
 						}
 
@@ -124,13 +124,16 @@ class Sourceanalytix extends utils.Adapter {
 			await this.resetStartValues();
 
 			// Subscribe on all foreign objects to detect (de)activation of sourceanalytix enabled states
-			this.subscribeForeignObjects('*');
+            this.subscribeForeignObjects('*');
 
-			// Enable all calculations with timeout of 500 ms
-			if (delay) { clearTimeout(delay); delay = null; }
-			delay = setTimeout(function () {
-				calcBlock = false;
-			}, 500);
+            // Enable all calculations with timeout of 500 ms
+            if (delay) {
+                clearTimeout(delay);
+                delay = null;
+            }
+            delay = setTimeout(function () {
+                calcBlock = false;
+            }, 500);
 
 			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for : ${JSON.stringify(this.activeStates)}`)
 			this.cleanupUnused()
@@ -139,13 +142,13 @@ class Sourceanalytix extends utils.Adapter {
 			this.errorHandling('onReady', error);
 		}
 
-	}
+    }
 
-	//ToDo: Implement cleanup for unused states
-	async cleanupUnused () {
-		const allStates = await this.getAdapterObjectsAsync()
-		this.log.info((JSON.stringify(allStates)))
-	}
+    //ToDo: Implement cleanup for unused states
+    async cleanupUnused() {
+        const allStates = await this.getAdapterObjectsAsync()
+        this.log.info((JSON.stringify(allStates)))
+    }
 
 	// Load calculation factors from helper library and store to memory
 	//ToDO: Implement error handling
@@ -234,16 +237,16 @@ class Sourceanalytix extends utils.Adapter {
 					&& customData.selectedUnit !== '自动'
 				) {
 
-					useUnit = customData.selectedUnit;
+                    useUnit = customData.selectedUnit;
 
-				} else if (commonData.unit && commonData.unit !== '' && !this.unitPriceDef.unitConfig[commonData.unit] ) {
-					this.log.error(`Automated united detection for ${stateID} failed, cannot execute calculations !`);
-					this.log.error(`Please choose unit manually in state configuration`);
-					return;
+                } else if (commonData.unit && commonData.unit !== '' && !this.unitPriceDef.unitConfig[commonData.unit]) {
+                    this.log.error(`Automated united detection for ${stateID} failed, cannot execute calculations !`);
+                    this.log.error(`Please choose unit manually in state configuration`);
+                    return;
 
-				} else if (commonData.unit && commonData.unit !== '' && this.unitPriceDef.unitConfig[commonData.unit] ) {
+                } else if (commonData.unit && commonData.unit !== '' && this.unitPriceDef.unitConfig[commonData.unit]) {
 
-					useUnit = commonData.unit;
+                    useUnit = commonData.unit;
 
 				} else if (!commonData.unit || commonData.unit === '') {
 					this.log.error(`No unit defined for ${stateID}, cannot execute calculations !`);
@@ -255,13 +258,13 @@ class Sourceanalytix extends utils.Adapter {
 				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
 					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
 					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
-					return;
-				}
+                    return;
+                }
 
-				if ( !this.unitPriceDef.pricesConfig[customData.selectedPrice]	 ) {
-					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
-					this.log.error(`Selected Type ${customData.selectedPrice} does not exist in Price Definitions`);
-					this.log.error(`Please choose proper type for state ${stateID}`);
+                if (!this.unitPriceDef.pricesConfig[customData.selectedPrice]) {
+                    this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
+                    this.log.error(`Selected Type ${customData.selectedPrice} does not exist in Price Definitions`);
+                    this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
 					return;
 				}
@@ -346,20 +349,20 @@ class Sourceanalytix extends utils.Adapter {
 			for (const x in weekdays) {
 
 				if (this.config.currentYearDays === true) {
-					await this.doLocalStateCreate(stateID, `currentWeek.${weekdays[x]}`, weekdays[x], false, false, true)
-				} else if (stateDeletion) {
-					this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
-					await this.doLocalStateCreate(stateID, `currentWeek.${weekdays[x]}`, weekdays[x], false, true,true);
-				}
+                    await this.doLocalStateCreate(stateID, `currentWeek.${weekdays[x]}`, weekdays[x], false, false, true)
+                } else if (stateDeletion) {
+                    this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
+                    await this.doLocalStateCreate(stateID, `currentWeek.${weekdays[x]}`, weekdays[x], false, true, true);
+                }
 
-				if (this.config.currentYearPrevious === true) {
-					await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, false, true)
-				} else if (stateDeletion) {
-					this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
-					await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, true,true);
+                if (this.config.currentYearPrevious === true) {
+                    await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, false, true)
+                } else if (stateDeletion) {
+                    this.log.debug(`Deleting states for week ${weekdays[x]} (if present)`);
+                    await this.doLocalStateCreate(stateID, `previousWeek.${weekdays[x]}`, weekdays[x], false, true, true);
 
-				}
-			}
+                }
+            }
 
 			// create states for weeks
 			for (let y = 1; y < 54; y++) {
@@ -404,17 +407,17 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
-			// Create basic current states
-			for (const state of basicStates) {
-				await this.doLocalStateCreate(stateID, state, state, false,false,true);
-			}
+            // Create basic current states
+            for (const state of basicStates) {
+                await this.doLocalStateCreate(stateID, state, state, false, false, true);
+            }
 
-			// Create basic current states for previous periods
-			if (this.config.currentYearPrevious){
-				for (const state of basicPreviousStates) {
-					await this.doLocalStateCreate(stateID, state, state, false,false,true);
-				}
-			}
+            // Create basic current states for previous periods
+            if (this.config.currentYearPrevious) {
+                for (const state of basicPreviousStates) {
+                    await this.doLocalStateCreate(stateID, state, state, false, false, true);
+                }
+            }
 
 			// Create state for current reading
 			const stateName = 'Current_Reading';
@@ -540,12 +543,12 @@ class Sourceanalytix extends utils.Adapter {
 		return weekNo;
 	}
 
-	async resetStartValues() {
-		try {
-			const resetDay = new schedule('0 0 * * *', async () => {
-			// const resetDay = new schedule('* * * * *', async () => { //  testing schedule
-				calcBlock = true; // Pause all calculations
-				const beforeReset = await this.refreshDates(); // Reset date values in memory
+    async resetStartValues() {
+        try {
+            const resetDay = new schedule('0 0 * * *', async () => {
+            // const resetDay = new schedule('* * * * *', async () => { //  testing schedule
+                calcBlock = true; // Pause all calculations
+                const beforeReset = await this.refreshDates(); // Reset date values in memory
 
 				// Read state array and write Data for every active state
 				for (const stateID in this.activeStates) {
@@ -577,29 +580,35 @@ class Sourceanalytix extends utils.Adapter {
 
 						// Extend object with start value [type] & update memory
 						obj.common.custom[this.namespace].start_day = reading;
-						this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
+                        this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
 
-						//At week reset ensure current week value are moved to previous week and current set to 0
-						if (beforeReset.week !== actualDate.week){
-							for (const x in weekdays) {
+                        //At week reset ensure current week value are moved to previous week and current set to 0
+                        if (beforeReset.week !== actualDate.week) {
+                            for (const x in weekdays) {
 
-								if (this.config.currentYearDays ) {
+                                if (this.config.currentYearDays) {
 
-									// Handle consumption states consumption states
-									if (stateDetails.consumption) {
+                                    // Handle consumption states consumption states
+                                    if (stateDetails.consumption) {
 										switch (stateDetails.headCategory) {
 
-											case 'consumed':
-												await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.consumed.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.consumed.previousWeek.${weekdays[x]}`);
-												await this.setStateAsync(`${stateDetails.deviceName}.currentYear.consumed.currentWeek.${weekdays[x]}`, {val : 0, ack: true})
-												break;
+                                            case 'consumed':
+                                                await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.consumed.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.consumed.previousWeek.${weekdays[x]}`);
+                                                await this.setStateAsync(`${stateDetails.deviceName}.currentYear.consumed.currentWeek.${weekdays[x]}`, {
+                                                    val: 0,
+                                                    ack: true
+                                                })
+                                                break;
 
-											case 'delivered':
-												await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.delivered.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.delivered.previousWeek.${weekdays[x]}`);
-												await this.setStateAsync(`${stateDetails.deviceName}.currentYear.delivered.currentWeek.${weekdays[x]}`, {val : 0, ack: true})
-												break;
+                                            case 'delivered':
+                                                await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.delivered.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.delivered.previousWeek.${weekdays[x]}`);
+                                                await this.setStateAsync(`${stateDetails.deviceName}.currentYear.delivered.currentWeek.${weekdays[x]}`, {
+                                                    val: 0,
+                                                    ack: true
+                                                })
+                                                break;
 
-											default:
+                                            default:
 
 										}
 
@@ -608,25 +617,34 @@ class Sourceanalytix extends utils.Adapter {
 									// Handle financial states consumption states
 									switch (stateDetails.financialCategory) {
 
-										case 'costs':
-											await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.costs.previousWeek.${weekdays[x]}`);
-											await this.setStateAsync(`${stateDetails.deviceName}.currentYear.costs.currentWeek.${weekdays[x]}`, {val : 0, ack: true})
-											break;
+                                        case 'costs':
+                                            await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.costs.previousWeek.${weekdays[x]}`);
+                                            await this.setStateAsync(`${stateDetails.deviceName}.currentYear.costs.currentWeek.${weekdays[x]}`, {
+                                                val: 0,
+                                                ack: true
+                                            })
+                                            break;
 
-										case 'earnings':
-											await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.earnings.previousWeek.${weekdays[x]}`);
-											await this.setStateAsync(`${stateDetails.deviceName}.currentYear.earnings.currentWeek.${weekdays[x]}`, {val : 0, ack: true})
-											break;
+                                        case 'earnings':
+                                            await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.earnings.previousWeek.${weekdays[x]}`);
+                                            await this.setStateAsync(`${stateDetails.deviceName}.currentYear.earnings.currentWeek.${weekdays[x]}`, {
+                                                val: 0,
+                                                ack: true
+                                            })
+                                            break;
 
-										default:
+                                        default:
 
 									}
 
-									// Handle meter reading states
-									await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.meterReadings.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.meterReadings.previousWeek.${weekdays[x]}`);
-									await this.setStateAsync(`${stateDetails.deviceName}.currentYear.meterReadings.currentWeek.${weekdays[x]}`, {val : 0, ack: true})
+                                    // Handle meter reading states
+                                    await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.meterReadings.currentWeek.${weekdays[x]}`, `${stateDetails.deviceName}.currentYear.meterReadings.previousWeek.${weekdays[x]}`);
+                                    await this.setStateAsync(`${stateDetails.deviceName}.currentYear.meterReadings.currentWeek.${weekdays[x]}`, {
+                                        val: 0,
+                                        ack: true
+                                    })
 
-								}
+                                }
 
 							}
 						}
@@ -641,13 +659,13 @@ class Sourceanalytix extends utils.Adapter {
 										if (beforeReset.day !== actualDate.day) {
 											await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.consumed.01_currentDay`,
 												`${stateDetails.deviceName}.currentYear.consumed.01_previousDay`);
-										}
+                                        }
 
-										if (beforeReset.week !== actualDate.week) {
-											await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.consumed.02_currentWeek`,`${stateDetails.deviceName}.currentYear.consumed.02_previousWeek`);
-										}
+                                        if (beforeReset.week !== actualDate.week) {
+                                            await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.consumed.02_currentWeek`, `${stateDetails.deviceName}.currentYear.consumed.02_previousWeek`);
+                                        }
 
-										if (beforeReset.month !== actualDate.month) {
+                                        if (beforeReset.month !== actualDate.month) {
 											await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.consumed.03_currentMonth`, `${stateDetails.deviceName}.currentYear.consumed.03_previousMonth`);
 										}
 
@@ -761,13 +779,16 @@ class Sourceanalytix extends utils.Adapter {
 					}
 
 
-				}
+                }
 
-				// Enable all calculations with timeout of 500 ms
-				if (delay) { clearTimeout(delay); delay = null; }
-				delay = setTimeout(function () {
-					calcBlock = false;
-				}, 500);
+                // Enable all calculations with timeout of 500 ms
+                if (delay) {
+                    clearTimeout(delay);
+                    delay = null;
+                }
+                delay = setTimeout(function () {
+                    calcBlock = false;
+                }, 500);
 
 			});
 
@@ -963,15 +984,19 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 
-	// Calculation handler
-	async calculationHandler(stateID, value) {
-		try {
-			const calcValues = this.activeStates[stateID].calcValues;
-			const stateDetails = this.activeStates[stateID].stateDetails;
-			const statePrices = this.activeStates[stateID].prices;
-			const currentCath =  this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
-			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
-			const date = new Date();
+    // Calculation handler
+    async calculationHandler(stateID, value) {
+        try {
+            if (!value.val) {
+                //ToDo: check with sentry reports why value can be NULL or Undefined (function only called with state values, expect dev: 0 bug)
+                this.log.error(`Invalid data received for calculation for state : ${stateID} and value : ${JSON.stringify(value)}`)
+            }
+            const calcValues = this.activeStates[stateID].calcValues;
+            const stateDetails = this.activeStates[stateID].stateDetails;
+            const statePrices = this.activeStates[stateID].prices;
+            const currentCath = this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
+            const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
+            const date = new Date();
 
 			this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 			console.log(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
@@ -980,12 +1005,12 @@ class Sourceanalytix extends utils.Adapter {
 			// Define proper calculation value
 			let reading;
 
-			// Convert volume liter to cubic
-			//TODO: Should  be handle  by library
-			if (currentCath === 'Watt'){
-				// Convert watt to watt hours
-				reading = await this.wattToWattHour(stateID, value);
-			} else if (currentCath === 'Liter' && targetCath === 'Cubic_meter'
+            // Convert volume liter to cubic
+            //TODO: Should  be handle  by library
+            if (currentCath === 'Watt') {
+                // Convert watt to watt hours
+                reading = await this.wattToWattHour(stateID, value);
+            } else if (currentCath === 'Liter' && targetCath === 'Cubic_meter'
 			) {
 				reading = value.val / 1000;
 			} else if (currentCath === 'Cubic_meter' && targetCath === 'Liter'
@@ -995,15 +1020,15 @@ class Sourceanalytix extends utils.Adapter {
 				reading = value.val
 			}
 
-			const currentExponent = this.unitPriceDef.unitConfig[stateDetails.stateUnit].exponent;
-			const targetExponent = this.unitPriceDef.unitConfig[stateDetails.useUnit].exponent;
+            const currentExponent = this.unitPriceDef.unitConfig[stateDetails.stateUnit].exponent;
+            const targetExponent = this.unitPriceDef.unitConfig[stateDetails.useUnit].exponent;
 
-			if (reading && typeof(reading) === 'number') {
-				reading = reading * Math.pow(10, (currentExponent - targetExponent));
-				if (currentCath === 'Watt'){
-					// Add calculated watt reading to stored totals
-					reading = reading + calcValues.currentValue;
-				}
+            if (reading && typeof (reading) === 'number') {
+                reading = reading * Math.pow(10, (currentExponent - targetExponent));
+                if (currentCath === 'Watt') {
+                    // Add calculated watt reading to stored totals
+                    reading = reading + calcValues.currentValue;
+                }
 			} else {
 
 				reading = value.val * Math.pow(10, (currentExponent - targetExponent));
@@ -1051,13 +1076,16 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			this.log.debug(`Set calculated value ${reading} on state : ${stateDetails.deviceName}.Current_Reading}`);
-			// Update current value to memory
-			this.activeStates[stateID]['calcValues'].currentValue = reading;
-			this.log.debug(`ActiveStatesArray ${JSON.stringify(this.activeStates[stateID]['calcValues'])})`)
-			await this.setStateChangedAsync(`${stateDetails.deviceName}.Current_Reading`, { val: await this.roundDigits(reading), ack: true });
+            // Update current value to memory
+            this.activeStates[stateID]['calcValues'].currentValue = reading;
+            this.log.debug(`ActiveStatesArray ${JSON.stringify(this.activeStates[stateID]['calcValues'])})`)
+            await this.setStateChangedAsync(`${stateDetails.deviceName}.Current_Reading`, {
+                val: await this.roundDigits(reading),
+                ack: true
+            });
 
-			//TODO; implement counters
-			// 	// Handle impuls counters
+            //TODO; implement counters
+            // 	// Handle impuls counters
 			// 	if (obj_cust.state_type == 'impulse'){
 
 			// 		// cancel calculation in case of impuls counter
@@ -1075,19 +1103,31 @@ class Sourceanalytix extends utils.Adapter {
 			if (stateDetails.meter_values === true) {
 				// Always write generic meterReadings for current year
 				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.meterReadings`;
-				const readingRounded = await this.roundDigits(reading);
+                const readingRounded = await this.roundDigits(reading);
 
-				// Weekdays
-				if (readingRounded){
-				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: readingRounded, ack: true });
-				stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
-				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: readingRounded, ack: true });
-				// Month
-				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: readingRounded, ack: true });
-				// Quarter
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, { val: readingRounded, ack: true });
-				}
-			}
+                // Weekdays
+                if (readingRounded) {
+                    await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
+                        val: readingRounded,
+                        ack: true
+                    });
+                    stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
+                    if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+                        val: readingRounded,
+                        ack: true
+                    });
+                    // Month
+                    if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {
+                        val: readingRounded,
+                        ack: true
+                    });
+                    // Quarter
+                    if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
+                        val: readingRounded,
+                        ack: true
+                    });
+                }
+            }
 
 				const calculations = {
 					consumedDay: ((reading - calcValues.start_day) - reading_start),
@@ -1118,52 +1158,106 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Store consumption
 			if (stateDetails.consumption) {
-				// Always write generic meterReadings for current year
-				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.headCategory}`;
-				// Generic
-				await this.setStateChangedAsync(`${stateName}.01_currentDay`, { val: calculationRounded.consumedDay, ack: true });
-				await this.setStateChangedAsync(`${stateName}.02_currentWeek`, { val: calculationRounded.consumedWeek, ack: true });
-				await this.setStateChangedAsync(`${stateName}.03_currentMonth`, { val: calculationRounded.consumedMonth, ack: true });
-				await this.setStateChangedAsync(`${stateName}.04_currentQuarter`, { val: calculationRounded.consumedQuarter, ack: true });
-				await this.setStateChangedAsync(`${stateName}.05_currentYear`, { val: calculationRounded.consumedYear, ack: true });
+                // Always write generic meterReadings for current year
+                stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.headCategory}`;
+                // Generic
+                await this.setStateChangedAsync(`${stateName}.01_currentDay`, {
+                    val: calculationRounded.consumedDay,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.02_currentWeek`, {
+                    val: calculationRounded.consumedWeek,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.03_currentMonth`, {
+                    val: calculationRounded.consumedMonth,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.04_currentQuarter`, {
+                    val: calculationRounded.consumedQuarter,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.05_currentYear`, {
+                    val: calculationRounded.consumedYear,
+                    ack: true
+                });
 
-				// Weekdays
-				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.consumedDay, ack: true });
+                // Weekdays
+                await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
+                    val: calculationRounded.consumedDay,
+                    ack: true
+                });
 
 
-				stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}`;
-				// Week
-				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.consumedWeek, ack: true });
-				// Month
-				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.consumedMonth, ack: true });
-				// Quarter
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, { val: calculationRounded.consumedQuarter, ack: true });
+                stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}`;
+                // Week
+                if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+                    val: calculationRounded.consumedWeek,
+                    ack: true
+                });
+                // Month
+                if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {
+                    val: calculationRounded.consumedMonth,
+                    ack: true
+                });
+                // Quarter
+                if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, {
+                    val: calculationRounded.consumedQuarter,
+                    ack: true
+                });
 
-			}
+            }
 
 			// Store prices
 			if (stateDetails.costs) {
 
-				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.financialCategory}`;
-				// Generic
-				await this.setStateChangedAsync(`${stateName}.01_currentDay`, { val: calculationRounded.priceDay, ack: true });
-				await this.setStateChangedAsync(`${stateName}.02_currentWeek`, { val: calculationRounded.priceWeek, ack: true });
-				await this.setStateChangedAsync(`${stateName}.03_currentMonth`, { val: calculationRounded.priceMonth, ack: true });
-				await this.setStateChangedAsync(`${stateName}.04_currentQuarter`, { val: calculationRounded.priceQuarter, ack: true });
-				await this.setStateChangedAsync(`${stateName}.05_currentYear`, { val: calculationRounded.priceYear, ack: true });
+                stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.${stateDetails.financialCategory}`;
+                // Generic
+                await this.setStateChangedAsync(`${stateName}.01_currentDay`, {
+                    val: calculationRounded.priceDay,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.02_currentWeek`, {
+                    val: calculationRounded.priceWeek,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.03_currentMonth`, {
+                    val: calculationRounded.priceMonth,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.04_currentQuarter`, {
+                    val: calculationRounded.priceQuarter,
+                    ack: true
+                });
+                await this.setStateChangedAsync(`${stateName}.05_currentYear`, {
+                    val: calculationRounded.priceYear,
+                    ack: true
+                });
 
-				// Weekdays
-				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, { val: calculationRounded.priceDay, ack: true });
+                // Weekdays
+                await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
+                    val: calculationRounded.priceDay,
+                    ack: true
+                });
 
-				stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}`;
-				// Week
-				if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, { val: calculationRounded.priceWeek, ack: true });
-				// Month
-				if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, { val: calculationRounded.priceMonth, ack: true });
-				// Quarter
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, { val: calculationRounded.priceQuarter, ack: true });
+                stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}`;
+                // Week
+                if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+                    val: calculationRounded.priceWeek,
+                    ack: true
+                });
+                // Month
+                if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {
+                    val: calculationRounded.priceMonth,
+                    ack: true
+                });
+                // Quarter
+                if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, {
+                    val: calculationRounded.priceQuarter,
+                    ack: true
+                });
 
-			}
+            }
 
 			// Store results of current calculation to memory
 			//ToDo : Build JSON array for current values to have widget & information easy accessible in vis
@@ -1205,13 +1299,13 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async roundCosts(value) {
 		try {
-			let rounded = Number(value);
-			rounded = Math.round(rounded * 100) / 100;
-			this.log.debug(`roundCosts with ${value} rounded ${rounded}`);
-			if(!rounded) return value;
-			return rounded;
-		} catch (error) {
-			this.log.error(`[roundCosts ${value}`);
+            let rounded = Number(value);
+            rounded = Math.round(rounded * 100) / 100;
+            this.log.debug(`roundCosts with ${value} rounded ${rounded}`);
+            if (!rounded) return value;
+            return rounded;
+        } catch (error) {
+            this.log.error(`[roundCosts ${value}`);
 			this.errorHandling('roundCosts', error)
 		}
 	}
