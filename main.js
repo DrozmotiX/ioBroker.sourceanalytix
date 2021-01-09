@@ -809,8 +809,8 @@ class Sourceanalytix extends utils.Adapter {
 
     /**
      * Function to handle previousState values
-     * @param {string} [currentState]- RAW state ID currentValue
-     * @param {string} previousState - RAW state ID currentValue
+     * @param {string} currentState - RAW state ID currentValue
+     * @param {string} [previousState - RAW state ID currentValue
      */
     async setPreviousValues(currentState, previousState) {
         // Only set previous state if option is chosen
@@ -1024,6 +1024,9 @@ class Sourceanalytix extends utils.Adapter {
                 reading = value.val
             }
 
+            this.log.debug(`Recalculated value ${reading}`);
+            if (reading === null || reading === undefined) return;
+
             const currentExponent = this.unitPriceDef.unitConfig[stateDetails.stateUnit].exponent;
             const targetExponent = this.unitPriceDef.unitConfig[stateDetails.useUnit].exponent;
 
@@ -1039,8 +1042,7 @@ class Sourceanalytix extends utils.Adapter {
             }
 
 
-            this.log.debug(`Recalculated value ${reading}`);
-            if (reading === null || reading === undefined) return;
+
 
             // Detect meter reset & ensure Cumulative calculation
             if (reading < calcValues.currentValue && currentCath !== 'Watt') {
@@ -1334,7 +1336,7 @@ class Sourceanalytix extends utils.Adapter {
             };
 
             // Prepare function return
-            let calckWh;
+            let calckWh = null;
 
             if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
 
@@ -1351,8 +1353,6 @@ class Sourceanalytix extends utils.Adapter {
                 // Update timestamp current reading to memory
                 this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
                 this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
-
-                calckWh = calcValues.currentValue;
 
             }
 

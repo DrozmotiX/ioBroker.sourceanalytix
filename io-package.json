@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.3",
+        "version": "0.4.8-alpha.4",
         "news": {
+            "0.4.8-alpha.4": {
+                "en": "Bugfix : Incorrect calculation of watt at initialisation and adapter start",
+                "de": "Bugfix: Falsche Wattberechnung bei Initialisierung und Adapterstart",
+                "ru": "Исправление: неправильный расчет ватт при инициализации и запуске адаптера.",
+                "pt": "Correção de bug: cálculo incorreto de watt na inicialização e início do adaptador",
+                "nl": "Bugfix: onjuiste berekening van watt bij initialisatie en adapterstart",
+                "fr": "Correction de bug: calcul incorrect du watt à l'initialisation et au démarrage de l'adaptateur",
+                "it": "Errore corretto: calcolo errato del watt durante l'inizializzazione e l'avvio dell'adattatore",
+                "es": "Corrección de error: cálculo incorrecto de vatios en la inicialización y el inicio del adaptador",
+                "pl": "Poprawka: niepoprawne obliczenie watów podczas inicjalizacji i uruchamiania adaptera",
+                "zh-cn": "错误修正：初始化和适配器启动时瓦数计算不正确"
+            },
             "0.4.8-alpha.3": {
                 "en": "Bugfix : dev: 0 bug workaround\nBugfix : Bugfix : Calculation of previous states",
                 "de": "Bugfix: dev: 0 Fehlerumgehung\nBugfix: Bugfix: Berechnung früherer Zustände",
