@@ -507,14 +507,15 @@ class Sourceanalytix extends utils.Adapter {
 
                 //ToDo: Implement x ignore time (configurable) to avoid overload of unneeded calculations
                 // Avoid unneeded calculation if value is equal to known value in memory
-                if (previousStateVal[id] !== state.val) {
+                // 10-01-2021 : disable IF check for new value to anlyse if this solve's 0 watt calc bug
+                // if (previousStateVal[id] !== state.val) {
 
                     this.calculationHandler(id, state);
                     previousStateVal[id] = state.val;
 
-                } else {
-                    this.log.debug(`Update osf state ${id} received with equal value ${state.val} ignoring`);
-                }
+                // } else {
+                //     this.log.debug(`Update of state ${id} received with equal value ${state.val} ignoring`);
+                // }
 
             }
         } catch (error) {
@@ -773,6 +774,7 @@ class Sourceanalytix extends utils.Adapter {
                         this.log.info(`Memory values for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID])}`);
 
                         if (value){
+                            await this.setForeignStateAsync(stateID, {val: value.val, ack : true})
                             this.calculationHandler(stateID, value);
                         }
 
@@ -991,7 +993,13 @@ class Sourceanalytix extends utils.Adapter {
     // Calculation handler
     async calculationHandler(stateID, value) {
         try {
-            if (!value.val) {
+            this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+            this.log.debug(`All active states : ${JSON.stringify(this.activeStates)}`);
+            this.log.debug(`Unit price definitions : ${JSON.stringify(this.unitPriceDef)}`);
+            console.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`)
+            console.debug(`All active states : ${JSON.stringify(this.activeStates)}`);
+            console.debug(`Unit price definitions : ${JSON.stringify(this.unitPriceDef)}`);
+            if (!value.val && value.val != 0) {
                 //ToDo: check with sentry reports why value can be NULL or Undefined (function only called with state values, expect dev: 0 bug)
                 this.log.error(`Invalid data received for calculation for state : ${stateID} and value : ${JSON.stringify(value)}`)
             }
@@ -1002,8 +1010,6 @@ class Sourceanalytix extends utils.Adapter {
             const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
             const date = new Date();
 
-            this.log.debug(`Calculation for ${stateID} with values : ${JSON.stringify(value)} and configuration : ${JSON.stringify(this.activeStates[stateID])}`);
-            console.log(`Calculation for ${stateID} with value : ${JSON.stringify(value)}`);
             let stateName = `${this.namespace}.${stateDetails.deviceName}`;
 
             // Define proper calculation value
@@ -1063,7 +1069,15 @@ class Sourceanalytix extends utils.Adapter {
                     obj.common.custom[this.namespace].valueAtDeviceReset = calcValues.currentValue;
                     this.activeStates[stateID].calcValues.valueAtDeviceReset = calcValues.currentValue;
                     //TODO: Add all attributes to extend object ensuring propper obj values
+                    //ToDo : THe get/set value is a workarrund for Dev 0 bug
+
+                    //Ensure current value is set again after object extension as Workaround for Dev:0 bug
+                    const value = await this.getForeignStateAsync(stateID)
                     await this.extendForeignObject(stateID, obj);
+
+                    if (value){
+                        await this.setForeignStateAsync(stateID, {val: value.val, ack : true})
+                    }
 
                     // Calculate proper reading
                     reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;

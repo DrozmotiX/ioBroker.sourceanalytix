@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.4",
+        "version": "0.4.8-alpha.5",
         "news": {
+            "0.4.8-alpha.5": {
+                "en": "Bugfix : Wrong calculations if value is reset or 0.",
+                "de": "Bugfix: Falsche Berechnungen, wenn der Wert zurückgesetzt oder 0 ist.",
+                "ru": "Исправление: неправильные вычисления, если значение сброшено или 0.",
+                "pt": "Correção: cálculos errados se o valor for redefinido ou 0.",
+                "nl": "Bugfix: verkeerde berekeningen als waarde wordt gereset of 0.",
+                "fr": "Correctif: mauvais calculs si la valeur est réinitialisée ou 0.",
+                "it": "Errore corretto: calcoli errati se il valore è ripristinato o 0.",
+                "es": "Corrección de error: cálculos incorrectos si el valor se restablece o 0.",
+                "pl": "Poprawka: Błędne obliczenia, jeśli wartość jest resetowana lub 0.",
+                "zh-cn": "错误修正：错误的计算，如果值重置或0。"
+            },
             "0.4.8-alpha.4": {
                 "en": "Bugfix : Incorrect calculation of watt at initialisation and adapter start",
                 "de": "Bugfix: Falsche Wattberechnung bei Initialisierung und Adapterstart",
