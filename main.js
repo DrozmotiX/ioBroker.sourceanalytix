@@ -423,6 +423,12 @@ class Sourceanalytix extends utils.Adapter {
 			// Create basic current states
 			for (const state of basicStates) {
 				await this.doLocalStateCreate(stateID, state, state, false, false, true);
+				// .${actualDate.year}.
+
+				//ToDo: Chwck if current year storaage in Year root should be configurable
+				if (state === '05_currentYear'){
+					await this.doLocalStateCreate(stateID, state, state, false, false, false);
+				}
 			}
 
 			// Create basic current states for previous periods
@@ -1220,6 +1226,10 @@ class Sourceanalytix extends utils.Adapter {
 					ack: true
 				});
 				await this.setStateChangedAsync(`${stateName}.05_currentYear`, {
+					val: calculationRounded.consumedYear,
+					ack: true
+				});
+				await this.setStateChangedAsync(`${stateName}.${actualDate.year}.05_currentYear`, {
 					val: calculationRounded.consumedYear,
 					ack: true
 				});
