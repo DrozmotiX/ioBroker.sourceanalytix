@@ -294,6 +294,8 @@
         "mode": "daemon",
         "type": "energy",
         "compact": true,
+        "connectionType": "local",
+        "dataSource": "push",
         "materialize": true,
         "plugins": {
             "sentry": {
@@ -306,7 +308,7 @@
                 "admin": ">=3.0.0"
             },
             {
-                "js-controller": ">=1.4.2"
+                "js-controller": ">=2.0.0"
             }
         ]
     },

@@ -57,41 +57,32 @@ When the adapter crashes or an other Code error happens, this error message that
 -->
 
 ## Changelog
-
-### 0.4.8-alpha.7 (2021-01-11) Implement state CumulativeReading
-* (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :
-    * Watt values : Ensure proper reading start (0 instead of current watt value)
-    * All calculations : correct handling  of device reset
-    
-* (Dutchman & ToTXR4Y) implement cached memory slot for initialisation value
-* (Dutchman & ToTXR4Y) Implement log messages if state attributes are changed
+### __WORK IN PROGRESS__
+#### Breaking changes
+* (Dutchman) **Breaking!!! Move current values to currentYear*
 * (Dutchman & ToTXR4Y) MajorChange ! : Replaced **Current_Reading** with **CumulativeReading**
 
-### 0.4.8-alpha.5 (2021-01-10) *==> Depreciated* !
-* (Dutchman) Bugfix : Wrong calculations if value is reset or 0.
-
-### 0.4.8-alpha.4 (2021-01-09) *==> Depreciated* !
-* (Dutchman) Bugfix : Incorrect calculation of watt at initialisation and adapter start
-
-### 0.4.8-alpha.3 (2021-01-06) *==> Depreciated* !
-* (Dutchman) Bugfix : dev: 0 bug workaround
-* (Dutchman) Bugfix : Bugfix : Calculation of previous states
-
-### 0.4.8-alpha.2 (2020-10-08) *==> Depreciated* !
-* (Dutchman) Bugfix : Cannot read property 'stateDetails' of null
-
-### 0.4.8-alpha.1 (2020-10-08) *==> Depreciated* !
-* (Dutchman) Fix calculations for "previous" values
-
-### 0.4.8-alpha.0 (2020-10-06) *==> Depreciated* !
-* (Dutchman) **Breaking!!! Move current values to currentYear**
-* (Dutchman) Add back "currentYear"
+#### New Features
 * (Dutchman) Code cleanup
+* (Dutchman) Add back "currentYear"
+* (Dutchman) Weekly reset of weekdays
+* (Dutchman) Calculation for all states
+* (Dutchman) Calculation for previous states
 * (Dutchman) Optimized error reporting (Sentry)
-* (Dutchman) implemented weekly reset of weekdays
-* (Dutchman) implemented calculation for all states
 * (Dutchman) Removed unneeded settings in configuration
 * (Dutchman) Implemented new configuration for "currentYear"
+* (Dutchman & ToTXR4Y) implement cached memory slot for initialisation value
+* (Dutchman & ToTXR4Y) Implement log messages if state attributes are changed
+* (Dutchman & ToTXR4Y) Implement automatically detection of currency from admin settings [#247](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/247)
+
+#### BugFixes
+* (Dutchman) Bugfix : dev: 0 bug workaround
+* (Dutchman) Bugfix : Calculations for "previous" values
+* (Dutchman) Bugfix : Cannot read property 'stateDetails' of null
+* (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :
+  * Watt values : Ensure proper reading start (0 instead of current watt value)
+    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value)
+  * All calculations : correct handling  of device reset (if value is reset or 0)
 
 ### 0.4.7 (2020-09-15) Solved NULL error's & daily resets
 * (Dutchman) Implement Sentry

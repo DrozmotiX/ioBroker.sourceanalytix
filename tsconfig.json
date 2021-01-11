@@ -1,15 +1,16 @@
 {
 	"compileOnSave": true,
 	"compilerOptions": {
-		
+
 		"allowJs": true,
 		"checkJs": true,
-		
+
 		// do not compile anything, this file is just to configure type checking
 		"noEmit": true,
-		
+
 		"module": "commonjs",
 		"moduleResolution": "node",
+		"esModuleInterop": true,
 		// this is necessary for the automatic typing of the adapter config
 		"resolveJsonModule": true,
 
@@ -24,19 +25,15 @@
 		// "noUnusedLocals": true,
 		// "noUnusedParameters": true,
 
-		// Consider targetting es2017 or higher if you require the new NodeJS 8+ features
-		"target": "es2015",
-		
+		// Consider targetting es2019 or higher if you only support Node.js 12+
+		"target": "es2018",
+
 	},
 	"include": [
-		
 		"**/*.js",
 		"**/*.d.ts"
-		
 	],
 	"exclude": [
-		"node_modules/**",
-		"admin/**/*.d.ts",
-		"admin/**/*.js",
+		"node_modules/**"
 	]
 }
