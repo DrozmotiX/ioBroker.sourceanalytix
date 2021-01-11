@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.6",
+        "version": "0.4.8-alpha.7",
         "news": {
+            "0.4.8-alpha.7": {
+                "en": "* (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :\n    * Watt values : Ensure proper reading start (0 instead of current watt value)\n    * All calculations : correct handling  of device reset\n    \n* (Dutchman & ToTXR4Y) implement cached memory slot for initialisation value\n* (Dutchman & ToTXR4Y) Implement log messages if state attributes are changed\n* (Dutchman & ToTXR4Y) MajorChange ! : Replaced **Current_Reading** with **CumulativeReading**",
+                "de": "* (Dutchman & ToTXR4Y) Bugfix: Berechnungslogik neu erstellen, die Folgendes löst:\n    * Wattwerte: Stellen Sie einen korrekten Lesestart sicher (0 anstelle des aktuellen Wattwerts)\n    * Alle Berechnungen: korrekte Behandlung des Zurücksetzens des Geräts\n    \n* (Dutchman & ToTXR4Y) implementieren einen zwischengespeicherten Speichersteckplatz für den Initialisierungswert\n* (Dutchman & ToTXR4Y) Implementieren Sie Protokollnachrichten, wenn Statusattribute geändert werden\n* (Holländer & ToTXR4Y) MajorChange! : **Current_Reading** durch **CumulativeReading** ersetzt ",
+                "ru": "* (Голландец и ToTXR4Y) Исправление: перестроить логику расчета, которая решает:\n    * Значения ватт: Обеспечьте правильное начало чтения (0 вместо текущего значения ватт)\n    * Все расчеты: правильная обработка сброса устройства\n    \n* (Dutchman и ToTXR4Y) реализовать слот кэшированной памяти для значения инициализации\n* (Голландец и ToTXR4Y) Реализовать сообщения журнала, если атрибуты состояния изменены\n* (Голландец и ToTXR4Y) MajorChange! : **Current_Reading** заменено на **CumulativeReading** ",
+                "pt": "* (Holandês e ToTXR4Y) Correção de bug: Reconstruir a lógica de cálculo que resolve:\n    * Valores de watt: Garanta um início de leitura adequado (0 em vez do valor de watt atual)\n    * Todos os cálculos: manuseio correto da reinicialização do dispositivo\n    \n* (Dutchman & ToTXR4Y) implementa slot de memória em cache para valor de inicialização\n* (Dutchman & ToTXR4Y) Implementar mensagens de log se os atributos de estado forem alterados\n* (Holandês e ToTXR4Y) MajorChange! : Substituído **Current_Reading** por **CumulativeReading** ",
+                "nl": "* (Dutchman & ToTXR4Y) Bugfix: Herbouw berekeningslogica die het volgende oplost:\n    * Watt-waarden: zorg voor een goede start van het lezen (0 in plaats van de huidige watt-waarde)\n    * Alle berekeningen: correcte afhandeling van apparaatreset\n    \n* (Dutchman & ToTXR4Y) implementeren geheugenslot in cache voor initialisatiewaarde\n* (Dutchman & ToTXR4Y) Implementeer logberichten als statusattributen worden gewijzigd\n* (Dutchman & ToTXR4Y) MajorChange! : Vervangen **Current_Reading** door **CumulativeReading** ",
+                "fr": "* (Dutchman & ToTXR4Y) Bugfix: Reconstruire la logique de calcul qui résout:\n    * Valeurs en watts: assurez-vous que la lecture commence correctement (0 au lieu de la valeur actuelle du watt)\n    * Tous les calculs: gestion correcte de la réinitialisation de l'appareil\n    \n* (Dutchman & ToTXR4Y) implémentent un emplacement de mémoire mis en cache pour la valeur d'initialisation\n* (Dutchman & ToTXR4Y) Implémenter les messages de journal si les attributs d'état sont modifiés\n* (Néerlandais et ToTXR4Y) MajorChange! : Remplacé **Current_Reading** par **CumulativeReading** ",
+                "it": "* (Dutchman & ToTXR4Y) Bugfix: ricostruire la logica di calcolo che risolve:\n    * Valori in Watt: assicurati che la lettura inizi correttamente (0 invece del valore attuale in Watt)\n    * Tutti i calcoli: corretta gestione del ripristino del dispositivo\n    \n* (Dutchman & ToTXR4Y) implementano uno slot di memoria cache per il valore di inizializzazione\n* (Dutchman & ToTXR4Y) Implementa i messaggi di log se gli attributi di stato vengono modificati\n* (Dutchman & ToTXR4Y) MajorChange! : Sostituito **Current_Reading** con **CumulativeReading** ",
+                "es": "* (Holandés y ToTXR4Y) Corrección de error: Reconstruir la lógica de cálculo que resuelve:\n    * Valores de vatios: asegúrese de que la lectura comience correctamente (0 en lugar del valor de vatios actual)\n    * Todos los cálculos: manejo correcto del reinicio del dispositivo\n    \n* (Dutchman & ToTXR4Y) implementan una ranura de memoria en caché para el valor de inicialización\n* (Dutchman & ToTXR4Y) Implementar mensajes de registro si se cambian los atributos de estado\n* (Holandés y ToTXR4Y) ¡MajorChange! : Reemplazado **Current_Reading** con **CumulativeReading** ",
+                "pl": "* (Holender i ToTXR4Y) Poprawka błędu: Odbuduj logikę obliczeń, która rozwiązuje:\n    * Wartości watów: Zapewnij prawidłowy początek odczytu (0 zamiast aktualnej wartości wata)\n    * Wszystkie obliczenia: poprawna obsługa resetu urządzenia\n    \n* (Holender i ToTXR4Y) implementują gniazdo pamięci podręcznej dla wartości inicjalizacji\n* (Holender i ToTXR4Y) Implementuj komunikaty dziennika, jeśli atrybuty stanu ulegną zmianie\n* (Holender i ToTXR4Y) MajorChange! : Zastąpiono ** Current_Reading ** ** CumulativeReading **",
+                "zh-cn": "*（Dutchman＆ToTXR4Y）错误修正：重建解决以下问题的计算逻辑：\n    *瓦特值：确保正确的读取开始（0代替当前瓦特值）\n    *所有计算：正确处理设备重置\n    \n*（Dutchman＆ToTXR4Y）实现了用于初始化值的缓存内存插槽\n*（Dutchman＆ToTXR4Y）如果状态属性更改，则实现日志消息\n*（荷兰人和ToTXR4Y）MajorChange！ ：将** Current_Reading **替换为** CumulativeReading **"
+            },
             "0.4.8-alpha.6": {
                 "en": "* (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :\n    * Watt values : Ensure proper reading start (0 instead of current watt value)\n    * All calculations : correct handling  of device reset\n    \n* (Dutchman & ToTXR4Y) implement cached memory slot for initialisation value\n* (Dutchman & ToTXR4Y) Implement log messages if state attributes are changed\n* (Dutchman & ToTXR4Y) MajorChange ! : Replaced **Current_Reading** with **CumulativeReading**",
                 "de": "* (Dutchman & ToTXR4Y) Bugfix: Berechnungslogik neu erstellen, die Folgendes löst:\n    * Wattwerte: Stellen Sie einen korrekten Lesestart sicher (0 anstelle des aktuellen Wattwerts)\n    * Alle Berechnungen: korrekte Behandlung des Zurücksetzens des Geräts\n    \n* (Dutchman & ToTXR4Y) implementieren einen zwischengespeicherten Speichersteckplatz für den Initialisierungswert\n* (Dutchman & ToTXR4Y) Implementieren Sie Protokollnachrichten, wenn Statusattribute geändert werden\n* (Holländer & ToTXR4Y) MajorChange! : **Current_Reading** durch **CumulativeReading** ersetzt ",
@@ -230,18 +242,6 @@
                 "es": "Varios errores corregidos",
                 "pl": "Naprawiono kilka błędów",
                 "zh-cn": "修复了几个错误"
-            },
-            "0.2.0": {
-                "en": "Public Release candidate",
-                "de": "Öffentlicher Release-Kandidat",
-                "ru": "Публичный релиз кандидата",
-                "pt": "Candidato de lançamento público",
-                "nl": "Public Release-kandidaat",
-                "fr": "Candidat à la diffusion publique",
-                "it": "Candidato a rilascio pubblico",
-                "es": "Candidato de lanzamiento público",
-                "pl": "Kandydat na Public Release",
-                "zh-cn": "公开发布候选人"
             }
         },
         "title": "SourceAnalytix",

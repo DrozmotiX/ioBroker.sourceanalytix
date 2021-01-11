@@ -58,7 +58,7 @@ When the adapter crashes or an other Code error happens, this error message that
 
 ## Changelog
 
-### 0.4.8-alpha.6 (2021-01-11) Implement state CumulativeReading
+### 0.4.8-alpha.7 (2021-01-11) Implement state CumulativeReading
 * (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :
     * Watt values : Ensure proper reading start (0 instead of current watt value)
     * All calculations : correct handling  of device reset

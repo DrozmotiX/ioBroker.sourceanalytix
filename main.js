@@ -1064,9 +1064,17 @@ class Sourceanalytix extends utils.Adapter {
                 this.log.debug(`Calculation outcome ${reading} valueAtDeviceReset ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
 
             } else if ((reading < calcValues.valueAtDeviceInit || calcValues.valueAtDeviceInit == null) && currentCath !== 'Watt') {
-                // this.log.debug(`New reading ${reading} lower than stored value ${calcValues.valueAtDeviceInit}`);
+                this.log.debug(`New reading ${reading} lower than stored value ${calcValues.valueAtDeviceInit}`);
+                let initValue;
 
-                this.log.warn(`Device reset detected for ${stateID} store current value ${calcValues.valueAtDeviceInit} to value of reset`);
+                // Logic to check if value is at initialisation (init value was not present or 0)
+                if (calcValues.valueAtDeviceInit == null){
+                    initValue = 0;
+                } else {
+                    // Should only occur if reading < previous init value (if known)
+                    this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${initValue}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
+                    initValue = calcValues.valueAtDeviceInit;
+                }
 
                 // Prepare object array for extension
                 const obj = {};
@@ -1075,12 +1083,12 @@ class Sourceanalytix extends utils.Adapter {
                 obj.common.custom[this.namespace] = {};
 
                 // Extend valueAtDeviceReset with current & init value at object and memory
-                obj.common.custom[this.namespace].valueAtDeviceReset = calcValues.valueAtDeviceInit + calcValues.valueAtDeviceReset;
+                obj.common.custom[this.namespace].valueAtDeviceReset = initValue + calcValues.valueAtDeviceReset;
                 obj.common.custom[this.namespace].valueAtDeviceInit = reading;
 
-                this.activeStates[stateID].calcValues.valueAtDeviceReset = calcValues.valueAtDeviceInit + calcValues.valueAtDeviceReset;
-                //TODO: Add all attributes to extend object ensuring propper obj values
-                //ToDo : THe get/set value is a workarround for Dev 0 bug
+                this.activeStates[stateID].calcValues.valueAtDeviceReset = initValue + calcValues.valueAtDeviceReset;
+                //TODO: Add all attributes to extend object ensuring proper obj values
+                //ToDo : THe get/set value is a workaround for Dev 0 bug
 
                 //Ensure current value is set again after object extension as Workaround for Dev:0 bug
                 const objval = await this.getForeignStateAsync(stateID)
@@ -1104,10 +1112,10 @@ class Sourceanalytix extends utils.Adapter {
             });
 
             //TODO; implement counters
-            // 	// Handle impuls counters
+            // 	// Handle impulse counters
             // 	if (obj_cust.state_type == 'impulse'){
 
-            // 		// cancel calculation in case of impuls counter
+            // 		// cancel calculation in case of impulse counter
             // 		return;
 
             // 	}
