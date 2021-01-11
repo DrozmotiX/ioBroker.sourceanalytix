@@ -1043,12 +1043,13 @@ class Sourceanalytix extends utils.Adapter {
             if (reading && typeof (reading) === 'number') {
                 if (currentCath === 'Watt') {
                     // Add calculated watt reading to stored totals
-                    reading = reading + calcValues.cumulativeValue;
+                    reading = (reading * Math.pow(10, (currentExponent - targetExponent))) + calcValues.cumulativeValue;
                 } else {
                     reading = reading * Math.pow(10, (currentExponent - targetExponent));
                 }
             } else {
 
+                //ToDo: Check if this is correct
                 reading = value.val * Math.pow(10, (currentExponent - targetExponent));
             }
 
