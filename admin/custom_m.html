@@ -4,66 +4,66 @@
 
     <section>
         <div class="row">
-    
+
             <div class="input-field col s2">
                 <input type="checkbox" data-field="enabled" data-default="false" />
                 <span class="translate">enabled</span>
             </div>
-    
-    
+
+
             <div class="input-field col s4">
                 <input placeholder="Leave empty to use object's name" type="text" data-field="alias" />
                 <label for="alias" class="translate">Alias</label>
             </div>
-    
+
             <div class="input-field col s3">
                 <select id="elements-select-priceCat" data-field="selectedPrice">
                     <option value="" disabled selected>Choose option</option>
                 </select>
                 <label for="elements-select-priceCat" class="translate">Select Type</label>
             </div>
-    
+
             <div class="input-field col s3">
                 <select id="elements-select-unitCat" data-field="selectedUnit">
                     <option value="" disabled selected>Choose option</option>
                 </select>
                 <label for="elements-select-unitCat" class="translate">Select Unit</label>
             </div>
-    
-    
+
+
             <!--
                 <div class="input-field col s2">
                     <input data-field="impuls" type="number" data-default="400" />
                     <label for="impuls" class="translate">counter pulse</label>
                 </div>
                 -->
-    
+
         </div>
     </section>
-    
+
     <p class="center translate title">Storage configuration</p>
-    
+
     <section>
-    
+
         <div class="row">
-    
+
             <div class="input-field col s2">
                 <input type="checkbox" data-field="costs" data-default="false" />
                 <span class="translate">Costs</span>
             </div>
-    
-    
+
+
             <div class="switch col s4">
                 <label>
                     <span class="translate">(without basic charge)</span>
                     <input type="checkbox" class="value" id="basicCharge"/>
-                    
+
                     <span class="lever"></span>
                     <span class="translate">(including basic charge)</span>
                 </label>
             </div>
-    
-    
+
+
             <!-- <div class="switch col s4">
                 <label>
                     (without basic charge)
@@ -72,26 +72,26 @@
                     (including basic charge)
                 </label>
             </div> -->
-    
-    
+
+
             <div class="input-field col s2">
                 <input type="checkbox" data-field="consumption" data-default="false" />
                 <span class="translate">consumption</span>
             </div>
-    
+
             <div class="input-field col s2">
                 <input type="checkbox" data-field="meter_values" data-default="false" />
                 <span class="translate">counter values</span>
             </div>
         </div>
-    
+
     </section>
-    
+
     <p class="center translate title">Please enter start values</p>
-    
+
     <section>
         <!-- <h6 class="translate">Please enter start values in kWh or m3 !</h6> -->
-    
+
         <div class="row">
             <div class="input-field col s2">
             </div>
@@ -117,7 +117,7 @@
             </div>
         </div>
     </section>
-    
+
     </script>
 
 <!-- translations to-do = ALL !-->
@@ -178,9 +178,9 @@
 
         $(selector).empty();
         if (unit) {
-            $(selector).append('<option vlaue="" selected>' + _('automatically') + '</option>');
+            $(selector).append('<option value="" selected>' + _('automatically') + '</option>');
         } else {
-            $(selector).append('<option vlaue="" selected>' + _('Choose') + '</option>');
+            $(selector).append('<option value="" selected>' + _('Choose') + '</option>');
 
         }
         // console.log(`Selector ${selector} of data ${data}`)
@@ -189,7 +189,7 @@
         for (let d in data) {
             if (d !== 'remove') {
                 // console.log(`Data D ${d} of data ${data[d]}`)
-                $(selector).append('<option vlaue="' + data[d] + '">' + data[d] + '</option>');
+                $(selector).append('<option value="' + data[d] + '">' + data[d] + '</option>');
             }
         }
 

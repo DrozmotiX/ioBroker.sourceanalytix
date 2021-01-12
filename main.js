@@ -234,31 +234,16 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Check and load unit definition
 				let useUnit = '';
-				if (
-					customData.selectedUnit !== 'automatically'
-                    && customData.selectedUnit !== 'automatisch'
-                    && customData.selectedUnit !== 'автоматически'
-                    && customData.selectedUnit !== 'automaticamente'
-                    && customData.selectedUnit !== 'automatisch'
-                    && customData.selectedUnit !== 'automatiquement'
-                    && customData.selectedUnit !== 'automaticamente'
-                    && customData.selectedUnit !== 'automáticamente'
-                    && customData.selectedUnit !== 'automatycznie'
-                    && customData.selectedUnit !== '自动'
-				) {
-
+				// Check if a unit is manually selected, if yes use that one
+				if (this.unitPriceDef.unitConfig[customData.selectedUnit]) {
 					useUnit = customData.selectedUnit;
 
-				} else if (commonData.unit && commonData.unit !== '' && !this.unitPriceDef.unitConfig[commonData.unit]) {
-					this.log.error(`Automated united detection for ${stateID} failed, cannot execute calculations !`);
-					this.log.error(`Please choose unit manually in state configuration`);
-					return;
-
+				// If not, try to automatically get unit from state object
 				} else if (commonData.unit && commonData.unit !== '' && this.unitPriceDef.unitConfig[commonData.unit]) {
 
 					useUnit = commonData.unit;
 
-				} else if (!commonData.unit || commonData.unit === '') {
+				} else {
 					this.log.error(`No unit defined for ${stateID}, cannot execute calculations !`);
 					this.log.error(`Please choose unit manually in state configuration`);
 					return;

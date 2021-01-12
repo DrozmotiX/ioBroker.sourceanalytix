@@ -86,9 +86,9 @@
 
 			$(selector).empty();
 			if (unit) {
-				$(selector).append('<option vlaue="" selected>' + _('automatically') + '</option>');
+				$(selector).append('<option value="" selected>' + _('automatically') + '</option>');
 			} else {
-				$(selector).append('<option vlaue="" selected>' + _('Choose') + '</option>');
+				$(selector).append('<option value="" selected>' + _('Choose') + '</option>');
 
 			}
 			// console.log(`Selector ${selector} of data ${data}`)
@@ -97,13 +97,13 @@
 			for (let d in data) {
 				if (d !== 'remove' && d == 'undefined') {
 					// console.log(`Data D ${d} of data ${data[d]}`)
-					$(selector).append('<option vlaue="' + data[d] + '">' + data[d] + '</option>');
+					$(selector).append('<option value="' + data[d] + '">' + data[d] + '</option>');
 				}
 			}
 
 			// instances = M.FormSelect.init($(selector));
 
-			// $(selector).on('change', (event) => {
+			// $(selector).on('change', (evq		ent) => {
 			// _onChange();
 			// })
 		}
@@ -234,35 +234,36 @@
 						<span class="translate">Previous</span>
 					</div>
 				</div>
+				<!--
+                                <p class="translate title">Analyse the previous x period (not yet implemented)</p>
 
-				<p class="translate title">Analyse the previous x period (not yet implemented)</p>
-
-				<div class="row">
-					<div class="input-field col s2">
-						<input type="checkbox" class="value" id="store_periode" />
-						<span class="translate">period of time</span>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="keep_days">
-						<label for="keep_days" class="translate">number of days</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="keep_weeks">
-						<label for="keep_weeks" class="translate">Number of weeks</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="keep_months">
-						<label for="keep_months" class="translate">number of months</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="keep_quarters">
-						<label for="keep_quarter" class="translate">Number of quarters</label>
-					</div>
-					<div class="input-field col s2">
-						<input type="number" class="value" id="keep_years">
-						<label for="keep_years" class="translate">Number of years</label>
-					</div>
-				</div>
+                                <div class="row">
+                                    <div class="input-field col s2">
+                                        <input type="checkbox" class="value" id="store_periode" />
+                                        <span class="translate">period of time</span>
+                                    </div>
+                                    <div class="input-field col s2">
+                                        <input type="number" class="value" id="keep_days">
+                                        <label for="keep_days" class="translate">number of days</label>
+                                    </div>
+                                    <div class="input-field col s2">
+                                        <input type="number" class="value" id="keep_weeks">
+                                        <label for="keep_weeks" class="translate">Number of weeks</label>
+                                    </div>
+                                    <div class="input-field col s2">
+                                        <input type="number" class="value" id="keep_months">
+                                        <label for="keep_months" class="translate">number of months</label>
+                                    </div>
+                                    <div class="input-field col s2">
+                                        <input type="number" class="value" id="keep_quarters">
+                                        <label for="keep_quarter" class="translate">Number of quarters</label>
+                                    </div>
+                                    <div class="input-field col s2">
+                                        <input type="number" class="value" id="keep_years">
+                                        <label for="keep_years" class="translate">Number of years</label>
+                                    </div>
+                                </div>
+                -->
 
 <!--				<p class="translate title">Logging settings</p>-->
 
