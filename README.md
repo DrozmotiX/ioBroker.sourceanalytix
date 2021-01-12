@@ -13,14 +13,120 @@
 Detailed analysis of your Energy, gas and liquid consumptions
 Any source (kWh, Wh, Watt, l/h or m3 )can be used for data analyses :
 
+## Features
+
+#### Basic features
+| state | functionality | Description |
+|--|--|--|
+| >device<.cumulativeReading |  [accumulate values](#cumulativeReading) | Calculate cumulated values <br/> including [transformation](#valueTransformation) <br/>cumulated value can be change by following [these steps](#cumulativeReading-Reset) |
+| >Device<.>Year<.>Year statistics< | [Yearly statistics](#Year-Statistics) | Store statistic information of the Year at level <br/> >device.>thisYear<.>selected period< |
+| >Device<.>Year<.>currentYear | [Current Year statistics](#Current-Period)  | Store statistic information of the current Year at level <br/> >device.>currentYear<.>selected period< |
+| >Year<.>currentYear.>Consumption type < | [Consumption](#consumptionCalculation) | Root folder to store consumption data <br/> (current value - previous value). <br/> Can be consumption or delivery |
+| >Year<.>currentYear.>Cost type < | [Costs](#costCalculation) | Root folder to store cost data. <br/> current value * cost + basic price <br/> Can be consumption or delivery |
+
+All state locations are grouped by state name and separated in period and [Category](#Categories) structures. <br/> 
+Calculations will be automatically handled and values transformed to the proper unit  as defined in [Price-Definitions](#Price-DefinitionsPrice-Definitions).
+
+## How-To
+
+### State-Activation!  ![Main Settings](admin/readmeDocu/settingKey.png)
+![Main Settings](admin/readmeDocu/stateSettings.png)
+
+| Configuration Item | Description |
+|--|--|
+| enabled | Activate state for SourceAnalytix | 
+| Alias | default: name of state, Name of device as shown in SA|
+| Select Type | mandatory, choose you calculation type to calculate according [Price-Definitions](#Price-Definitions) |
+| Select Unit | default: automatically, choose manually if needed (see logs) |
+| Costs       | Cost calculation |
+| with(out) basic charge  | incl;ude basic charge in cost calculation |
+| consumption | calculate consumption data |
+| counter values | store current counter values |
+| Meter reading at </br> 
+  beginning of x : | Start value of counter for specific period to handle </br> calculation current - startValue|
+
+### Basic configuration (adapter instance)
+![Main Settings](admin/readmeDocu/mainSettings.png)
+
+### Price-Definitions
+![Main Settings](admin/readmeDocu/priceSettings.png)
+
+#### cumulativeReading-Reset
+![Main Settings](admin/readmeDocu/cumulativeReading-Reset.png)
+
+    **Stop** Sourceanalytix !
+    Go to Admin > Objects
+    Enter expert mode
+    Find the related cumulativeReading for your device
+    Adjust the value to your needs
+    (Only writable if expert mode on)
+
+#### cumulativeReading
+> ToDo : Describe logic<
+
+#### consumptionCalculation
+> ToDo : Describe logic<
+
+#### costCalculation
+> ToDo : Describe logic<
+ 
+#### valueTransformation
+> ToDo : Document link to library (document lib also !)<br/>
+> ToDo : Document watt to kWh transformation<br/>
+> ToDo : Document unit transformation (like Watt, to Wh to KWh<br/>   
+
+#### Year-Statistics
+Store statistic information of consumption/prices and/or costs/earnings at the Year level <br/> 
+> >device.>thisYear<.>cathegory<.>selected period
+
+This information is typically used for data storage and historical comparisons. <br/>
+States are grouped by specified period
+(like year 2020 vs 2021, ore february 2019 vs february ect)
+
+>#### *Weeks* <br/>
+  >Device<.>Year<.>costs/earnings <br/> 
+> consumption/delivery<.weeks.**weekNr**<
+>#### *Months* <br/>
+  >Device<.>Year<.>costs/earnings <br/> 
+> consumption/delivery<.months.**Month**<
+>#### *Quarters* <br/>
+  >Device<.>Year<.>costs/earnings <br/> 
+> consumption/delivery<.quarters.**Qx**<
+
+#### Current-Period
+Store statistic information of the current Year at level :
+>device.>currentYear<.>selected period
+
+>#### *Weeks* <br/>
+  >Device<.>Year<.>costs/earnings <br/> 
+> consumption/delivery<.weeks.**weekNr**<
+>#### *Months* <br/>
+  >Device<.>Year<.>costs/earnings <br/> 
+> consumption/delivery<.months.**Month**<
+>#### *Quarters* <br/>
+  >Device<.>Year<.>costs/earnings 
+  > consumption/delivery<.quarters.**Qx**<
+
+This information is typically used for daily/weekly/monthly calculation of <br/> 
+costs/earnings and/or consumption/delivery grouped by specified period
+
+>ToDo : Add screenshots<
+
+#### Categories
+| category | type | Description |
+|--|--|--|
+| costs | financial | Result of calculation value * cost price + basic price |
+| earnings | financial | Result of calculation value * earning price + basic price |
+| consumption | calculations | Result of calculation value as cost - start value <br/>  of Year/Month/Quarter  etc |
+| delivery | calculations | Result of calculation value as delivery - start value <br/>  of Year/Month/Quarter  etc |
+
+
+<!--
 * Trace consumption daily, weekly, monthly, quarterly, yearly
 * calculate costs (current price is configurable)
 * Can be used for Power Consumption, liquids, and GAS
 * Input values can be wh/kWh/Watt/m3/l
-
-## How-To
-
-Please provide your feedback here https://forum.iobroker.net/topic/31932/major-update-sourceanalytix-0-4-0-complete-code-rebuild
+-->
 
 This adapter has is roots with thanks to pix back in 2016 
 https://forum.iobroker.net/viewtopic.php?f=21&t=2262
@@ -28,11 +134,8 @@ https://forum.iobroker.net/viewtopic.php?f=21&t=2262
 Which has been improved by @hadering and published on github
 https://github.com/hdering/homematic_verbrauchszaehler
 
-## Known issues
-<>
-
 ## To-Do
-* [ ] Documentation
+* [ ] Documentation!
 * [ ] Period calculation selectable but not yet implemented
 * [ ] monthly cost price not yet implemented in calculation
 * [ ] recalculation based on meter values (configurable by date)
@@ -59,19 +162,20 @@ When the adapter crashes or an other Code error happens, this error message that
 ## Changelog
 ### __WORK IN PROGRESS__
 #### Breaking changes
-* (Dutchman) **Breaking!!! Move current values to currentYear*
-* (Dutchman & ToTXR4Y) MajorChange ! : Replaced **Current_Reading** with **CumulativeReading**
+* (Dutchman) **Breaking!!! Move current values to currentYear* [#135]()https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/135
+* (Dutchman & ToTXR4Y) MajorChange ! : Replaced **Current_Reading** with **CumulativeReading** [226](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/226)
 
 #### New Features
 * (Dutchman) Code cleanup
-* (Dutchman) Add back "currentYear"
+* (Dutchman) Add back "currentYear" 
 * (Dutchman) Weekly reset of weekdays
 * (Dutchman) Calculation for all states
-* (Dutchman) Calculation for previous states
+* (Dutchman) Calculation for previous states [#242](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/242)
 * (Dutchman) Optimized error reporting (Sentry)
 * (Dutchman) Removed unneeded settings in configuration
 * (Dutchman) Implemented new configuration for "currentYear"
-* (Dutchman & ToTXR4Y) implement cached memory slot for initialisation value
+* (Dutchman & ToTXR4Y) implement "05_currentYear" in year root folder [#280](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/280)
+* (Dutchman & ToTXR4Y) implement cached memory slot for initialisation value [#226](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/226)
 * (Dutchman & ToTXR4Y) Implement log messages if state attributes are changed
 * (Dutchman & ToTXR4Y) Implement automatically detection of currency from admin settings [#247](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/247)
 
@@ -81,7 +185,7 @@ When the adapter crashes or an other Code error happens, this error message that
 * (Dutchman) Bugfix : Cannot read property 'stateDetails' of null
 * (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :
   * Watt values : Ensure proper reading start (0 instead of current watt value)
-    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value)
+    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value) (#281)(https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/281)
   * All calculations : correct handling  of device reset (if value is reset or 0)
 
 ### 0.4.7 (2020-09-15) Solved NULL error's & daily resets
