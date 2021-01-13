@@ -160,9 +160,9 @@ When the adapter crashes or an other Code error happens, this error message that
 -->
 
 ## Changelog
-### 0.4.8-alpha.8 (2021-01-13)
+### 0.4.8-alpha.9 (2021-01-13)
 #### Breaking changes
-* (Dutchman) Breaking!!! Move current values to currentYear [#135]()https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/135
+* (Dutchman) Breaking!!! Move current values to currentYear [#135](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/135)
 * (Dutchman & ToTXR4Y) MajorChange !: Replaced **Current_Reading** with **CumulativeReading** [226](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/226)
 
 #### New Features
@@ -182,11 +182,14 @@ When the adapter crashes or an other Code error happens, this error message that
 
 #### BugFixes
 * (Dutchman) Bugfix : dev: 0 bug workaround
+* (Dutchman) Do not round cumulated reading
 * (Dutchman) Bugfix : Calculations for "previous" values
+* (Dutchman) Bugfix : Avoid calculation of non-Initialised states
 * (Dutchman) Bugfix : Cannot read property 'stateDetails' of null
+* (Dutchman) Correct error handling of "Watt" state initialisation
 * (Dutchman & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :
   * Watt values : Ensure proper reading start (0 instead of current watt value)
-    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value) (#281)(https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/281)
+    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value) [#281](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/281)
   * All calculations : correct handling  of device reset (if value is reset or 0)
 
 ### 0.4.7 (2020-09-15) Solved NULL error's & daily resets
