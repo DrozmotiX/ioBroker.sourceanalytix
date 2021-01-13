@@ -241,6 +241,16 @@ class Sourceanalytix extends utils.Adapter {
 				cumulativeValue = cumulativeValue ? cumulativeValue : 0;
 				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)}`);
 
+				if (valueAtDeviceInit > cumulativeValue){
+					this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
+					return
+				}
+
+				if (valueAtDeviceReset > cumulativeValue){
+					this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
+					return
+				}
+
 				// Check and load unit definition
 				let useUnit = '';
 				// Check if a unit is manually selected, if yes use that one
