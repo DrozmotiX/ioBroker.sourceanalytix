@@ -237,7 +237,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`[buildStateDetailsArray] valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
 
 				// Read current known total value to memory (if present)
-				let cumulativeValue = await this.getCurrentTotal(stateID, newDeviceName);
+				let cumulativeValue = await this.getCumulatedValue(stateID, newDeviceName);
 				cumulativeValue = cumulativeValue ? cumulativeValue : 0;
 				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)}`);
 
@@ -571,6 +571,12 @@ class Sourceanalytix extends utils.Adapter {
 							valueAtDeviceReset: stateValues.valueAtDeviceReset !== undefined ? stateValues.valueAtDeviceReset : 0,
 							valueAtDeviceInit: stateValues.valueAtDeviceInit !== undefined ? stateValues.valueAtDeviceInit : 0
 						};
+
+						// Extend memory with objects for watt to kWh calculation
+						if (stateDetails.stateUnit === 'W') {
+							this.activeStates[stateID].calcValues.previousReadingWatt = null;
+							this.activeStates[stateID].calcValues.previousReadingWattTs = null;
+						}
 
 						// Extend object with start value [type] & update memory
 						obj.common.custom[this.namespace].start_day = reading;
@@ -975,11 +981,12 @@ class Sourceanalytix extends utils.Adapter {
 	 * proper deletion of state and object
 	 * @param {string} stateName - RAW state ID of monitored state
 	 */
+	async localDeleteState(stateName) {
 		try {
 			if (stateDeletion) {
-				const obj = await this.getObjectAsync(state);
+				const obj = await this.getObjectAsync(stateName);
 				if (obj) {
-					await this.delObjectAsync(state);
+					await this.delObjectAsync(stateName);
 				}
 			}
 		} catch (error) {
@@ -1410,44 +1417,41 @@ class Sourceanalytix extends utils.Adapter {
      * @param {string} [stateID]- ID of state
      * @param {object} [deviceName] - Name of device
      */
-	async getCurrentTotal(stateID, deviceName) {
+	async getCumulatedValue(stateID, deviceName) {
 		this.log.debug(`[getCumulatedValue] ${stateID }`);
 		let valueSource; // For debugging purpose
+		let currentCumulated // Cumulated value
 
 		// Check if previous reading exist in state
-
-
-		let previousReadingV4 = await this.getStateAsync(`${deviceName}.cumulativeReading`);
+		currentCumulated = await this.getStateAsync(`${deviceName}.cumulativeReading`);
 		// Check if value exist in cumulativeReading state (Version >= 0.4.8-alpha5)
-		if (!previousReadingV4 || previousReadingV4.val === 0) {
+		if (!currentCumulated || currentCumulated.val === 0) {
 
 			// If values does not exist or is 0, check Current_Reading (pre 0.4.8-alpha 5!)
-			previousReadingV4 = await this.getStateAsync(`${deviceName}.Current_Reading`);
-			if (!previousReadingV4 || previousReadingV4.val === 0) {
-				const previousReadingVold = await this.getStateAsync(`${deviceName}.Meter_Readings.Current_Reading`);
+			currentCumulated = await this.getStateAsync(`${deviceName}.Current_Reading`);
+			if (!currentCumulated || currentCumulated.val === 0) {
+				currentCumulated = await this.getStateAsync(`${deviceName}.Meter_Readings.Current_Reading`);
 				// If values does not exist or is 0, check Current_Reading (pre 0.4.0)
-				if (!previousReadingVold || previousReadingVold.val === 0) {
-					cumulatedTotal = 0;
+				if (!currentCumulated || currentCumulated.val === 0) {
 					valueSource = 'Fresh installation';
 					currentCumulated = 0;
+
 				} else {
-					cumulatedTotal = previousReadingVold.val;
 					valueSource = 'Version < 4';
-					this.log.debug(`Cumulative value for ${stateID} determined by using ${valueSource}}`);
+					currentCumulated = currentCumulated.val;
 				}
 			} else {
-				// Cumulative present and not 0, process normally
-				cumulatedTotal = previousReadingV4.val;
-				valueSource = 'Version >= 0.4.8-alpha5';
+				valueSource = 'Version <= 0.4.8-alpha7';
+				currentCumulated = currentCumulated.val;
 			}
 
 		} else {
 			// Cumulative present and not 0, process normally
-			cumulatedTotal = previousReadingV4.val;
-			valueSource = 'Version >= 0.4.8-alpha5';
+			currentCumulated = currentCumulated.val;
+			valueSource = 'Version >= 0.4.8-alpha7';
 		}
 		this.log.debug(`[getCumulatedValue] By using ${valueSource} :${currentCumulated}`);
-		return cumulatedTotal;
+		return currentCumulated;
 	}
 
 	/**
