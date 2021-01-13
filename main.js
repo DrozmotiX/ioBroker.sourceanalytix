@@ -309,7 +309,7 @@ class Sourceanalytix extends utils.Adapter {
 				};
 
 				// Extend memory with objects for watt to kWh calculation
-				if (stateInfo.common.unit === 'w') {
+				if (useUnit === 'W') {
 					this.activeStates[stateID].calcValues.previousReadingWatt = null;
 					this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 				}
