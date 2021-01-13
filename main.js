@@ -241,16 +241,6 @@ class Sourceanalytix extends utils.Adapter {
 				cumulativeValue = cumulativeValue ? cumulativeValue : 0;
 				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)}`);
 
-				if (valueAtDeviceInit > cumulativeValue){
-					this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-					return;
-				}
-
-				if (valueAtDeviceReset > cumulativeValue){
-					this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-					return;
-				}
-
 				// Check and load unit definition
 				let useUnit = '';
 				// Check if a unit is manually selected, if yes use that one
@@ -282,6 +272,26 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
 					return;
+				}
+
+				// Verify if value of initialisation of state > than current total cumulated value
+				if (valueAtDeviceInit > cumulativeValue){
+
+					// Ignore issue if categories = Watt, init value not used
+					if (useUnit !== 'W') {
+						this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
+						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+						return;
+					}
+				}
+
+				if (valueAtDeviceReset > cumulativeValue){
+					// Ignore issue if categories = Watt, init value not used
+					if (useUnit !== 'W') {
+						this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceReset}) > known cumulative value (${cumulativeValue}) cannot proceed`);
+						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+						return;
+					}
 				}
 
 				// Load price definition from settings & library
@@ -578,8 +588,6 @@ class Sourceanalytix extends utils.Adapter {
 							start_month: beforeReset.month === actualDate.month ? stateValues.start_month : reading,
 							start_quarter: beforeReset.quarter === actualDate.quarter ? stateValues.start_quarter : reading,
 							start_year: beforeReset.year === actualDate.year ? stateValues.start_year : reading,
-							valueAtDeviceReset: stateValues.valueAtDeviceReset !== undefined ? stateValues.valueAtDeviceReset : 0,
-							valueAtDeviceInit: stateValues.valueAtDeviceInit !== undefined ? stateValues.valueAtDeviceInit : 0
 						};
 
 						// Extend memory with objects for watt to kWh calculation
@@ -854,6 +862,8 @@ class Sourceanalytix extends utils.Adapter {
      * @param {boolean} [isCurrent=FALSE] - Store value in current Year
      */
 	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent) {
+		this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
+		this.log.debug(`[doLocalStateCreate] stateDetails : ${JSON.stringify(this.activeStates[stateID].stateDetails)}`);
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const dateRoot = isCurrent ? `currentYear` : actualDate.year;
@@ -1086,7 +1096,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 			this.log.debug(`[calculationHandler] reading value after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 			// Detect meter reset & ensure Cumulative calculation
-			if ((reading > calcValues.valueAtDeviceInit && calcValues.valueAtDeviceInit != null) && currentCath !== 'Watt') {
+			if ((reading >= calcValues.valueAtDeviceInit && calcValues.valueAtDeviceInit != null) && currentCath !== 'Watt') {
 				this.log.debug(`[calculationHandler] New reading ${reading} bigger than stored value ${calcValues.valueAtDeviceInit} processing normally`);
 				this.log.debug(`[calculationHandler] Adding ${reading} to stored value ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
 
@@ -1140,7 +1150,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.activeStates[stateID]['calcValues'].cumulativeValue = reading;
 			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(this.activeStates[stateID])})`);
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.cumulativeReading`, {
-				val: await this.roundDigits(reading),
+				val: reading,
 				ack: true
 			});
 
