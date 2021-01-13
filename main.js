@@ -21,7 +21,7 @@ const basicPreviousStates = ['01_previousDay', '02_previousWeek', '03_previousMo
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const stateDeletion = true, previousCalculationRounded = {};
-const storeSettings = {}, previousStateVal = {};
+const storeSettings = {};
 let calcBlock = null; // Global variable to block all calculations
 let delay = null; // Global array for all running timers
 let useCurrency = null;
@@ -498,12 +498,20 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.info(`Enable SourceAnalytix for : ${stateID}`);
 						await this.buildStateDetailsArray(id);
 						this.log.debug(`Active state array after enabling ${stateID} : ${JSON.stringify(this.activeStates)}`);
-						await this.initialize(stateID);
+						if (this.activeStates[stateID]){
+							await this.initialize(stateID);
+						} else {
+							this.log.warn(`[onObjectChange - new] No stateDetails found for ${stateID}, cancel initialisation`);
+						}
 					} else {
 						this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
 						await this.buildStateDetailsArray(id);
 						this.log.debug(`Active state array after updating configuration of ${stateID} : ${JSON.stringify(this.activeStates)}`);
-						await this.initialize(stateID);
+						// Only run initialisation if state is successfully created during buildStateDetailsArray
+						if (this.activeStates[stateID]){
+							await this.initialize(stateID);
+							this.log.warn(`[onObjectChange - update] No stateDetails found for ${stateID}, cancel initialisation`);
+						}
 					}
 
 				} else if (this.activeStates[stateID]) {
@@ -539,11 +547,14 @@ class Sourceanalytix extends utils.Adapter {
 				// Avoid unneeded calculation if value is equal to known value in memory
 				// 10-01-2021 : disable IF check for new value to anlyse if this solve's 0 watt calc bug
 				// 11-01-2021 : removing if successfully result, but need to check debounce !
-				// if (previousStateVal[id] !== state.val) {
 
 				// Handle calculation for state
-				this.calculationHandler(id, state);
-				previousStateVal[id] = state.val;
+				// Check if for some reason calculation handler ist called for an object not initialised
+				if (this.activeStates[id]){
+					this.calculationHandler(id, state);
+				} else {
+					this.log.debug(`[onStateChange] state not initialised, calculation cancelled]`);
+				}
 
 				// } else {
 				//     this.log.debug(`Update of state ${id} received with equal value ${state.val} ignoring`);
@@ -553,7 +564,7 @@ class Sourceanalytix extends utils.Adapter {
 		} catch (error) {
 			this.errorHandling(`[onStateChange] for ${id}`, error);
 		}
-	}
+		}
 
 	/**
      * Daily logic to store start values in memory and previous values at states
@@ -1034,6 +1045,13 @@ class Sourceanalytix extends utils.Adapter {
 			// Verify if received value is null or undefined
 			if (!stateID){
 				// Cancel operation when function iis called with empty stateID
+				return;
+			}
+
+			// Check if for some reason calculation handler ist called for an object not initialised
+			if (!this.activeStates[stateID]){
+
+				this.errorHandling(`calculationHandler`, `Called for non-initialised state ${stateID}`);
 				return;
 			}
 
