@@ -243,12 +243,12 @@ class Sourceanalytix extends utils.Adapter {
 
 				if (valueAtDeviceInit > cumulativeValue){
 					this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-					return
+					return;
 				}
 
 				if (valueAtDeviceReset > cumulativeValue){
 					this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-					return
+					return;
 				}
 
 				// Check and load unit definition
@@ -1383,7 +1383,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			const calcValues = this.activeStates[stateID].calcValues;
 
-			this.log.debug(`[wattToWattHour] c Watt to kWh, current reading : ${value.val} previousReading : ${JSON.stringify(calcValues}`);
+			this.log.debug(`[wattToWattHour] Watt to kWh, current reading : ${value.val} previousReading : ${JSON.stringify(calcValues)}`);
 
 			// Prepare needed data to handle calculations
 			const readingData = {
@@ -1430,7 +1430,7 @@ class Sourceanalytix extends utils.Adapter {
 	async getCumulatedValue(stateID, deviceName) {
 		this.log.debug(`[getCumulatedValue] ${stateID }`);
 		let valueSource; // For debugging purpose
-		let currentCumulated // Cumulated value
+		let currentCumulated; // Cumulated value
 
 		// Check if previous reading exist in state
 		currentCumulated = await this.getStateAsync(`${deviceName}.cumulativeReading`);
