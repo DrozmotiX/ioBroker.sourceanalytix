@@ -160,7 +160,7 @@ When the adapter crashes or an other Code error happens, this error message that
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.4.8-alpha.8 (2021-01-13)
 #### Breaking changes
 * (Dutchman) Breaking!!! Move current values to currentYear [#135]()https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/135
 * (Dutchman & ToTXR4Y) MajorChange !: Replaced **Current_Reading** with **CumulativeReading** [226](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/226)

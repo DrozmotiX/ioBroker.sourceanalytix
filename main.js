@@ -143,7 +143,7 @@ class Sourceanalytix extends utils.Adapter {
 				calcBlock = false;
 			}, 500);
 
-			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for ${count} states`);
+			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for ${count - 1} states`);
 			// this.cleanupUnused()
 
 		} catch (error) {
