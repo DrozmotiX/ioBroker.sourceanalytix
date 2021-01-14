@@ -608,10 +608,6 @@ class Sourceanalytix extends utils.Adapter {
 							this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 						}
 
-						// Extend object with start value [type] & update memory
-						obj.common.custom[this.namespace].start_day = reading;
-						this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
-
 						//At week reset ensure current week values are moved to previous week and current set to 0
 						if (beforeReset.week !== actualDate.week) {
 							for (const x in weekdays) {

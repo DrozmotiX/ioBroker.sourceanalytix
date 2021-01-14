@@ -236,7 +236,6 @@ Sentry.io is a service for developers to get an overview about errors from their
 When the adapter crashes or an other Code error happens, this error message that also appears in the ioBroker log is submitted to Sentry. When you allowed iobroker GmbH to collect diagnostic data then also your installation ID (this is just a unique ID **without** any additional infos about you, email, name or such) is included. This allows Sentry to group errors and show how many unique users are affected by such an error. All of this helps me to provide error free adapters that basically never crashs. 
 
 
-## Changelog
 
 <!--
     Placeholder for the next version (at the beginning of the line):
@@ -244,6 +243,9 @@ When the adapter crashes or an other Code error happens, this error message that
 -->
 
 ## Changelog
+
+### 0.4.8-alpha.11 (2021-01-14)
+* (Dutchman) Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)
 
 ### 0.4.8-alpha.10 (2021-01-14)
 * (Dutchman) Bugfix : Avoid loop if init value is set and > reading

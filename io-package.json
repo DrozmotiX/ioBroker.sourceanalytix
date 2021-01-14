@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.10",
+        "version": "0.4.8-alpha.11",
         "news": {
+            "0.4.8-alpha.11": {
+                "en": "Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)",
+                "de": "Bugfix: Stellen Sie sicher, dass das tägliche Zurücksetzen den kumulativen Speicherwert nicht zerstört (Behebt NULL-Werte für Watt nach dem Zurücksetzen bei Nacht).",
+                "ru": "Исправление: убедитесь, что ежедневный сброс не уничтожает совокупное значение памяти (исправляет значения NULL для ватт после ночного сброса)",
+                "pt": "Correção de bug: garantir que a reinicialização diária não destrua o valor cumulativo da memória (corrige os valores NULL para Watt após a reinicialização noturna)",
+                "nl": "Bugfix: zorg ervoor dat dagelijkse reset de cumulatieve geheugenwaarde niet vernietigt (repareert NULL-waarden voor Watt na nachtreset)",
+                "fr": "Correctif: assurez-vous que la réinitialisation quotidienne ne détruit pas la valeur de mémoire cumulée (corrige les valeurs NULL pour Watt après la réinitialisation de nuit)",
+                "it": "Bugfix: assicurarsi che il ripristino giornaliero non distrugga il valore della memoria cumulativa (risolve i valori NULL per Watt dopo il ripristino notturno)",
+                "es": "Corrección de error: asegúrese de que el reinicio diario no destruya el valor de memoria acumulativo (corrige los valores NULL para Watt después del reinicio nocturno)",
+                "pl": "Poprawka: Upewnij się, że codzienny reset nie niszczy skumulowanej wartości pamięci (naprawia wartości NULL dla watów po resetowaniu nocnym)",
+                "zh-cn": "错误修正：确保每日重设不会破坏累积内存值（夜间重设后修复Watt的NULL值）"
+            },
             "0.4.8-alpha.10": {
                 "en": "Bugfix : Avoid loop if init value is set and > reading\nBugfix : Throw error if value is NULL for troubleshooting instead of handling incorrect calculation",
                 "de": "Bugfix: Schleife vermeiden, wenn Init-Wert gesetzt ist und> lesen\nBugfix: Fehler auslösen, wenn der Wert für die Fehlerbehebung NULL ist, anstatt falsche Berechnungen zu behandeln",
