@@ -564,7 +564,7 @@ class Sourceanalytix extends utils.Adapter {
 		} catch (error) {
 			this.errorHandling(`[onStateChange] for ${id}`, error);
 		}
-		}
+	}
 
 	/**
      * Daily logic to store start values in memory and previous values at states
@@ -607,6 +607,11 @@ class Sourceanalytix extends utils.Adapter {
 							this.activeStates[stateID].calcValues.previousReadingWatt = null;
 							this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 						}
+
+						obj.common.custom[this.namespace].cumulativeValue = reading;
+						obj.common.custom[this.namespace].valueAtDeviceReset = this.activeStates[stateID].calcValues.valueAtDeviceReset;
+						obj.common.custom[this.namespace].valueAtDeviceInit = this.activeStates[stateID].calcValues.valueAtDeviceInit;
+						this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
 
 						//At week reset ensure current week values are moved to previous week and current set to 0
 						if (beforeReset.week !== actualDate.week) {
@@ -1075,6 +1080,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (currentCath === 'Watt') {
 				// Convert watt to watt hours
 				reading = await this.wattToWattHour(stateID, stateVal);
+				if (reading === null || reading === undefined) return;
 			} else if (currentCath === 'Liter' && targetCath === 'Cubic_meter'
 			) {
 				reading = stateVal.val / 1000;
