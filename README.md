@@ -244,6 +244,11 @@ When the adapter crashes or an other Code error happens, this error message that
 -->
 
 ## Changelog
+
+### 0.4.8-alpha.10 (2021-01-14)
+* (Dutchman) Bugfix : Avoid loop if init value is set and > reading
+* (Dutchman) Bugfix : Throw error if value is NULL for troubleshooting instead of handling incorrect calculation
+
 ### 0.4.8-alpha.9 (2021-01-13)
 #### Breaking changes
 * (Dutchman) Breaking!!! Move current values to currentYear [#135](https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues/135)
@@ -267,7 +272,7 @@ When the adapter crashes or an other Code error happens, this error message that
 #### BugFixes
 * (Dutchman) Bugfix : dev: 0 bug workaround
 * (Dutchman) Do not round cumulated reading
-* (Dutchman) Bugfix : Calculations for "previous" values
+* (Dutchman) Bugfix : Calculations for "previous" values    
 * (Dutchman) Bugfix : Avoid calculation of non-Initialised states
 * (Dutchman) Bugfix : Cannot read property 'stateDetails' of null
 * (Dutchman) Correct error handling of "Watt" state initialisation
