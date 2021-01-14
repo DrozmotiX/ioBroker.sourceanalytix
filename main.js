@@ -1087,7 +1087,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.debug(`[calculationHandler] value : ${JSON.stringify(reading)}`);
 			if (reading === null || reading === undefined) {
-				this.log.error(`[calculationHandler] reading incorrect after conversion contact DEV and provide these info | Reading : ${JSON.stringify(reading)} | start reading ${stateVal} | stateDetails ${stateDetails}`);
+				this.log.error(`[calculationHandler] reading incorrect after conversion contact DEV and provide these info | Reading : ${JSON.stringify(reading)} | start reading ${JSON.stringify(stateVal)} | stateDetails ${JSON.stringify(stateDetails)}`);
 				return;
 			}
 
@@ -1114,7 +1114,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			if (reading === null || reading === undefined) {
-				this.log.error(`[calculationHandler] reading incorrect after Exponent conversion contact DEV and provide these info | Reading : ${JSON.stringify(reading)} | start reading ${stateVal} | currentExponent ${currentExponent} | targetExponent ${targetExponent} | stateDetails ${stateDetails}`);
+				this.log.error(`[calculationHandler] reading incorrect after Exponent conversion contact DEV and provide these info | Reading : ${JSON.stringify(reading)} | start reading ${JSON.stringify(stateVal)} | currentExponent ${currentExponent} | targetExponent ${targetExponent} | stateDetails ${stateDetails}`);
 				return;
 			}
 
