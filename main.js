@@ -438,7 +438,7 @@ class Sourceanalytix extends utils.Adapter {
 				await this.doLocalStateCreate(stateID, state, state, false, false, true);
 				// .${actualDate.year}.
 
-				//ToDo: Check if current year storaage in Year root should be configurable
+				//ToDo: Check if current year storage in Year root should be configurable
 				if (state === '05_currentYear'){
 					await this.doLocalStateCreate(stateID, state, state, false, false, false);
 				}
@@ -1173,7 +1173,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${calcValues.valueAtDeviceInit}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
 					await initiateState(reading); // If reading < previous init value, handle device reset process normally
 				} else {
-					this.log.debug(`[calculationHandler] No issue found, proces normally`);
+					this.log.debug(`[calculationHandler] No issue found, process normally`);
 				}
 				// Calculate proper reading (Current value + value of of previous reset)
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
@@ -1290,7 +1290,7 @@ class Sourceanalytix extends utils.Adapter {
 					val: calculationRounded.consumedYear,
 					ack: true
 				});
-				await this.setStateChangedAsync(`${stateName}.${actualDate.year}.05_currentYear`, {
+				await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}.05_currentYear`, {
 					val: calculationRounded.consumedYear,
 					ack: true
 				});
