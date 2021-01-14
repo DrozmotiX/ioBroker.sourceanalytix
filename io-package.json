@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.11",
+        "version": "0.4.8-alpha.12",
         "news": {
+            "0.4.8-alpha.12": {
+                "en": "Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)\nBugfix : Ensure proper reset and init of Watt",
+                "de": "Bugfix: Stellen Sie sicher, dass das tägliche Zurücksetzen den kumulativen Speicherwert nicht zerstört (Behebt NULL-Werte für Watt nach dem Zurücksetzen bei Nacht).\nBugfix: Stellen Sie sicher, dass Watt ordnungsgemäß zurückgesetzt und gestartet wurde",
+                "ru": "Исправление: убедитесь, что ежедневный сброс не уничтожает совокупное значение памяти (исправляет значения NULL для ватт после ночного сброса)\nИсправление: Обеспечьте правильный сброс и инициализацию ватт",
+                "pt": "Correção de bug: garantir que a reinicialização diária não destrua o valor cumulativo da memória (corrige os valores NULL para Watt após a reinicialização noturna)\nCorreção de bug: garantir a reinicialização e inicialização adequadas de Watt",
+                "nl": "Bugfix: zorg ervoor dat dagelijkse reset de cumulatieve geheugenwaarde niet vernietigt (repareert NULL-waarden voor Watt na nachtreset)\nBugfix: Zorg voor een juiste reset en start van Watt",
+                "fr": "Correctif: assurez-vous que la réinitialisation quotidienne ne détruit pas la valeur de mémoire cumulée (corrige les valeurs NULL pour Watt après la réinitialisation de nuit)\nCorrectif: assurez-vous que la réinitialisation et l'initialisation de Watt sont correctes",
+                "it": "Bugfix: assicurarsi che il ripristino giornaliero non distrugga il valore della memoria cumulativa (risolve i valori NULL per Watt dopo il ripristino notturno)\nBugfix: Garantire un corretto reset e inizializzazione di Watt",
+                "es": "Corrección de error: asegúrese de que el reinicio diario no destruya el valor de memoria acumulativo (corrige los valores NULL para Watt después del reinicio nocturno)\nCorrección de errores: asegúrese de reiniciar e iniciar correctamente Watt",
+                "pl": "Poprawka: Upewnij się, że codzienny reset nie niszczy skumulowanej wartości pamięci (naprawia wartości NULL dla watów po resetowaniu nocnym)\nPoprawka: Zapewnij prawidłowy reset i inicjalizację Watt",
+                "zh-cn": "错误修正：确保每日重设不会破坏累积内存值（夜间重设后修复Watt的NULL值）\n错误修正：确保正确重置和初始化瓦特"
+            },
             "0.4.8-alpha.11": {
                 "en": "Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)",
                 "de": "Bugfix: Stellen Sie sicher, dass das tägliche Zurücksetzen den kumulativen Speicherwert nicht zerstört (Behebt NULL-Werte für Watt nach dem Zurücksetzen bei Nacht).",

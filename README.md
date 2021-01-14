@@ -243,9 +243,9 @@ When the adapter crashes or an other Code error happens, this error message that
 -->
 
 ## Changelog
-
-### 0.4.8-alpha.11 (2021-01-14)
+### 0.4.8-alpha.12 (2021-01-14)
 * (Dutchman) Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)
+* (Dutchman) Bugfix : Ensure proper reset and init of Watt
 
 ### 0.4.8-alpha.10 (2021-01-14)
 * (Dutchman) Bugfix : Avoid loop if init value is set and > reading
