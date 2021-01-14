@@ -579,6 +579,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Read state array and write Data for every active state
 				for (const stateID in this.activeStates) {
 					this.log.info(`Reset start values for : ${stateID}`);
+					this.log.info(`Memory values before reset : ${JSON.stringify(this.activeStates[stateID])}`);
 					try {
 						const stateValues = this.activeStates[stateID].calcValues;
 						const stateDetails = this.activeStates[stateID].stateDetails;
@@ -799,7 +800,7 @@ class Sourceanalytix extends utils.Adapter {
 						//Ensure current value is set again after object extension as Workaround for Dev:0 bug
 						const value = await this.getForeignStateAsync(stateID);
 						await this.extendForeignObject(stateID, obj);
-						this.log.info(`Memory values for ${stateID} after reset : ${JSON.stringify(this.activeStates[stateID])}`);
+						this.log.info(`Memory values after reset : ${JSON.stringify(this.activeStates[stateID])}`);
 
 						if (value) {
 							await this.setForeignStateAsync(stateID, {val: value.val, ack: true});
@@ -1088,15 +1089,18 @@ class Sourceanalytix extends utils.Adapter {
 				reading = stateVal.val;
 			}
 
-			this.log.debug(`[calculationHandler] v : ${JSON.stringify(reading)}`);
-			if (reading === null || reading === undefined) return;
+			this.log.debug(`[calculationHandler] value : ${JSON.stringify(reading)}`);
+			if (reading === null || reading === undefined) {
+				this.log.error(`[calculationHandler] reading incorrect after conversion contact DEV and provide these info | Reading : ${JSON.stringify(reading)} | start reading ${stateVal} | stateDetails ${stateDetails}`);
+				return;
+			}
 
 			const currentExponent = this.unitPriceDef.unitConfig[stateDetails.stateUnit].exponent;
 			const targetExponent = this.unitPriceDef.unitConfig[stateDetails.useUnit].exponent;
 			this.log.debug(`[calculationHandler] currentExponent : ${JSON.stringify(currentExponent)}`);
 			this.log.debug(`[calculationHandler] targetExponent : ${JSON.stringify(targetExponent)}`);
 
-
+			this.log.debug(`[calculationHandler] reading value ${reading} before exponent multiplier`);
 			// Logic to handle exponents and handle watt reading
 			if ((reading && typeof (reading) === 'number') || reading === 0) {
 				if (currentCath === 'Watt') {
@@ -1112,7 +1116,13 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.error(`Input value for ${stateID} with ${reading} is not a number, cannot continue calculation`);
 				return;
 			}
-			this.log.debug(`[calculationHandler] reading value after exponent multiplier : ${JSON.stringify(targetExponent)}`);
+
+			if (reading === null || reading === undefined) {
+				this.log.error(`[calculationHandler] reading incorrect after Exponent conversion contact DEV and provide these info | Reading : ${JSON.stringify(reading)} | start reading ${stateVal} | currentExponent ${currentExponent} | targetExponent ${targetExponent} | stateDetails ${stateDetails}`);
+				return;
+			}
+
+			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 			// Detect meter reset & ensure Cumulative calculation
 			if ((reading >= calcValues.valueAtDeviceInit && calcValues.valueAtDeviceInit != null) && currentCath !== 'Watt') {
 				this.log.debug(`[calculationHandler] New reading ${reading} bigger than stored value ${calcValues.valueAtDeviceInit} processing normally`);
@@ -1124,41 +1134,45 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`[calculationHandler] Calculation outcome ${reading} valueAtDeviceReset ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
 
 			} else if ((reading < calcValues.valueAtDeviceInit || calcValues.valueAtDeviceInit == null) && currentCath !== 'Watt') {
-				this.log.debug(`[calculationHandler] New reading ${reading} lower than stored value ${calcValues.valueAtDeviceInit}`);
-				let initValue;
+				this.log.debug(`[calculationHandler] New reading ${reading} lower than stored init value ${calcValues.valueAtDeviceInit}`);
 
-				// Logic to check if value is at initialisation (init value was not present or 0)
-				if (calcValues.valueAtDeviceInit == null) {
-					initValue = 0;
+				//Function to initiate proper memory storage for device init and reset
+				const initiateState = async (atDeviceInit) => {
+					// Prepare object array for extension
+					const obj = {};
+					obj.common = {};
+					obj.common.custom = {};
+					obj.common.custom[this.namespace] = {};
+
+					// Extend valueAtDeviceReset with current & init value at object and memory
+					obj.common.custom[this.namespace].valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
+					obj.common.custom[this.namespace].valueAtDeviceInit = atDeviceInit;
+
+					// Update memory value with current & init value at object and memory
+					this.activeStates[stateID].calcValues.valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
+					this.activeStates[stateID].calcValues.valueAtDeviceInit = atDeviceInit;
+					this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
+
+					// Ensure current value is set again after object extension as Workaround for Dev:0 bug
+					const objval = await this.getForeignStateAsync(stateID);
+					await this.extendForeignObject(stateID, obj);
+					this.log.debug(`[calculationHandler] State value before extension ${JSON.stringify(obj)} `);
+					// Set state value back on object (Prevent Dev: 0 bug)
+					if (objval) {
+						await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
+					}
+				};
+
+				// Ensure proper handling of previous init value
+				if (calcValues.valueAtDeviceInit == null || calcValues.valueAtDeviceInit == undefined) {	// If no initialisation value is present, set to 0
+					this.log.debug(`[calculationHandler] No init value known, set to 0`);
+					await initiateState(0);
+				} else if (reading < calcValues.valueAtDeviceInit) {
+					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${calcValues.valueAtDeviceInit}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
+					await initiateState(reading); // If reading < previous init value, handle device reset process normally
 				} else {
-					// Should only occur if reading < previous init value (if known)
-					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${initValue}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
-					initValue = calcValues.valueAtDeviceInit;
+					this.log.debug(`[calculationHandler] No issue found, proces normally`);
 				}
-
-				// Prepare object array for extension
-				const obj = {};
-				obj.common = {};
-				obj.common.custom = {};
-				obj.common.custom[this.namespace] = {};
-
-				// Extend valueAtDeviceReset with current & init value at object and memory
-				obj.common.custom[this.namespace].valueAtDeviceReset = initValue + calcValues.valueAtDeviceReset;
-				obj.common.custom[this.namespace].valueAtDeviceInit = reading;
-
-				// Update memory value with current & init value at object and memory
-				this.activeStates[stateID].calcValues.valueAtDeviceReset = initValue + calcValues.valueAtDeviceReset;
-				this.log.debug(`[calculationHandler] Extend object with  ${obj} `);
-
-				// Ensure current value is set again after object extension as Workaround for Dev:0 bug
-				const objval = await this.getForeignStateAsync(stateID);
-				await this.extendForeignObject(stateID, obj);
-				this.log.debug(`[calculationHandler] State value before extension ${objval} `);
-				// Set state value back on object (Prevent Dev: 0 bug)
-				if (objval) {
-					await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
-				}
-
 				// Calculate proper reading (Current value + value of of previous reset)
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
 			}
