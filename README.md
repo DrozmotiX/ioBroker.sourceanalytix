@@ -27,6 +27,8 @@ Any source (kWh, Wh, Watt, l/h or m3 )can be used for data analyses :
 All state locations are grouped by state name and separated in period and [Category](#Categories) structures. <br/> 
 Calculations will be automatically handled and values transformed to the proper unit  as defined in [Price-Definitions](#Price-DefinitionsPrice-Definitions).
 
+If you have any issues, pleae read the **[Troubleshooting](#Troubleshooting)** first!
+
 ## How-To
 
 ### State-Activation!  ![Main Settings](admin/readmeDocu/settingKey.png)
@@ -47,19 +49,6 @@ Calculations will be automatically handled and values transformed to the proper 
 
 ### Basic configuration (adapter instance)
 ![Main Settings](admin/readmeDocu/mainSettings.png)
-
-### Price-Definitions
-![Main Settings](admin/readmeDocu/priceSettings.png)
-
-#### cumulativeReading-Reset
-![Main Settings](admin/readmeDocu/cumulativeReading-Reset.png)
-
-    **Stop** Sourceanalytix !
-    Go to Admin > Objects
-    Enter expert mode
-    Find the related cumulativeReading for your device
-    Adjust the value to your needs
-    (Only writable if expert mode on)
 
 #### cumulativeReading
 > ToDo : Describe logic<
@@ -120,6 +109,101 @@ costs/earnings and/or consumption/delivery grouped by specified period
 | consumption | calculations | Result of calculation value as cost - start value <br/>  of Year/Month/Quarter  etc |
 | delivery | calculations | Result of calculation value as delivery - start value <br/>  of Year/Month/Quarter  etc |
 
+### Troubleshooting
+
+Before we start troubleshooting, it's important to understand how source analytix initialises as here errors may occur, see issue section.
+The following sequence will be handled :
+
+1) Start SourceAnalytix
+2) List all states activated for SourceAnalytix
+3) Initiate states, for each state :
+    * Read current cumulatedReading </br>
+      (if present) and memory values from state
+    * Check if unit can be handled {Issue 1}
+    * Check if cost type is chosen {Issue 2}
+    * Verify if valid price definition is present for cost type {Issue 3}
+    * Check if previous init value > current cumulated value {Issue 4}
+    * Check if valid known of previous device reset > current cumulated value {Issue 5}
+    * Store all data to memory
+4) Initialise states for each state :
+    * create state cumulativeReading (to store results  of calculation, can also be used for W to kWh only) {Issue 6}
+    * create states as chosen in state configuration {Issue 7}
+    * start calculation
+5) On state change/update
+    * Verify if information is correct 
+    * transform value to proper unit (unit of state to unit chosen in state configuration)
+    * check if value input is correct ( current value **>** previousInit value) {See **7 At device reset** Issue 8}
+    * calculate {Issue 9}
+      * For Watt : calculate Watt to kWh ,calculate cumulatedReading = currentReading + cumulatedReading
+      * For other : calculate cumulatedReading = currentReading + previousDeviceReset (if present)
+6) At night (00.00)
+    * List all SourceAnalytix enabled states
+    * Reset start (Day/Week/Year/Month) values
+7) At device reset
+    * Store current value as previousDeviceReset and previousInit value </br>
+      If the device wil be reset again (detected by previousInit value),</br> 
+      currentReading + previousDeviceReset is stored as to previousDeviceReset.
+
+**Issue 1** No unit defined for ....., cannot execute calculations</br>
+    Please select correct unit in state settings
+
+**Issue 2** No cost type defined for ....., please Select Type of calculation at state setting</br>
+    Please selected wanted cost-type for to understand what amount should be used to handle calculations
+
+**Issue 3** Selected Type ... does not exist in Price Definitions</br>
+    Now Price definitions are found for the chosen cost type, please verify your price setting (adapte config)
+
+**Issue 4** Check settings for ..... ! Known init value : ..... > known cumulative value ..... cannot proceed</br>
+    The known init value > known cumulated values, this can be solved by removing or modifying these objects in the state raw object
+    ```"valueAtDeviceInit": xxxx```
+
+**Issue 5** Check settings for ..... ! Known valueAtDeviceReset : ..... > known cumulative value ..... cannot procee</br>
+    The known init value > known cumulated values, this can be solved</br>
+removing or modifying these objects in the state raw object
+    ```valueAtDeviceReset": xxxx```
+
+**Issue 6** State for cumulativeReading is not created</br>
+    Initialisation of state did fail, see issue 1 to 5
+
+**Issue 7** States for costs readings ae not created</br>
+    Type of calculation is not enabled in state settings
+![Main Settings](admin/readmeDocu/stateSettings.png)
+### Price-Definitions
+![Main Settings](admin/readmeDocu/priceSettings.png)
+
+**Issue 8** current value **<** previousInit</br>
+A device reset is detected, see function 7
+
+**Issue 9** My calculations are incorrect</br>
+#### cumulativeReading-Reset
+  1) Verify if the correct unit is chosen (of not selected, SA will  try to autodetect)
+  2) Verify if the cumulatedReading reflects the correct total value of your value reading, if not</br>
+        - Stop SA
+        - Go to tab objects
+          ![Main Settings](admin/readmeDocu/cumulativeReading-Reset.png)
+        - Enter expert mode
+        - Change the cumulatedReading
+        - Exit expert mode
+        - Ensure the start values are set correctly
+        - Start SA </br>
+          
+  3) Ensure the start values are set correctly</br>
+        SA handles calculations by cumulatedReading - known cumulatedReading at period start.<b/>
+        These start values are defined at the state settings and should be < than **currentReading**</br>
+        Please ensure cumulativeReading >= DayStart >= WeekStart >= MonthStart >= QuarterStart >= YearStart
+     ![Main Settings](admin/readmeDocu/stateStartValues.png)
+     
+4) Verify these values in state raw object :
+   ```valueAtDeviceReset": xxx```
+   ```"valueAtDeviceInit": xxx```
+
+<!--
+**Issue 6** Setting - Cannot deactivate state for SourceAnalytix
+
+Im RAW NUR "consumption":false umgestellt, gespeichert. Das wurde behalten (wo ggf. noch nicht false, auch bei "enabled": false und bei "costs": false )
+In der Objekt-Übersicht ist der Schraubenschlüssel nachwievor blau. Dann mit dem Schraubenschlüssel in das Objekt, SA war nicht der Haken bei aktiviert drin. Dort einmal auf aktiviert, nicht speichern, wieder auf deaktiviert, speichern.
+Kontrolle im RAW, ob SA-EIntrag nun weg => jup, is nun fott
+-->
 
 <!--
 * Trace consumption daily, weekly, monthly, quarterly, yearly
