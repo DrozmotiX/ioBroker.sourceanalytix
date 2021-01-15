@@ -438,7 +438,7 @@ class Sourceanalytix extends utils.Adapter {
 				await this.doLocalStateCreate(stateID, state, state, false, false, true);
 				// .${actualDate.year}.
 
-				//ToDo: Check if current year storaage in Year root should be configurable
+				//ToDo: Check if current year storage in Year root should be configurable
 				if (state === '05_currentYear'){
 					await this.doLocalStateCreate(stateID, state, state, false, false, false);
 				}
@@ -1081,8 +1081,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Convert watt to watt hours
 				reading = await this.wattToWattHour(stateID, stateVal);
 				if (reading === null || reading === undefined) return;
-			} else if (currentCath === 'Liter' && targetCath === 'Cubic_meter'
-			) {
+			} else if (currentCath === 'Liter' && targetCath === 'Cubic_meter') {
 				reading = stateVal.val / 1000;
 			} else if (currentCath === 'Cubic_meter' && targetCath === 'Liter'
 			) {
@@ -1104,7 +1103,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.debug(`[calculationHandler] reading value ${reading} before exponent multiplier`);
 			// Logic to handle exponents and handle watt reading
-			if ((reading && typeof (reading) === 'number') || reading === 0) {
+			if (typeof (reading) === 'number' || reading === 0) {
 				if (currentCath === 'Watt') {
 					// Add calculated watt reading to stored totals
 					reading = (reading * Math.pow(10, (currentExponent - targetExponent))) + calcValues.cumulativeValue;
@@ -1115,7 +1114,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				//ToDo: Check if this is correct
 				// reading = value.val * Math.pow(10, (currentExponent - targetExponent));
-				this.log.error(`Input value for ${stateID} with ${reading} is not a number, cannot continue calculation`);
+				this.log.error(`Input value for ${stateID}, type = ${typeof reading} but should be a number, cannot handle calculation`);
 				return;
 			}
 
@@ -1173,7 +1172,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${calcValues.valueAtDeviceInit}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
 					await initiateState(reading); // If reading < previous init value, handle device reset process normally
 				} else {
-					this.log.debug(`[calculationHandler] No issue found, proces normally`);
+					this.log.debug(`[calculationHandler] No issue found, process normally`);
 				}
 				// Calculate proper reading (Current value + value of of previous reset)
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
