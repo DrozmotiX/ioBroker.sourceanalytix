@@ -241,6 +241,8 @@ When the adapter crashes or an other Code error happens, this error message that
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### 0.4.8-alpha.13 (2021-01-15)
+* (Dutchman) Bugfix : Error {Is not a number, cannot continue calculation} if value =  0
 
 ## Changelog
 ### 0.4.8-alpha.12 (2021-01-14)

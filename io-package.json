@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.12",
+        "version": "0.4.8-alpha.13",
         "news": {
+            "0.4.8-alpha.13": {
+                "en": "* Bugfix : Error {Is not a number, cannot continue calculation} if value =  0\n\n## Changelog",
+                "de": "* Bugfix: Fehler {Ist keine Zahl, kann Berechnung nicht fortsetzen} wenn Wert = 0\n\n## Änderungsprotokoll",
+                "ru": "* Исправление: ошибка {не число, невозможно продолжить вычисление}, если значение = 0\n\n## Журнал изменений",
+                "pt": "* Correção de bug: Erro {Não é um número, não é possível continuar o cálculo} se o valor = 0\n\n## Changelog",
+                "nl": "* Bugfix: Fout {Is geen getal, kan niet doorgaan met rekenen} als waarde = 0\n\n## Changelog",
+                "fr": "* Correction de bug: erreur {n'est pas un nombre, ne peut pas continuer le calcul} si valeur = 0\n\n## Changelog",
+                "it": "* Bugfix: Errore {Non è un numero, non può continuare il calcolo} se il valore = 0\n\n## Changelog",
+                "es": "* Corrección de error: Error {no es un número, no se puede continuar con el cálculo} si valor = 0\n\n## Registro de cambios",
+                "pl": "* Poprawka błędu: Błąd {nie jest liczbą, nie można kontynuować obliczeń}, jeśli wartość = 0\n\n## Changelog",
+                "zh-cn": "*错误修正：如果value = 0，则错误{不是数字，无法继续计算}\n\n##更新日志"
+            },
             "0.4.8-alpha.12": {
                 "en": "Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)\nBugfix : Ensure proper reset and init of Watt",
                 "de": "Bugfix: Stellen Sie sicher, dass das tägliche Zurücksetzen den kumulativen Speicherwert nicht zerstört (Behebt NULL-Werte für Watt nach dem Zurücksetzen bei Nacht).\nBugfix: Stellen Sie sicher, dass Watt ordnungsgemäß zurückgesetzt und gestartet wurde",
