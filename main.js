@@ -214,12 +214,19 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.debug(`[buildStateDetailsArray] started for ${stateID}`);
 		try {
 
-			// Load configuration as provided in object
-			const stateInfo = await this.getForeignObjectAsync(stateID);
-			if (!stateInfo) {
-				this.log.error(`Can't get information for ${stateID}, state will be ignored`);
+			let stateInfo;
+			try {
+				// Load configuration as provided in object
+				stateInfo = await this.getForeignObjectAsync(stateID);
+				if (!stateInfo) {
+					this.log.error(`Can't get information for ${stateID}, state will be ignored`);
+					return;
+				}
+			} catch (e) {
+				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify()}`);
 				return;
 			}
+
 
 			// Replace not allowed characters for state name
 			const newDeviceName = stateID.split('.').join('__');
@@ -1289,7 +1296,7 @@ class Sourceanalytix extends utils.Adapter {
 					val: calculationRounded.consumedYear,
 					ack: true
 				});
-				await this.setStateChangedAsync(`${stateName}.${actualDate.year}.05_currentYear`, {
+				await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}.05_currentYear`, {
 					val: calculationRounded.consumedYear,
 					ack: true
 				});
