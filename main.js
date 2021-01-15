@@ -1232,7 +1232,7 @@ class Sourceanalytix extends utils.Adapter {
 						ack: true
 					});
 					// Quarter
-					if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
+						if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 						val: readingRounded,
 						ack: true
 					});
@@ -1320,7 +1320,7 @@ class Sourceanalytix extends utils.Adapter {
 					ack: true
 				});
 				// Quarter
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, {
+				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 					val: calculationRounded.consumedQuarter,
 					ack: true
 				});
@@ -1371,7 +1371,7 @@ class Sourceanalytix extends utils.Adapter {
 					ack: true
 				});
 				// Quarter
-				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.${actualDate.quarter}`, {
+				if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 					val: calculationRounded.priceQuarter,
 					ack: true
 				});
