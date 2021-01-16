@@ -53,6 +53,7 @@ class Sourceanalytix extends utils.Adapter {
 		};
 		this.activeStates = {}; // Array of activated states for SourceAnalytix
 		this.validStates = {}; // Array of all created states
+		this.visWidgetJson ={}; // Array containing all calculation values to use in vis widget
 	}
 
 	/**
@@ -166,41 +167,41 @@ class Sourceanalytix extends utils.Adapter {
 			// Load energy array and store exponents related to unit
 			let catArray = ['Watt', 'Watt_hour'];
 			const unitStore = this.unitPriceDef.unitConfig;
-		for (const item in catArray) {
-			const unitItem = adapterHelpers.units.electricity[catArray[item]];
-			for (const unitCat in unitItem) {
-				unitStore[unitItem[unitCat].unit] = {
-					exponent: unitItem[unitCat].exponent,
-					category: catArray[item],
-				};
+			for (const item in catArray) {
+				const unitItem = adapterHelpers.units.electricity[catArray[item]];
+				for (const unitCat in unitItem) {
+					unitStore[unitItem[unitCat].unit] = {
+						exponent: unitItem[unitCat].exponent,
+						category: catArray[item],
+					};
+				}
 			}
-		}
 
-		// Load  volumes array and store exponents related to unit
-		catArray = ['Liter', 'Cubic_meter'];
-		for (const item in catArray) {
-			const unitItem = adapterHelpers.units.volume[catArray[item]];
-			for (const unitCat in unitItem) {
-				unitStore[unitItem[unitCat].unit] = {
-					exponent: unitItem[unitCat].exponent,
-					category: catArray[item],
-				};
+			// Load  volumes array and store exponents related to unit
+			catArray = ['Liter', 'Cubic_meter'];
+			for (const item in catArray) {
+				const unitItem = adapterHelpers.units.volume[catArray[item]];
+				for (const unitCat in unitItem) {
+					unitStore[unitItem[unitCat].unit] = {
+						exponent: unitItem[unitCat].exponent,
+						category: catArray[item],
+					};
+				}
 			}
-		}
 
-		// Load price definition from admin configuration
-		const pricesConfig = this.config.pricesDefinition;
-		const priceStore = this.unitPriceDef.pricesConfig;
+			// Load price definition from admin configuration
+			const pricesConfig = this.config.pricesDefinition;
+			const priceStore = this.unitPriceDef.pricesConfig;
 
-		for (const priceDef in pricesConfig) {
-			priceStore[pricesConfig[priceDef].cat] = {
-				cat: pricesConfig[priceDef].cat,
-				uDes: pricesConfig[priceDef].cat,
-				uPpU: pricesConfig[priceDef].uPpU,
-				uPpM: pricesConfig[priceDef].uPpM,
-				costType: pricesConfig[priceDef].costType,
-				unitType: pricesConfig[priceDef].unitType,
-			};
+			for (const priceDef in pricesConfig) {
+				priceStore[pricesConfig[priceDef].cat] = {
+					cat: pricesConfig[priceDef].cat,
+					uDes: pricesConfig[priceDef].cat,
+					uPpU: pricesConfig[priceDef].uPpU,
+					uPpM: pricesConfig[priceDef].uPpM,
+					costType: pricesConfig[priceDef].costType,
+					unitType: pricesConfig[priceDef].unitType,
+				};
 			}
 
 			console.debug(`All Unit category's ${JSON.stringify(this.unitPriceDef)}`);
@@ -483,6 +484,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Subscribe state, every state change will trigger calculation now automatically
 			this.subscribeForeignStates(stateID);
+			await this.buildVisWidgetJson(stateID);
 
 		} catch (error) {
 			this.errorHandling(`[initialize] ${stateID}`, error);
@@ -1200,6 +1202,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
 			// Update current value to memory
 			this.activeStates[stateID]['calcValues'].cumulativeValue = reading;
+			this.visWidgetJson[stateID].cumulativeValue = reading;
 			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(this.activeStates[stateID])})`);
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.cumulativeReading`, {
 				val: reading,
@@ -1208,7 +1211,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			//TODO; implement counters
 			// 	// Handle impulse counters
-			// 	if (obj_cust.state_type == 'impulse'){
+			// 	if (obj_custom.state_type == 'impulse'){
 
 			// 		// cancel calculation in case of impulse counter
 			// 		return;
@@ -1244,7 +1247,7 @@ class Sourceanalytix extends utils.Adapter {
 						ack: true
 					});
 					// Quarter
-						if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
+					if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 						val: readingRounded,
 						ack: true
 					});
@@ -1281,6 +1284,7 @@ class Sourceanalytix extends utils.Adapter {
 				priceYear: await this.roundCosts(statePrices.unitPrice * calculations.consumedYear),
 			};
 
+			this.visWidgetJson[stateID].date = calculationRounded;
 			this.log.debug(`[calculationHandler] Result of rounding: ${JSON.stringify(calculations)}`);
 
 			// Store consumption
@@ -1314,6 +1318,7 @@ class Sourceanalytix extends utils.Adapter {
 				});
 
 				// Weekdays
+				//ToDo: Write to JSON
 				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
 					val: calculationRounded.consumedDay,
 					ack: true
@@ -1401,6 +1406,19 @@ class Sourceanalytix extends utils.Adapter {
 			this.errorHandling(`[calculationHandler] ${stateID}`, error);
 		}
 
+	}
+
+	/**
+	 *	Initiate json array for vis widget
+	 *  @param {string} [stateID] - state id of source value
+	 */
+	async buildVisWidgetJson(stateID){
+		this.log.debug(`[buildVisWidgetJson] Start building VisWidgetJson for ${stateID}`);
+		this.visWidgetJson[stateID] = {
+			unit: this.activeStates[stateID].stateDetails.useUnit,
+			currency: useCurrency
+		};
+		this.log.debug(`[buildVisWidgetJson] ${stateID} : ${JSON.stringify(this.visWidgetJson[stateID])}`);
 	}
 
 	/**
