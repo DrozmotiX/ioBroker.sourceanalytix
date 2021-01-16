@@ -479,12 +479,12 @@ class Sourceanalytix extends utils.Adapter {
 			const value = await this.getForeignStateAsync(stateID);
 			this.log.debug(`First time calc result after initialising ${stateID}  with value ${JSON.stringify(value)}`);
 			if (value) {
+				await this.buildVisWidgetJson(stateID);
 				await this.calculationHandler(stateID, value);
 			}
 
 			// Subscribe state, every state change will trigger calculation now automatically
 			this.subscribeForeignStates(stateID);
-			await this.buildVisWidgetJson(stateID);
 
 		} catch (error) {
 			this.errorHandling(`[initialize] ${stateID}`, error);
@@ -632,10 +632,10 @@ class Sourceanalytix extends utils.Adapter {
 							this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 						}
 
-						obj.common.custom[this.namespace].cumulativeValue = reading;
+						this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
+						this.activeStates[stateID].calcValues.cumulativeValue = reading;
 						obj.common.custom[this.namespace].valueAtDeviceReset = this.activeStates[stateID].calcValues.valueAtDeviceReset;
 						obj.common.custom[this.namespace].valueAtDeviceInit = this.activeStates[stateID].calcValues.valueAtDeviceInit;
-						this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
 
 						//At week reset ensure current week values are moved to previous week and current set to 0
 						if (beforeReset.week !== actualDate.week) {
