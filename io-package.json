@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.14",
+        "version": "0.4.8-alpha.15",
         "news": {
+            "0.4.8-alpha.15": {
+                "en": "Bugfix : Issue in array load at first calculation handiling\nBugfix : Do not cumulative value to object",
+                "de": "Bugfix: Problem beim Laden des Arrays beim ersten Handling der Berechnung\nBugfix: Nicht kumulativen Wert zum Objekt",
+                "ru": "Исправление: проблема с загрузкой массива при первом вычислении.\nИсправление: не кумулятивная стоимость объекта",
+                "pt": "Correção de bug: Problema na carga da matriz na manipulação do primeiro cálculo\nCorreção de bug: não atribuir valor cumulativo ao objeto",
+                "nl": "Bugfix: probleem bij het laden van de array bij de eerste verwerking van de berekening\nBugfix: geen cumulatieve waarde om bezwaar te maken",
+                "fr": "Correctif: problème de chargement du tableau lors du premier calcul\nCorrectif: ne pas cumuler la valeur d'objet",
+                "it": "Bugfix: problema nel caricamento dell'array alla prima gestione del calcolo\nBugfix: non cumulativo valore per obiettare",
+                "es": "Corrección de error: problema en la carga de la matriz en el primer manejo del cálculo\nCorrección de error: no valor acumulativo para objetar",
+                "pl": "Poprawka: Problem z ładowaniem tablicy przy pierwszej obsłudze obliczeń\nBugfix: Nie kumuluj wartości obiektu",
+                "zh-cn": "错误修正：第一次计算处理时数组加载出现问题\n错误修正：不累积值到对象"
+            },
             "0.4.8-alpha.14": {
                 "en": "change default log-level to info\nBugfix : quarters.1 has no existing object\nBugfix : 05_currentYear has no existing object\nBugfix : Caught sentry error : Alias xxxxx has no target\nBugfix : Incorrect warn message if configuration for objects is changed",
                 "de": "Ändern Sie die Standardprotokollstufe in \"Info\"\nBugfix: Vierteln.1 hat kein vorhandenes Objekt\nBugfix: 05_currentYear hat kein vorhandenes Objekt\nBugfix: Wachpostenfehler: Alias xxxxx hat kein Ziel\nBugfix: Falsche Warnmeldung, wenn die Konfiguration für Objekte geändert wird",
