@@ -459,8 +459,11 @@ class Sourceanalytix extends utils.Adapter {
 				// .${actualDate.year}.
 
 				//ToDo: Check if current year storage in Year root should be configurable
-				if (state === '05_currentYear'){
+				if (state === '05_currentYear' &&  ((stateDetails.consumption || stateDetails.costs)
+					&& (this.config.store_quarters || this.config.store_months || this.config.store_weeks ))){
 					await this.doLocalStateCreate(stateID, state, state, false, false, false);
+				} else if (state === '05_currentYear' &&  (!this.config.store_weeks && !this.config.store_months && !this.config.store_quarters)) {
+					await this.doLocalStateCreate(stateID, state, state, false, true, false);
 				}
 			}
 
@@ -1312,10 +1315,12 @@ class Sourceanalytix extends utils.Adapter {
 					val: calculationRounded.consumedYear,
 					ack: true
 				});
-				await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}.05_currentYear`, {
-					val: calculationRounded.consumedYear,
-					ack: true
-				});
+				if (this.config.store_weeks || this.config.store_months || this.config.store_quarters) {
+					await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}.05_currentYear`, {
+						val: calculationRounded.consumedYear,
+						ack: true
+					});
+				}
 
 				// Weekdays
 				//ToDo: Write to JSON
@@ -1369,6 +1374,13 @@ class Sourceanalytix extends utils.Adapter {
 					val: calculationRounded.priceYear,
 					ack: true
 				});
+
+				if (this.config.store_weeks || this.config.store_months || this.config.store_quarters) {
+					await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}.05_currentYear`, {
+						val: calculationRounded.priceYear,
+						ack: true
+					});
+				}
 
 				// Weekdays
 				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
