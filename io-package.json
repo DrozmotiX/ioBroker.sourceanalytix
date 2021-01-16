@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.13",
+        "version": "0.4.8-alpha.14",
         "news": {
+            "0.4.8-alpha.14": {
+                "en": "change default log-level to info\nBugfix : quarters.1 has no existing object\nBugfix : 05_currentYear has no existing object\nBugfix : Caught sentry error : Alias xxxxx has no target\nBugfix : Incorrect warn message if configuration for objects is changed",
+                "de": "Ändern Sie die Standardprotokollstufe in \"Info\"\nBugfix: Vierteln.1 hat kein vorhandenes Objekt\nBugfix: 05_currentYear hat kein vorhandenes Objekt\nBugfix: Wachpostenfehler: Alias xxxxx hat kein Ziel\nBugfix: Falsche Warnmeldung, wenn die Konfiguration für Objekte geändert wird",
+                "ru": "изменить уровень журнала по умолчанию на информацию\nИсправление: четверть.1 не имеет существующего объекта\nИсправление: 05_currentYear не имеет существующего объекта\nИсправление: обнаружена ошибка караула: псевдоним xxxxx не имеет цели\nИсправление: неправильное предупреждающее сообщение при изменении конфигурации для объектов.",
+                "pt": "alterar o nível de registro padrão para informações\nCorreção de bug: quarters.1 não tem objeto existente\nCorreção de bug: 05_currentYear não tem objeto existente\nCorreção: Erro de sentinela capturado: Alias xxxxx não tem alvo\nCorreção de bug: mensagem de aviso incorreta se a configuração de objetos for alterada",
+                "nl": "verander standaard log-niveau naar info\nBugfix: quarters.1 heeft geen bestaand object\nBugfix: 05_currentYear heeft geen bestaand object\nBugfix: Gevangen schildwachtfout: Alias xxxxx heeft geen doel\nBugfix: onjuist waarschuwingsbericht als configuratie voor objecten is gewijzigd",
+                "fr": "changer le niveau de journalisation par défaut en info\nCorrection de bug: quarters.1 n'a pas d'objet existant\nCorrectif: 05_currentYear n'a pas d'objet existant\nCorrection de bug: erreur de sentinelle capturée: l'alias xxxxx n'a pas de cible\nCorrectif: message d'avertissement incorrect si la configuration des objets est modifiée",
+                "it": "cambia il livello di log predefinito in info\nBugfix: quarters.1 non ha oggetti esistenti\nBugfix: 05_currentYear non ha oggetti esistenti\nBugfix: Caught sentry error: Alias xxxxx non ha target\nBugfix: messaggio di avviso non corretto se la configurazione per gli oggetti viene modificata",
+                "es": "cambiar el nivel de registro predeterminado a información\nCorrección de error: quarters.1 no tiene ningún objeto existente\nCorrección de error: 05_currentYear no tiene ningún objeto existente\nCorrección de error: error de centinela atrapado: alias xxxxx no tiene objetivo\nCorrección de error: mensaje de advertencia incorrecto si se cambia la configuración de los objetos",
+                "pl": "zmień domyślny poziom dziennika na info\nPoprawka: quarters.1 nie ma istniejącego obiektu\nPoprawka: 05_currentYear nie ma istniejącego obiektu\nPoprawka: Błąd złapanego wartownika: alias xxxxx nie ma celu\nPoprawka: niepoprawny komunikat ostrzegawczy, jeśli konfiguracja obiektów została zmieniona",
+                "zh-cn": "将默认日志级别更改为info\n错误修正：Quarters.1没有现有对象\n错误修正：05_currentYear没有现有对象\n错误修正：抓到哨兵错误：别名xxxxx没有目标\n错误修正：如果更改了对象的配置，则警告消息不正确"
+            },
             "0.4.8-alpha.13": {
                 "en": "* Bugfix : Error {Is not a number, cannot continue calculation} if value =  0\n\n## Changelog",
                 "de": "* Bugfix: Fehler {Ist keine Zahl, kann Berechnung nicht fortsetzen} wenn Wert = 0\n\n## Änderungsprotokoll",
@@ -242,7 +254,7 @@
         "enabled": true,
         "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
         "readme": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/blob/master/README.md",
-        "loglevel": "warn",
+        "loglevel": "info",
         "mode": "daemon",
         "type": "energy",
         "compact": true,

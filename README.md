@@ -241,13 +241,21 @@ When the adapter crashes or an other Code error happens, this error message that
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+
+### 0.4.8-alpha.14 (2021-01-16)
+* (Dutchman) change default log-level to info
+* (Dutchman) Bugfix : quarters.1 has no existing object
+* (Dutchman) Bugfix : 05_currentYear has no existing object
+* (Dutchman) Bugfix : Caught sentry error : Alias xxxxx has no target
+* (Dutchman) Bugfix : Incorrect warn message if configuration for objects is changed
+
 ### 0.4.8-alpha.13 (2021-01-15)
 * (Dutchman) Bugfix : Error {Is not a number, cannot continue calculation} if value =  0
 
 ## Changelog
 ### 0.4.8-alpha.12 (2021-01-14)
 * (Dutchman) Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)
-* (Dutchman) Bugfix : Ensure proper reset and init of Watt
+* (Dutchman) Bugfix : Ensure a proper reset and init of Watt values
 
 ### 0.4.8-alpha.10 (2021-01-14)
 * (Dutchman) Bugfix : Avoid loop if init value is set and > reading
