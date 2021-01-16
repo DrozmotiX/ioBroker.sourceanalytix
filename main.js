@@ -162,10 +162,10 @@ class Sourceanalytix extends utils.Adapter {
      * Load calculation factors from helper library and store to memory
      */
 	async definitionLoader() {
-		//ToDO: Implement error handling
-		// Load energy array and store exponents related to unit
-		let catArray = ['Watt', 'Watt_hour'];
-		const unitStore = this.unitPriceDef.unitConfig;
+		try {
+			// Load energy array and store exponents related to unit
+			let catArray = ['Watt', 'Watt_hour'];
+			const unitStore = this.unitPriceDef.unitConfig;
 		for (const item in catArray) {
 			const unitItem = adapterHelpers.units.electricity[catArray[item]];
 			for (const unitCat in unitItem) {
@@ -201,9 +201,14 @@ class Sourceanalytix extends utils.Adapter {
 				costType: pricesConfig[priceDef].costType,
 				unitType: pricesConfig[priceDef].unitType,
 			};
+			}
+
+			console.debug(`All Unit category's ${JSON.stringify(this.unitPriceDef)}`);
+
+		} catch (error) {
+			this.errorHandling('[definitionLoader]', error);
 		}
 
-		console.debug(`All Unit category's ${JSON.stringify(this.unitPriceDef)}`);
 	}
 
 	/**
@@ -220,10 +225,12 @@ class Sourceanalytix extends utils.Adapter {
 				stateInfo = await this.getForeignObjectAsync(stateID);
 				if (!stateInfo) {
 					this.log.error(`Can't get information for ${stateID}, state will be ignored`);
+					this.activeStates[stateID] = null;
 					return;
 				}
-			} catch (e) {
-				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify()}`);
+			} catch (error) {
+				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify(error)}`);
+				this.activeStates[stateID] = null;
 				return;
 			}
 
@@ -263,6 +270,7 @@ class Sourceanalytix extends utils.Adapter {
 				} else {
 					this.log.error(`No unit defined for ${stateID}, cannot execute calculations !`);
 					this.log.error(`Please choose unit manually in state configuration`);
+					this.activeStates[stateID] = null;
 					return;
 				}
 
@@ -270,6 +278,7 @@ class Sourceanalytix extends utils.Adapter {
 				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
 					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
 					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
+					this.activeStates[stateID] = null;
 					return;
 				}
 
@@ -278,6 +287,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Selected Type ${customData.selectedPrice} does not exist in Price Definitions`);
 					this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
+					this.activeStates[stateID] = null;
 					return;
 				}
 
@@ -288,6 +298,7 @@ class Sourceanalytix extends utils.Adapter {
 					if (useUnit !== 'W') {
 						this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
 						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+						this.activeStates[stateID] = null;
 						return;
 					}
 				}
@@ -297,6 +308,7 @@ class Sourceanalytix extends utils.Adapter {
 					if (useUnit !== 'W') {
 						this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceReset}) > known cumulative value (${cumulativeValue}) cannot proceed`);
 						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+						this.activeStates[stateID] = null;
 						return;
 					}
 				}
@@ -508,16 +520,19 @@ class Sourceanalytix extends utils.Adapter {
 						if (this.activeStates[stateID]){
 							await this.initialize(stateID);
 						} else {
-							this.log.warn(`[onObjectChange - new] No stateDetails found for ${stateID}, cancel initialisation`);
+							this.log.warn(`[Cannot enable SourceAnalytix for ${stateID}, check settings and error messages`);
+							this.unsubscribeForeignStates(stateID);
 						}
 					} else {
-						this.log.info(`Updated SourceAnalytix configuration for : ${stateID}`);
+						this.log.info(`Updating SourceAnalytix configuration for : ${stateID}`);
 						await this.buildStateDetailsArray(id);
 						this.log.debug(`Active state array after updating configuration of ${stateID} : ${JSON.stringify(this.activeStates)}`);
 						// Only run initialisation if state is successfully created during buildStateDetailsArray
 						if (this.activeStates[stateID]){
 							await this.initialize(stateID);
-							this.log.warn(`[onObjectChange - update] No stateDetails found for ${stateID}, cancel initialisation`);
+						} else {
+							this.log.warn(`[Cannot update SourceAnalytix configuration for ${stateID}, check settings and error messages`);
+							this.unsubscribeForeignStates(stateID);
 						}
 					}
 
@@ -955,7 +970,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Create cost states
 				if (!deleteState && stateDetails.costs) {
 
-				    //ToDO : Implement other cost units
+				    //Use cost unit as defined in admin settings (currency)
 					commonData.unit = useCurrency; // Switch Unit to money
 
 					switch (stateDetails.financialCategory) {
@@ -1118,9 +1133,6 @@ class Sourceanalytix extends utils.Adapter {
 					reading = reading * Math.pow(10, (currentExponent - targetExponent));
 				}
 			} else {
-
-				//ToDo: Check if this is correct
-				// reading = value.val * Math.pow(10, (currentExponent - targetExponent));
 				this.log.error(`Input value for ${stateID}, type = ${typeof reading} but should be a number, cannot handle calculation`);
 				return;
 			}
