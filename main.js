@@ -246,8 +246,11 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`[buildStateDetailsArray] commonData ${JSON.stringify(commonData)}`);
 
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
-				const valueAtDeviceReset = (customData.valueAtDeviceReset && customData.valueAtDeviceReset !== 0) ? customData.valueAtDeviceReset : 0;
-				const valueAtDeviceInit = (customData.valueAtDeviceInit || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceInit : null;
+				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
+
+				// Always set init value to null at first start, will take init value at first calculation from state
+				const valueAtDeviceInit = null;
+
 				this.log.debug(`[buildStateDetailsArray] valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)}`);
 				this.log.debug(`[buildStateDetailsArray] valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
 
@@ -1171,34 +1174,29 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
-			// Detect meter reset & ensure Cumulative calculation
-			if ((reading >= calcValues.valueAtDeviceInit && calcValues.valueAtDeviceInit != null) && currentCath !== 'Watt') {
-				this.log.debug(`[calculationHandler] New reading ${reading} bigger than stored value ${calcValues.valueAtDeviceInit} processing normally`);
-				this.log.debug(`[calculationHandler] Adding ${reading} to stored value ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
 
-				// Add current reading to value in memory
-				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
-
-				this.log.debug(`[calculationHandler] Calculation outcome ${reading} valueAtDeviceReset ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
-
-			} else if ((reading < calcValues.valueAtDeviceInit || calcValues.valueAtDeviceInit == null) && currentCath !== 'Watt') {
-				this.log.debug(`[calculationHandler] New reading ${reading} lower than stored init value ${calcValues.valueAtDeviceInit}`);
-
-				//Function to initiate proper memory storage for device init and reset
-				const initiateState = async (atDeviceInit) => {
-					// Prepare object array for extension
-					const obj = {};
-					obj.common = {};
+			// Check if state was already initiated
+			// Function to initiate proper memory values at device init and value reset
+			const initiateState = async () => {
+				// Prepare object array for extension
+				const obj = {};
+				obj.common = {};
 					obj.common.custom = {};
 					obj.common.custom[this.namespace] = {};
 
-					// Extend valueAtDeviceReset with current & init value at object and memory
-					obj.common.custom[this.namespace].valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
-					obj.common.custom[this.namespace].valueAtDeviceInit = atDeviceInit;
+				// Determine previous reset value
+				// If null (first init) set 0 to valueAtDeviceReset otherwise copy current value
+				if (!calcValues.valueAtDeviceReset || calcValues.valueAtDeviceReset === 0 ){
+					// Update memory value with valueAtDeviceReset 0 and current reading at init
+					obj.common.custom[this.namespace].valueAtDeviceReset = 0;
+					obj.common.custom[this.namespace].valueAtDeviceInit = reading;
+				} else  {
+					// Update memory value with  known valueAtDeviceReset and current reading at init
+					obj.common.custom[this.namespace].valueAtDeviceReset = calcValues.cumulativeValue;
+					obj.common.custom[this.namespace].valueAtDeviceInit = reading;
+				}
 
-					// Update memory value with current & init value at object and memory
-					this.activeStates[stateID].calcValues.valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
-					this.activeStates[stateID].calcValues.valueAtDeviceInit = atDeviceInit;
+				// Update memory value with current & init value at object and memo
 					this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
 
 					// Ensure current value is set again after object extension as Workaround for Dev:0 bug
@@ -1208,21 +1206,33 @@ class Sourceanalytix extends utils.Adapter {
 					// Set state value back on object (Prevent Dev: 0 bug)
 					if (objval) {
 						await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
-					}
-				};
-
-				// Ensure proper handling of previous init value
-				if (calcValues.valueAtDeviceInit == null || calcValues.valueAtDeviceInit == undefined) {	// If no initialisation value is present, set to 0
-					this.log.debug(`[calculationHandler] No init value known, set to 0`);
-					await initiateState(reading);
-				} else if (reading < calcValues.valueAtDeviceInit) {
-					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${calcValues.valueAtDeviceInit}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
-					await initiateState(reading); // If reading < previous init value, handle device reset process normally
-				} else {
-					this.log.debug(`[calculationHandler] No issue found, process normally`);
 				}
-				// Calculate proper reading (Current value + value of of previous reset)
+			};
+
+			// Verify if state is initiated for the first time, if not handle initialisation
+			if ((!calcValues.valueAtDeviceReset || calcValues.valueAtDeviceReset !== 0) && currentCath !== 'Watt'){
+				this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
+				await initiateState();
+
+			// State was already initiated, current value >= known cumulative process normally
+			} else if (((reading + calcValues.valueAtDeviceReset) >= calcValues.cumulativeValue) && currentCath !== 'Watt') {
+				this.log.debug(`[calculationHandler] New reading ${reading} bigger than stored value ${calcValues.valueAtDeviceInit} processing normally`);
+				this.log.debug(`[calculationHandler] Adding ${reading} to stored value ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
+
+				// Add current reading to value in memory
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
+
+				this.log.debug(`[calculationHandler] Calculation outcome ${reading} valueAtDeviceReset ${this.activeStates[stateID].calcValues.valueAtDeviceReset}`);
+
+			// State was already initiated, current value < known cumulative process normally
+			} else if (((reading + calcValues.valueAtDeviceReset) < calcValues.cumulativeValue) && currentCath !== 'Watt') {
+				this.log.debug(`[calculationHandler] New reading ${reading} lower than stored init value ${calcValues.valueAtDeviceInit}`);
+				this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
+				await initiateState();
+
+				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
+			} else {
+				this.log.error(`[calculationHandler] unforeseen situation for ${stateID}, please send this to developer | reading : ${reading} | calcvalues : ${JSON.stringify(calcValues)}`);
 			}
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
