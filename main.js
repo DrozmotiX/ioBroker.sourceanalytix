@@ -461,9 +461,23 @@ class Sourceanalytix extends utils.Adapter {
 				//ToDo: Check if current year storage in Year root should be configurable
 				if (state === '05_currentYear' &&  ((stateDetails.consumption || stateDetails.costs)
 					&& (this.config.store_quarters || this.config.store_months || this.config.store_weeks ))){
-					await this.doLocalStateCreate(stateID, state, state, false, false, false);
+					await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.headCategory}Cumulative`, `${stateDetails.headCategory}Cumulative`, true, false, false);
+					await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.financialCategory}Cumulative`, `${stateDetails.financialCategory}Cumulative`, true, false, false, useCurrency);
+
 				} else if (state === '05_currentYear' &&  (!this.config.store_weeks && !this.config.store_months && !this.config.store_quarters)) {
-					await this.doLocalStateCreate(stateID, state, state, false, true, false);
+					await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.headCategory}Cumulative`, `${stateDetails.headCategory}Cumulative`, true, true, false);
+					await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.financialCategory}Cumulative`, `${stateDetails.financialCategory}Cumulative`, true, true, false, useCurrency);
+
+				}
+
+				// Remove this line in final version, temporary to remove old datapoints
+				if (state === '05_currentYear'){
+
+					await this.doLocalStateCreate(`${stateID}`, state, state, false, true, false);
+					await this.doLocalStateCreate(`${stateID}`, `${actualDate.year}.${state}`, `${state}`, true, true, false);
+					await this.doLocalStateCreate(`${stateID}`, `${actualDate.year}.${stateDetails.financialCategory}.${state}`, `${state}`, true, true, false);
+					await this.doLocalStateCreate(`${stateID}`, `${actualDate.year}.${stateDetails.headCategory}.${state}`, `${state}`, true, true, false);
+
 				}
 			}
 
@@ -474,9 +488,14 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
-			// Create state for current reading
+			// Create state for cumulative reading
 			const stateName = 'cumulativeReading';
 			await this.doLocalStateCreate(stateID, stateName, 'Cumulative Reading', true);
+
+			// Create state for cumulative reading at Year statistics
+			if (this.config.store_weeks || this.config.store_months || this.config.store_quarters){
+				await this.doLocalStateCreate(stateID, `${actualDate.year}.readingCumulative`, 'Cumulative Reading of Year total', true);
+			}
 
 			// Handle calculation
 			const value = await this.getForeignStateAsync(stateID);
@@ -900,8 +919,9 @@ class Sourceanalytix extends utils.Adapter {
      * @param {boolean} [atDeviceRoot=FALSE] - store value at root instead of Year-Folder
      * @param {boolean} [deleteState=FALSE] - Set to true will delete the state
      * @param {boolean} [isCurrent=FALSE] - Store value in current Year
+	 * @param {string} [forceUnit=''] - Force unit to be set on state
      */
-	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent) {
+	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit) {
 		this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
 		this.log.debug(`[doLocalStateCreate] stateDetails : ${JSON.stringify(this.activeStates[stateID].stateDetails)}`);
 		try {
@@ -916,7 +936,7 @@ class Sourceanalytix extends utils.Adapter {
 				role: 'value',
 				read: true,
 				write: false,
-				unit: stateDetails.useUnit,
+				unit: forceUnit ? forceUnit : stateDetails.useUnit,
 				def: 0,
 			};
 
@@ -1210,10 +1230,20 @@ class Sourceanalytix extends utils.Adapter {
 			this.activeStates[stateID]['calcValues'].cumulativeValue = reading;
 			this.visWidgetJson[stateID].cumulativeValue = reading;
 			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(this.activeStates[stateID])})`);
+
+			// Write current reading at device root
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.cumulativeReading`, {
 				val: reading,
 				ack: true
 			});
+
+			// Write current reading at year statistics
+			if (this.config.store_weeks || this.config.store_months || 	this.config.store_quarters){
+				await this.setStateChangedAsync(`${actualDate.year}.readingCumulative`, {
+					val: reading,
+					ack: true
+				});
+			}
 
 			//TODO; implement counters
 			// 	// Handle impulse counters
@@ -1319,7 +1349,7 @@ class Sourceanalytix extends utils.Adapter {
 					ack: true
 				});
 				if (this.config.store_weeks || this.config.store_months || this.config.store_quarters) {
-					await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}.05_currentYear`, {
+					await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}Cumulative`, {
 						val: calculationRounded.consumedYear,
 						ack: true
 					});
@@ -1379,7 +1409,7 @@ class Sourceanalytix extends utils.Adapter {
 				});
 
 				if (this.config.store_weeks || this.config.store_months || this.config.store_quarters) {
-					await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}.05_currentYear`, {
+					await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}Cumulative`, {
 						val: calculationRounded.priceYear,
 						ack: true
 					});
