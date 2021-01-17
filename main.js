@@ -922,10 +922,13 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Define if state should be created at root level
 			if (atDeviceRoot) {
-
 				stateName = `${stateDetails.deviceName}.${stateRoot}`;
-				this.log.debug(`Try creating states ${stateName} Data : ${JSON.stringify(commonData)}`);
-				await this.localSetObject(stateName, commonData);
+				if (!deleteState){
+					// this.log.debug(`Try creating states ${stateName} Data : ${JSON.stringify(commonData)}`);
+					await this.localSetObject(stateName, commonData);
+				} else {
+					await this.localDeleteState(stateName);
+				}
 
 			} else {
 
