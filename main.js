@@ -642,10 +642,12 @@ class Sourceanalytix extends utils.Adapter {
 						obj.common.custom = {};
 						obj.common.custom[this.namespace] = {
 							start_day: reading,
-							start_week: beforeReset.week === actualDate.week ? stateValues.start_week : reading,
 							start_month: beforeReset.month === actualDate.month ? stateValues.start_month : reading,
 							start_quarter: beforeReset.quarter === actualDate.quarter ? stateValues.start_quarter : reading,
+							start_week: beforeReset.week === actualDate.week ? stateValues.start_week : reading,
 							start_year: beforeReset.year === actualDate.year ? stateValues.start_year : reading,
+							valueAtDeviceInit: this.activeStates[stateID].calcValues.valueAtDeviceInit,
+							valueAtDeviceReset: this.activeStates[stateID].calcValues.valueAtDeviceReset,
 						};
 
 						// Extend memory with objects for watt to kWh calculation
@@ -656,8 +658,6 @@ class Sourceanalytix extends utils.Adapter {
 
 						this.activeStates[stateID].calcValues = obj.common.custom[this.namespace];
 						this.activeStates[stateID].calcValues.cumulativeValue = reading;
-						obj.common.custom[this.namespace].valueAtDeviceReset = this.activeStates[stateID].calcValues.valueAtDeviceReset;
-						obj.common.custom[this.namespace].valueAtDeviceInit = this.activeStates[stateID].calcValues.valueAtDeviceInit;
 
 						//At week reset ensure current week values are moved to previous week and current set to 0
 						if (beforeReset.week !== actualDate.week) {
@@ -848,7 +848,7 @@ class Sourceanalytix extends utils.Adapter {
 						const value = await this.getForeignStateAsync(stateID);
 						await this.extendForeignObject(stateID, obj);
 						this.log.info(`Memory values after reset : ${JSON.stringify(this.activeStates[stateID])}`);
-
+						this.log.info(`Current value of state : ${JSON.stringify(value)}`);
 						if (value) {
 							await this.setForeignStateAsync(stateID, {val: value.val, ack: true});
 							this.calculationHandler(stateID, value);
@@ -1214,7 +1214,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Ensure proper handling of previous init value
 				if (calcValues.valueAtDeviceInit == null || calcValues.valueAtDeviceInit == undefined) {	// If no initialisation value is present, set to 0
 					this.log.debug(`[calculationHandler] No init value known, set to 0`);
-					await initiateState(0);
+					await initiateState(reading);
 				} else if (reading < calcValues.valueAtDeviceInit) {
 					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${calcValues.valueAtDeviceInit}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
 					await initiateState(reading); // If reading < previous init value, handle device reset process normally
