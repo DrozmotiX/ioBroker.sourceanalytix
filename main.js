@@ -246,7 +246,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`[buildStateDetailsArray] commonData ${JSON.stringify(commonData)}`);
 
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
-				const valueAtDeviceReset = (customData.valueAtDeviceReset && customData.valueAtDeviceReset !== 0) ? customData.valueAtDeviceReset : 0;
+				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
 				const valueAtDeviceInit = (customData.valueAtDeviceInit || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceInit : null;
 				this.log.debug(`[buildStateDetailsArray] valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)}`);
 				this.log.debug(`[buildStateDetailsArray] valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
@@ -1192,13 +1192,19 @@ class Sourceanalytix extends utils.Adapter {
 					obj.common.custom = {};
 					obj.common.custom[this.namespace] = {};
 
-					// Extend valueAtDeviceReset with current & init value at object and memory
-					obj.common.custom[this.namespace].valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
-					obj.common.custom[this.namespace].valueAtDeviceInit = atDeviceInit;
+					// Determine previous reset value
+					// If null (first init) set 0 to valueAtDeviceReset otherwise copy current value
+					if (!calcValues.valueAtDeviceReset || calcValues.valueAtDeviceReset === 0){
+						// Update memory value with valueAtDeviceReset 0 and current reading at init
+						obj.common.custom[this.namespace].valueAtDeviceReset = 0;
+						obj.common.custom[this.namespace].valueAtDeviceInit = atDeviceInit;
+					} else {
+						// Update memory value with  known valueAtDeviceReset and current reading at init
+						obj.common.custom[this.namespace].valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
+						obj.common.custom[this.namespace].valueAtDeviceInit = atDeviceInit;
+					}
 
-					// Update memory value with current & init value at object and memory
-					this.activeStates[stateID].calcValues.valueAtDeviceReset = atDeviceInit + calcValues.valueAtDeviceReset;
-					this.activeStates[stateID].calcValues.valueAtDeviceInit = atDeviceInit;
+					// Update memory value with current & init value at object and memo
 					this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
 
 					// Ensure current value is set again after object extension as Workaround for Dev:0 bug
@@ -1214,7 +1220,9 @@ class Sourceanalytix extends utils.Adapter {
 				// Ensure proper handling of previous init value
 				if (calcValues.valueAtDeviceInit == null || calcValues.valueAtDeviceInit == undefined) {	// If no initialisation value is present, set to 0
 					this.log.debug(`[calculationHandler] No init value known, set to 0`);
+
 					await initiateState(reading);
+
 				} else if (reading < calcValues.valueAtDeviceInit) {
 					this.log.warn(`Device reset detected for ${stateID} store current value ${reading} to initValue (previous init value ${calcValues.valueAtDeviceInit}) and add to value of reset ${calcValues.valueAtDeviceReset}`);
 					await initiateState(reading); // If reading < previous init value, handle device reset process normally
