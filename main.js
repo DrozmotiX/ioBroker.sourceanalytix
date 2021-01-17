@@ -1489,7 +1489,7 @@ class Sourceanalytix extends utils.Adapter {
 			};
 
 			// Prepare function return
-			let calckWh = null;
+			let calckWh;
 
 			if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
 
@@ -1508,6 +1508,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Update timestamp current reading to memory
 				this.activeStates[stateID]['calcValues'].previousReadingWatt = readingData.currentReadingWatt;
 				this.activeStates[stateID]['calcValues'].previousReadingWattTs = readingData.currentReadingWattTs;
+				calckWh = 0; // return 0 kWh consumption as measurement
 
 			}
 
