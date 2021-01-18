@@ -1181,8 +1181,8 @@ class Sourceanalytix extends utils.Adapter {
 				// Prepare object array for extension
 				const obj = {};
 				obj.common = {};
-					obj.common.custom = {};
-					obj.common.custom[this.namespace] = {};
+				obj.common.custom = {};
+				obj.common.custom[this.namespace] = {};
 
 				// Determine previous reset value
 				// If null (first init) set 0 to valueAtDeviceReset otherwise copy current value
@@ -1197,15 +1197,15 @@ class Sourceanalytix extends utils.Adapter {
 				}
 
 				// Update memory value with current & init value at object and memo
-					this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
+				this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
 
-					// Ensure current value is set again after object extension as Workaround for Dev:0 bug
-					const objval = await this.getForeignStateAsync(stateID);
-					await this.extendForeignObject(stateID, obj);
-					this.log.debug(`[calculationHandler] State value before extension ${JSON.stringify(obj)} `);
-					// Set state value back on object (Prevent Dev: 0 bug)
-					if (objval) {
-						await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
+				// Ensure current value is set again after object extension as Workaround for Dev:0 bug
+				const objval = await this.getForeignStateAsync(stateID);
+				await this.extendForeignObject(stateID, obj);
+				this.log.debug(`[calculationHandler] State value before extension ${JSON.stringify(obj)} `);
+				// Set state value back on object (Prevent Dev: 0 bug)
+				if (objval) {
+					await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
 				}
 			};
 
@@ -1249,7 +1249,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Write current reading at year statistics
 			if (this.config.store_weeks || this.config.store_months || 	this.config.store_quarters){
-				await this.setStateChangedAsync(`${actualDate.year}.readingCumulative`, {
+				await this.setStateChangedAsync(`${stateDetails.deviceName}.${actualDate.year}.readingCumulative`, {
 					val: reading,
 					ack: true
 				});
