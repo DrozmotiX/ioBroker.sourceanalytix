@@ -1210,7 +1210,7 @@ class Sourceanalytix extends utils.Adapter {
 			};
 
 			// Verify if state is initiated for the first time, if not handle initialisation
-			if ((!calcValues.valueAtDeviceReset || calcValues.valueAtDeviceReset !== 0) && currentCath !== 'Watt'){
+			if ((!calcValues.valueAtDeviceReset && calcValues.valueAtDeviceReset !== 0) && currentCath !== 'Watt'){
 				this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 				await initiateState();
 
@@ -1231,8 +1231,8 @@ class Sourceanalytix extends utils.Adapter {
 				await initiateState();
 
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
-			} else {
-				this.log.error(`[calculationHandler] unforeseen situation for ${stateID}, please send this to developer | reading : ${reading} | calcvalues : ${JSON.stringify(calcValues)}`);
+			} else if (currentCath !== 'Watt') {
+				this.log.error(`[calculationHandler] unforeseen situation for ${stateID}, please send this to developer | reading : ${reading} | calcvalues : ${JSON.stringify(stateDetails)}`);
 			}
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
