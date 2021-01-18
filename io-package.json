@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.8-alpha.15",
+        "version": "0.4.8-alpha.17",
         "news": {
-            "0.4.8-alpha.15": {
+            "0.4.8-alpha.17": {
                 "en": "Bugfix : Issue in array load at first calculation handiling\nBugfix : Do not cumulative value to object",
                 "de": "Bugfix: Problem beim Laden des Arrays beim ersten Handling der Berechnung\nBugfix: Nicht kumulativen Wert zum Objekt",
                 "ru": "Исправление: проблема с загрузкой массива при первом вычислении.\nИсправление: не кумулятивная стоимость объекта",

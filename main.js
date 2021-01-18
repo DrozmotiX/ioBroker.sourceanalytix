@@ -295,17 +295,17 @@ class Sourceanalytix extends utils.Adapter {
 					return;
 				}
 
-				// Verify if value of initialisation of state > than current total cumulated value
-				if (valueAtDeviceInit > cumulativeValue){
-
-					// Ignore issue if categories = Watt, init value not used
-					if (useUnit !== 'W') {
-						this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
-						this.activeStates[stateID] = null;
-						return;
-					}
-				}
+				// // Verify if value of initialisation of state > than current total cumulated value
+				// if (valueAtDeviceInit > cumulativeValue){
+				//
+				// 	// Ignore issue if categories = Watt, init value not used
+				// 	if (useUnit !== 'W') {
+				// 		this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
+				// 		this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+				// 		this.activeStates[stateID] = null;
+				// 		return;
+				// 	}
+				// }
 
 				if (valueAtDeviceReset > cumulativeValue){
 					// Ignore issue if categories = Watt, init value not used

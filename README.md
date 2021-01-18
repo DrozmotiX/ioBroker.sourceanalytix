@@ -240,8 +240,17 @@ When the adapter crashes or an other Code error happens, this error message that
     ### __WORK IN PROGRESS__
 -->
 
+### 0.4.8-alpha.17 (2021-01-17)
+* (Dutchman) Bugfix : Formatting of news
+* (Dutchman) Bugfix : delete states in create function
+* (Dutchman) Bugfix : Incorrect initialisation for states
+* (Dutchman) Bugfix : Avoid NULL & 0 values at night reset
+* (Dutchman) Bugfix : Incorrect initialisation for Watt values with 0 input
+* (Dutchman) Bugfix : Only create cumulatedXXX in year statistics if activated
+* (Dutchman) implement category cumulative values under year statistics
+
 ### 0.4.8-alpha.15 (2021-01-16)
-* (Dutchman) Bugfix : Issue in array load at first calculation handiling
+* (Dutchman) Bugfix : Issue in array load at first calculation handling
 * (Dutchman) Bugfix : Do not cumulative value to object
 
 ### 0.4.8-alpha.14 (2021-01-16)
