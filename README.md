@@ -240,7 +240,7 @@ When the adapter crashes or an other Code error happens, this error message that
     ### __WORK IN PROGRESS__
 -->
 
-### 0.4.8-alpha.17 (2021-01-17)
+### 0.4.8-beta.0 (2021-01-18)
 * (Dutchman) Bugfix : Formatting of news
 * (Dutchman) Bugfix : delete states in create function
 * (Dutchman) Bugfix : Incorrect initialisation for states
