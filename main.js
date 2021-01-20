@@ -153,7 +153,7 @@ class Sourceanalytix extends utils.Adapter {
 
 	}
 
-	//ToDo: Implement cleanup for unused states
+	//ToDo 0.5: Implement cleanup for unused states
 	// async cleanupUnused() {
 	//     const allStates = await this.getAdapterObjectsAsync()
 	//     this.log.info((JSON.stringify(allStates)))
@@ -294,18 +294,6 @@ class Sourceanalytix extends utils.Adapter {
 					this.activeStates[stateID] = null;
 					return;
 				}
-
-				// // Verify if value of initialisation of state > than current total cumulated value
-				// if (valueAtDeviceInit > cumulativeValue){
-				//
-				// 	// Ignore issue if categories = Watt, init value not used
-				// 	if (useUnit !== 'W') {
-				// 		this.log.error(`Check settings for ${stateID} ! Known init value : (${valueAtDeviceInit}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-				// 		this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
-				// 		this.activeStates[stateID] = null;
-				// 		return;
-				// 	}
-				// }
 
 				if (valueAtDeviceReset > cumulativeValue){
 					// Ignore issue if categories = Watt, init value not used
@@ -1186,7 +1174,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Determine previous reset value
 				// If null (first init) set 0 to valueAtDeviceReset otherwise copy current value
-				if (!calcValues.valueAtDeviceReset || calcValues.valueAtDeviceReset === 0 ){
+				if (calcValues.valueAtDeviceReset == null || calcValues.valueAtDeviceReset == undefined){
 					// Update memory value with valueAtDeviceReset 0 and current reading at init
 					obj.common.custom[this.namespace].valueAtDeviceReset = 0;
 					obj.common.custom[this.namespace].valueAtDeviceInit = reading;
@@ -1210,7 +1198,7 @@ class Sourceanalytix extends utils.Adapter {
 			};
 
 			// Verify if state is initiated for the first time, if not handle initialisation
-			if ((!calcValues.valueAtDeviceReset && calcValues.valueAtDeviceReset !== 0) && currentCath !== 'Watt'){
+			if ((calcValues.valueAtDeviceReset == null || calcValues.valueAtDeviceReset == undefined) && currentCath !== 'Watt'){
 				this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 				await initiateState();
 
@@ -1226,13 +1214,12 @@ class Sourceanalytix extends utils.Adapter {
 
 			// State was already initiated, current value < known cumulative process normally
 			} else if (((reading + calcValues.valueAtDeviceReset) < calcValues.cumulativeValue) && currentCath !== 'Watt') {
-				this.log.debug(`[calculationHandler] New reading ${reading} lower than stored init value ${calcValues.valueAtDeviceInit}`);
 				this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
 				await initiateState();
 
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
 			} else if (currentCath !== 'Watt') {
-				this.log.error(`[calculationHandler] unforeseen situation for ${stateID}, please send this to developer | reading : ${reading} | calcvalues : ${JSON.stringify(stateDetails)}`);
+				this.log.error(`[calculationHandler] unforeseen situation for ${stateID} with value ${reading}, please send this to developer | reading : ${reading} | calcvalues : ${JSON.stringify(stateDetails)}`);
 			}
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
