@@ -449,7 +449,7 @@ class Sourceanalytix extends utils.Adapter {
 				await this.doLocalStateCreate(stateID, state, state, false, false, true);
 				// .${actualDate.year}.
 
-				//ToDo: Check if current year storage in Year root should be configurable
+				//ToDo 0.4.9: Check if current year storage in Year root should be configurable
 				if (state === '05_currentYear' &&  ((stateDetails.consumption || stateDetails.costs)
 					&& (this.config.store_quarters || this.config.store_months || this.config.store_weeks ))){
 					await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.headCategory}Cumulative`, `${stateDetails.headCategory}Cumulative`, true, false, false);
@@ -1029,7 +1029,7 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * create/extend function for objects
-	 * TODO: Check with JS-Controller 3.x if check is still required
+	 * TODO 0.5: Check with JS-Controller 3.x if check is still required
 	 * @param {string} stateName - RAW state ID of monitored state
 	 * @param {object} commonData - common data content
 	 */
@@ -1117,7 +1117,7 @@ class Sourceanalytix extends utils.Adapter {
 			let reading;
 
 			// Convert volume liter to cubic
-			//TODO: Should  be handle  by library
+			//TODO 0.5: Should  be handle  by library
 			if (currentCath === 'Watt') {
 				// Convert watt to watt hours
 				reading = await this.wattToWattHour(stateID, stateVal);
@@ -1242,7 +1242,7 @@ class Sourceanalytix extends utils.Adapter {
 				});
 			}
 
-			//TODO; implement counters
+			//TODO 0.5; implement counters
 			// 	// Handle impulse counters
 			// 	if (obj_custom.state_type == 'impulse'){
 
@@ -1251,7 +1251,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			// 	}
 
-			//TODO: Implement periods
+			//TODO 0.5: Implement periods
 			// temporary set to Zero, this value will be used later to handle period calculations
 			const reading_start = 0; //obj_cust.start_meassure;
 
@@ -1353,7 +1353,7 @@ class Sourceanalytix extends utils.Adapter {
 				}
 
 				// Weekdays
-				//ToDo: Write to JSON
+				//ToDo 0.4.9 : Write to JSON
 				await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
 					val: calculationRounded.consumedDay,
 					ack: true
@@ -1438,7 +1438,7 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Store results of current calculation to memory
-			//ToDo : Build JSON array for current values to have widget & information easy accessible in vis
+			//ToDo 0.4.9 : Build JSON array for current values to have widget & information easy accessible in vis
 			previousCalculationRounded[stateID] = calculationRounded;
 
 			this.log.debug(`[calculationHandler] Meter Calculation executed consumed data for ${stateID} : ${JSON.stringify(calculationRounded)}`);
