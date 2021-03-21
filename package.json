@@ -6,7 +6,7 @@
     "name": "DutchmanNL",
     "email": "rdrozda@hotmail.com"
   },
-  "homepage": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix",
+  "homepage": "https://github.com/DrozmotiX/ioBroker.sourceanalytix",
   "license": "MIT",
   "keywords": [
     "energy",
@@ -18,7 +18,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix"
+    "url": "https://github.com/DrozmotiX/ioBroker.sourceanalytix"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^2.4.0",
@@ -63,7 +63,7 @@
     "release": "release-script"
   },
   "bugs": {
-    "url": "https://github.com/iobroker-community-adapters/ioBroker.sourceanalytix/issues"
+    "url": "https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues"
   },
   "readmeFilename": "README.md"
 }
