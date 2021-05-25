@@ -10,20 +10,21 @@
                 <span class="translate">enabled</span>
             </div>
 
-
+<!--
             <div class="input-field col s4">
                 <input placeholder="Leave empty to use object's name" type="text" data-field="alias" />
                 <label for="alias" class="translate">Alias</label>
             </div>
+-->
 
-            <div class="input-field col s3">
+            <div class="input-field col s6">
                 <select id="elements-select-priceCat" data-field="selectedPrice">
                     <option value="" disabled selected>Choose option</option>
                 </select>
-                <label for="elements-select-priceCat" class="translate">Select Type</label>
+                <label for="elements-select-priceCat" class="translate">Select price definition</label>
             </div>
 
-            <div class="input-field col s3">
+            <div class="input-field col s4">
                 <select id="elements-select-unitCat" data-field="selectedUnit">
                     <option value="" disabled selected>Choose option</option>
                 </select>
@@ -49,17 +50,15 @@
 
             <div class="input-field col s2">
                 <input type="checkbox" data-field="costs" data-default="false" />
-                <span class="translate">Costs</span>
+                <span class="translate">Calculate costs</span>
             </div>
 
 
             <div class="switch col s4">
                 <label>
-                    <span class="translate">(without basic charge)</span>
                     <input type="checkbox" class="value" id="basicCharge"/>
-
                     <span class="lever"></span>
-                    <span class="translate">(including basic charge)</span>
+                    <span class="translate">Including basic rate</span>
                 </label>
             </div>
 
@@ -76,12 +75,12 @@
 
             <div class="input-field col s2">
                 <input type="checkbox" data-field="consumption" data-default="false" />
-                <span class="translate">consumption</span>
+                <span class="translate">Calculate consumption</span>
             </div>
 
             <div class="input-field col s2">
                 <input type="checkbox" data-field="meter_values" data-default="false" />
-                <span class="translate">counter values</span>
+                <span class="translate">Store Meter Values</span>
             </div>
         </div>
 
@@ -90,30 +89,30 @@
     <p class="center translate title">Please enter start values</p>
 
     <section>
-        <!-- <h6 class="translate">Please enter start values in kWh or m3 !</h6> -->
+        <!-- <h6 class="translate">Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!</h6> -->
 
         <div class="row">
             <div class="input-field col s2">
             </div>
             <div class="input-field col s2">
                 <input data-field="start_day" type="number" data-default="0" />
-                <label for="start_day" class="translate">Meter reading at day start</label>
+                <label for="start_day" class="translate">Meter reading at the beginning of the day</label>
             </div>
             <div class="input-field col s2">
                 <input data-field="start_week" type="number" data-default="0" />
-                <label for="start_week" class="translate">Meter reading at week start</label>
+                <label for="start_week" class="translate">Meter reading at the beginning of the week</label>
             </div>
             <div class="input-field col s2">
                 <input data-field="start_month" type="number" data-default="0" />
-                <label for="start_month" class="translate">Meter reading at month start</label>
+                <label for="start_month" class="translate">Meter reading at the beginning of the month</label>
             </div>
             <div class="input-field col s2">
                 <input data-field="start_quarter" type="number" data-default="0" />
-                <label for="start_quarter" class="translate">Meter reading at quarter start</label>
+                <label for="start_quarter" class="translate">Meter reading at the beginning of the quarter</label>
             </div>
             <div class="input-field col s2">
                 <input data-field="start_year" type="number" data-default="0" />
-                <label for="start_year" class="translate">Meter reading at year start</label>
+                <label for="start_year" class="translate">Meter reading at the beginning of the year</label>
             </div>
         </div>
     </section>
