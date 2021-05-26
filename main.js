@@ -43,7 +43,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.on('ready', this.onReady.bind(this));
 		this.on('objectChange', this.onObjectChange.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
-		// this.on('message', this.onMessage.bind(this));
+		this.on('message', this.onMessage.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 
 		// Unit and price definitions, will be loaded at adapter start.
@@ -311,7 +311,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Load state settings to memory
 				this.activeStates[stateID] = {
 					stateDetails: {
-						alias: customData.alias.toString(),
+						alias: '',
 						consumption: customData.consumption,
 						costs: customData.costs,
 						deviceName: newDeviceName.toString(),
@@ -1647,6 +1647,38 @@ class Sourceanalytix extends utils.Adapter {
 				sentryInstance.getSentryObject().captureException(error);
 			}
 		}
+	}
+
+	async onMessage(obj) {
+
+		if (obj) {
+			switch (obj.command) {
+				case 'getPriceDefinitions':
+					if (obj.callback) {
+
+						const priceDefinitionArray = [];
+						for (const priceDefinition in this.unitPriceDef.pricesConfig){
+							priceDefinitionArray.push({label: priceDefinition, value: priceDefinition});
+						}
+						this.sendTo(obj.from, obj.command, priceDefinitionArray, obj.callback);
+					}
+					break;
+
+				case 'getUnits':
+					if (obj.callback) {
+
+						const unitArray = [];
+
+						unitArray.push({label: 'Detect automatically', value: 'Detect automatically'});
+						for (const priceDefinition in this.unitPriceDef.unitConfig){
+							unitArray.push({label: priceDefinition, value: priceDefinition});
+						}
+						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+					}
+					break;
+			}
+		}
+
 	}
 
 	/**

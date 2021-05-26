@@ -240,6 +240,10 @@ When the adapter crashes or an other Code error happens, this error message that
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+
+### 0.4.9-0 (2021-05-26)
+* (DutchmanNL) Added support for Admin 5 (Requires Admin >= 5.1.2)
+
 ### 0.4.8 (2021-01-20)
 #### Breaking changes
 * (DutchmanNL) Breaking!!! Move current values to currentYear [#135](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)
