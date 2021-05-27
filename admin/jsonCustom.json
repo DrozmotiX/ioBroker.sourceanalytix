@@ -7,13 +7,13 @@
       "text": "Basic configuration",
       "sm": 12
     },
-    "_priceDefinitions": {
+    "selectedPrice": {
       "command": "getPriceDefinitions",
       "type": "autocompleteSendTo",
       "label": "Select price definition",
       "sm": 6
     },
-    "_unitDefinitions": {
+    "selectedUnit": {
       "command": "getUnits",
       "type": "autocompleteSendTo",
       "label": "Select Unit",

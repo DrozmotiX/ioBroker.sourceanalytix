@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.9-0",
+        "version": "0.4.9-1",
         "news": {
-            "0.4.9-0": {
+            "0.4.9-1": {
                 "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",
                 "de": "Unterstützung für Admin 5 hinzugefügt (Admin erforderlich >= 5.1.2)",
                 "ru": "Добавлена поддержка для Admin 5 (требуется Admin >= 5.1.2).",
@@ -206,8 +206,8 @@
         "enabled": true,
         "messagebox": true,
         "subscribe": "messagebox",
-        "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.sourceanalytix/master/admin/sourceanalytix.png",
-        "readme": "https://github.com/DrozmotiX/ioBroker.sourceanalytix/blob/master/README.md",
+        "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.sourceanalytix/main/admin/sourceanalytix.png",
+        "readme": "https://github.com/DrozmotiX/ioBroker.sourceanalytix/blob/main/README.md",
         "loglevel": "info",
         "mode": "daemon",
         "type": "energy",
