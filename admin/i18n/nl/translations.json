@@ -2,10 +2,10 @@
     "Basic configuration": "Basisconfiguratie",
     "Calculate consumption": "Bereken verbruik",
     "Calculate costs": "Bereken de kosten",
-    "Calculation settings": "Berekeningsinstellingen",
+    "Calculation settings": "Bepaal welke berekeningen plaats moeten vinden",
     "Category": "Categorie",
     "Cost Type": "Kostentype",
-    "Current year": "Huidige jaar",
+    "Current year": "Huidig jaar",
     "Description": "Omschrijving",
     "Including basic rate": "Inclusief basistarief",
     "Meter reading at the beginning of the day": "Meterstand aan het begin van de dag",
@@ -27,5 +27,7 @@
     "Weekday": "Weekdag",
     "Weeks": "Weken",
     "Year": "Jaar",
-    "Year statistics": "Jaarstatistieken"
+    "Year statistics": "Jaarstatistieken",
+    "Price p/m": "Prijs per maand",
+    "Quarters": "Kwartalen"
 }
