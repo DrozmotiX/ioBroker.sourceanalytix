@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.9-1",
+        "version": "0.4.9",
         "news": {
             "0.4.9-1": {
                 "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",

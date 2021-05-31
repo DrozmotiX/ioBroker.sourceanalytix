@@ -246,8 +246,9 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 
-### 0.4.9-0 (2021-05-26)
+### 0.4.9 (2021-05-31)
 * (DutchmanNL) Added support for Admin 5 (Requires Admin >= 5.1.2)
+* (Bluefox) Fix error in admin
 
 ### 0.4.8 (2021-01-20)
 #### Breaking changes
