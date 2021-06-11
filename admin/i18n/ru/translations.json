@@ -23,7 +23,7 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Начальные значения для соответствующего периода, шкала единиц (например, Втч или кВтч) должны соответствовать целевым единицам!",
     "Status messages to log": "Сообщения о состоянии в журнал",
     "Store Meter Values": "Хранить значения счетчика",
-    "Unit": "Ед. изм",
+    "Unit": "Единицы",
     "Weekday": "Будний день",
     "Weeks": "Недели",
     "Year": "Год",
