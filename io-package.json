@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.9",
+        "version": "0.4.10",
         "news": {
+            "0.4.10": {
+                "en": "Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "de": "Bugfix : Adapterabsturz während der Nacht bei falsch konfigurierten Zuständen vermeiden [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "ru": "Исправление: предотвращение сбоя адаптера в ночное время из-за неправильных настроенных состояний [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "pt": "Correção de bug: evite a falha do adaptador durante a noite para estados configurados incorretos [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "nl": "Bugfix: Voorkom dat de adapter 's nachts crasht vanwege onjuist geconfigureerde statussen [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "fr": "Correction de bug : évitez le crash de l'adaptateur pendant la nuit pour les états configurés incorrects [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "it": "Bugfix: evita l'arresto anomalo dell'adattatore durante la notte per stati di configurazione errati [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "es": "Corrección de error: evite el bloqueo del adaptador durante la noche para estados configurados incorrectamente [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "pl": "Poprawka błędu: Unikaj awarii karty w nocy w przypadku niepoprawnie skonfigurowanych stanów [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "zh-cn": "修正：避免夜间适配器因错误配置状态而崩溃 [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)"
+            },
             "0.4.9-1": {
                 "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",
                 "de": "Unterstützung für Admin 5 hinzugefügt (Admin erforderlich >= 5.1.2)",
