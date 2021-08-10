@@ -12,7 +12,7 @@ const adapterHelpers = require('iobroker-adapter-helpers'); // Lib used for Unit
 const schedule = require('cron').CronJob; // Cron Scheduler
 
 // Sentry error reporting, disable when testing alpha source code locally!
-const sendSentry = true;
+const disableSentry = false;
 // Sentry error reporting, disable when testing alpha source code locally!
 
 // Store all days and months
@@ -618,6 +618,12 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.info(`Reset start values for : ${stateID}`);
 					this.log.info(`Memory values before reset : ${JSON.stringify(this.activeStates[stateID])}`);
 					try {
+
+						if (this.activeStates[stateID] == null || this.activeStates[stateID].calcValues == null || this.activeStates[stateID].stateDetails == null)  {
+							this.log.error(`Cannot handle Day reset for ${stateID}, check your configuration (error  messages  at adapter start)`);
+							continue;
+						}
+
 						const stateValues = this.activeStates[stateID].calcValues;
 						const stateDetails = this.activeStates[stateID].stateDetails;
 						// get current meter value
@@ -1640,12 +1646,18 @@ class Sourceanalytix extends utils.Adapter {
      * @param {object} [error] - Sentry message
      */
 	errorHandling(codePart, error) {
-		this.log.error(`[${codePart}] error: ${error.message}, stack: ${error.stack}`);
-		if (this.supportsFeature && this.supportsFeature('PLUGINS') && sendSentry) {
-			const sentryInstance = this.getPluginInstance('sentry');
-			if (sentryInstance) {
-				sentryInstance.getSentryObject().captureException(error);
+		const msg = `[${codePart}] error: ${error.message}, stack: ${error.stack}`;
+		if (!disableSentry) {
+			if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
+				const sentryInstance = this.getPluginInstance('sentry');
+				if (sentryInstance) {
+					this.log.info(`[Error caught and sent to Sentry, thank you for collaborating!] error: ${msg}`);
+					sentryInstance.getSentryObject().captureException(msg);
+				}
 			}
+		} else {
+			this.log.error(`Sentry disabled, error caught : ${msg}`);
+			console.error(`Sentry disabled, error caught : ${msg}`);
 		}
 	}
 
