@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.10",
+        "version": "0.4.11",
         "news": {
+            "0.4.11": {
+                "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
+                "de": "Log-/Fehlermeldungen beim Adapterstart verbessern\nBugfix : Eigenschaft 'calcValues' von null und verwandten Problemen, die von Sentry gefunden wurden, kann nicht gelesen werden",
+                "ru": "Улучшение сообщений журнала / ошибок при запуске адаптера\nИсправление: не удавалось прочитать свойство «calcValues» для нулевых и связанных проблем, обнаруженных Sentry.",
+                "pt": "Melhorar as mensagens de log / erro no início do adaptador\nCorreção de bug: não é possível ler a propriedade 'calcValues' de problemas nulos e relacionados encontrados pelo Sentry",
+                "nl": "Logboek-/foutmeldingen verbeteren bij het starten van de adapter\nBugfix: kan eigenschap 'calcValues' van null en gerelateerde problemen gevonden door Sentry niet lezen",
+                "fr": "Améliorer les journaux/messages d'erreur au démarrage de l'adaptateur\nCorrection de bug : Impossible de lire la propriété 'calcValues' des problèmes null et connexes trouvés par Sentry",
+                "it": "Migliora i messaggi di registro/errore all'avvio dell'adattatore\nBugfix: impossibile leggere la proprietà 'calcValues' di problemi nulli e correlati rilevati da Sentry",
+                "es": "Mejorar los mensajes de registro / error al iniciar el adaptador\nCorrección de error: no se puede leer la propiedad 'calcValues' de problemas nulos y relacionados encontrados por Sentry",
+                "pl": "Popraw komunikaty dziennika/błędów podczas uruchamiania adaptera\nPoprawka błędu: Nie można odczytać właściwości „calcValues” wartości null i powiązanych problemów znalezionych przez Sentry",
+                "zh-cn": "改进适配器启动时的日志/错误消息\n错误修正：无法读取 Sentry 发现的 null 和相关问题的属性“calcValues”"
+            },
             "0.4.10": {
                 "en": "Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
                 "de": "Bugfix : Adapterabsturz während der Nacht bei falsch konfigurierten Zuständen vermeiden [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
@@ -15,7 +27,7 @@
                 "pl": "Poprawka błędu: Unikaj awarii karty w nocy w przypadku niepoprawnie skonfigurowanych stanów [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
                 "zh-cn": "修正：避免夜间适配器因错误配置状态而崩溃 [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)"
             },
-            "0.4.9-1": {
+            "0.4.9": {
                 "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",
                 "de": "Unterstützung für Admin 5 hinzugefügt (Admin erforderlich >= 5.1.2)",
                 "ru": "Добавлена поддержка для Admin 5 (требуется Admin >= 5.1.2).",
