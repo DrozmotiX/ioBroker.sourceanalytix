@@ -86,8 +86,6 @@ class Sourceanalytix extends utils.Adapter {
 			storeSettings.storeMonths = this.config.store_months;
 			storeSettings.storeQuarters = this.config.store_quarters;
 
-			this.log.debug('Initializing enabled states for SourceAnalytix');
-
 			// Get all objects with custom configuration items
 			const customStateArray = await this.getObjectViewAsync('custom', 'state', {});
 			this.log.debug(`All states with custom items : ${JSON.stringify(customStateArray)}`);
@@ -120,15 +118,22 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
+			const totalEnabledStates = Object.keys(this.activeStates).length;
+			let totalInitiatedStates = 0;
+			let totalFailedStates = 0;
+			this.log.info(`Found ${totalEnabledStates} SourceAnalytix enabled states`);
+
 			// Initialize all discovered states
 			let count = 1;
 			for (const stateID in this.activeStates) {
-				this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
+				this.log.info(`Initialising (${count} of ${totalEnabledStates}) "${stateID}"`);
 				await this.buildStateDetailsArray(stateID);
 				if (this.activeStates[stateID]) {
-				await this.initialize(stateID);
+					await this.initialize(stateID);
 					totalInitiatedStates = totalInitiatedStates + 1;
+					this.log.info(`Initialization of ${stateID} successfully`);
 				} else {
+					this.log.error(`Initialization of ${stateID} failed, check warn messages !`);
 					totalFailedStates = totalFailedStates + 1;
 				}
 				count = count + 1;
@@ -149,7 +154,11 @@ class Sourceanalytix extends utils.Adapter {
 				calcBlock = false;
 			}, 500);
 
-			this.log.info(`SourceAnalytix initialisation finalized, will handle calculations ... for ${count - 1} states`);
+			if (totalFailedStates > 0) {
+				this.log.warn(`Cannot handle calculations for ${totalFailedStates} of ${totalEnabledStates} enabled states, check error messages`);
+			}
+
+			this.log.info(`Successfully activated SourceAnalytix for ${totalInitiatedStates} of ${totalEnabledStates} states, will do my Job until you stop me!`);
 			// this.cleanupUnused()
 
 		} catch (error) {
@@ -285,14 +294,9 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Load state price definition
 				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
-					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
 					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
 					initError = true;
 				} else if (!this.unitPriceDef.pricesConfig[customData.selectedPrice]) {
-				}
-
-				if (!this.unitPriceDef.pricesConfig[customData.selectedPrice]) {
-					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
 					this.log.error(`Selected Type ${customData.selectedPrice} does not exist in Price Definitions`);
 					this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
@@ -306,11 +310,13 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
 						initError = true;
 					}
+				}
+
 				if (initError){
 					this.log.error(`Cannot handle calculations for ${stateID}, check log messages and adjust settings!`);
 					delete this.activeStates[stateID];
-						return;
-					}
+					return;
+				}
 
 				// Load price definition from settings & library
 				const stateType = this.unitPriceDef.pricesConfig[customData.selectedPrice].costType;
