@@ -114,7 +114,7 @@ class Sourceanalytix extends utils.Adapter {
 							// Not SourceAnalytix relevant ignore
 						} else {
 							this.log.debug(`SourceAnalytix enabled state found ${id} calling buildStateDetailsArray`);
-							await this.buildStateDetailsArray(id);
+							this.activeStates[id] = {};
 						}
 					}
 				}
@@ -124,8 +124,13 @@ class Sourceanalytix extends utils.Adapter {
 			let count = 1;
 			for (const stateID in this.activeStates) {
 				this.log.info(`Initialising (${count} of ${Object.keys(this.activeStates).length}) state ${stateID}`);
+				await this.buildStateDetailsArray(stateID);
+				if (this.activeStates[stateID]) {
 				await this.initialize(stateID);
-				this.log.info(`Initialization (${count} of ${Object.keys(this.activeStates).length}) finished for : ${stateID}`);
+					totalInitiatedStates = totalInitiatedStates + 1;
+				} else {
+					totalFailedStates = totalFailedStates + 1;
+				}
 				count = count + 1;
 			}
 
@@ -217,6 +222,7 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} stateID ID  of state to refresh memory values
 	 */
 	async buildStateDetailsArray(stateID) {
+		let initError  = false;
 		this.log.debug(`[buildStateDetailsArray] started for ${stateID}`);
 		try {
 
@@ -226,12 +232,12 @@ class Sourceanalytix extends utils.Adapter {
 				stateInfo = await this.getForeignObjectAsync(stateID);
 				if (!stateInfo) {
 					this.log.error(`Can't get information for ${stateID}, state will be ignored`);
-					this.activeStates[stateID] = null;
+					delete this.activeStates[stateID];
 					return;
 				}
 			} catch (error) {
 				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify(error)}`);
-				this.activeStates[stateID] = null;
+				delete this.activeStates[stateID];
 				return;
 			}
 
@@ -274,16 +280,15 @@ class Sourceanalytix extends utils.Adapter {
 				} else {
 					this.log.error(`No unit defined for ${stateID}, cannot execute calculations !`);
 					this.log.error(`Please choose unit manually in state configuration`);
-					this.activeStates[stateID] = null;
-					return;
+					initError = true;
 				}
 
 				// Load state price definition
 				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
 					this.log.error(`Cannot execute calculations for ${stateID} adjust settings !`);
 					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
-					this.activeStates[stateID] = null;
-					return;
+					initError = true;
+				} else if (!this.unitPriceDef.pricesConfig[customData.selectedPrice]) {
 				}
 
 				if (!this.unitPriceDef.pricesConfig[customData.selectedPrice]) {
@@ -291,8 +296,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Selected Type ${customData.selectedPrice} does not exist in Price Definitions`);
 					this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
-					this.activeStates[stateID] = null;
-					return;
+					initError = true;
 				}
 
 				if (valueAtDeviceReset > cumulativeValue){
@@ -300,10 +304,13 @@ class Sourceanalytix extends utils.Adapter {
 					if (useUnit !== 'W') {
 						this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceReset}) > known cumulative value (${cumulativeValue}) cannot proceed`);
 						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
-						this.activeStates[stateID] = null;
+						initError = true;
+					}
+				if (initError){
+					this.log.error(`Cannot handle calculations for ${stateID}, check log messages and adjust settings!`);
+					delete this.activeStates[stateID];
 						return;
 					}
-				}
 
 				// Load price definition from settings & library
 				const stateType = this.unitPriceDef.pricesConfig[customData.selectedPrice].costType;
@@ -552,7 +559,7 @@ class Sourceanalytix extends utils.Adapter {
 					}
 
 				} else if (this.activeStates[stateID]) {
-					this.activeStates[stateID] = null;
+					delete this.activeStates[stateID];
 					this.log.info(`Disabled SourceAnalytix for : ${stateID}`);
 					this.log.debug(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
 					this.unsubscribeForeignStates(stateID);
