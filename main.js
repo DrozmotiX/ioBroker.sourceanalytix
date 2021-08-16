@@ -13,7 +13,6 @@ const schedule = require('cron').CronJob; // Cron Scheduler
 
 // Sentry error reporting, disable when testing alpha source code locally!
 const disableSentry = false;
-// Sentry error reporting, disable when testing alpha source code locally!
 
 // Store all days and months
 const basicStates = ['01_currentDay', '02_currentWeek', '03_currentMonth', '04_currentQuarter', '05_currentYear'];
@@ -242,11 +241,13 @@ class Sourceanalytix extends utils.Adapter {
 				if (!stateInfo) {
 					this.log.error(`Can't get information for ${stateID}, state will be ignored`);
 					delete this.activeStates[stateID];
+					this.unsubscribeForeignStates(stateID);
 					return;
 				}
 			} catch (error) {
 				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify(error)}`);
 				delete this.activeStates[stateID];
+				this.unsubscribeForeignStates(stateID);
 				return;
 			}
 
@@ -315,6 +316,7 @@ class Sourceanalytix extends utils.Adapter {
 				if (initError){
 					this.log.error(`Cannot handle calculations for ${stateID}, check log messages and adjust settings!`);
 					delete this.activeStates[stateID];
+					this.unsubscribeForeignStates(stateID);
 					return;
 				}
 
@@ -549,7 +551,6 @@ class Sourceanalytix extends utils.Adapter {
 							await this.initialize(stateID);
 						} else {
 							this.log.warn(`[Cannot enable SourceAnalytix for ${stateID}, check settings and error messages`);
-							this.unsubscribeForeignStates(stateID);
 						}
 					} else {
 						this.log.info(`Updating SourceAnalytix configuration for : ${stateID}`);
@@ -560,7 +561,6 @@ class Sourceanalytix extends utils.Adapter {
 							await this.initialize(stateID);
 						} else {
 							this.log.warn(`[Cannot update SourceAnalytix configuration for ${stateID}, check settings and error messages`);
-							this.unsubscribeForeignStates(stateID);
 						}
 					}
 
@@ -1674,6 +1674,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 
+	//Function to handle messages from State settings and provide Unit and Price definitions
 	async onMessage(obj) {
 
 		if (obj) {
@@ -1703,7 +1704,6 @@ class Sourceanalytix extends utils.Adapter {
 					break;
 			}
 		}
-
 	}
 
 	/**
