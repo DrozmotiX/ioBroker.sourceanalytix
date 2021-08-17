@@ -326,7 +326,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Load state settings to memory
 				this.activeStates[stateID] = {
 					stateDetails: {
-						alias: '',
+						alias: customData.alias !== '' ? customData.alias : '',
 						consumption: customData.consumption,
 						costs: customData.costs,
 						deviceName: newDeviceName.toString(),

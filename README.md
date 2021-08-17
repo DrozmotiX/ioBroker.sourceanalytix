@@ -245,10 +245,13 @@ When the adapter crashes or any other Code error happens, this error message tha
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+
+### 0.4.12-0 (2021-08-17) Add option to use alias
+* (DutchmanNL) Add possibility use an alternative name (alias)
+
 ### 0.4.11 (2021-08-16)
 * (DutchmanNL) Improve log/error messages at adapter start
 * (DutchmanNL) Bugfix : Cannot read property 'calcValues' of null & related issues found by Sentry
-
 
 ### 0.4.10 (2021-08-10)
 * (DutchmanNL) Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)

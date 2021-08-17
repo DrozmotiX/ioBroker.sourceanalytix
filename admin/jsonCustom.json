@@ -7,18 +7,24 @@
       "text": "Basic configuration",
       "sm": 12
     },
+    "alias": {
+      "type": "text",
+      "label": "Alias name",
+      "help": "If no alias is set, name will be used",
+      "sm": 5
+    },
     "selectedPrice": {
       "command": "getPriceDefinitions",
       "type": "autocompleteSendTo",
       "label": "Select price definition",
-      "sm": 6
+      "sm": 4
     },
     "selectedUnit": {
       "command": "getUnits",
       "type": "autocompleteSendTo",
       "label": "Select Unit",
       "default": "Detect automatically",
-      "sm": 6
+      "sm": 3
     },
     "_calcSettings": {
       "newLine": true,

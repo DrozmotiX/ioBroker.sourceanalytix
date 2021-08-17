@@ -1,4 +1,5 @@
 {
+    "Alias name": "Alias ​​naam",
     "Basic configuration": "Basisconfiguratie",
     "Calculate consumption": "Bereken verbruik",
     "Calculate costs": "Bereken de kosten",
@@ -7,6 +8,7 @@
     "Cost Type": "Kostentype",
     "Current year": "Huidig jaar",
     "Description": "Omschrijving",
+    "If no alias is set, name will be used": "Als er geen alias is ingesteld, wordt de naam gebruikt",
     "Including basic rate": "Inclusief basistarief",
     "Meter reading at the beginning of the day": "Meterstand aan het begin van de dag",
     "Meter reading at the beginning of the month": "Meterstand aan het begin van de maand",
@@ -16,8 +18,10 @@
     "Months": "Maanden",
     "Previous period": "Vorige periode",
     "Price definitions": "Prijs definities",
+    "Price p/m": "Prijs per maand",
     "Price p/unit": "Prijs per stuk",
     "Prices configuration table": "Prijsconfiguratietabel",
+    "Quarters": "Kwartalen",
     "Select Unit": "Selecteer Eenheid",
     "Select price definition": "Selecteer prijsdefinitie",
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Startwaarden voor de betreffende periode, eenheidsschaal (bijv. Wh of kWh) moeten overeenkomen met de doeleenheid!",
@@ -27,7 +31,5 @@
     "Weekday": "Weekdag",
     "Weeks": "Weken",
     "Year": "Jaar",
-    "Year statistics": "Jaarstatistieken",
-    "Price p/m": "Prijs per maand",
-    "Quarters": "Kwartalen"
+    "Year statistics": "Jaarstatistieken"
 }
