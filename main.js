@@ -110,7 +110,7 @@ class Sourceanalytix extends utils.Adapter {
 						if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
 							// Not SourceAnalytix relevant ignore
 						} else {
-							this.log.debug(`SourceAnalytix enabled state found ${id} calling buildStateDetailsArray`);
+							this.log.debug(`SourceAnalytix enabled state found ${id}`);
 							this.activeStates[id] = {};
 						}
 					}
@@ -1244,7 +1244,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
 			// Update current value to memory
 			this.activeStates[stateID]['calcValues'].cumulativeValue = reading;
-			this.visWidgetJson[stateID].cumulativeValue = reading;
+			// this.visWidgetJson[stateID].cumulativeValue = reading;
 			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(this.activeStates[stateID])})`);
 
 			// Write current reading at device root
@@ -1464,7 +1464,7 @@ class Sourceanalytix extends utils.Adapter {
 
 
 		} catch (error) {
-			this.errorHandling(`[calculationHandler] ${stateID}`, error);
+			this.errorHandling(`[calculationHandler] ${stateID} with config ${this.activeStates[stateID]}`, error);
 		}
 
 	}

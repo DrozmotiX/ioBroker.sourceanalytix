@@ -246,8 +246,11 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 
+### 0.4.12-1 (2021-08-26)
+* (DutchmanNL) Add logging to analyse error caught by sentry
+
 ### 0.4.12-0 (2021-08-17) Add option to use alias
-* (DutchmanNL) Add possibility use an alternative name (alias)
+* (DutchmanNL) Add possibility to use an alternative name (alias)
 
 ### 0.4.11 (2021-08-16)
 * (DutchmanNL) Improve log/error messages at adapter start

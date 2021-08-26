@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.12-0",
+        "version": "0.4.12-1",
         "news": {
+            "0.4.12-1": {
+                "en": "Add logging to analyse error caught by sentry",
+                "de": "Fügen Sie Protokollierung hinzu, um Fehler zu analysieren, die von der Wache erfasst wurden",
+                "ru": "Добавить журнал для анализа ошибок, обнаруженных часовым",
+                "pt": "Adicione o registro para analisar o erro detectado pelo sentinela",
+                "nl": "Logboekregistratie toevoegen om door schildwacht gevangen fout te analyseren",
+                "fr": "Ajouter la journalisation pour analyser l'erreur détectée par sentinelle",
+                "it": "Aggiungi la registrazione per analizzare l'errore rilevato dalla sentinella",
+                "es": "Agregar registro para analizar el error detectado por el centinela",
+                "pl": "Dodaj logowanie, aby przeanalizować błąd wykryty przez wartownika",
+                "zh-cn": "添加日志以分析哨兵捕获的错误"
+            },
             "0.4.12-0": {
                 "en": "Add possibility use an alternative name (alias)",
                 "de": "Möglichkeit hinzufügen alternativen Namen (Alias) verwenden",
