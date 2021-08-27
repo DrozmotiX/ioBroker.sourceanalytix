@@ -821,7 +821,7 @@ class Sourceanalytix extends utils.Adapter {
 
 								case 'earnings':
 									if (beforeReset.day !== actualDate.day) {
-										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.01_currentDay`, `${stateDetails.deviceName}.currentYear.costs.01_previousDay`);
+										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.01_currentDay`, `${stateDetails.deviceName}.currentYear.earnings.01_previousDay`);
 									}
 
 									if (beforeReset.week !== actualDate.week) {
