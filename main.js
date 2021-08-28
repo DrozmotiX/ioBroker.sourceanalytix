@@ -824,23 +824,23 @@ class Sourceanalytix extends utils.Adapter {
 
 								case 'earnings':
 									if (beforeReset.day !== actualDate.day) {
-										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.01_currentDay`, `${stateDetails.deviceName}.currentYear.earnings.01_previousDay`);
+										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.01_currentDay`, `${stateDetails.deviceName}.currentYear.earnings.01_previousDay`);
 									}
 
 									if (beforeReset.week !== actualDate.week) {
-										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.02_currentWeek`, `${stateDetails.deviceName}.currentYear.earnings.02_previousWeek`);
+										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.02_currentWeek`, `${stateDetails.deviceName}.currentYear.earnings.02_previousWeek`);
 									}
 
 									if (beforeReset.month !== actualDate.month) {
-										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.03_currentMonth`, `${stateDetails.deviceName}.currentYear.earnings.03_previousMonth`);
+										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.03_currentMonth`, `${stateDetails.deviceName}.currentYear.earnings.03_previousMonth`);
 									}
 
 									if (beforeReset.quarter !== actualDate.quarter) {
-										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.04_currentQuarter`, `${stateDetails.deviceName}.currentYear.earnings.04_previousQuarter`);
+										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.04_currentQuarter`, `${stateDetails.deviceName}.currentYear.earnings.04_previousQuarter`);
 									}
 
 									if (beforeReset.year !== actualDate.year) {
-										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.costs.05_currentYear`, `${stateDetails.deviceName}.currentYear.earnings.05_previousYear`);
+										await this.setPreviousValues(`${stateDetails.deviceName}.currentYear.earnings.05_currentYear`, `${stateDetails.deviceName}.currentYear.earnings.05_previousYear`);
 									}
 									break;
 
