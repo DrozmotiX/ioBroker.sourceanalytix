@@ -369,10 +369,7 @@ class Sourceanalytix extends utils.Adapter {
 	// Create object tree and states for all devices to be handled
 	async initialize(stateID) {
 		try {
-			if (this.activeStates[stateID]) {
-				this.unsubscribeForeignStates(stateID);
-				return;
-			}
+
 			this.log.debug(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
 
 			// Shorten configuration details for easier access
@@ -935,10 +932,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} [forceUnit=''] - Force unit to be set on state
      */
 	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit) {
+		this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
+		this.log.debug(`[doLocalStateCreate] stateDetails : ${JSON.stringify(this.activeStates[stateID].stateDetails)}`);
 		try {
-			if (this.activeStates[stateID]) return;
-			this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
-			this.log.debug(`[doLocalStateCreate] stateDetails : ${JSON.stringify(this.activeStates[stateID].stateDetails)}`);
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const dateRoot = isCurrent ? `currentYear` : actualDate.year;
 			let stateName = null;
@@ -1101,11 +1097,6 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] Calculation for ${stateID} with values : ${JSON.stringify(stateVal)}`);
 			this.log.debug(`[calculationHandler] Configuration : ${JSON.stringify(this.activeStates[stateID])}`);
 			this.log.debug(`Unit price definitions : ${JSON.stringify(this.unitPriceDef)}`);
-
-			if (this.activeStates[stateID]) {
-				this.unsubscribeForeignStates(stateID);
-				return;
-			}
 
 			// Verify if received value is null or undefined
 			if (!stateVal){
