@@ -1,8 +1,11 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.12-1",
+        "version": "0.4.12-2",
         "news": {
+            "0.4.12-2": {
+                "en": "Test quickFix to resolve Daily reset Bug"
+            },
             "0.4.12-1": {
                 "en": "Add logging to analyse error caught by sentry",
                 "de": "Fügen Sie Protokollierung hinzu, um Fehler zu analysieren, die von der Wache erfasst wurden",

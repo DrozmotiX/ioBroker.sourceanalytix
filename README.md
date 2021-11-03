@@ -246,6 +246,9 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 
+### 0.4.12-2 (2021-11-03)
+* (DutchmanNL) Test quickFix to resolve Daily reset Bug
+
 ### 0.4.12-1 (2021-08-26)
 * (DutchmanNL) Add logging to analyse error caught by sentry
 
