@@ -854,15 +854,8 @@ class Sourceanalytix extends utils.Adapter {
 
 						}
 
-						//Ensure current value is set again after object extension as Workaround for Dev:0 bug
-						// const value = await this.getForeignStateAsync(stateID);
 						await this.extendForeignObject(stateID, obj);
 						this.log.info(`Memory values after reset : ${JSON.stringify(this.activeStates[stateID])}`);
-						// this.log.info(`Current value of state : ${JSON.stringify(value)}`);
-						// if (value) {
-						// 	await this.setForeignStateAsync(stateID, {val: value.val, ack: true});
-						// 	this.calculationHandler(stateID, value);
-						// }
 
 					} catch (error) {
 						this.errorHandling(`[resetStartValues] ${stateID}`, error);
@@ -1464,7 +1457,7 @@ class Sourceanalytix extends utils.Adapter {
 
 
 		} catch (error) {
-			this.errorHandling(`[calculationHandler] ${stateID} with config ${this.activeStates[stateID]}`, error);
+			this.errorHandling(`[calculationHandler] ${stateID} with config ${JSON.stringify(this.activeStates[stateID])}`, error);
 		}
 
 	}

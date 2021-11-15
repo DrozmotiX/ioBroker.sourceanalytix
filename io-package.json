@@ -3,33 +3,6 @@
         "name": "sourceanalytix",
         "version": "0.4.12-2",
         "news": {
-            "0.4.12-2": {
-                "en": "Test quickFix to resolve Daily reset Bug"
-            },
-            "0.4.12-1": {
-                "en": "Add logging to analyse error caught by sentry",
-                "de": "Fügen Sie Protokollierung hinzu, um Fehler zu analysieren, die von der Wache erfasst wurden",
-                "ru": "Добавить журнал для анализа ошибок, обнаруженных часовым",
-                "pt": "Adicione o registro para analisar o erro detectado pelo sentinela",
-                "nl": "Logboekregistratie toevoegen om door schildwacht gevangen fout te analyseren",
-                "fr": "Ajouter la journalisation pour analyser l'erreur détectée par sentinelle",
-                "it": "Aggiungi la registrazione per analizzare l'errore rilevato dalla sentinella",
-                "es": "Agregar registro para analizar el error detectado por el centinela",
-                "pl": "Dodaj logowanie, aby przeanalizować błąd wykryty przez wartownika",
-                "zh-cn": "添加日志以分析哨兵捕获的错误"
-            },
-            "0.4.12-0": {
-                "en": "Add possibility use an alternative name (alias)",
-                "de": "Möglichkeit hinzufügen alternativen Namen (Alias) verwenden",
-                "ru": "Добавить возможность использовать альтернативное имя (псевдоним)",
-                "pt": "Adicionar possibilidade de usar um nome alternativo (alias)",
-                "nl": "Mogelijkheid toevoegen gebruik een alternatieve naam (alias)",
-                "fr": "Ajouter la possibilité d'utiliser un autre nom (alias)",
-                "it": "Aggiungi la possibilità di utilizzare un nome alternativo (alias)",
-                "es": "Agregue la posibilidad de usar un nombre alternativo (alias)",
-                "pl": "Dodaj możliwość użyj alternatywnej nazwy (aliasu)",
-                "zh-cn": "添加使用替代名称（别名）的可能性"
-            },
             "0.4.11": {
                 "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
                 "de": "Log-/Fehlermeldungen beim Adapterstart verbessern\nBugfix : Eigenschaft 'calcValues' von null und verwandten Problemen, die von Sentry gefunden wurden, kann nicht gelesen werden",
