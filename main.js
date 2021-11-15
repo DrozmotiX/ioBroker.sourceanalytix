@@ -507,7 +507,7 @@ class Sourceanalytix extends utils.Adapter {
 			const value = await this.getForeignStateAsync(stateID);
 			this.log.debug(`First time calc result after initialising ${stateID}  with value ${JSON.stringify(value)}`);
 			if (value) {
-				await this.buildVisWidgetJson(stateID);
+				// await this.buildVisWidgetJson(stateID);
 				await this.calculationHandler(stateID, value);
 			}
 
@@ -1336,7 +1336,7 @@ class Sourceanalytix extends utils.Adapter {
 				priceYear: await this.roundCosts(statePrices.unitPrice * calculations.consumedYear),
 			};
 
-			this.visWidgetJson[stateID].date = calculationRounded;
+			// this.visWidgetJson[stateID].date = calculationRounded;
 			this.log.debug(`[calculationHandler] Result of rounding: ${JSON.stringify(calculations)}`);
 
 			// Store consumption
@@ -1473,14 +1473,14 @@ class Sourceanalytix extends utils.Adapter {
 	 *	Initiate json array for vis widget
 	 *  @param {string} [stateID] - state id of source value
 	 */
-	async buildVisWidgetJson(stateID){
-		this.log.debug(`[buildVisWidgetJson] Start building VisWidgetJson for ${stateID}`);
-		this.visWidgetJson[stateID] = {
-			unit: this.activeStates[stateID].stateDetails.useUnit,
-			currency: useCurrency
-		};
-		this.log.debug(`[buildVisWidgetJson] ${stateID} : ${JSON.stringify(this.visWidgetJson[stateID])}`);
-	}
+	// async buildVisWidgetJson(stateID){
+	// 	this.log.debug(`[buildVisWidgetJson] Start building VisWidgetJson for ${stateID}`);
+	// 	this.visWidgetJson[stateID] = {
+	// 		unit: this.activeStates[stateID].stateDetails.useUnit,
+	// 		currency: useCurrency
+	// 	};
+	// 	this.log.debug(`[buildVisWidgetJson] ${stateID} : ${JSON.stringify(this.visWidgetJson[stateID])}`);
+	// }
 
 	/**
      * @param {number} [value] - Number to round with , separator
