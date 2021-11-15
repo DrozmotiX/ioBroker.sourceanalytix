@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.12-2",
+        "version": "0.4.11",
         "news": {
             "0.4.11": {
                 "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
@@ -255,7 +255,7 @@
         ]
     },
     "native": {
-        "pricesDefinition":
+        "pricesDefinition": [
             {
                 "cat": "ElectricityDay",
                 "des": "Electricity consumption Day price",

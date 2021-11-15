@@ -245,11 +245,10 @@ When the adapter crashes or any other Code error happens, this error message tha
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### 0.4.12 (2021-11-15)
-* (DutchmanNL) Test quickFix to resolve Daily reset Bug
+### 0.4.12 (2021-11-15) - requires JS-Controller >= 3.2!
 * (DutchmanNL) Add logging to analyse error caught by sentry
 * (DutchmanNL) "Cannot set property 'date' of undefined" solved
-* (DutchmanNL) Major : New verion requires JS-Controller >= 3.2!
+* (DutchmanNL) Major : New version requires JS-Controller >= 3.2!
 * (DutchmanNL) Add possibility to use an alternative name (alias)
 * (DutchmanNL) Avoid writing source state causing incorrect calculations at day reset #470
 
