@@ -333,7 +333,7 @@ class Sourceanalytix extends utils.Adapter {
 						financialCategory: stateType,
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
 						meter_values: customData.meter_values,
-						name: stateInfo.common.name,
+						name: stateInfo.common.name !== '' ? customData.alias : 'No name known, please provide alias',
 						stateType: customData.selectedPrice,
 						stateUnit: useUnit,
 						useUnit: this.unitPriceDef.pricesConfig[customData.selectedPrice].unitType,
