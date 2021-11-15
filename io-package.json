@@ -1,8 +1,11 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.11",
+        "version": "0.4.12",
         "news": {
+            "0.4.12": {
+                "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470"
+            },
             "0.4.11": {
                 "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
                 "de": "Log-/Fehlermeldungen beim Adapterstart verbessern\nBugfix : Eigenschaft 'calcValues' von null und verwandten Problemen, die von Sentry gefunden wurden, kann nicht gelesen werden",
