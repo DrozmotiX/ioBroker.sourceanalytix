@@ -253,7 +253,7 @@
                 "admin": ">=3.0.0"
             },
             {
-                "js-controller": ">=3.2.0"
+                "js-controller": ">=3.3.0"
             }
         ]
     },
@@ -335,16 +335,6 @@
         "impuls": 400,
         "status_logging": false
     },
-    "objects": [
-        {
-            "_id": "_design/custom",
-            "language": "javascript",
-            "views": {
-                "state": {
-                    "map": "function(doc) { if (doc.type === 'state' && (doc.common.custom || doc.common.history)) emit(doc._id, doc.common.custom || doc.common.history) }"
-                }
-            }
-        }
-    ],
+    "objects": [],
     "instanceObjects": []
 }

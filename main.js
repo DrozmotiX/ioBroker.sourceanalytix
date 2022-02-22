@@ -86,7 +86,7 @@ class Sourceanalytix extends utils.Adapter {
 			storeSettings.storeQuarters = this.config.store_quarters;
 
 			// Get all objects with custom configuration items
-			const customStateArray = await this.getObjectViewAsync('custom', 'state', {});
+			const customStateArray = await this.getObjectViewAsync('system', 'custom', {});
 			this.log.debug(`All states with custom items : ${JSON.stringify(customStateArray)}`);
 
 			// Get all active state for Sourceanalytix
