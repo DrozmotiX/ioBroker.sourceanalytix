@@ -26,7 +26,7 @@ let delay = null; // Global array for all running timers
 let useCurrency = null;
 
 // Create variables for object arrays
-const history = {}, actualDate = {}; //, currentDay = null;
+const actualDate = {}; //, currentDay = null;
 
 class Sourceanalytix extends utils.Adapter {
 	/**
@@ -89,29 +89,32 @@ class Sourceanalytix extends utils.Adapter {
 			const customStateArray = await this.getObjectViewAsync('system', 'custom', {});
 			this.log.debug(`All states with custom items : ${JSON.stringify(customStateArray)}`);
 
-			// Get all active state for Sourceanalytix
-			if (customStateArray && customStateArray.rows) {
+			// List all states with custom configuration
+			if (customStateArray && customStateArray.rows) {	// Verify first if result is not empty
 
-				for (let i = 0, l = customStateArray.rows.length; i < l; i++) {
-					if (customStateArray.rows[i].value) {
-						const id = customStateArray.rows[i].id;
+				// Loop truth all states and check if state is activated for SourceAnalytix
+				for (const index in customStateArray.rows) {
 
-						history[id] = customStateArray.rows[i].value;
+					if (customStateArray.rows[index].value) { // Avoid crash if object is null or empty
 
-						if (history[id].enabled !== undefined) {
-							history[id] = history[id].enabled ? {'history.0': history[id]} : null;
-							if (!history[id]) {
-								// this.log.warn('undefined id');
-								continue;
+						// Check if custom object contains data for SourceAnalytix
+						if (customStateArray.rows[index].value[this.namespace]){
+							this.log.debug(`SourceAnalytix configuration found`);
+
+							// Simplify stateID
+							const stateID = customStateArray.rows[index].id;
+
+							// Check if custom object is enabled for SourceAnalytix
+							if(customStateArray.rows[index].value[this.namespace].enabled){
+								// Prepare array in constructor for further processing
+								this.activeStates[stateID] = {};
+								this.log.debug(`SourceAnalytix enabled state found ${stateID}`);
+							} else {
+								this.log.debug(`SA configuration found but not Enabled, skipping ${stateID}`);
 							}
-						}
 
-						// If enabled for SourceAnalytix, handle routine to store relevant data to memory
-						if (!history[id][this.namespace] || history[id][this.namespace].enabled === false) {
-							// Not SourceAnalytix relevant ignore
 						} else {
-							this.log.debug(`SourceAnalytix enabled state found ${id}`);
-							this.activeStates[id] = {};
+							console.log(`No SourceAnalytix configuration found`);
 						}
 					}
 				}
