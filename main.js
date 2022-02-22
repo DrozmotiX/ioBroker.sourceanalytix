@@ -340,6 +340,7 @@ class Sourceanalytix extends utils.Adapter {
 						stateType: customData.selectedPrice,
 						stateUnit: useUnit,
 						useUnit: this.unitPriceDef.pricesConfig[customData.selectedPrice].unitType,
+						deviceResetLogicDisabled: customData.deviceResetLogicDisabled != null ? customData.deviceResetLogicDisabled != null || false : false,
 					},
 					calcValues: {
 						cumulativeValue: cumulativeValue,
@@ -1203,13 +1204,13 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
 
 				// Ensure current value is set again after object extension as Workaround for Dev:0 bug
-				const objval = await this.getForeignStateAsync(stateID);
+				// const objval = await this.getForeignStateAsync(stateID);
 				await this.extendForeignObject(stateID, obj);
 				this.log.debug(`[calculationHandler] State value before extension ${JSON.stringify(obj)} `);
-				// Set state value back on object (Prevent Dev: 0 bug)
-				if (objval) {
-					await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
-				}
+				// // Set state value back on object (Prevent Dev: 0 bug)
+				// if (objval) {
+				// 	await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
+				// }
 			};
 
 			// Verify if state is initiated for the first time, if not handle initialisation
@@ -1229,8 +1230,12 @@ class Sourceanalytix extends utils.Adapter {
 
 			// State was already initiated, current value < known cumulative process normally
 			} else if (((reading + calcValues.valueAtDeviceReset) < calcValues.cumulativeValue) && currentCath !== 'Watt') {
+				if (this.activeStates[stateID].deviceResetLogicDisabled){
 				this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
 				await initiateState();
+				} else {
+					this.log.info(`Device reset detected for ${stateID}, feature disabled processing normally)`);
+				}
 
 				reading = reading + this.activeStates[stateID].calcValues.valueAtDeviceReset;
 			} else if (currentCath !== 'Watt') {

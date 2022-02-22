@@ -246,7 +246,9 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 
-### __WORK IN PROGRESS__
+### __WORK IN PROGRESS__ (0.4.13-0)
+* (DutchmanNL) Small code updates / lifecycle patches
+* (DutchmanNL) Added option to disable device reset feature
 * (DutchmanNL) Bugfix: Cannot read property 'name' of undefined solved
 
 ### 0.4.12 (2021-11-15) - requires JS-Controller >= 3.2!

@@ -52,6 +52,11 @@
       "label": "Store Meter Values",
       "sm": 6
     },
+    "deviceResetLogicDisabled": {
+      "type": "checkbox",
+      "label": "Disable device value reset detection",
+      "sm": 6
+    },
     "_startValues": {
       "newLine": true,
       "type": "header",
