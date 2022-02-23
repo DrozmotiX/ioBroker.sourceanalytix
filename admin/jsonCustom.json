@@ -52,9 +52,18 @@
       "label": "Store Meter Values",
       "sm": 6
     },
-    "deviceResetLogicDisabled": {
+    "deviceResetLogicEnabled": {
       "type": "checkbox",
-      "label": "Disable device value reset detection",
+      "label": "Enable device value reset detection",
+      "default": true,
+      "sm": 6
+    },
+    "threshold": {
+      "type": "number",
+      "label": "threshold",
+      "help": "Threshold value of device reset detection",
+      "default": 1,
+      "min": 0,
       "sm": 6
     },
     "_startValues": {

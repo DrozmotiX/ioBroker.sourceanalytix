@@ -8,7 +8,7 @@
     "Cost Type": "Cost Type",
     "Current year": "Current year",
     "Description": "Description",
-    "Disable device value reset detection":"Disable device value reset detection",
+    "Enable device value reset detection": "Device value reset detection Enabled",
     "If no alias is set, name will be used": "If no alias is set, name will be used",
     "Including basic rate": "Including basic rate",
     "Meter reading at the beginning of the day": "Meter reading at the beginning of the day",
@@ -28,9 +28,11 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!",
     "Status messages to log": "Status messages to log",
     "Store Meter Values": "Store Meter Values",
+    "Threshold value of device reset detection": "Threshold value of device reset detection",
     "Unit": "Unit",
     "Weekday": "Weekday",
     "Weeks": "Weeks",
     "Year": "Year",
-    "Year statistics": "Year statistics"
+    "Year statistics": "Year statistics",
+    "threshold": "Threshold"
 }

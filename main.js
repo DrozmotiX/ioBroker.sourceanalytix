@@ -340,7 +340,8 @@ class Sourceanalytix extends utils.Adapter {
 						stateType: customData.selectedPrice,
 						stateUnit: useUnit,
 						useUnit: this.unitPriceDef.pricesConfig[customData.selectedPrice].unitType,
-						deviceResetLogicDisabled: customData.deviceResetLogicDisabled != null ? customData.deviceResetLogicDisabled != null || false : false,
+						deviceResetLogicEnabled: customData.deviceResetLogicEnabled != null ? customData.deviceResetLogicEnabled || true : true,
+						threshold: customData.threshold != null ? customData.threshold || 1 : 1,
 					},
 					calcValues: {
 						cumulativeValue: cumulativeValue,
@@ -1214,7 +1215,7 @@ class Sourceanalytix extends utils.Adapter {
 			};
 
 			// Verify if state is initiated for the first time, if not handle initialisation
-			if ((calcValues.valueAtDeviceReset == null || calcValues.valueAtDeviceReset == undefined) && currentCath !== 'Watt'){
+			if (calcValues.valueAtDeviceReset == null && currentCath !== 'Watt'){
 				this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 				await initiateState();
 
@@ -1230,9 +1231,14 @@ class Sourceanalytix extends utils.Adapter {
 
 			// State was already initiated, current value < known cumulative process normally
 			} else if (((reading + calcValues.valueAtDeviceReset) < calcValues.cumulativeValue) && currentCath !== 'Watt') {
-				if (this.activeStates[stateID].deviceResetLogicDisabled){
-				this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
-				await initiateState();
+
+				// Only handle device reset if activated (default = TRUE) & reading + threshold value < cumulativeValue
+				if (this.activeStates[stateID].deviceResetLogicEnabled
+					&& ((reading + calcValues.valueAtDeviceReset + this.activeStates[stateID].threshold)
+						< calcValues.cumulativeValue)
+				){
+					this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
+					await initiateState();
 				} else {
 					this.log.info(`Device reset detected for ${stateID}, feature disabled processing normally)`);
 				}
