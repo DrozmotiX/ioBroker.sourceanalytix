@@ -8,6 +8,7 @@
     "Cost Type": "Тип затрат",
     "Current year": "Текущий год",
     "Description": "Описание",
+    "Enable device value reset detection": "Обнаружение сброса значения устройства Включено",
     "If no alias is set, name will be used": "Если псевдоним не задан, будет использоваться имя",
     "Including basic rate": "Включая базовую ставку",
     "Meter reading at the beginning of the day": "Показания счетчика в начале дня",
@@ -27,9 +28,11 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Начальные значения для соответствующего периода, шкала единиц (например, Втч или кВтч) должны соответствовать целевым единицам!",
     "Status messages to log": "Сообщения о состоянии в журнал",
     "Store Meter Values": "Хранить значения счетчика",
+    "Threshold value of device reset detection": "Пороговое значение обнаружения сброса устройства",
     "Unit": "Единицы",
     "Weekday": "Будний день",
     "Weeks": "Недели",
     "Year": "Год",
-    "Year statistics": "Статистика за год"
+    "Year statistics": "Статистика за год",
+    "threshold": "Порог"
 }

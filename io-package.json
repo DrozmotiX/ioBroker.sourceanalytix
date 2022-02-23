@@ -4,7 +4,16 @@
         "version": "0.4.14-beta.0",
         "news": {
             "0.4.12": {
-                "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470"
+                "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",
+                "de": "Fügen Sie eine Protokollierung hinzu, um vom Sentry abgefangene Fehler zu analysieren\n",
+                "ru": "Добавить ведение журнала для анализа ошибок, обнаруженных часовым\n",
+                "pt": "Adicionar registro para analisar o erro capturado pela sentinela\n",
+                "nl": "Logboekregistratie toevoegen om de door de schildwacht gevangen fout te analyseren\n",
+                "fr": "Ajouter une journalisation pour analyser les erreurs détectées par la sentinelle\n",
+                "it": "Aggiungi la registrazione per analizzare l'errore rilevato dalla sentinella\n",
+                "es": "Agregar registro para analizar el error detectado por centinela\n",
+                "pl": "Dodaj logowanie, aby przeanalizować błąd wykryty przez wartownika\n",
+                "zh-cn": "添加日志记录以分析哨兵捕获的错误\n"
             },
             "0.4.11": {
                 "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",

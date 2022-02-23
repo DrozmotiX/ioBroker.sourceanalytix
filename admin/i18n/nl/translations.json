@@ -8,6 +8,7 @@
     "Cost Type": "Kostentype",
     "Current year": "Huidig jaar",
     "Description": "Omschrijving",
+    "Enable device value reset detection": "Hersteldetectie apparaatwaarde Ingeschakeld",
     "If no alias is set, name will be used": "Als er geen alias is ingesteld, wordt de naam gebruikt",
     "Including basic rate": "Inclusief basistarief",
     "Meter reading at the beginning of the day": "Meterstand aan het begin van de dag",
@@ -27,9 +28,11 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Startwaarden voor de betreffende periode, eenheidsschaal (bijv. Wh of kWh) moeten overeenkomen met de doeleenheid!",
     "Status messages to log": "Statusberichten om te loggen",
     "Store Meter Values": "Meterwaarden opslaan",
+    "Threshold value of device reset detection": "Drempelwaarde van detectie apparaatreset",
     "Unit": "Eenheid",
     "Weekday": "Weekdag",
     "Weeks": "Weken",
     "Year": "Jaar",
-    "Year statistics": "Jaarstatistieken"
+    "Year statistics": "Jaarstatistieken",
+    "threshold": "Drempelwaarde"
 }

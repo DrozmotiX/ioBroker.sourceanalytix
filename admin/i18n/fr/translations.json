@@ -8,6 +8,7 @@
     "Cost Type": "Type de coût",
     "Current year": "Année actuelle",
     "Description": "La description",
+    "Enable device value reset detection": "Détection de réinitialisation de la valeur de l'appareil Activé",
     "If no alias is set, name will be used": "Si aucun alias n'est défini, le nom sera utilisé",
     "Including basic rate": "Y compris le tarif de base",
     "Meter reading at the beginning of the day": "Relevé du compteur en début de journée",
@@ -27,9 +28,11 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Les valeurs de démarrage pour la période respective, l'échelle de l'unité (par exemple Wh ou kWh) doivent correspondre à l'unité cible !",
     "Status messages to log": "Messages d'état à enregistrer",
     "Store Meter Values": "Stocker les valeurs du compteur",
+    "Threshold value of device reset detection": "Valeur seuil de détection de réinitialisation de l'appareil",
     "Unit": "Unité",
     "Weekday": "Jour de la semaine",
     "Weeks": "Semaines",
     "Year": "An",
-    "Year statistics": "Statistiques de l'année"
+    "Year statistics": "Statistiques de l'année",
+    "threshold": "Au seuil"
 }

@@ -8,6 +8,7 @@
     "Cost Type": "成本类型",
     "Current year": "今年",
     "Description": "描述",
+    "Enable device value reset detection": "软元件值复位检测 启用",
     "If no alias is set, name will be used": "如果未设置别名，将使用名称",
     "Including basic rate": "含基本费率",
     "Meter reading at the beginning of the day": "一天开始时抄表",
@@ -27,9 +28,11 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "各个时段的起始值，单位刻度（例如Wh或kWh）必须与目标单位相匹配！",
     "Status messages to log": "记录状态消息",
     "Store Meter Values": "存储仪表值",
+    "Threshold value of device reset detection": "设备复位检测阈值",
     "Unit": "单元",
     "Weekday": "平日",
     "Weeks": "周数",
     "Year": "年",
-    "Year statistics": "年份统计"
+    "Year statistics": "年份统计",
+    "threshold": "临界点"
 }

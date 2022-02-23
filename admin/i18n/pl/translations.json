@@ -8,6 +8,7 @@
     "Cost Type": "Rodzaj kosztu",
     "Current year": "Rok bieżący",
     "Description": "Opis",
+    "Enable device value reset detection": "Wykrywanie resetowania wartości urządzenia Włączone",
     "If no alias is set, name will be used": "Jeśli nie zostanie ustawiony żaden alias, zostanie użyta nazwa",
     "Including basic rate": "W tym stawka podstawowa",
     "Meter reading at the beginning of the day": "Odczyt licznika na początku dnia",
@@ -27,9 +28,11 @@
     "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Wartości początkowe dla danego okresu, skala jednostkowa (np. Wh lub kWh) musi odpowiadać jednostce docelowej!",
     "Status messages to log": "Komunikaty o stanie do logowania",
     "Store Meter Values": "Przechowuj wartości liczników",
+    "Threshold value of device reset detection": "Wartość progowa wykrycia resetu urządzenia",
     "Unit": "Jednostka",
     "Weekday": "Dzień powszedni",
     "Weeks": "Tygodni",
     "Year": "Rok",
-    "Year statistics": "Statystyki roczne"
+    "Year statistics": "Statystyki roczne",
+    "threshold": "Próg"
 }
