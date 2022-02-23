@@ -246,7 +246,7 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 ### 0.4.14 (2022-02-23) Optimize Device reset handling
-* (DutchmanNL) Small code updates / lifecycle patches
+* (DutchmanNL) Small code updates, lifecycle patches
 * (DutchmanNL) Option to disable device reset feature added
 * (DutchmanNL) Bugfix: Cannot read property 'name' of undefined solved
 
