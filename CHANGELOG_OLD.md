@@ -1,4 +1,52 @@
 # Older changes
+## 0.4.8 (2021-01-20)
+#### Breaking changes
+* (DutchmanNL) Breaking!!! Move current values to currentYear [#135](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)
+* (DutchmanNL & ToTXR4Y) MajorChange !: Replaced **Current_Reading** with **CumulativeReading** [226](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)
+
+#### New Features
+* (DutchmanNL) Code cleanup
+* (DutchmanNL) Add back "currentYear"
+* (DutchmanNL) (debug) Logging improved
+* (DutchmanNL) Weekly reset of weekdays
+* (DutchmanNL) Calculation for all states
+* (DutchmanNL) change default log-level to info
+* (DutchmanNL) Calculation for previous states [#242](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242)
+* (DutchmanNL) Optimized error reporting (Sentry)
+* (DutchmanNL) Removed unneeded settings in configuration
+* (DutchmanNL) Implemented new configuration for "currentYear"
+* (DutchmanNL & ToTXR4Y) implement "05_currentYear" in year root folder [#280](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280)
+* (DutchmanNL) Implemented category cumulative values under year statistics
+* (DutchmanNL & ToTXR4Y) implement cached memory slot for initialisation value [#226](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)
+* (DutchmanNL & ToTXR4Y) Implement log messages if state attributes are changed
+* (DutchmanNL & ToTXR4Y) Implement automatically detection of currency from admin settings [#247](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247)
+
+#### BugFixes
+* (DutchmanNL) Bugfix : dev: 0 bug workaround
+* (DutchmanNL) Do not round cumulated reading
+* (DutchmanNL) Bugfix : delete states in create function
+* (DutchmanNL) Bugfix : quarters.1 has no existing object
+* (DutchmanNL) Bugfix : Calculations for "previous" values
+* (DutchmanNL) Bugfix : Incorrect initialisation for states
+* (DutchmanNL) Bugfix : Avoid NULL & 0 values at night reset
+* (DutchmanNL) Bugfix : 05_currentYear has no existing object
+* (DutchmanNL) Bugfix : Avoid calculation of non-Initialised states
+* (DutchmanNL) Bugfix : Cannot read property 'stateDetails' of null
+* (DutchmanNL) Correct error handling of "Watt" state initialisation
+* (DutchmanNL) Bugfix : Ensure a proper reset and init of Watt values
+* (DutchmanNL) Bugfix : Avoid loop if init value is set and > reading
+* (DutchmanNL) Bugfix : Caught sentry error : Alias xxxxx has no target
+* (DutchmanNL & ToTXR4Y) Bugfix : Rebuild calculation logic which solves :
+  * Watt values : Ensure proper reading start (0 instead of current watt value)
+    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value) [#281](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281)
+  * All calculations : correct handling  of device reset (if value is reset or 0)
+* (DutchmanNL) Bugfix : Incorrect initialisation for Watt values with 0 input
+* (DutchmanNL) Bugfix : Only create cumulatedXXX in year statistics if activated
+* (DutchmanNL) Bugfix : Incorrect warn message if configuration for objects is changed
+* (DutchmanNL) Bugfix : Error {Is not a number, cannot continue calculation} if value =  0
+* (DutchmanNL) Bugfix : Throw error if value is NULL for troubleshooting instead of handling incorrect calculation
+* (DutchmanNL) Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)
+
 ## 0.4.7 (2020-09-15) Solved NULL error's & daily resets
 * (DutchmanNL) Implement Sentry
 * (DutchmanNL) Implement configuration for Price definitions
