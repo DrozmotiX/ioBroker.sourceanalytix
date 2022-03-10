@@ -1233,10 +1233,7 @@ class Sourceanalytix extends utils.Adapter {
 			} else if (((reading + calcValues.valueAtDeviceReset) < calcValues.cumulativeValue) && currentCath !== 'Watt') {
 
 				// Only handle device reset if activated (default = TRUE) & reading + threshold value < cumulativeValue
-				if (this.activeStates[stateID].deviceResetLogicEnabled
-					&& ((reading + calcValues.valueAtDeviceReset + this.activeStates[stateID].threshold)
-						< calcValues.cumulativeValue)
-				){
+			if (stateDetails.deviceResetLogicEnabled && ((reading + calcValues.valueAtDeviceReset + stateDetails.threshold) < calcValues.cumulativeValue) ){
 					this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
 					await initiateState();
 				} else {
