@@ -1,8 +1,12 @@
 version: 2
 updates:
-- package-ecosystem: "npm"
+- package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: monthly
+    time: "04:00"
+    timezone: Europe/Berlin
   target-branch: "dependencyAutoUpdate"
-  open-pull-requests-limit: 30
+  open-pull-requests-limit: 20
+  assignees:
+  - DutchmanNL

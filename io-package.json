@@ -13,7 +13,8 @@
                 "it": "Piccoli aggiornamenti del codice, patch del ciclo di vita\nOpzione per disabilitare la funzione di ripristino del dispositivo aggiunta\nBugfix: impossibile leggere la proprietà 'nome' di una soluzione non definita\n",
                 "es": "Pequeñas actualizaciones de código, parches de ciclo de vida\nOpción para deshabilitar la función de restablecimiento del dispositivo agregada\nCorrección de error: no se puede leer la propiedad 'nombre' de una solución indefinida\n",
                 "pl": "Małe aktualizacje kodu, poprawki cyklu życia\nDodana opcja wyłączenia funkcji resetowania urządzenia\nNaprawa błędu: Nie można odczytać właściwości „nazwa” niezdefiniowanego rozwiązania\n",
-                "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n"            },
+                "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n"
+            },
             "0.4.12": {
                 "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",
                 "de": "Fügen Sie eine Protokollierung hinzu, um vom Sentry abgefangene Fehler zu analysieren\n",
@@ -233,7 +234,7 @@
             "zh-cn": "您的能源，气体和液体消耗的详细统计信息。允许根据每周，每月和每季度的消费数据提供年度报告和详细信息。"
         },
         "authors": [
-            "DutchmanNL <rdrozda86@gmail.com>"
+            "DutchmanNL <oss@DrozmotiX.eu>"
         ],
         "contributors": [
             "xXBJXx"
@@ -248,7 +249,7 @@
         ],
         "license": "MIT",
         "platform": "Javascript/Node.js",
-        "main": "main.js",
+        "main": "build/main.js",
         "icon": "sourceanalytix.png",
         "enabled": true,
         "messagebox": true,
@@ -264,16 +265,17 @@
         "materialize": true,
         "plugins": {
             "sentry": {
-                "dsn": "https://2cd80ab3d4b94677b1b513547054e480@sentry.iobroker.net/24"
+                "dsn": "https://9458d0c35eaf49c58663a6ccfe1373a2@sentry.drozmotix.eu/5"
             }
         },
         "supportCustoms": true,
+        "eraseOnUpload": true,
         "dependencies": [
             {
-                "admin": ">=3.0.0"
+                "admin": ">=5.0.0"
             },
             {
-                "js-controller": ">=3.3.0"
+                "js-controller": ">=4.0.0"
             }
         ]
     },

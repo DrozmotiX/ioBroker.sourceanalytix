@@ -26,6 +26,7 @@ jobs:
           node-version: '14.x'
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
+          type-checking: true
           lint: true
 
   # Runs adapter tests on all supported node versions and OSes
@@ -45,6 +46,7 @@ jobs:
           os: ${{ matrix.os }}
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
+          build: true
 
   # Deploys the final package to NPM
   deploy:
@@ -64,8 +66,9 @@ jobs:
           node-version: '14.x'
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
+          build: true
           npm-token: ${{ secrets.NPM_TOKEN }}
-          github-token: ${{ secrets.secrets.AUTOMERGER }}
+          github-token: ${{ secrets.AUTOMERGER }}
 
           # When using Sentry for error reporting, Sentry can be informed about new releases
           # To enable create a API-Token in Sentry (User settings, API keys)
@@ -75,5 +78,6 @@ jobs:
           sentry-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
           sentry-project: "iobroker-sourceanalytix"
           sentry-version-prefix: "iobroker.sourceanalytix"
+          sentry-sourcemap-paths: "build/ admin/build/"
           # If your sentry project is linked to a GitHub repository, you can enable the following option
           # sentry-github-integration: true

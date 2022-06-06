@@ -1,13 +1,15 @@
+![Logo](admin/sourceanalytix.png)
 # SourceAnalytix
 
-[![NPM version](http://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
+[![NPM version](https://img.shields.io/npm/v/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.sourceanalytix.svg)](https://www.npmjs.com/package/iobroker.sourceanalytix)
-![Number of Installations (latest)](http://iobroker.live/badges/sourceanalytix-installed.svg)
-![Number of Installations (stable)](http://iobroker.live/badges/sourceanalytix-stable.svg)
+![Number of Installations](https://iobroker.live/badges/sourceanalytix-installed.svg)
+![Current version in stable repository](https://iobroker.live/badges/sourceanalytix-stable.svg)
 [![Dependency Status](https://img.shields.io/david/DrozmotiX/iobroker.sourceanalytix.svg)](https://david-dm.org/DrozmotiX/iobroker.sourceanalytix)
 [![Translation status](https://weblate.iobroker.net/widgets/adapters/-/sourceanalytix/svg-badge.svg)](https://weblate.iobroker.net/engage/adapters/?utm_source=widget)
 [![NPM](https://nodei.co/npm/iobroker.sourceanalytix.png?downloads=true)](https://nodei.co/npm/iobroker.sourceanalytix/)  
-![Test and Release](https://github.com/DrozmotiX/ioBroker.coronavirus-statistics/workflows/Test%20and%20Release/badge.svg)   
+
+**Tests:** ![Test and Release](https://github.com/DrozmotiX/ioBroker.sourceanalytix/workflows/Test%20and%20Release/badge.svg)
 
 **This adapter uses the service [Sentry.io](https://sentry.io) to automatically report exceptions and code errors and new device schemas to me as the developer.** More details see below!
 
@@ -25,14 +27,14 @@ Any source (kWh, Wh, Watt, l/h or m3) can be used for data analyses:
 | >Year<.>currentYear.>Consumption type < | [Consumption](#consumptioncalculation) | Root folder to store consumption data <br/> (current value - previous value). <br/> Can be consumption or delivery |
 | >Year<.>currentYear.>Cost type < | [Costs](#costcalculation) | Root folder to store cost data. <br/> current value * cost + basic price <br/> Can be consumption or delivery |
 
-All state locations are grouped by state name and separated in period and [Category](#categories) structures. <br/> 
+All state locations are grouped by state name and separated in period and [Category](#categories) structures. <br/>
 Calculations will be automatically handled and values transformed to the proper unit  as defined in [Price-Definitions](#price-definitionsprice-definitions).
 
 If you have any issues, please read the **[Troubleshooting](#troubleshooting)** first!
 
 ## How-To
 
-### State-Activation 
+### State-Activation
 
 ![Main Settings](admin/readmeDocu/settingKey.png)
 
@@ -40,7 +42,7 @@ If you have any issues, please read the **[Troubleshooting](#troubleshooting)** 
 
 | Configuration Item | Description |
 |--|--|
-| enabled | Activate state for SourceAnalytix | 
+| enabled | Activate state for SourceAnalytix |
 | Alias | default: name of state, Name of device as shown in SA|
 | Select Type | mandatory, choose you calculation type to calculate according [Price-Definitions](#price-definitions) |
 | Select Unit | default: automatically, choose manually if needed (see logs) |
@@ -48,8 +50,8 @@ If you have any issues, please read the **[Troubleshooting](#troubleshooting)** 
 | with(out) basic charge  | incl;ude basic charge in cost calculation |
 | consumption | calculate consumption data |
 | counter values | store current counter values |
-| Meter reading at <br/> 
-  beginning of x : | Start value of counter for specific period to handle <br/> calculation current - startValue|
+| Meter reading at <br/>
+beginning of x : | Start value of counter for specific period to handle <br/> calculation current - startValue|
 
 ### Basic configuration (adapter instance)
 ![Main Settings](admin/readmeDocu/mainSettings.png)
@@ -62,14 +64,14 @@ If you have any issues, please read the **[Troubleshooting](#troubleshooting)** 
 
 #### costCalculation
 *ToDo : Describe logic*
- 
+
 #### valueTransformation
 *ToDo : Document link to library (document lib also !)*<br/>
 *ToDo : Document watt to kWh transformation*<br/>
 *ToDo : Document unit transformation (like Watt, to Wh to KWh)*
 
 #### Year-Statistics
-Store statistic information of consumption/prices and/or costs/earnings at the Year level <br/> 
+Store statistic information of consumption/prices and/or costs/earnings at the Year level <br/>
 > >device.>thisYear<.>category<.>selected period
 
 This information is typically used for data storage and historical comparisons. <br/>
@@ -77,13 +79,13 @@ States are grouped by specified period
 (like year 2020 vs 2021, ore february 2019 vs february ect)
 
 >#### *Weeks* <br/>
-  >Device<.>Year<.>costs/earnings <br/> 
+>Device<.>Year<.>costs/earnings <br/>
 > consumption/delivery<.weeks.**weekNr**<
 >#### *Months* <br/>
-  >Device<.>Year<.>costs/earnings <br/> 
+>Device<.>Year<.>costs/earnings <br/>
 > consumption/delivery<.months.**Month**<
 >#### *Quarters* <br/>
-  >Device<.>Year<.>costs/earnings <br/> 
+>Device<.>Year<.>costs/earnings <br/>
 > consumption/delivery<.quarters.**Qx**<
 
 #### Current-Period
@@ -91,16 +93,16 @@ Store statistic information of the current Year at level :
 >device.>currentYear<.>selected period
 
 >#### *Weeks* <br/>
-  >Device<.>Year<.>costs/earnings <br/> 
+>Device<.>Year<.>costs/earnings <br/>
 > consumption/delivery<.weeks.**weekNr**<
 >#### *Months* <br/>
-  >Device<.>Year<.>costs/earnings <br/> 
+>Device<.>Year<.>costs/earnings <br/>
 > consumption/delivery<.months.**Month**<
 >#### *Quarters* <br/>
-  >Device<.>Year<.>costs/earnings 
-  > consumption/delivery<.quarters.**Qx**<
+>Device<.>Year<.>costs/earnings
+> consumption/delivery<.quarters.**Qx**<
 
-This information is typically used for daily/weekly/monthly calculation of <br/> 
+This information is typically used for daily/weekly/monthly calculation of <br/>
 costs/earnings and/or consumption/delivery grouped by specified period
 
 >ToDo : Add screenshots<
@@ -121,56 +123,56 @@ The following sequence will be handled :
 1) Start SourceAnalytix
 2) List all states activated for SourceAnalytix
 3) Initiate states, for each state :
-    * Read current cumulatedReading <br/>
-      (if present) and memory values from state
-    * Check if unit can be handled {Issue 1}
-    * Check if cost type is chosen {Issue 2}
-    * Verify if valid price definition is present for cost type {Issue 3}
-    * Check if previous init value > current cumulated value {Issue 4}
-    * Check if valid known of previous device reset > current cumulated value {Issue 5}
-    * Store all data to memory
+	* Read current cumulatedReading <br/>
+	  (if present) and memory values from state
+	* Check if unit can be handled {Issue 1}
+	* Check if cost type is chosen {Issue 2}
+	* Verify if valid price definition is present for cost type {Issue 3}
+	* Check if previous init value > current cumulated value {Issue 4}
+	* Check if valid known of previous device reset > current cumulated value {Issue 5}
+	* Store all data to memory
 4) Initialise states for each state :
-    * create state cumulativeReading (to store results  of calculation, can also be used for W to kWh only) {Issue 6}
-    * create states as chosen in state configuration {Issue 7}
-    * start calculation
+	* create state cumulativeReading (to store results  of calculation, can also be used for W to kWh only) {Issue 6}
+	* create states as chosen in state configuration {Issue 7}
+	* start calculation
 5) On state change/update
-    * Verify if information is correct 
-    * transform value to proper unit (unit of state to unit chosen in state configuration)
-    * check if value input is correct ( current value **>** previousInit value) {See **7 At device reset** Issue 8}
-    * calculate {Issue 9}
-      * For Watt : calculate Watt to kWh ,calculate cumulatedReading = currentReading + cumulatedReading
-      * For other : calculate cumulatedReading = currentReading + previousDeviceReset (if present)
+	* Verify if information is correct
+	* transform value to proper unit (unit of state to unit chosen in state configuration)
+	* check if value input is correct ( current value **>** previousInit value) {See **7 At device reset** Issue 8}
+	* calculate {Issue 9}
+		* For Watt : calculate Watt to kWh ,calculate cumulatedReading = currentReading + cumulatedReading
+		* For other : calculate cumulatedReading = currentReading + previousDeviceReset (if present)
 6) At night (00.00)
-    * List all SourceAnalytix enabled states
-    * Reset start (Day/Week/Year/Month) values
+	* List all SourceAnalytix enabled states
+	* Reset start (Day/Week/Year/Month) values
 7) At device reset
-    * Store current value as previousDeviceReset and previousInit value <br/>
-      If the device wil be reset again (detected by previousInit value),<br/> 
-      currentReading + previousDeviceReset is stored as to previousDeviceReset.
+	* Store current value as previousDeviceReset and previousInit value <br/>
+	  If the device wil be reset again (detected by previousInit value),<br/>
+	  currentReading + previousDeviceReset is stored as to previousDeviceReset.
 
 **Issue 1** No unit defined for ....., cannot execute calculations<br/>
-    Please select correct unit in state settings
+Please select correct unit in state settings
 
 **Issue 2** No cost type defined for ....., please Select Type of calculation at state setting<br/>
-    Please selected wanted cost-type for to understand what amount should be used to handle calculations
+Please selected wanted cost-type for to understand what amount should be used to handle calculations
 
 **Issue 3** Selected Type ... does not exist in Price Definitions<br/>
-    Now Price definitions are found for the chosen cost type, please verify your price setting (adapte config)
+Now Price definitions are found for the chosen cost type, please verify your price setting (adapte config)
 
 **Issue 4** Check settings for ..... ! Known init value : ..... > known cumulative value ..... cannot proceed<br/>
-    The known init value > known cumulated values, this can be solved by removing or modifying these objects in the state raw object
-    ```"valueAtDeviceInit": xxxx```
+The known init value > known cumulated values, this can be solved by removing or modifying these objects in the state raw object
+```"valueAtDeviceInit": xxxx```
 
 **Issue 5** Check settings for ..... ! Known valueAtDeviceReset : ..... > known cumulative value ..... cannot procee<br/>
-    The known init value > known cumulated values, this can be solved<br/>
+The known init value > known cumulated values, this can be solved<br/>
 removing or modifying these objects in the state raw object
-    ```valueAtDeviceReset": xxxx```
+```valueAtDeviceReset": xxxx```
 
 **Issue 6** State for cumulativeReading is not created<br/>
-    Initialisation of state did fail, see issue 1 to 5
+Initialisation of state did fail, see issue 1 to 5
 
 **Issue 7** States for costs readings ae not created<br/>
-    Type of calculation is not enabled in state settings
+Type of calculation is not enabled in state settings
 ![Main Settings](admin/readmeDocu/stateSettings.png)
 
 ### Price-Definitions
@@ -181,23 +183,23 @@ A device reset is detected, see function 7
 
 **Issue 9** My calculations are incorrect<br/>
 #### cumulativeReading-Reset
-  1) Verify if the correct unit is chosen (of not selected, SA will  try to autodetect)
-  2) Verify if the cumulatedReading reflects the correct total value of your value reading, if not<br/>
-        - Stop SA
-        - Go to tab objects
-          ![Main Settings](admin/readmeDocu/cumulativeReading-Reset.png)
-        - Enter expert mode
-        - Change the cumulatedReading
-        - Exit expert mode
-        - Ensure the start values are set correctly
-        - Start SA <br/>
-          
-  3) Ensure the start values are set correctly<br/>
-        SA handles calculations by cumulatedReading - known cumulatedReading at period start.<b/>
-        These start values are defined at the state settings and should be < than **currentReading**<br/>
-        Please ensure cumulativeReading >= DayStart >= WeekStart >= MonthStart >= QuarterStart >= YearStart
-     ![Main Settings](admin/readmeDocu/stateStartValues.png)
-     
+1) Verify if the correct unit is chosen (of not selected, SA will  try to autodetect)
+2) Verify if the cumulatedReading reflects the correct total value of your value reading, if not<br/>
+	- Stop SA
+	- Go to tab objects
+	  ![Main Settings](admin/readmeDocu/cumulativeReading-Reset.png)
+	- Enter expert mode
+	- Change the cumulatedReading
+	- Exit expert mode
+	- Ensure the start values are set correctly
+	- Start SA <br/>
+
+3) Ensure the start values are set correctly<br/>
+   SA handles calculations by cumulatedReading - known cumulatedReading at period start.<b/>
+   These start values are defined at the state settings and should be < than **currentReading**<br/>
+   Please ensure cumulativeReading >= DayStart >= WeekStart >= MonthStart >= QuarterStart >= YearStart
+   ![Main Settings](admin/readmeDocu/stateStartValues.png)
+
 4) Verify these values in state raw object :
    ```valueAtDeviceReset": xxx```
    ```"valueAtDeviceInit": xxx```
@@ -217,7 +219,7 @@ Kontrolle im RAW, ob SA-EIntrag nun weg => jup, is nun fott
 * Input values can be wh/kWh/Watt/m3/l
 -->
 
-This adapter has is roots with thanks to pix back in 2016 
+This adapter has is roots with thanks to pix back in 2016
 https://forum.iobroker.net/viewtopic.php?f=21&t=2262
 
 Which has been improved by `@hadering` and published on github
