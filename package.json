@@ -26,7 +26,7 @@
     "url": "https://github.com/DrozmotiX/ioBroker.sourceanalytix"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^2.6.2",
+    "@iobroker/adapter-core": "^2.6.6",
     "cron": "^2.0.0",
     "iobroker-adapter-helpers": "0.0.8"
   },
