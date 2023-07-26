@@ -257,13 +257,15 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Can't get information for ${stateID}, state will be ignored`);
 					delete this.activeStates[stateID];
 					this.unsubscribeForeignStates(stateID);
-					return;
+					initError = true;
+					return false;
 				}
 			} catch (error) {
 				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify(error)}`);
 				delete this.activeStates[stateID];
 				this.unsubscribeForeignStates(stateID);
-				return;
+				initError = true;
+				return false;
 			}
 
 			// Replace not allowed characters for state name
@@ -329,7 +331,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Cannot handle calculations for ${stateID}, check log messages and adjust settings!`);
 					delete this.activeStates[stateID];
 					this.unsubscribeForeignStates(stateID);
-					return initError;
+					return false;
 				}
 
 				// Load price definition from settings & library
@@ -374,10 +376,11 @@ class Sourceanalytix extends utils.Adapter {
 					this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 				}
 				this.log.debug(`[buildStateDetailsArray] completed for ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
-				return initError;
+				return true;
 			}
 		} catch (error) {
 			this.errorHandling(`[buildStateDetailsArray] ${stateID}`, error);
+			return false;
 		}
 	}
 
