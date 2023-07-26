@@ -942,7 +942,11 @@ class Sourceanalytix extends utils.Adapter {
      */
 	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit) {
 		this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
-		this.log.debug(`[doLocalStateCreate] stateDetails : ${JSON.stringify(this.activeStates[stateID].stateDetails)}`);
+
+		// Check if stateDetails are preset in memory, other wise abort
+		if (this.activeStates[stateID] == null || this.activeStates[stateID].stateDetails == null) return;
+		this.log.debug(`[doLocalStateCreate] stateDetails ${stateID} : ${JSON.stringify(this.activeStates[stateID].stateDetails)}`);
+
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
 			const dateRoot = isCurrent ? `currentYear` : actualDate.year;
