@@ -1,7 +1,7 @@
 {
     "common": {
         "name": "sourceanalytix",
-        "version": "0.4.14",
+        "version": "0.4.15-alpha.0",
         "news": {
             "0.4.14": {
                 "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n",
