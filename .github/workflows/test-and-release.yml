@@ -13,6 +13,11 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+-**"
   pull_request: {}
 
+# Cancel previous PR/branch runs when a new commit is pushed
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Performs quick checks before the expensive test runs
   check-and-lint:
@@ -23,7 +28,7 @@ jobs:
     steps:
       - uses: ioBroker/testing-action-check@v1
         with:
-          node-version: '14.x'
+          node-version: '16.x'
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
           lint: true
@@ -35,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [16.x, 18.x, 20.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
@@ -45,6 +50,9 @@ jobs:
           os: ${{ matrix.os }}
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
+
+  # Enter this token as a GitHub secret (with name NPM_TOKEN) in the repository options
+  # Then uncomment the following block:
 
   # Deploys the final package to NPM
   deploy:
@@ -58,14 +66,18 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # Write permissions are required to create Github releases
+    permissions:
+      contents: write
+
     steps:
       - uses: ioBroker/testing-action-deploy@v1
         with:
-          node-version: '14.x'
+          node-version: '16.x'
           # Uncomment the following line if your adapter cannot be installed using 'npm ci'
           # install-command: 'npm install'
           npm-token: ${{ secrets.NPM_TOKEN }}
-          github-token: ${{ secrets.secrets.AUTOMERGER }}
+          github-token: ${{ secrets.AUTOMERGER }}
 
           # When using Sentry for error reporting, Sentry can be informed about new releases
           # To enable create a API-Token in Sentry (User settings, API keys)
