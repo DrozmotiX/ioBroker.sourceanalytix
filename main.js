@@ -66,7 +66,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Block all calculation functions during startup
 			calcBlock = true;
 
-			// Get system currency
+			// Get system currency, use € as fallback in case of errors
 			const sys_conf = await this.getForeignObjectAsync('system.config');
 			if (sys_conf && sys_conf.common.currency){
 				useCurrency = sys_conf.common.currency;
@@ -98,39 +98,46 @@ class Sourceanalytix extends utils.Adapter {
 					if (customStateArray.rows[index].value) { // Avoid crash if object is null or empty
 
 						// Check if custom object contains data for SourceAnalytix
+						// @ts-ignore
 						if (customStateArray.rows[index].value[this.namespace]){
-							this.log.debug(`SourceAnalytix configuration found`);
 
 							// Simplify stateID
 							const stateID = customStateArray.rows[index].id;
+							this.log.debug(`SourceAnalytix configuration found for ${stateID}`);
 
 							// Check if custom object is enabled for SourceAnalytix
+							// @ts-ignore
 							if(customStateArray.rows[index].value[this.namespace].enabled){
 								// Prepare array in constructor for further processing
 								this.activeStates[stateID] = {};
 								this.log.debug(`SourceAnalytix enabled state found ${stateID}`);
 							} else {
-								this.log.debug(`SA configuration found but not Enabled, skipping ${stateID}`);
+								this.log.debug(`SourceAnalytix configuration found but not Enabled, skipping ${stateID}`);
 							}
 
 						} else {
-							console.log(`No SourceAnalytix configuration found`);
+							this.log.debug(`No SourceAnalytix configuration found, skipping state`);
 						}
 					}
 				}
 			}
 
+			// Prepare memory values to count amount of activated states
 			const totalEnabledStates = Object.keys(this.activeStates).length;
 			let totalInitiatedStates = 0;
 			let totalFailedStates = 0;
+
 			this.log.info(`Found ${totalEnabledStates} SourceAnalytix enabled states`);
 
 			// Initialize all discovered states
 			let count = 1;
 			for (const stateID in this.activeStates) {
-				this.log.info(`Initialising (${count} of ${totalEnabledStates}) "${stateID}"`);
-				await this.buildStateDetailsArray(stateID);
-				if (this.activeStates[stateID]) {
+				this.log.info(`Initialising "${stateID}" | (${count} of ${totalEnabledStates})`);
+
+				// Store relevant information into memory to handle calculations
+				const memoryReady = await this.buildStateDetailsArray(stateID);
+
+				if (memoryReady) {
 					await this.initialize(stateID);
 					totalInitiatedStates = totalInitiatedStates + 1;
 					this.log.info(`Initialization of ${stateID} successfully`);
@@ -157,10 +164,15 @@ class Sourceanalytix extends utils.Adapter {
 			}, 500);
 
 			if (totalFailedStates > 0) {
-				this.log.warn(`Cannot handle calculations for ${totalFailedStates} of ${totalEnabledStates} enabled states, check error messages`);
+				this.log.error(`Cannot handle calculations for ${totalFailedStates} of ${totalEnabledStates} enabled states, check error messages`);
+				if (totalFailedStates < totalEnabledStates){
+					this.log.warn(`Partially activated SourceAnalytix for ${totalInitiatedStates} of ${totalEnabledStates} states, check error messages!`);
+				}
+			} else {
+				this.log.info(`Successfully activated SourceAnalytix for all ${totalInitiatedStates} of ${totalEnabledStates} states, will do my Job until you stop me!`);
 			}
 
-			this.log.info(`Successfully activated SourceAnalytix for ${totalInitiatedStates} of ${totalEnabledStates} states, will do my Job until you stop me!`);
+			//ToDo: add cleanup for unused states
 			// this.cleanupUnused()
 
 		} catch (error) {
@@ -254,7 +266,6 @@ class Sourceanalytix extends utils.Adapter {
 				return;
 			}
 
-
 			// Replace not allowed characters for state name
 			const newDeviceName = stateID.split('.').join('__');
 
@@ -270,13 +281,10 @@ class Sourceanalytix extends utils.Adapter {
 				// Always set init value to null at first start, will take init value at first calculation from state
 				const valueAtDeviceInit = null;
 
-				this.log.debug(`[buildStateDetailsArray] valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)}`);
-				this.log.debug(`[buildStateDetailsArray] valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
-
 				// Read current known total value to memory (if present)
 				let cumulativeValue = await this.getCumulatedValue(stateID, newDeviceName);
 				cumulativeValue = cumulativeValue ? cumulativeValue : 0;
-				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)}`);
+				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)} | valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)} | valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
 
 				// Check and load unit definition
 				let useUnit = '';
@@ -316,11 +324,12 @@ class Sourceanalytix extends utils.Adapter {
 					}
 				}
 
+				// In case of one of above checks fails, abort procedure
 				if (initError){
 					this.log.error(`Cannot handle calculations for ${stateID}, check log messages and adjust settings!`);
 					delete this.activeStates[stateID];
 					this.unsubscribeForeignStates(stateID);
-					return;
+					return initError;
 				}
 
 				// Load price definition from settings & library
@@ -365,6 +374,7 @@ class Sourceanalytix extends utils.Adapter {
 					this.activeStates[stateID].calcValues.previousReadingWattTs = null;
 				}
 				this.log.debug(`[buildStateDetailsArray] completed for ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
+				return initError;
 			}
 		} catch (error) {
 			this.errorHandling(`[buildStateDetailsArray] ${stateID}`, error);
@@ -378,7 +388,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`Initialising ${stateID} with configuration ${JSON.stringify(this.activeStates[stateID])}`);
 
 			// Shorten configuration details for easier access
-			if (!this.activeStates[stateID]) {
+			if (!this.activeStates[stateID] || !this.activeStates[stateID].stateDetails) {
 				this.log.error(`Cannot handle initialisation for ${stateID}`);
 				return;
 			}
@@ -391,6 +401,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (stateDetails.alias && stateDetails.alias !== '') {
 				alias = stateDetails.alias;
 			}
+
 			this.log.debug('Name after alias renaming' + alias);
 
 			// Create Device Object
@@ -914,7 +925,7 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 		} catch (e) {
-			this.log.error(e);
+			this.errorHandling(`[setPreviousValues]`, e);
 		}
 
 	}
@@ -1191,7 +1202,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Determine previous reset value
 				// If null (first init) set 0 to valueAtDeviceReset otherwise copy current value
-				if (calcValues.valueAtDeviceReset == null || calcValues.valueAtDeviceReset == undefined){
+				if (calcValues.valueAtDeviceReset == null){
 					// Update memory value with valueAtDeviceReset 0 and current reading at init
 					obj.common.custom[this.namespace].valueAtDeviceReset = 0;
 					obj.common.custom[this.namespace].valueAtDeviceInit = reading;
@@ -1233,7 +1244,7 @@ class Sourceanalytix extends utils.Adapter {
 			} else if (((reading + calcValues.valueAtDeviceReset) < calcValues.cumulativeValue) && currentCath !== 'Watt') {
 
 				// Only handle device reset if activated (default = TRUE) & reading + threshold value < cumulativeValue
-			if (stateDetails.deviceResetLogicEnabled && ((reading + calcValues.valueAtDeviceReset + stateDetails.threshold) < calcValues.cumulativeValue) ){
+				if (stateDetails.deviceResetLogicEnabled && ((reading + calcValues.valueAtDeviceReset + stateDetails.threshold) < calcValues.cumulativeValue) ){
 					this.log.warn(`Device reset detected for ${stateID} store current cumulatedReading ${calcValues.cumulativeValue} as valueAtDeviceReset (previous valueAtDeviceReset : ${calcValues.valueAtDeviceReset})`);
 					await initiateState();
 				} else {
@@ -1627,7 +1638,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		// Write current dates to memory
 		actualDate.day = weekdays[today.getDay()];
-		actualDate.week = await this.getWeekNumber(today);
+		actualDate.week = this.getWeekNumber(today);
 		actualDate.month = months[today.getMonth()];
 		actualDate.quarter = Math.floor((today.getMonth() + 3) / 3);
 		actualDate.year = (new Date().getFullYear());
