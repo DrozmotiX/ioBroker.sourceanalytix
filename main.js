@@ -491,16 +491,6 @@ class Sourceanalytix extends utils.Adapter {
 					await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.financialCategory}Cumulative`, `${stateDetails.financialCategory}Cumulative`, true, true, false, useCurrency);
 
 				}
-
-				// Remove this line in final version, temporary to remove old datapoints
-				if (state === '05_currentYear'){
-
-					await this.doLocalStateCreate(`${stateID}`, state, state, false, true, false);
-					await this.doLocalStateCreate(`${stateID}`, `${actualDate.year}.${state}`, `${state}`, true, true, false);
-					await this.doLocalStateCreate(`${stateID}`, `${actualDate.year}.${stateDetails.financialCategory}.${state}`, `${state}`, true, true, false);
-					await this.doLocalStateCreate(`${stateID}`, `${actualDate.year}.${stateDetails.headCategory}.${state}`, `${state}`, true, true, false);
-
-				}
 			}
 
 			// Create basic current states for previous periods
@@ -611,7 +601,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				//ToDo: Implement x ignore time (configurable) to avoid overload of unneeded calculations
 				// Avoid unneeded calculation if value is equal to known value in memory
-				// 10-01-2021 : disable IF check for new value to anlyse if this solve's 0 watt calc bug
+				// 10-01-2021 : disable IF check for new value to analyse if this solves 0 watt calc bug
 				// 11-01-2021 : removing if successfully result, but need to check debounce !
 
 				// Handle calculation for state
@@ -967,7 +957,6 @@ class Sourceanalytix extends utils.Adapter {
 			if (atDeviceRoot) {
 				stateName = `${stateDetails.deviceName}.${stateRoot}`;
 				if (!deleteState){
-					// this.log.debug(`Try creating states ${stateName} Data : ${JSON.stringify(commonData)}`);
 					await this.localSetObject(stateName, commonData);
 				} else {
 					await this.localDeleteState(stateName);
@@ -1053,7 +1042,6 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 		} catch (error) {
-			// this.log.error(`[localStateCreate ${stateID}] error: ${error.message}, stack: ${error.stack}`);
 			// Send code failure to sentry
 			this.errorHandling(`[localStateCreate] ${stateID}`, error);
 		}
@@ -1061,17 +1049,11 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * create/extend function for objects
-	 * TODO 0.5: Check with JS-Controller 3.x if check is still required
 	 * @param {string} stateName - RAW state ID of monitored state
 	 * @param {object} commonData - common data content
 	 */
 	async localSetObject(stateName, commonData) {
 		this.validStates[stateName] = commonData;
-		await this.setObjectNotExistsAsync(stateName, {
-			type: 'state',
-			common: commonData,
-			native: {},
-		});
 		// Ensure name and unit changes are propagated
 		await this.extendObjectAsync(stateName, {
 			type: 'state',
@@ -1109,7 +1091,6 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			this.log.debug(`[calculationHandler] Calculation for ${stateID} with values : ${JSON.stringify(stateVal)}`);
 			this.log.debug(`[calculationHandler] Configuration : ${JSON.stringify(this.activeStates[stateID])}`);
-			this.log.debug(`Unit price definitions : ${JSON.stringify(this.unitPriceDef)}`);
 
 			// Verify if received value is null or undefined
 			if (!stateVal){
@@ -1151,7 +1132,7 @@ class Sourceanalytix extends utils.Adapter {
 			// Convert volume liter to cubic
 			//TODO 0.5: Should  be handle  by library
 			if (currentCath === 'Watt') {
-				// Convert watt to watt hours
+				// Convert watt to watt-hours
 				reading = await this.wattToWattHour(stateID, stateVal);
 				if (reading === null || reading === undefined) return;
 			} else if (currentCath === 'Liter' && targetCath === 'Cubic_meter') {
@@ -1171,10 +1152,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			const currentExponent = this.unitPriceDef.unitConfig[stateDetails.stateUnit].exponent;
 			const targetExponent = this.unitPriceDef.unitConfig[stateDetails.useUnit].exponent;
-			this.log.debug(`[calculationHandler] currentExponent : ${JSON.stringify(currentExponent)}`);
-			this.log.debug(`[calculationHandler] targetExponent : ${JSON.stringify(targetExponent)}`);
-
-			this.log.debug(`[calculationHandler] reading value ${reading} before exponent multiplier`);
+			this.log.debug(`[calculationHandler] Reading value ${reading} before exponent multiplier | currentExponent : ${JSON.stringify(currentExponent)} | targetExponent : ${JSON.stringify(targetExponent)}`);
 			// Logic to handle exponents and handle watt reading
 			if (typeof (reading) === 'number' || reading === 0) {
 				if (currentCath === 'Watt') {
@@ -1218,15 +1196,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Update memory value with current & init value at object and memo
 				this.log.debug(`[calculationHandler] Extend object with  ${JSON.stringify(obj)} `);
-
-				// Ensure current value is set again after object extension as Workaround for Dev:0 bug
-				// const objval = await this.getForeignStateAsync(stateID);
 				await this.extendForeignObject(stateID, obj);
-				this.log.debug(`[calculationHandler] State value before extension ${JSON.stringify(obj)} `);
-				// // Set state value back on object (Prevent Dev: 0 bug)
-				// if (objval) {
-				// 	await this.setForeignStateAsync(stateID, {val: objval.val, ack: true});
-				// }
 			};
 
 			// Verify if state is initiated for the first time, if not handle initialisation
