@@ -1063,6 +1063,7 @@ class Sourceanalytix extends utils.Adapter {
 			common: {
 				name: commonData.name,
 				unit: commonData.unit,
+				type: 'number',
 			},
 			native: {},
 		});
