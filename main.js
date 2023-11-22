@@ -860,6 +860,28 @@ class Sourceanalytix extends utils.Adapter {
 							// 	val: await this.getStateAsync(`${stateID}.currentYear.meterReadings.previousWeek.${weekdays[x]}`),
 							// 	ack: true
 							// })
+							
+							//derelvis
+							if (beforeReset.day !== actualDate.day) {
+								await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.01_previousDay`);
+							}
+
+							if (beforeReset.week !== actualDate.week) {
+								await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.02_previousWeek`);
+							}
+
+							if (beforeReset.month !== actualDate.month) {
+								await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.03_previousMonth`);
+							}
+
+							if (beforeReset.quarter !== actualDate.quarter) {
+								await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.04_previousQuarter`);
+							}
+
+							if (beforeReset.year !== actualDate.year) {
+								await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.05_previousYear`);
+							}
+							//derelvis end
 
 						}
 
