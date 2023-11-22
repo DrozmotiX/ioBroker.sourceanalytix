@@ -5,7 +5,7 @@ name: Test and Release
 on:
   push:
     branches:
-      - "main"
+      - "*"
     tags:
       # normal versions
       - "v[0-9]+.[0-9]+.[0-9]+"
@@ -88,4 +88,4 @@ jobs:
           sentry-project: "iobroker-sourceanalytix"
           sentry-version-prefix: "iobroker.sourceanalytix"
           # If your sentry project is linked to a GitHub repository, you can enable the following option
-          # sentry-github-integration: true
+          sentry-github-integration: true
