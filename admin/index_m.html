@@ -34,6 +34,23 @@
 			/* -ms-text-align-last: center;
 	-moz-text-align-last: center; */
 		}
+
+		body {
+			overflow: hidden;
+		}
+
+		.adapter-body {
+			overflow: hidden;
+		}
+
+		/* Style for small Screens */
+		@media screen and (max-width: 768px) {
+			.responsive {
+				font-size: 1.5rem;
+				line-height: 110%;
+				margin: 1em 0 0 0.6em;
+			}
+		}
 	</style>
 
 	<script type="text/javascript">
@@ -177,7 +194,8 @@
 			<div class="col s12">
 				<ul class="tabs">
 					<li class="tab col s6"><a href="#tab-main" class="translate active">Main settings</a></li>
-					<li class="tab col s6"><a href="#tab-pricesDefinition" class="translate active">Price definitions</a>
+					<li class="tab col s6"><a href="#tab-pricesDefinition" class="translate active">Price
+							definitions</a>
 					</li>
 				</ul>
 			</div>
@@ -190,7 +208,7 @@
 
 				<div class="row">
 					<div class="input-field col s2">
-<!--						placeholder-->
+						<!--						placeholder-->
 					</div>
 					<div class="input-field col s2">
 						<input type="checkbox" class="value" id="store_weeks" />
@@ -205,7 +223,7 @@
 						<span class="translate">Quarters</span>
 					</div>
 					<div class="input-field col s2">
-<!--						placeholder-->
+						<!--						placeholder-->
 					</div>
 				</div>
 
@@ -264,14 +282,14 @@
                                 </div>
                 -->
 
-<!--				<p class="translate title">Logging settings</p>-->
+				<!--				<p class="translate title">Logging settings</p>-->
 
-<!--				<div class="row">-->
-<!--					<div class="input-field col s3">-->
-<!--						<input type="checkbox" class="value" id="status_logging" />-->
-<!--						<span class="translate">Status messages to log</span>-->
-<!--					</div>-->
-<!--				</div>-->
+				<!--				<div class="row">-->
+				<!--					<div class="input-field col s3">-->
+				<!--						<input type="checkbox" class="value" id="status_logging" />-->
+				<!--						<span class="translate">Status messages to log</span>-->
+				<!--					</div>-->
+				<!--				</div>-->
 			</div>
 		</div>
 		<!-- Tab main -->
@@ -288,8 +306,10 @@
 							<table class="table-values">
 								<thead>
 									<tr>
-										<th data-name="cat" data-label="Category" style="width: 20%" class="translate">Category</th>
-										<th data-name="des" data-label="Description" style="width: 30%" class="translate">Description</th>
+										<th data-name="cat" data-label="Category" style="width: 20%" class="translate">
+											Category</th>
+										<th data-name="des" data-label="Description" style="width: 30%"
+											class="translate">Description</th>
 										<th data-name="costType" data-label="Cost Type" class="translate"
 											style="width: 10%; text-align: center;" data-default="20" data-type="select"
 											data-style="text-align: center" data-options="costs;earnings">Cost Type</th>
@@ -298,8 +318,10 @@
 											data-type="select" data-style="text-align: center"
 											data-options="GW;MW;kW;W;mW;GWh;MWh;kWh;Wh;mWh;km³;m³;dm³;cm³;mm³;hl;l;dl;cl;ml">
 											Unit</th>
-										<th data-name="uPpU" data-label="Price p/unit" style="width: 10%" class="translate">Price p/unit</th>
-										<th data-name="uPpM" data-label="Price p/m" style="width: 10%" class="translate">Price p/m</th>
+										<th data-name="uPpU" data-label="Price p/unit" style="width: 10%"
+											class="translate">Price p/unit</th>
+										<th data-name="uPpM" data-label="Price p/m" style="width: 10%"
+											class="translate">Price p/m</th>
 										<th data-buttons="delete up down" style="width: 120px"></th>
 									</tr>
 								</thead>
