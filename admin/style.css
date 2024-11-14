@@ -11,3 +11,20 @@
 .multiple-select-dropdown li span{
 	pointer-events: none;
 }
+
+body {
+	overflow: hidden;
+}
+
+.adapter-body {
+	overflow: hidden;
+}
+
+/* Style for small Screens */
+@media screen and (max-width: 768px) {
+	.responsive {
+		font-size: 1.5rem;
+		line-height: 110%;
+		margin: 1em 0 0 0.6em;
+	}
+  }
