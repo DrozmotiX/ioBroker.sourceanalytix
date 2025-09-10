@@ -33,14 +33,14 @@
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
-    "@iobroker/testing": "^5.1.1",
     "@iobroker/adapter-dev": "^1.4.0",
-    "@types/chai-as-promised": "^7.1.8",
+    "@iobroker/eslint-config": "^2.1.0",
+    "@iobroker/testing": "^5.1.1",
     "@types/chai": "^4.3.11",
+    "@types/chai-as-promised": "^7.1.8",
     "@types/gulp": "^4.0.17",
     "@types/node": "^20.9.4",
     "axios": "^1.6.2",
-    "eslint": "^8.54.0",
     "gulp": "^4.0.2",
     "typescript": "^5.3.2"
   },
@@ -51,8 +51,7 @@
     "test:unit": "mocha test/unit --exit",
     "test:integration": "mocha test/integration --exit",
     "test": "npm run test:js && npm run test:package",
-    "lint": "npm run lint:js",
-    "lint:js": "eslint",
+    "lint": "eslint -c eslint.config.mjs .",
     "translate": "translate-adapter",
     "build": "echo 'No compilation needed for JavaScript adapter'",
     "release": "release-script"
