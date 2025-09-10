@@ -34,7 +34,7 @@
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
     "@iobroker/adapter-dev": "^1.4.0",
-    "@types/chai-as-promised": "^7.1.8",
+    "@types/chai-as-promised": "^8.0.2",
     "@types/chai": "^4.3.11",
     "@types/gulp": "^4.0.17",
     "@types/node": "^20.9.4",
