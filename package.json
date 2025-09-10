@@ -33,7 +33,6 @@
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
-    "@iobroker/testing": "^5.1.1",
     "@iobroker/adapter-dev": "^1.4.0",
     "@types/chai-as-promised": "^7.1.8",
     "@types/chai": "^4.3.11",
@@ -41,7 +40,7 @@
     "@types/node": "^20.9.4",
     "axios": "^1.6.2",
     "eslint": "^8.54.0",
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.1",
     "typescript": "^5.3.2"
   },
   "main": "main.js",

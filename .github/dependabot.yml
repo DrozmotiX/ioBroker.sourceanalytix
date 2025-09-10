@@ -1,8 +1,21 @@
 version: 2
 updates:
-- package-ecosystem: "npm"
-  directory: "/"
-  schedule:
-    interval: "monthly"
-  target-branch: "dependencyAutoUpdate"
-  open-pull-requests-limit: 30
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+      time: "04:00"
+      timezone: Europe/Berlin
+    assignees:
+      - DrozmotiX
+    versioning-strategy: increase
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+      time: "04:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 30
+    assignees:
+      - DrozmotiX

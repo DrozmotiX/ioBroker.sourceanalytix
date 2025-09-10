@@ -4,6 +4,8 @@
 name: Auto-Merge Dependabot PRs
 
 on:
+  # WARNING: This needs to be run in the PR base, DO NOT build untrusted code in this action
+  # details under https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions/
   pull_request_target:
 
 jobs:
@@ -11,7 +13,15 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      - uses: ahmadnassri/action-dependabot-auto-merge@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if PR should be auto-merged
+        uses: ahmadnassri/action-dependabot-auto-merge@v2
         with:
-          target: minor
+          # In order to use this, you need to go to https://github.com/settings/tokens and
+          # create a Personal Access Token with the permission "public_repo".
+          # Enter this token in your repository settings under "Secrets" and name it AUTO_MERGE_TOKEN
           github-token: ${{ secrets.AUTOMERGER }}
+          # By default, squash and merge, so Github chooses nice commit messages
+          command: squash and merge
