@@ -23,7 +23,7 @@
   "dependencies": {
     "@iobroker/adapter-core": "^2.6.8",
     "@sentry/node": "^7.60.0",
-    "cron": "^2.4.0",
+    "cron": "^4.3.3",
     "iobroker-adapter-helpers": "0.0.8",
     "node-schedule": "^2.1.1"
   },
