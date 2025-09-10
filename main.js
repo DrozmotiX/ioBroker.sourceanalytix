@@ -1322,7 +1322,7 @@ class Sourceanalytix extends utils.Adapter {
                     await this.delObjectAsync(stateName);
                 }
             }
-        } catch (_error) {
+        } catch {
             // do nothing
         }
     }
@@ -2006,7 +2006,7 @@ class Sourceanalytix extends utils.Adapter {
         try {
             this.log.info(`SourceAnalytix stopped, now you have to calculate by yourself :'( ...`);
             callback();
-        } catch (_e) {
+        } catch {
             callback();
         }
     }
