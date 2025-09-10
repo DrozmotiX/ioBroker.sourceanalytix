@@ -251,6 +251,16 @@ When the adapter crashes or any other Code error happens, this error message tha
 * (DutchmanNL) Improved some logging, code polishing
 * (DutchmanNL) Bugfix: "is missing required property common.type" fixes #883
 
+### 0.4.15-alpha.1 (2025-09-10) Repository checker fixes and dependency updates
+* (DutchmanNL) Update dependencies to latest versions
+* (DutchmanNL) Fix repository checker issues
+* (DutchmanNL) Update @iobroker/adapter-core to ^3.3.2
+* (DutchmanNL) Update @alcalzone/release-script to ^3.8.0
+* (DutchmanNL) Update @iobroker/testing to ^5.0.4
+* (DutchmanNL) Add Node.js version requirement
+* (DutchmanNL) Add .releaseconfig.json for release script
+* (DutchmanNL) Remove deprecated admin configurations
+
 ### 0.4.14 (2022-02-23) Optimize Device reset handling
 * (DutchmanNL) Small code updates, lifecycle patches
 * (DutchmanNL) Option to disable device reset feature added
