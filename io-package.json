@@ -13,7 +13,8 @@
                 "it": "notizie",
                 "es": "noticias",
                 "pl": "nowości",
-                "zh-cn": "新"
+                "zh-cn": "新",
+                "uk": "news"
             },
             "0.4.14": {
                 "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n",
@@ -25,7 +26,8 @@
                 "it": "Piccoli aggiornamenti del codice, patch del ciclo di vita\nOpzione per disabilitare la funzione di ripristino del dispositivo aggiunta\nBugfix: impossibile leggere la proprietà 'nome' di una soluzione non definita\n",
                 "es": "Pequeñas actualizaciones de código, parches de ciclo de vida\nOpción para deshabilitar la función de restablecimiento del dispositivo agregada\nCorrección de error: no se puede leer la propiedad 'nombre' de una solución indefinida\n",
                 "pl": "Małe aktualizacje kodu, poprawki cyklu życia\nDodana opcja wyłączenia funkcji resetowania urządzenia\nNaprawa błędu: Nie można odczytać właściwości „nazwa” niezdefiniowanego rozwiązania\n",
-                "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n"
+                "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n",
+                "uk": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n"
             },
             "0.4.12": {
                 "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",
@@ -37,7 +39,8 @@
                 "it": "Aggiungi la registrazione per analizzare l'errore rilevato dalla sentinella\n",
                 "es": "Agregar registro para analizar el error detectado por centinela\n",
                 "pl": "Dodaj logowanie, aby przeanalizować błąd wykryty przez wartownika\n",
-                "zh-cn": "添加日志记录以分析哨兵捕获的错误\n"
+                "zh-cn": "添加日志记录以分析哨兵捕获的错误\n",
+                "uk": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470"
             },
             "0.4.11": {
                 "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
@@ -49,7 +52,8 @@
                 "it": "Migliora i messaggi di registro/errore all'avvio dell'adattatore\nBugfix: impossibile leggere la proprietà 'calcValues' di problemi nulli e correlati rilevati da Sentry",
                 "es": "Mejorar los mensajes de registro / error al iniciar el adaptador\nCorrección de error: no se puede leer la propiedad 'calcValues' de problemas nulos y relacionados encontrados por Sentry",
                 "pl": "Popraw komunikaty dziennika/błędów podczas uruchamiania adaptera\nPoprawka błędu: Nie można odczytać właściwości „calcValues” wartości null i powiązanych problemów znalezionych przez Sentry",
-                "zh-cn": "改进适配器启动时的日志/错误消息\n错误修正：无法读取 Sentry 发现的 null 和相关问题的属性“calcValues”"
+                "zh-cn": "改进适配器启动时的日志/错误消息\n错误修正：无法读取 Sentry 发现的 null 和相关问题的属性“calcValues”",
+                "uk": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry"
             },
             "0.4.10": {
                 "en": "Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
@@ -61,7 +65,8 @@
                 "it": "Bugfix: evita l'arresto anomalo dell'adattatore durante la notte per stati di configurazione errati [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
                 "es": "Corrección de error: evite el bloqueo del adaptador durante la noche para estados configurados incorrectamente [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
                 "pl": "Poprawka błędu: Unikaj awarii karty w nocy w przypadku niepoprawnie skonfigurowanych stanów [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-                "zh-cn": "修正：避免夜间适配器因错误配置状态而崩溃 [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)"
+                "zh-cn": "修正：避免夜间适配器因错误配置状态而崩溃 [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
+                "uk": "Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)"
             },
             "0.4.9": {
                 "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",
@@ -73,7 +78,8 @@
                 "it": "Aggiunto supporto per Admin 5 (richiede Admin >= 5.1.2)",
                 "es": "Soporte agregado para Admin 5 (Requiere Admin >= 5.1.2)",
                 "pl": "Dodano obsługę administratora 5 (wymaga administratora >= 5.1.2)",
-                "zh-cn": "添加了对Admin 5的支持（需要Admin >= 5.1.2）"
+                "zh-cn": "添加了对Admin 5的支持（需要Admin >= 5.1.2）",
+                "uk": "Added support for Admin 5 (Requires Admin >= 5.1.2)"
             },
             "0.4.8": {
                 "en": "#### Breaking changes\n* Breaking!!! Move current values to currentYear [#135](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)\n* MajorChange !: Replaced **Current_Reading** with **CumulativeReading** [226](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n\n#### New Features\n* Code cleanup\n* Add back \"currentYear\"\n* (debug) Logging improved\n* Weekly reset of weekdays\n* Calculation for all states\n* change default log-level to info\n* Calculation for previous states [#242](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242)\n* Optimized error reporting (Sentry)\n* Removed unneeded settings in configuration\n* Implemented new configuration for \"currentYear\"\n* implement \"05_currentYear\" in year root folder [#280](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280)\n* Implemented category cumulative values under year statistics\n* implement cached memory slot for initialisation value [#226](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n* Implement log messages if state attributes are changed\n* Implement automatically detection of currency from admin settings [#247](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247)\n\n#### BugFixes\n* Bugfix : dev: 0 bug workaround\n* Do not round cumulated reading\n* Bugfix : delete states in create function\n* Bugfix : quarters.1 has no existing object\n* Bugfix : Calculations for \"previous\" values\n* Bugfix : Incorrect initialisation for states\n* Bugfix : Avoid NULL & 0 values at night reset\n* Bugfix : 05_currentYear has no existing object\n* Bugfix : Avoid calculation of non-Initialised states\n* Bugfix : Cannot read property 'stateDetails' of null\n* Correct error handling of \"Watt\" state initialisation\n* Bugfix : Ensure a proper reset and init of Watt values\n* Bugfix : Avoid loop if init value is set and  bigger reading\n* Bugfix : Caught sentry error : Alias xxxxx has no target\n* Bugfix : Rebuild calculation logic which solves :\n  * Watt values : Ensure proper reading start (0 instead of current watt value)\n    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value) [#281](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281)\n  * All calculations : correct handling  of device reset (if value is reset or 0)\n* Bugfix : Incorrect initialisation for Watt values with 0 input\n* Bugfix : Only create cumulatedXXX in year statistics if activated\n* Bugfix : Incorrect warn message if configuration for objects is changed\n* Bugfix : Error {Is not a number, cannot continue calculation} if value =  0\n* Bugfix : Throw error if value is NULL for troubleshooting instead of handling incorrect calculation\n* Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)",
@@ -85,7 +91,8 @@
                 "it": "#### Cambiamenti decisivi\n* Rottura !!! Sposta i valori correnti a currentYear [# 135] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)\n* MajorChange!: Sostituito **Current_Reading** con **CumulativeReading** [226] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226) \n\n#### Nuove caratteristiche\n* Pulizia del codice\n* Aggiungi di nuovo \"currentYear\"\n* (debug) Registrazione migliorata\n* Reset settimanale dei giorni feriali\n* Calcolo per tutti gli stati\n* cambia il livello di registro predefinito in informazioni\n* Calcolo per gli stati precedenti [# 242] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242)\n* Segnalazione errori ottimizzata (Sentry)\n* Rimosse le impostazioni non necessarie nella configurazione\n* Nuova configurazione implementata per \"currentYear\"\n* implementa \"05_currentYear\" nella cartella radice dell'anno [# 280] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280)\n* Valori cumulativi di categoria implementati sotto le statistiche annuali\n* implementare uno slot di memoria cache per il valore di inizializzazione [# 226] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n* Implementa i messaggi di registro se gli attributi di stato vengono modificati\n* Implementa il rilevamento automatico della valuta dalle impostazioni dell'amministratore [# 247] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247)\n\n#### Correzioni di bug\n* Bugfix: dev: 0 soluzione di bug\n* Non arrotondare la lettura cumulata\n* Bugfix: elimina stati nella funzione create\n* Bugfix: quarters.1 non ha oggetti esistenti\n* Bugfix: calcoli per i valori \"precedenti\"\n* Bugfix: inizializzazione errata per gli stati\n* Bugfix: Evita valori NULL e 0 durante il ripristino notturno\n* Bugfix: 05_currentYear non ha oggetti esistenti\n* Bugfix: Evita il calcolo di stati non inizializzati\n* Bugfix: Impossibile leggere la proprietà 'stateDetails' di null\n* Corretta gestione degli errori di inizializzazione dello stato \"Watt\"\n* Bugfix: assicurati un corretto reset e inizializzazione dei valori Watt\n* Bugfix: Evita il loop se il valore di init è impostato e bigger reading\n* Bugfix: Caught sentry error: Alias xxxxx non ha target\n* Bugfix: ricostruire la logica di calcolo che risolve:\n  * Valori in Watt: assicurati che la lettura inizi correttamente (0 invece del valore attuale in Watt)\n    Valori in watt: assicurati che il calcolo della lettura sia corretto con esponente (0 invece del valore corrente in watt) [# 281] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281)\n  * Tutti i calcoli: corretta gestione del ripristino del dispositivo (se il valore è ripristinato o 0)\n* Bugfix: inizializzazione errata per valori Watt con ingresso 0\n* Bugfix: crea solo XXX cumulati nelle statistiche annuali se attivato\n* Bugfix: messaggio di avviso non corretto se la configurazione per gli oggetti viene modificata\n* Bugfix: Errore {Non è un numero, non può continuare il calcolo} se il valore = 0\n* Bugfix: genera un errore se il valore è NULL per la risoluzione dei problemi invece di gestire calcoli errati\n* Bugfix: assicura che il reset giornaliero non distrugga il valore della memoria cumulativa (risolve i valori NULL per Watt dopo il reset notturno)",
                 "es": "#### Cambios importantes\n* Rompiendo !!! Mover los valores actuales al año actual [# 135] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)\n* MajorChange!: Reemplazado **Current_Reading** con **CumulativeReading** [226] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226) \n\n#### Nuevas características\n* Limpieza de código\n* Volver a agregar \"currentYear\"\n* (depuración) Registro mejorado\n* Restablecimiento semanal de días laborables\n* Cálculo para todos los estados\n* cambiar el nivel de registro predeterminado a información\n* Cálculo para estados anteriores [# 242] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242)\n* Informe de errores optimizado (Sentry)\n* Se eliminaron los ajustes innecesarios en la configuración.\n* Se implementó una nueva configuración para \"currentYear\"\n* implementar \"05_currentYear\" en la carpeta raíz del año [# 280] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280)\n* Valores acumulativos de categoría implementados en estadísticas anuales\n* implementar la ranura de memoria en caché para el valor de inicialización [# 226] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n* Implementar mensajes de registro si se cambian los atributos de estado\n* Implementar la detección automática de moneda desde la configuración de administrador [# 247] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247)\n\n#### Corrección de errores\n* Corrección de error: dev: 0 solución de error\n* No redondear la lectura acumulada\n* Corrección de errores: eliminar estados en la función de creación\n* Corrección de error: quarters.1 no tiene ningún objeto existente\n* Corrección de error: cálculos para valores \"anteriores\"\n* Bugfix: inicialización incorrecta para estados\n* Corrección de error: evite los valores NULL y 0 en el reinicio nocturno\n* Corrección de error: 05_currentYear no tiene ningún objeto existente\n* Corrección de error: evitar el cálculo de estados no inicializados\n* Bugfix: no se puede leer la propiedad 'stateDetails' de null\n* Manejo correcto de errores de inicialización del estado \"Watt\"\n* Corrección de error: asegure un reinicio e inicialización adecuados de los valores de Watt\n* Bugfix: Evite el bucle si el valor de inicialización está configurado y bigger leyendo\n* Bugfix: Error de centinela atrapado: Alias xxxxx no tiene objetivo\n* Bugfix: Reconstruir la lógica de cálculo que resuelve:\n  * Valores de vatios: asegúrese de que la lectura comience correctamente (0 en lugar del valor de vatios actual)\n    Valores de vatios: asegure un cálculo de lectura adecuado con exponente (0 en lugar del valor de vatios actual) [# 281] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281)\n  * Todos los cálculos: manejo correcto del reinicio del dispositivo (si el valor se reinicia o 0)\n* Bugfix: Inicialización incorrecta para valores de Watt con entrada 0\n* Corrección de error: solo cree estadísticas acumuladas de XXX en el año si está activado\n* Bugfix: mensaje de advertencia incorrecto si se cambia la configuración de los objetos\n* Corrección de error: Error {no es un número, no se puede continuar con el cálculo} si valor = 0\n* Corrección de errores: arroja un error si el valor es NULO para solucionar problemas en lugar de manejar cálculos incorrectos\n* Corrección de error: asegúrese de que el reinicio diario no destruya el valor de memoria acumulativo (corrige los valores NULL para Watt después del reinicio nocturno)",
                 "pl": "#### Przełomowe zmiany\n* Łamanie!!! Przenieś bieżące wartości do bieżącego roku [# 135] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)\n* MajorChange!: Zastąpiono ** Current_Reading ** ** CumulativeReading ** [226] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n\n#### Nowe funkcje\n* Czyszczenie kodu\n* Dodaj ponownie „bieżący rok”\n* (debugowanie) Ulepszone logowanie\n* Cotygodniowe resetowanie dni tygodnia\n* Obliczenia dla wszystkich stanów\n* zmień domyślny poziom dziennika na info\n* Obliczenia dla poprzednich stanów [# 242] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242)\n* Zoptymalizowane raportowanie błędów (Sentry)\n* Usunięto niepotrzebne ustawienia w konfiguracji\n* Zaimplementowano nową konfigurację na „bieżący rok”\n* zaimplementuj „05_currentYear” w folderze głównym roku [# 280] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280)\n* Skumulowane wartości kategorii wdrożonych w statystykach rocznych\n* zaimplementuj gniazdo pamięci podręcznej dla wartości inicjalizacji [# 226] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n* Implementuj komunikaty dziennika, jeśli atrybuty stanu zostały zmienione\n* Zaimplementuj automatyczne wykrywanie waluty z ustawień administratora [# 247] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247)\n\n#### BugFixes\n* Bugfix: dev: obejście błędu 0\n* Nie zaokrąglać skumulowanego odczytu\n* Bugfix: usuń stany w funkcji tworzenia\n* Bugfix: quarters.1 nie ma istniejącego obiektu\n* Bugfix: Obliczenia dla \"poprzednich\" wartości\n* Bugfix: Nieprawidłowa inicjalizacja dla stanów\n* Bugfix: Unikaj wartości NULL i 0 podczas resetowania w nocy\n* Poprawka błędu: 05_currentYear nie ma istniejącego obiektu\n* Bugfix: Unikaj obliczania niezainicjowanych stanów\n* Poprawka błędu: nie można odczytać właściwości „stateDetails” o wartości null\n* Poprawna obsługa błędów inicjalizacji stanu „Watt”\n* Bugfix: Zapewnij prawidłowy reset i inicjalizację wartości Watta\n* Bugfix: Unikaj pętli, jeśli ustawiono wartość init i bigger odczyt\n* Poprawka: Błąd złapanego wartownika: alias xxxxx nie ma celu\n* Bugfix: Odbuduj logikę obliczeniową, która rozwiązuje:\n  * Wartości watów: Zapewnij prawidłowy początek odczytu (0 zamiast aktualnej wartości wata)\n    Wartości watów: Zapewnij prawidłowe obliczenia odczytu za pomocą wykładnika (0 zamiast bieżącej wartości wata) [# 281] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281)\n  * Wszystkie obliczenia: poprawna obsługa resetu urządzenia (jeśli wartość jest resetowana lub 0)\n* Bugfix: Niepoprawna inicjalizacja wartości w watach przy wejściu 0\n* Bugfix: Twórz skumulowaneXXX statystyk rocznych tylko wtedy, gdy jest aktywowany\n* Bugfix: Niepoprawny komunikat ostrzegawczy, jeśli konfiguracja obiektów została zmieniona\n* Poprawka błędu: Błąd {nie jest liczbą, nie można kontynuować obliczeń}, jeśli wartość = 0\n* Bugfix: Zgłaszanie błędu, jeśli wartość jest równa NULL do rozwiązywania problemów zamiast obsługi nieprawidłowych obliczeń\n* Poprawka: Upewnij się, że codzienny reset nie niszczy skumulowanej wartości pamięci (naprawia wartości NULL dla watów po resetowaniu w nocy)",
-                "zh-cn": "####重大更改\n*打破！！！将当前值移到currentYear [＃135]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135）\n* MajorChange！：将** Current_Reading **换为** CumulativeReading** [226]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226） \n\n＃＃＃＃ 新的功能\n*代码清理\n*添加回“ currentYear”\n*（调试）日志记录已改进\n*平日每周重置\n*计算所有状态\n*将默认日志级别更改为info\n*先前状态的计算[＃242]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242）\n*优化的错误报告（哨兵）\n*删除了配置中不需要的设置\n*为“ currentYear”实施了新的配置\n*在年份根文件夹[＃280]中实现“ 05_currentYear”（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280）\n*年度统计中的已实施类别累计值\n*为初始化值[＃226]实现缓存的内存插槽（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226）\n*如果状态属性更改，则实施日志消息\n*通过管理员设置[＃247]实现自动检测货币（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247）\n\n＃＃＃＃ Bug修复\n*错误修正：开发人员：0错误的解决方法\n*不要舍入累计阅读\n*错误修正：删除创建函数中的状态\n*错误修正：quarters.1没有现有对象\n*错误修正：“先前”值的计算\n*错误修正：状态初始化不正确\n*错误修正：避免在夜间重置时出现NULL＆0值\n*错误修正：05_currentYear没有现有对象\n*修正错误：避免计算非初始状态\n*错误修正：无法读取null的属性“ stateDetails”\n*正确的“ Watt”状态初始化错误处理\n*修正错误：请确保正确重置和初始化瓦特值\n*修正错误：如果设置了初始值并且 bigger读取，请避免循环\n*错误修正：被抓到的哨兵错误：别名xxxxx没有目标\n*修正错误：重建解决以下问题的计算逻辑：\n  *瓦特值：确保正确的读取开始（0代替当前瓦特值）\n    瓦特值：使用指数（0代替当前瓦特值）确保正确的读数计算[＃281]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281）\n  *所有计算：正确处理设备重置（如果值重置或为0）\n*修正错误：输入0的瓦特值初始化不正确\n*错误修正：如果激活，仅在年份统计信息中创建cumulatedXXX\n*错误修正：如果对象配置发生更改，警告消息不正确\n*错误修正：如果value = 0，则错误{不是数字，无法继续计算}\n*错误修正：如果值为NULL则抛出错误以进行故障排除，而不是处理错误的计算\n*修正错误：确保每日重设不会破坏累积内存值（夜间重设后修复Watt的NULL值）"
+                "zh-cn": "####重大更改\n*打破！！！将当前值移到currentYear [＃135]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135）\n* MajorChange！：将** Current_Reading **换为** CumulativeReading** [226]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226） \n\n＃＃＃＃ 新的功能\n*代码清理\n*添加回“ currentYear”\n*（调试）日志记录已改进\n*平日每周重置\n*计算所有状态\n*将默认日志级别更改为info\n*先前状态的计算[＃242]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242）\n*优化的错误报告（哨兵）\n*删除了配置中不需要的设置\n*为“ currentYear”实施了新的配置\n*在年份根文件夹[＃280]中实现“ 05_currentYear”（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280）\n*年度统计中的已实施类别累计值\n*为初始化值[＃226]实现缓存的内存插槽（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226）\n*如果状态属性更改，则实施日志消息\n*通过管理员设置[＃247]实现自动检测货币（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247）\n\n＃＃＃＃ Bug修复\n*错误修正：开发人员：0错误的解决方法\n*不要舍入累计阅读\n*错误修正：删除创建函数中的状态\n*错误修正：quarters.1没有现有对象\n*错误修正：“先前”值的计算\n*错误修正：状态初始化不正确\n*错误修正：避免在夜间重置时出现NULL＆0值\n*错误修正：05_currentYear没有现有对象\n*修正错误：避免计算非初始状态\n*错误修正：无法读取null的属性“ stateDetails”\n*正确的“ Watt”状态初始化错误处理\n*修正错误：请确保正确重置和初始化瓦特值\n*修正错误：如果设置了初始值并且 bigger读取，请避免循环\n*错误修正：被抓到的哨兵错误：别名xxxxx没有目标\n*修正错误：重建解决以下问题的计算逻辑：\n  *瓦特值：确保正确的读取开始（0代替当前瓦特值）\n    瓦特值：使用指数（0代替当前瓦特值）确保正确的读数计算[＃281]（https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281）\n  *所有计算：正确处理设备重置（如果值重置或为0）\n*修正错误：输入0的瓦特值初始化不正确\n*错误修正：如果激活，仅在年份统计信息中创建cumulatedXXX\n*错误修正：如果对象配置发生更改，警告消息不正确\n*错误修正：如果value = 0，则错误{不是数字，无法继续计算}\n*错误修正：如果值为NULL则抛出错误以进行故障排除，而不是处理错误的计算\n*修正错误：确保每日重设不会破坏累积内存值（夜间重设后修复Watt的NULL值）",
+                "uk": "#### Breaking changes\n* Breaking!!! Move current values to currentYear [#135](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/135)\n* MajorChange !: Replaced **Current_Reading** with **CumulativeReading** [226](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n\n#### New Features\n* Code cleanup\n* Add back \"currentYear\"\n* (debug) Logging improved\n* Weekly reset of weekdays\n* Calculation for all states\n* change default log-level to info\n* Calculation for previous states [#242](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/242)\n* Optimized error reporting (Sentry)\n* Removed unneeded settings in configuration\n* Implemented new configuration for \"currentYear\"\n* implement \"05_currentYear\" in year root folder [#280](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/280)\n* Implemented category cumulative values under year statistics\n* implement cached memory slot for initialisation value [#226](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/226)\n* Implement log messages if state attributes are changed\n* Implement automatically detection of currency from admin settings [#247](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/247)\n\n#### BugFixes\n* Bugfix : dev: 0 bug workaround\n* Do not round cumulated reading\n* Bugfix : delete states in create function\n* Bugfix : quarters.1 has no existing object\n* Bugfix : Calculations for \"previous\" values\n* Bugfix : Incorrect initialisation for states\n* Bugfix : Avoid NULL & 0 values at night reset\n* Bugfix : 05_currentYear has no existing object\n* Bugfix : Avoid calculation of non-Initialised states\n* Bugfix : Cannot read property 'stateDetails' of null\n* Correct error handling of \"Watt\" state initialisation\n* Bugfix : Ensure a proper reset and init of Watt values\n* Bugfix : Avoid loop if init value is set and  bigger reading\n* Bugfix : Caught sentry error : Alias xxxxx has no target\n* Bugfix : Rebuild calculation logic which solves :\n  * Watt values : Ensure proper reading start (0 instead of current watt value)\n    Watt values : Ensure proper reading calculation with exponent (0 instead of current watt value) [#281](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/281)\n  * All calculations : correct handling  of device reset (if value is reset or 0)\n* Bugfix : Incorrect initialisation for Watt values with 0 input\n* Bugfix : Only create cumulatedXXX in year statistics if activated\n* Bugfix : Incorrect warn message if configuration for objects is changed\n* Bugfix : Error {Is not a number, cannot continue calculation} if value =  0\n* Bugfix : Throw error if value is NULL for troubleshooting instead of handling incorrect calculation\n* Bugfix : Ensure daily reset does not destroy cumulative memory value (Fixes NULL values for Watt after night reset)"
             },
             "0.4.7": {
                 "en": "Implement Sentry\nImplement configuration for Price definitions\nBugfix: NULL value issue  at daily reset\nBugfix: Issue found in selection of category\nBugfix: Category issue (read value of undefined)\nBugfix: Issue in storing meter values by month\nBugfix: Wrong reading value for Watt initialisation\nBugfix: Warnings at object creations (js-controller 3.x)\nBugfix: wrong interpretation of start values at value resets\nBugfix: Proper error message instead of code crash if no cost type defined\nAdd device name for log messages if device value less than currently known value\nBugfix : Crash at adapter start if chosen Type is not present in instance configuration",
@@ -97,7 +104,8 @@
                 "it": "Implementa Sentry\nImplementare la configurazione per le definizioni dei prezzi\nBugfix: problema di valore NULL durante il ripristino giornaliero\nBugfix: problema riscontrato nella selezione della categoria\nBugfix: problema di categoria (valore letto di undefined)\nBugfix: problema nella memorizzazione dei valori del contatore per mese\nErrore corretto: valore di lettura errato per l'inizializzazione Watt\nBugfix: avvisi durante la creazione di oggetti (js-controller 3.x)\nBugfix: interpretazione errata dei valori iniziali al ripristino dei valori\nBugfix: messaggio di errore corretto invece di crash del codice se non è stato definito alcun tipo di costo\nAggiungi il nome del dispositivo per i messaggi di registro se il valore del dispositivo lowerdel valore attualmente noto\nErrore corretto: arresto anomalo all'avvio dell'adattatore se il tipo scelto non è presente nella configurazione dell'istanza",
                 "es": "Implementar Sentry\nImplementar la configuración para las definiciones de precios\nCorrección de error: problema de valor NULO en el reinicio diario\nCorrección de error: problema encontrado en la selección de categoría\nCorrección de error: problema de categoría (valor de lectura de indefinido)\nCorrección de error: problema al almacenar los valores del medidor por mes\nCorrección de error: valor de lectura incorrecto para la inicialización de Watt\nCorrección de error: advertencias en la creación de objetos (js-controller 3.x)\nCorrección de error: interpretación incorrecta de los valores iniciales en el valor se restablece\nCorrección de errores: mensaje de error adecuado en lugar de bloqueo de código si no se define ningún tipo de costo\nAgregue el nombre del dispositivo para los mensajes de registro si el valor del dispositivo es lowerque el valor conocido actualmente\nCorrección de error: falla al inicio del adaptador si el tipo elegido no está presente en la configuración de la instancia",
                 "pl": "Zaimplementuj Sentry\nZaimplementuj konfigurację dla definicji cen\nPoprawka: problem z wartością NULL przy codziennym resetowaniu\nPoprawka błędu: znaleziono problem w wyborze kategorii\nPoprawka: Problem z kategorią (odczyt wartości niezdefiniowanej)\nPoprawka: problem z przechowywaniem wartości liczników według miesięcy\nPoprawka: Błędna wartość odczytu dla inicjalizacji Watta\nPoprawka: ostrzeżenia przy tworzeniu obiektów (js-controller 3.x)\nPoprawka: nieprawidłowa interpretacja wartości początkowych przy resetowaniu wartości\nPoprawka: Właściwy komunikat o błędzie zamiast awarii kodu, jeśli nie zdefiniowano typu kosztu\nDodaj nazwę urządzenia dla komunikatów dziennika, jeśli wartość urządzenia jest mniejsza niż aktualnie znana wartość\nPoprawka: Awaria podczas uruchamiania adaptera, jeśli wybrany typ nie występuje w konfiguracji instancji",
-                "zh-cn": "实施哨兵\n实施价格定义的配置\n错误修正：每日重置时出现NULL值问题\n错误修正：选择类别时发现问题\n错误修正：类别问题（读取值未定义）\n错误修正：按月存储仪表值时出现问题\n错误修正：瓦特初始化的读取值错误\n错误修正：对象创建时的警告（js-controller 3.x）\n错误修正：值重置时对起始值的错误解释\n错误修正：如果未定义成本类型，则正确的错误消息而不是代码崩溃\n如果设备值小于当前已知值，则添加日志消息的设备名称\n错误修正：如果实例配置中不存在所选类型，则适配器启动时会崩溃"
+                "zh-cn": "实施哨兵\n实施价格定义的配置\n错误修正：每日重置时出现NULL值问题\n错误修正：选择类别时发现问题\n错误修正：类别问题（读取值未定义）\n错误修正：按月存储仪表值时出现问题\n错误修正：瓦特初始化的读取值错误\n错误修正：对象创建时的警告（js-controller 3.x）\n错误修正：值重置时对起始值的错误解释\n错误修正：如果未定义成本类型，则正确的错误消息而不是代码崩溃\n如果设备值小于当前已知值，则添加日志消息的设备名称\n错误修正：如果实例配置中不存在所选类型，则适配器启动时会崩溃",
+                "uk": "Implement Sentry\nImplement configuration for Price definitions\nBugfix: NULL value issue  at daily reset\nBugfix: Issue found in selection of category\nBugfix: Category issue (read value of undefined)\nBugfix: Issue in storing meter values by month\nBugfix: Wrong reading value for Watt initialisation\nBugfix: Warnings at object creations (js-controller 3.x)\nBugfix: wrong interpretation of start values at value resets\nBugfix: Proper error message instead of code crash if no cost type defined\nAdd device name for log messages if device value less than currently known value\nBugfix : Crash at adapter start if chosen Type is not present in instance configuration"
             },
             "0.4.2": {
                 "en": "Bugfixes",
@@ -109,7 +117,8 @@
                 "it": "Correzioni di bug",
                 "es": "Corrección de errores",
                 "pl": "Poprawki błędów",
-                "zh-cn": "Bug修复"
+                "zh-cn": "Bug修复",
+                "uk": "Bugfixes"
             },
             "0.4.0": {
                 "en": "Adapter completely redesigned, please test carefully",
@@ -121,7 +130,8 @@
                 "it": "Adattatore completamente riprogettato, si prega di testare attentamente",
                 "es": "Adaptador completamente rediseñado, por favor pruebe cuidadosamente",
                 "pl": "Adapter całkowicie przeprojektowany, proszę przetestować dokładnie",
-                "zh-cn": "适配器完全重新设计，请仔细测试"
+                "zh-cn": "适配器完全重新设计，请仔细测试",
+                "uk": "Adapter completely redesigned, please test carefully"
             },
             "0.3.0": {
                 "en": "m³ Implemented",
@@ -133,7 +143,8 @@
                 "it": "m³ Implementato",
                 "es": "m³ Implementado",
                 "pl": "m³ Wdrożony",
-                "zh-cn": "已实施m³"
+                "zh-cn": "已实施m³",
+                "uk": "m³ Implemented"
             },
             "0.2.5": {
                 "en": "Fix wrong storage of start meter values, thank you xXBJXx",
@@ -145,7 +156,8 @@
                 "it": "Correggi l'archiviazione errata dei valori del misuratore di avvio, grazie xXBJXx",
                 "es": "Arregle el almacenamiento incorrecto de los valores de inicio del medidor, gracias xXBJXx",
                 "pl": "Napraw nieprawidłowe przechowywanie początkowych wartości liczników, dziękuję xXBJXx",
-                "zh-cn": "修复了启动仪表值的错误存储，谢谢xXBJXx"
+                "zh-cn": "修复了启动仪表值的错误存储，谢谢xXBJXx",
+                "uk": "Fix wrong storage of start meter values, thank you xXBJXx"
             },
             "0.2.41": {
                 "en": "Calculation w to kWh implemented & several code improvements",
@@ -157,7 +169,8 @@
                 "it": "Calcolo w in kWh implementato e numerosi miglioramenti del codice",
                 "es": "Cálculo w a kWh implementado y varias mejoras de código.",
                 "pl": "Wprowadzono obliczenia w do kWh i wprowadzono kilka ulepszeń kodu",
-                "zh-cn": "计算w到kWh实施和几个代码改进"
+                "zh-cn": "计算w到kWh实施和几个代码改进",
+                "uk": "Calculation w to kWh implemented & several code improvements"
             },
             "0.2.27": {
                 "en": "Fixed issue related to multihost installations with slave as target",
@@ -169,7 +182,8 @@
                 "it": "Risolto il problema relativo alle installazioni multihost con slave come destinazione",
                 "es": "Se solucionó el problema relacionado con las instalaciones multihost con esclavo como destino",
                 "pl": "Naprawiono problem związany z instalacjami multihost z niewolnikiem jako celem",
-                "zh-cn": "修复了与slave作为目标的多主机安装相关的问题"
+                "zh-cn": "修复了与slave作为目标的多主机安装相关的问题",
+                "uk": "Fixed issue related to multihost installations with slave as target"
             },
             "0.2.26": {
                 "en": "Fix issue in calculations for gas environments and liquids",
@@ -181,7 +195,8 @@
                 "it": "Risolto il problema nei calcoli per ambienti a gas e liquidi",
                 "es": "Solucionar el problema en los cálculos para ambientes de gas y líquidos.",
                 "pl": "Napraw problem w obliczeniach dla środowisk gazowych i cieczy",
-                "zh-cn": "解决气体环境和液体计算中的问题"
+                "zh-cn": "解决气体环境和液体计算中的问题",
+                "uk": "Fix issue in calculations for gas environments and liquids"
             },
             "0.2.25": {
                 "en": "add option in state setting to automatically OR manually choose the meassurement unit",
@@ -193,7 +208,8 @@
                 "it": "aggiungere l'opzione nell'impostazione dello stato automaticamente O selezionare manualmente l'unità di misura",
                 "es": "Agregue la opción en la configuración de estado para seleccionar automáticamente O manualmente la unidad de medida",
                 "pl": "dodać opcję w ustawieniu stanu, aby automatycznie LUB ręcznie wybrać jednostkę miary",
-                "zh-cn": "在状态设置中添加选项以自动或手动选择测量单位"
+                "zh-cn": "在状态设置中添加选项以自动或手动选择测量单位",
+                "uk": "add option in state setting to automatically OR manually choose the meassurement unit"
             },
             "0.2.24": {
                 "en": "add support for heating pumps",
@@ -205,7 +221,8 @@
                 "it": "aggiungere il supporto per le pompe di calore",
                 "es": "añadir soporte para bombas de calor",
                 "pl": "dodaj wsparcie dla pomp grzewczych",
-                "zh-cn": "增加对加热泵的支持"
+                "zh-cn": "增加对加热泵的支持",
+                "uk": "add support for heating pumps"
             },
             "0.2.2": {
                 "en": "Final fix for start values, several code improvements",
@@ -217,7 +234,8 @@
                 "it": "Correzione finale per i valori iniziali, diversi miglioramenti del codice",
                 "es": "Arreglo final para valores de inicio, varias mejoras de código",
                 "pl": "Ostateczna poprawka wartości początkowych, kilka ulepszeń kodu",
-                "zh-cn": "0.2.2起始值的最终修复，几个代码改进"
+                "zh-cn": "0.2.2起始值的最终修复，几个代码改进",
+                "uk": "Final fix for start values, several code improvements"
             }
         },
         "title": "SourceAnalytix",
@@ -231,7 +249,8 @@
             "it": "SourceAnalytix",
             "es": "SourceAnalytix",
             "pl": "SourceAnalytix",
-            "zh-cn": "SourceAnalytix"
+            "zh-cn": "SourceAnalytix",
+            "uk": "SourceAnalytix"
         },
         "desc": {
             "en": "Detailed statistics of your energy, gas and liquid consumption. Allows annual report and details according to weekly, monthly and quarterly consumption data.",
@@ -243,7 +262,8 @@
             "it": "Statistiche dettagliate sul consumo di energia, gas e liquidi. Consente report e dettagli annuali in base ai dati di consumo settimanali, mensili e trimestrali.",
             "es": "Estadísticas detalladas de su consumo de energía, gas y líquido. Permite informes anuales y detalles según datos de consumo semanal, mensual y trimestral.",
             "pl": "Szczegółowe statystyki zużycia energii, gazu i cieczy. Umożliwia raport roczny i szczegóły zgodnie z tygodniowymi, miesięcznymi i kwartalnymi danymi dotyczącymi zużycia.",
-            "zh-cn": "您的能源，气体和液体消耗的详细统计信息。允许根据每周，每月和每季度的消费数据提供年度报告和详细信息。"
+            "zh-cn": "您的能源，气体和液体消耗的详细统计信息。允许根据每周，每月和每季度的消费数据提供年度报告和详细信息。",
+            "uk": "Detailed statistics of your energy, gas and liquid consumption. Allows annual report and details according to weekly, monthly and quarterly consumption data."
         },
         "authors": [
             "DutchmanNL <rdrozda86@gmail.com>"
