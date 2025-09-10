@@ -1,0 +1,20 @@
+{
+  "exclude": {
+    "files": [
+      "test/**",
+      ".github/**",
+      ".gitignore",
+      ".npmignore",
+      "tsconfig.json",
+      "tsconfig.check.json",
+      ".eslintrc.json",
+      "gulpfile.js",
+      "main.test.js",
+      "issue.log",
+      "style.css"
+    ],
+    "folders": [
+      "test"
+    ]
+  }
+}

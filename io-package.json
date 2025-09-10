@@ -4,16 +4,16 @@
         "version": "0.4.15-alpha.1",
         "news": {
             "0.4.15-alpha.1": {
-                "en": "news",
-                "de": "neues",
-                "ru": "новое",
-                "pt": "novidades",
-                "nl": "nieuws",
-                "fr": "nouvelles",
-                "it": "notizie",
-                "es": "noticias",
-                "pl": "nowości",
-                "zh-cn": "新"
+                "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solved\nDependency updates and repository checker fixes\n",
+                "de": "Kleine Code-Updates, Lifecycle-Patches\nOption zum Deaktivieren der Geraete-Reset-Funktion hinzugefuegt\nBugfix: Eigenschaft \"Name\" von undefiniertem geloest\nAbhaengigkeitsupdates und Repository-Checker-Fixes\n",
+                "ru": "Небольшие обновления кода, исправления жизненного цикла\nДобавлена возможность отключения функции сброса устройства\nBugfix: невозможно прочитать имя свойства неопределенного решения\nОбновления зависимостей и исправления проверки репозитория\n",
+                "pt": "Pequenas atualizações de código, patches de ciclo de vida\nOpção para desabilitar o recurso de redefinição de dispositivo adicionado\nBugfix: Não é possível ler a propriedade 'nome' de solução indefinida\nAtualizações de dependências e correções do verificador de repositório\n",
+                "nl": "Kleine code-updates, levenscycluspatches\nOptie om de functie voor apparaatreset uit te schakelen toegevoegd\nBugfix: kan eigenschap 'naam' van niet-gedefinieerde oplossing niet lezen\nAfhankelijkheidsupdates en repository checker fixes\n",
+                "fr": "Petites mises à jour de code, correctifs du cycle de vie\nOption pour désactiver la fonction de réinitialisation de l'appareil ajoutée\nBugfix : impossible de lire la propriété \"nom\" d'une solution non définie\nMises à jour des dépendances et corrections du vérificateur de référentiel\n",
+                "it": "Piccoli aggiornamenti del codice, patch del ciclo di vita\nOpzione per disabilitare la funzione di ripristino del dispositivo aggiunta\nBugfix: impossibile leggere la proprietà 'nome' di una soluzione non definita\nAggiornamenti delle dipendenze e correzioni del controllo repository\n",
+                "es": "Pequeñas actualizaciones de código, parches de ciclo de vida\nOpción para deshabilitar la función de restablecimiento del dispositivo agregada\nCorrección de error: no se puede leer la propiedad 'nombre' de una solución indefinida\nActualizaciones de dependencias y correcciones del verificador de repositorio\n",
+                "pl": "Male aktualizacje kodu, poprawki cyklu zycia\nDodana opcja wylaczenia funkcji resetowania urzadzenia\nNaprawa bledu: Nie mozna odczytac wlasciwosci \"nazwa\" niezdefiniowanego rozwiazania\nAktualizacje zaleznosci i poprawki sprawdzania repozytorium\n",
+                "zh-cn": "小代码更新、生命周期补丁\n添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性\"名称\"\n依赖性更新和存储库检查器修复\n"
             },
             "0.4.14": {
                 "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n",
@@ -111,18 +111,6 @@
                 "pl": "Poprawki błędów",
                 "zh-cn": "Bug修复"
             },
-            "0.4.0": {
-                "en": "Adapter completely redesigned, please test carefully",
-                "de": "Adapter komplett neu gestaltet, bitte sorgfältig testen",
-                "ru": "Адаптер полностью переработан, пожалуйста, проверьте внимательно",
-                "pt": "Adaptador completamente redesenhado, teste com cuidado",
-                "nl": "Adapter volledig opnieuw ontworpen, test zorgvuldig",
-                "fr": "Adaptateur entièrement repensé, veuillez tester soigneusement",
-                "it": "Adattatore completamente riprogettato, si prega di testare attentamente",
-                "es": "Adaptador completamente rediseñado, por favor pruebe cuidadosamente",
-                "pl": "Adapter całkowicie przeprojektowany, proszę przetestować dokładnie",
-                "zh-cn": "适配器完全重新设计，请仔细测试"
-            },
             "0.3.0": {
                 "en": "m³ Implemented",
                 "de": "m³ umgesetzt",
@@ -158,18 +146,6 @@
                 "es": "Cálculo w a kWh implementado y varias mejoras de código.",
                 "pl": "Wprowadzono obliczenia w do kWh i wprowadzono kilka ulepszeń kodu",
                 "zh-cn": "计算w到kWh实施和几个代码改进"
-            },
-            "0.2.27": {
-                "en": "Fixed issue related to multihost installations with slave as target",
-                "de": "Problem bei Multihost-Installationen mit Slave als Ziel behoben",
-                "ru": "Исправлена ​​проблема, связанная с установкой нескольких хостов с ведомым в качестве цели",
-                "pt": "Corrigido problema relacionado a instalações multi-host com escravo como alvo",
-                "nl": "Probleem opgelost met multihost-installaties met slaaf als doelwit",
-                "fr": "Résolution du problème lié aux installations multihôtes avec esclave comme cible",
-                "it": "Risolto il problema relativo alle installazioni multihost con slave come destinazione",
-                "es": "Se solucionó el problema relacionado con las instalaciones multihost con esclavo como destino",
-                "pl": "Naprawiono problem związany z instalacjami multihost z niewolnikiem jako celem",
-                "zh-cn": "修复了与slave作为目标的多主机安装相关的问题"
             },
             "0.2.26": {
                 "en": "Fix issue in calculations for gas environments and liquids",
@@ -220,7 +196,6 @@
                 "zh-cn": "0.2.2起始值的最终修复，几个代码改进"
             }
         },
-        "title": "SourceAnalytix",
         "titleLang": {
             "en": "SourceAnalytix",
             "de": "SourceAnalytix",
@@ -259,13 +234,14 @@
             "meassurement",
             "data"
         ],
-        "license": "MIT",
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
         "platform": "Javascript/Node.js",
-        "main": "main.js",
         "icon": "sourceanalytix.png",
         "enabled": true,
         "messagebox": true,
-        "subscribe": "messagebox",
         "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.sourceanalytix/main/admin/sourceanalytix.png",
         "readme": "https://github.com/DrozmotiX/ioBroker.sourceanalytix/blob/main/README.md",
         "loglevel": "info",
@@ -274,19 +250,23 @@
         "compact": true,
         "connectionType": "local",
         "dataSource": "push",
-        "materialize": true,
+        "adminUI": {
+            "config": "materialize"
+        },
         "plugins": {
             "sentry": {
                 "dsn": "https://2cd80ab3d4b94677b1b513547054e480@sentry.iobroker.net/24"
             }
         },
         "supportCustoms": true,
+        "globalDependencies": [
+            {
+                "admin": ">=6.17.14"
+            }
+        ],
         "dependencies": [
             {
-                "admin": ">=3.0.0"
-            },
-            {
-                "js-controller": ">=3.3.0"
+                "js-controller": ">=5.0.19"
             }
         ]
     },

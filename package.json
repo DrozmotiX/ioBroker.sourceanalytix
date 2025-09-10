@@ -8,7 +8,11 @@
   },
   "homepage": "https://github.com/DrozmotiX/ioBroker.sourceanalytix",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
+    "ioBroker",
     "energy",
     "power",
     "analytics",
@@ -21,15 +25,15 @@
     "url": "https://github.com/DrozmotiX/ioBroker.sourceanalytix"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.0.4",
+    "@iobroker/adapter-core": "^3.3.2",
     "@sentry/node": "^7.81.1",
     "cron": "^2.4.0",
-    "iobroker-adapter-helpers": "0.0.8",
+    "iobroker-adapter-helpers": "^0.0.8",
     "node-schedule": "^2.1.1"
   },
   "devDependencies": {
-    "@alcalzone/release-script": "3.6.0",
-    "@iobroker/testing": "^4.1.0",
+    "@alcalzone/release-script": "^3.8.0",
+    "@iobroker/testing": "^5.0.4",
     "@types/chai": "^4.3.11",
     "@types/chai-as-promised": "^7.1.8",
     "@types/gulp": "^4.0.17",
