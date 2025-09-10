@@ -3,12 +3,5 @@ process.on("unhandledRejection", (e) => {
 	throw e;
 });
 
-// enable the should interface with sinon
-// and load chai-as-promised and sinon-chai by default
-const sinonChai = require("sinon-chai");
-const chaiAsPromised = require("chai-as-promised");
-const { should, use } = require("chai");
-
-should();
-use(sinonChai);
-use(chaiAsPromised);
+// The @iobroker/testing framework provides chai, sinon, and other testing utilities internally
+// No need to explicitly require them here
