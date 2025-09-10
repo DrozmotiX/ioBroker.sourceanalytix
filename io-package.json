@@ -3,6 +3,18 @@
         "name": "sourceanalytix",
         "version": "0.4.15-alpha.1",
         "news": {
+            "0.4.15-alpha.1": {
+                "en": "news",
+                "de": "neues",
+                "ru": "новое",
+                "pt": "novidades",
+                "nl": "nieuws",
+                "fr": "nouvelles",
+                "it": "notizie",
+                "es": "noticias",
+                "pl": "nowości",
+                "zh-cn": "新"
+            },
             "0.4.14": {
                 "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n",
                 "de": "Kleine Code-Updates, Lifecycle-Patches\nOption zum Deaktivieren der Geräte-Reset-Funktion hinzugefügt\nBugfix: Eigenschaft „Name“ von undefiniertem Solv kann nicht gelesen werden\n\n",
@@ -13,7 +25,8 @@
                 "it": "Piccoli aggiornamenti del codice, patch del ciclo di vita\nOpzione per disabilitare la funzione di ripristino del dispositivo aggiunta\nBugfix: impossibile leggere la proprietà 'nome' di una soluzione non definita\n",
                 "es": "Pequeñas actualizaciones de código, parches de ciclo de vida\nOpción para deshabilitar la función de restablecimiento del dispositivo agregada\nCorrección de error: no se puede leer la propiedad 'nombre' de una solución indefinida\n",
                 "pl": "Małe aktualizacje kodu, poprawki cyklu życia\nDodana opcja wyłączenia funkcji resetowania urządzenia\nNaprawa błędu: Nie można odczytać właściwości „nazwa” niezdefiniowanego rozwiązania\n",
-                "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n"            },
+                "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n"
+            },
             "0.4.12": {
                 "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",
                 "de": "Fügen Sie eine Protokollierung hinzu, um vom Sentry abgefangene Fehler zu analysieren\n",
