@@ -7,7 +7,7 @@ ioBroker SourceAnalytix is a Node.js adapter for the ioBroker home automation pl
 ## Working Effectively
 
 ### Initial Setup and Dependencies
-- **NEVER CANCEL**: Dependency installation takes ~32 seconds. Use timeout 60+ seconds.
+- **NEVER CANCEL**: Dependency installation takes ~21 seconds. Use timeout 60+ seconds.
 - `npm install` -- installs all dependencies including dev tools, testing framework, and build tools
 - The build uses Node.js with JavaScript ES6+, ESLint for linting, and Mocha for testing
 
@@ -17,9 +17,13 @@ ioBroker SourceAnalytix is a Node.js adapter for the ioBroker home automation pl
 - `npx tsc --noEmit` -- TypeScript type checking (has expected errors that don't affect functionality)
 
 ### Testing
-- **NEVER CANCEL**: Test suite takes ~30 seconds. Use timeout 60+ seconds.
+- **NEVER CANCEL**: Test suite takes ~60 seconds. Use timeout 120+ seconds.
 - **IMPORTANT**: `npm test` fails due to deprecated mocha.opts configuration
 - **Use instead**: `npx mocha --require test/mocha.setup.js test/unit.js test/integration.js test/package.js`
+- Alternative individual test commands:
+  - `npm run test:unit` -- unit tests (~1 second)
+  - `npm run test:integration` -- integration tests (~25 seconds)
+  - `npm run test:package` -- package validation (~1 second)
 - Tests include adapter startup, integration tests with Redis backend, and package validation
 - Tests create temporary ioBroker environment in `/tmp/test-iobroker.sourceanalytix/`
 - Test logs show "Successfully activated SourceAnalytix" when adapter starts correctly
@@ -38,14 +42,14 @@ When making changes to the codebase, follow this exact sequence:
 
 ```bash
 # Step 1: Install dependencies (if package.json changed)
-npm install  # Takes ~32 seconds, use 60+ second timeout
+npm install  # Takes ~21 seconds, use 60+ second timeout
 
 # Step 2: Lint code
 npm run lint  # Must pass for CI to succeed
 
 # Step 3: Run tests
 npx mocha --require test/mocha.setup.js test/unit.js test/integration.js test/package.js
-# Takes ~30 seconds, use 60+ second timeout
+# Takes ~60 seconds, use 120+ second timeout
 # Should show "40 passing" and "Successfully activated SourceAnalytix"
 
 # Step 4: Type checking (optional, has expected errors)
@@ -62,6 +66,7 @@ npx gulp adminWords2languages  # Updates translations
 - ALWAYS run `npm run lint` before committing - the CI will fail without clean lint
 - **IMPORTANT**: DO NOT use `npm test` (fails due to deprecated mocha.opts)
 - **Use instead**: `npx mocha --require test/mocha.setup.js test/unit.js test/integration.js test/package.js`
+- Alternative: `npm run test:unit && npm run test:integration && npm run test:package`
 - Test the adapter startup process - logs should show "Successfully activated SourceAnalytix"
 - Verify admin interface loads correctly (check admin/index_m.html syntax)
 
@@ -71,6 +76,8 @@ npx gulp adminWords2languages  # Updates translations
 - **Admin Interface**: Verify admin/index_m.html contains valid HTML structure
 - **Unit Calculations**: Confirm unit config contains proper category mappings (Watt, Watt_hour, Liter, Cubic_meter)
 - **Price Definitions**: Validate all price categories (ElectricityDay, Gas, Water, etc.) are properly structured
+- **Test Environment**: Integration tests create a complete ioBroker environment in `/tmp/test-iobroker.sourceanalytix/`
+- **Error Validation**: `npm test` should fail with "configuring Mocha via 'mocha.opts' is DEPRECATED" message
 
 ### CI/CD Validation
 - Always run linting: GitHub Actions workflow requires lint to pass
@@ -144,10 +151,26 @@ npx gulp adminWords2languages  # Updates translations
 - Adapter requires Redis backend for integration tests (automatically provided by test framework)
 
 ### Performance Expectations (Based on Validation)
-- npm install: ~32 seconds (NEVER CANCEL - use 60+ second timeout)
+- npm install: ~21 seconds (NEVER CANCEL - use 60+ second timeout)
 - Linting: ~0.5 seconds  
-- Full test suite: ~30 seconds (NEVER CANCEL - use 60+ second timeout)
-- Type checking: ~5 seconds
+- Full test suite: ~60 seconds (NEVER CANCEL - use 120+ second timeout)
+- Individual tests: unit (~1s), integration (~25s), package (~1s)
+- Type checking: ~4 seconds
 - Gulp tasks: <1 second
 
 Always use timeouts of at least double these durations when running commands programmatically.
+
+## Critical Validation Notes
+
+### Test Execution Details
+- Integration tests automatically install ioBroker environment and Redis backend
+- Tests verify adapter can start successfully and show proper initialization
+- Unit tests show "DEPRECATED!" warning but this is expected for legacy compatibility
+- Package tests validate all required metadata in package.json and io-package.json
+- Full test run shows "40 passing" when successful
+
+### Error Conditions to Expect
+- `npm test` will always fail with mocha.opts deprecation error - this is correct behavior
+- TypeScript checking shows 14 errors in dependencies - these don't affect functionality
+- npm audit shows vulnerabilities in dependencies - these don't impact adapter functionality
+- Integration tests may show npm warnings about production/dev dependencies - these are harmless
