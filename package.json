@@ -1,6 +1,6 @@
 {
   "name": "iobroker.sourceanalytix",
-  "version": "0.4.15-alpha.1",
+  "version": "0.4.15",
   "description": "SourceAnalytix",
   "author": {
     "name": "DutchmanNL",
@@ -9,7 +9,7 @@
   "homepage": "https://github.com/DrozmotiX/ioBroker.sourceanalytix",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "keywords": [
     "ioBroker",
@@ -33,6 +33,8 @@
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
+    "@alcalzone/release-script-plugin-iobroker": "^3.7.2",
+    "@alcalzone/release-script-plugin-license": "^3.7.0",
     "@iobroker/adapter-dev": "^1.4.0",
     "@types/chai-as-promised": "^7.1.8",
     "@types/chai": "^4.3.11",
@@ -41,6 +43,7 @@
     "axios": "^1.6.2",
     "eslint": "^8.54.0",
     "gulp": "^5.0.1",
+    "mocha": "^11.7.2",
     "typescript": "^5.3.2"
   },
   "main": "main.js",
