@@ -41,7 +41,7 @@
     "axios": "^1.6.2",
     "eslint": "^8.54.0",
     "gulp": "^5.0.1",
-    "mocha": "^11.7.2",
+    "mocha": "^11.7.4",
     "@iobroker/testing": "^5.0.4",
     "typescript": "^5.9.3"
   },
