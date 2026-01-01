@@ -287,7 +287,7 @@ When the adapter crashes or any other Code error happens, this error message tha
 ## License
 MIT License
 
-Copyright (c) 2022 DrozmotiX Services B.V.
+Copyright (c) 2022-2026 DrozmotiX Services B.V.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
