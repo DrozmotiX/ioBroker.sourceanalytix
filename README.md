@@ -246,6 +246,9 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 
+### **WORK IN PROGRESS**
+- (iobroker-bot) Adapter requires node.js >= 20 now.
+
 ### __WORK IN PROGRESS__
 * (DutchmanNL) Solved issues reported by sentry
 * (DutchmanNL) Improved some logging, code polishing
