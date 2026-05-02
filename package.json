@@ -9,7 +9,7 @@
   "homepage": "https://github.com/DrozmotiX/ioBroker.sourceanalytix",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "keywords": [
     "ioBroker",
