@@ -284,6 +284,8 @@ When the adapter crashes or any other Code error happens, this error message tha
 * (DutchmanNL) Added support for Admin 5 (Requires Admin >= 5.1.2)
 * (Bluefox) Fix error in admin
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
