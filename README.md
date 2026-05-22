@@ -246,6 +246,10 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires js-controller >= 6.0.11 now.
+
 ### __WORK IN PROGRESS__
 * (DutchmanNL) Solved issues reported by sentry
 * (DutchmanNL) Improved some logging, code polishing
