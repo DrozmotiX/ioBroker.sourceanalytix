@@ -1,20 +1,24 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: "/"
+    directory: '/'
     schedule:
       interval: monthly
-      time: "04:00"
+      time: '04:00'
       timezone: Europe/Berlin
     assignees:
       - DrozmotiX
     versioning-strategy: increase
+    ignore:
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
 
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: '/'
     schedule:
       interval: monthly
-      time: "04:00"
+      time: '04:00'
       timezone: Europe/Berlin
     open-pull-requests-limit: 30
     assignees:
