@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.4.15-bet.0",
+    "version": "0.4.15-bet.1",
     "news": {
-      "0.4.15-bet.0": {
+      "0.4.15-bet.1": {
         "en": "Planned for 0.4.5: a large quality and feature update with thanks to **softwarecrash** for providing the solutions behind this release.\nDynamic and historical unit prices can now be taken from ioBroker states, including tariff switching and timestamped price changes (#1159, #715, #687, #485, #486, #487).\nCost calculations stay precise across restarts and price changes, without rewriting already calculated history (#625, #783, #750).\nMeter resets, meter replacements and small counter fluctuations are handled much more reliably, avoiding broken totals and duplicate consumption (#686, #754, #759, #794).\nDay, week, month and year rollovers are more robust, including midnight resets and automatic creation of new year statistics (#478, #481, #536, #775).\nDeleted or disabled sources no longer keep writing unwanted values, while their existing history is preserved (#704, #919, #1009).\nMonthly basic charges are applied correctly again across the current period calculations (#1144).\nThe admin configuration has been modernized to `jsonConfig`, with improved price settings, state pickers and translations (#1007).\nTooling and maintenance were refreshed for current ioBroker and Node.js versions, including better tests, CI updates and dependency cleanup (#1018, #1064, #1121, #1177).\nEarlier work-in-progress fixes remain included: Sentry-reported issues, logging cleanup and the `common.type` repository checker fix."
       },
       "0.4.15-alpha.1": {
