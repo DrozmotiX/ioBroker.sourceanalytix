@@ -1,0 +1,254 @@
+{
+  "type": "tabs",
+  "i18n": true,
+  "items": {
+    "_main": {
+      "type": "panel",
+      "label": "Main settings",
+      "items": {
+        "_yearStatistics": {
+          "type": "header",
+          "text": "Year statistics",
+          "size": 2,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12
+        },
+        "store_weeks": {
+          "type": "checkbox",
+          "label": "Weeks",
+          "xs": 12,
+          "sm": 4,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "store_months": {
+          "type": "checkbox",
+          "label": "Months",
+          "xs": 12,
+          "sm": 4,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "store_quarters": {
+          "type": "checkbox",
+          "label": "Quarters",
+          "xs": 12,
+          "sm": 4,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "_currentYear": {
+          "type": "header",
+          "text": "Current year",
+          "size": 2,
+          "newLine": true,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12
+        },
+        "currentYearDays": {
+          "type": "checkbox",
+          "label": "Weekday",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearWeek": {
+          "type": "checkbox",
+          "label": "Weeks",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearMonth": {
+          "type": "checkbox",
+          "label": "Months",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearQuarter": {
+          "type": "checkbox",
+          "label": "Quarters",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearPrevious": {
+          "type": "checkbox",
+          "label": "Previous period",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        }
+      }
+    },
+    "_prices": {
+      "type": "panel",
+      "label": "Price definitions",
+      "items": {
+        "pricesDefinition": {
+          "type": "table",
+          "label": "Prices configuration table",
+          "newLine": true,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12,
+          "items": [
+            {
+              "type": "text",
+              "attr": "cat",
+              "title": "Category",
+              "width": "13%",
+              "default": "Electricity"
+            },
+            {
+              "type": "text",
+              "attr": "des",
+              "title": "Description",
+              "width": "18%",
+              "default": ""
+            },
+            {
+              "type": "select",
+              "attr": "costType",
+              "title": "Cost Type",
+              "width": "10%",
+              "default": "costs",
+              "options": [
+                {
+                  "label": "Costs",
+                  "value": "costs"
+                },
+                {
+                  "label": "Earnings",
+                  "value": "earnings"
+                }
+              ]
+            },
+            {
+              "type": "select",
+              "attr": "unitType",
+              "title": "Unit",
+              "width": "9%",
+              "default": "kWh",
+              "options": [
+                { "label": "GW", "value": "GW" },
+                { "label": "MW", "value": "MW" },
+                { "label": "kW", "value": "kW" },
+                { "label": "W", "value": "W" },
+                { "label": "mW", "value": "mW" },
+                { "label": "GWh", "value": "GWh" },
+                { "label": "MWh", "value": "MWh" },
+                { "label": "kWh", "value": "kWh" },
+                { "label": "Wh", "value": "Wh" },
+                { "label": "mWh", "value": "mWh" },
+                { "label": "km³", "value": "km³" },
+                { "label": "m³", "value": "m³" },
+                { "label": "dm³", "value": "dm³" },
+                { "label": "cm³", "value": "cm³" },
+                { "label": "mm³", "value": "mm³" },
+                { "label": "hl", "value": "hl" },
+                { "label": "l", "value": "l" },
+                { "label": "dl", "value": "dl" },
+                { "label": "cl", "value": "cl" },
+                { "label": "ml", "value": "ml" }
+              ]
+            },
+            {
+              "type": "select",
+              "attr": "priceSource",
+              "title": "Price source",
+              "width": "11%",
+              "default": "static",
+              "options": [
+                {
+                  "label": "Fixed price",
+                  "value": "static"
+                },
+                {
+                  "label": "State value",
+                  "value": "state"
+                },
+                {
+                  "label": "Tariff selector",
+                  "value": "selector"
+                }
+              ]
+            },
+            {
+              "type": "number",
+              "attr": "uPpU",
+              "title": "Price p/unit",
+              "width": "13%",
+              "default": 0,
+              "step": 0.0001,
+              "hidden": "data.priceSource === 'state'"
+            },
+            {
+              "type": "objectId",
+              "attr": "priceState",
+              "title": "Price state",
+              "width": "18%",
+              "default": "",
+              "hidden": "data.priceSource === 'static'"
+            },
+            {
+              "type": "number",
+              "attr": "alternatePrice",
+              "title": "Active tariff price",
+              "width": "13%",
+              "default": 0,
+              "step": 0.0001,
+              "hidden": "data.priceSource !== 'selector'"
+            },
+            {
+              "type": "text",
+              "attr": "selectorValue",
+              "title": "Active selector value",
+              "width": "11%",
+              "default": "",
+              "hidden": "data.priceSource !== 'selector'"
+            },
+            {
+              "type": "datePicker",
+              "attr": "validFrom",
+              "title": "Valid from",
+              "width": "13%",
+              "default": "",
+              "hidden": "data.priceSource !== 'static'"
+            },
+            {
+              "type": "number",
+              "attr": "uPpM",
+              "title": "Price p/m",
+              "width": "8%",
+              "default": 0,
+              "step": 0.01
+            }
+          ]
+        }
+      }
+    }
+  }
+}

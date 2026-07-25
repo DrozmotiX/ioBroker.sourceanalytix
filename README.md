@@ -176,6 +176,14 @@ removing or modifying these objects in the state raw object
 ### Price-Definitions
 ![Main Settings](admin/readmeDocu/priceSettings.png)
 
+Price definitions can use a fixed price, a dynamic numeric price state or a tariff selector. Use `static` in `Price source` for `Price p/unit`. `Valid from` can schedule that fixed price and preserves earlier consumption at its previous price. Use `state` and enter the full ioBroker state ID in `Price state` when the unit price is provided by another adapter, for example a dynamic electricity tariff. The value in that state must match the configured unit, e.g. EUR/kWh for `kWh`.
+
+Use `selector` for day/night, EJP or contact-controlled tariffs. `Price p/unit` is the inactive tariff and `Active tariff price` is selected when the state is true or non-zero. For string or numeric selector states, `Active selector value` can define the exact value which activates the alternate tariff. Every configured price definition also exposes `priceDefinitions.<category>.currentPrice`; scripts and VIS may write a number to this state to apply a new price immediately.
+
+All unit prices are stored as a timestamped price history. A price change only applies to consumption values from that timestamp onward; already calculated costs are not recalculated when the current price changes. For each consumption event SourceAnalytix uses the price that was valid at the consumption state's timestamp. If a cumulative meter delta spans multiple price intervals, SourceAnalytix splits the delta proportionally over the elapsed time between the two readings.
+
+`Price p/m` is a monthly basic price. It is included only for source states where `Including basic rate` is enabled. Monthly, quarterly and yearly totals include the calendar months that have started. Day and week totals use the daily share of the monthly price, based on the number of days in each calendar month. This also handles weeks that cross a month boundary.
+
 **Issue 8** current value **<** previousInit<br/>
 A device reset is detected, see function 7
 
@@ -205,9 +213,9 @@ A device reset is detected, see function 7
 <!--
 **Issue 6** Setting - Cannot deactivate state for SourceAnalytix
 
-Im RAW NUR "consumption":false umgestellt, gespeichert. Das wurde behalten (wo ggf. noch nicht false, auch bei "enabled": false und bei "costs": false )
-In der Objekt-Übersicht ist der Schraubenschlüssel nachwievor blau. Dann mit dem Schraubenschlüssel in das Objekt, SA war nicht der Haken bei aktiviert drin. Dort einmal auf aktiviert, nicht speichern, wieder auf deaktiviert, speichern.
-Kontrolle im RAW, ob SA-EIntrag nun weg => jup, is nun fott
+Only changed "consumption": false in the raw object and saved it. This value was kept, where applicable also for "enabled": false and "costs": false.
+The wrench in the object overview is still blue. Open the object via the wrench, enable SourceAnalytix once, do not save, disable it again, then save.
+Check in the raw object whether the SourceAnalytix entry is gone.
 -->
 
 <!--
@@ -247,6 +255,16 @@ When the adapter crashes or any other Code error happens, this error message tha
 ## Changelog
 
 ### __WORK IN PROGRESS__
+* (softwarecrash) Add timestamped dynamic unit prices from ioBroker states
+* (softwarecrash) Preserve unrounded dynamic cost accumulators across adapter restarts
+* (softwarecrash) Reset current period values at midnight and create new year statistics on time
+* (softwarecrash) Respect disabled weekday, previous-period and meter-reading states during updates
+* (softwarecrash) Ignore small cumulative meter fluctuations within the configured reset threshold
+* (softwarecrash) Calculate configured monthly basic prices for all current periods
+* (softwarecrash) Migrate instance and custom settings to Admin jsonConfig
+* (softwarecrash) Require Node.js 22 and modernize dependencies, linting, CI and releases
+* (softwarecrash) Add automated tests for historical and quarter-hourly price calculations
+* (softwarecrash) Resolve development dependency advisories
 * (DutchmanNL) Solved issues reported by sentry
 * (DutchmanNL) Improved some logging, code polishing
 * (DutchmanNL) Bugfix: "is missing required property common.type" fixes #883
@@ -284,10 +302,12 @@ When the adapter crashes or any other Code error happens, this error message tha
 * (DutchmanNL) Added support for Admin 5 (Requires Admin >= 5.1.2)
 * (Bluefox) Fix error in admin
 
+[Older changelog entries](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
-Copyright (c) 2022 DrozmotiX Services B.V.
+Copyright (c) 2022-2026 DrozmotiX Services B.V.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

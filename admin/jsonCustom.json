@@ -1,62 +1,97 @@
 {
   "i18n": true,
+  "type": "panel",
   "items": {
     "_basicSettings": {
       "newLine": true,
       "type": "header",
       "text": "Basic configuration",
+      "size": 2,
       "sm": 12
     },
     "alias": {
       "type": "text",
       "label": "Alias name",
       "help": "If no alias is set, name will be used",
-      "sm": 5
+      "xs": 12,
+      "sm": 12,
+      "md": 5,
+      "lg": 5,
+      "xl": 5
     },
     "selectedPrice": {
       "command": "getPriceDefinitions",
       "type": "autocompleteSendTo",
       "label": "Select price definition",
-      "sm": 4
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
     },
     "selectedUnit": {
       "command": "getUnits",
       "type": "autocompleteSendTo",
       "label": "Select Unit",
       "default": "Detect automatically",
-      "sm": 3
+      "xs": 12,
+      "sm": 12,
+      "md": 3,
+      "lg": 3,
+      "xl": 3
     },
     "_calcSettings": {
       "newLine": true,
       "type": "header",
       "text": "Calculation settings",
+      "size": 2,
       "sm": 12
     },
     "costs": {
       "type": "checkbox",
       "label": "Calculate costs",
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "basicRate": {
       "type": "checkbox",
       "label": "Including basic rate",
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "consumption": {
       "type": "checkbox",
       "label": "Calculate consumption",
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "meter_values": {
       "type": "checkbox",
       "label": "Store Meter Values",
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "deviceResetLogicEnabled": {
       "type": "checkbox",
       "label": "Enable device value reset detection",
       "default": true,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "threshold": {
       "type": "number",
@@ -64,12 +99,17 @@
       "help": "Threshold value of device reset detection",
       "default": 1,
       "min": 0,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "_startValues": {
       "newLine": true,
       "type": "header",
       "text": "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!",
+      "size": 2,
       "sm": 12
     },
     "start_day": {
@@ -78,7 +118,11 @@
       "help": "Meter reading at the beginning of the day",
       "default": 0,
       "min": 0,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "start_week": {
       "type": "number",
@@ -86,7 +130,11 @@
       "help": "Meter reading at the beginning of the week",
       "default": 0,
       "min": 0,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "start_month": {
       "type": "number",
@@ -94,7 +142,11 @@
       "help": "Meter reading at the beginning of the month",
       "default": 0,
       "min": 0,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "start_quarter": {
       "type": "number",
@@ -102,7 +154,11 @@
       "help": "Meter reading at the beginning of the quarter",
       "default": 0,
       "min": 0,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "start_year": {
       "type": "number",
@@ -110,7 +166,11 @@
       "help": "Meter reading at the beginning of the year",
       "default": 0,
       "min": 0,
-      "sm": 6
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     }
   }
 }

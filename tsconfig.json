@@ -8,11 +8,12 @@
 		// do not compile anything, this file is just to configure type checking
 		"noEmit": true,
 
-		"module": "commonjs",
-		"moduleResolution": "node",
+		"module": "node16",
+		"moduleResolution": "node16",
 		"esModuleInterop": true,
 		// this is necessary for the automatic typing of the adapter config
 		"resolveJsonModule": true,
+		"skipLibCheck": true,
 
 		// Set this to false if you want to disable the very strict rules (not recommended)
 		"strict": true,
@@ -25,8 +26,7 @@
 		// "noUnusedLocals": true,
 		// "noUnusedParameters": true,
 
-		// Consider targetting es2019 or higher if you only support Node.js 12+
-		"target": "es2018",
+		"target": "es2022",
 
 	},
 	"include": [
