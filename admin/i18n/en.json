@@ -5,6 +5,8 @@
     "Acknowledged": "Acknowledged",
     "Basic configuration": "Basic configuration",
     "Cancel": "Cancel",
+    "Average power values between updates": "Average power values between updates",
+    "Average power values help": "Only affects power values (W/kW). Enable for regularly updated power sensors. Leave disabled for devices that switch on and off abruptly.",
     "Calculate consumption": "Calculate consumption",
     "Calculate costs": "Calculate costs",
     "Calculation settings": "Calculation settings",

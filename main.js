@@ -1070,6 +1070,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.activeStates[stateID] = {
 					stateDetails: {
 						alias: customData.alias !== '' ? customData.alias : '',
+						averagePowerValues: customData.averagePowerValues === true,
 						basicRate: customData.basicRate === true,
 						consumption: customData.consumption,
 						costs: customData.costs,
@@ -2148,6 +2149,7 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 
 			const calcValues = this.activeStates[stateID].calcValues;
+			const stateDetails = this.activeStates[stateID].stateDetails;
 
 			this.log.debug(`[wattToWattHour] Watt to kWh, current reading : ${value.val} previousReading : ${JSON.stringify(calcValues)}`);
 
@@ -2162,10 +2164,25 @@ class Sourceanalytix extends utils.Adapter {
 			// Prepare function return
 			let calckWh;
 
-			if (readingData.previousReadingWatt && readingData.previousReadingWattTs) {
+			const hasPreviousReading = calcValues.previousReadingWatt !== null
+				&& calcValues.previousReadingWatt !== undefined
+				&& calcValues.previousReadingWattTs !== null
+				&& calcValues.previousReadingWattTs !== undefined;
+
+			if (hasPreviousReading) {
 
 				// Calculation logic W to kWh
-				calckWh = (((readingData.currentReadingWattTs - readingData.previousReadingWattTs)) * readingData.previousReadingWatt / 3600000);
+				calckWh = calculation.calculatePowerEnergy(
+					readingData.previousReadingWatt,
+					readingData.currentReadingWatt,
+					readingData.previousReadingWattTs,
+					readingData.currentReadingWattTs,
+					stateDetails.averagePowerValues,
+				);
+				if (calckWh === null) {
+					this.log.warn(`[wattToWattHour] Invalid power reading interval for ${stateID}, using current reading as new baseline`);
+					calckWh = 0;
+				}
 				this.log.debug(`[wattToWattHour] ${stateID} result of watt to kWh calculation : ${calckWh}`);
 
 				// Update timestamp current reading to memory

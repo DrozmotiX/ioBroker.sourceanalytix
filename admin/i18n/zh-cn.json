@@ -1,6 +1,8 @@
 {
     "Alias name": "别名",
     "Basic configuration": "基本配置",
+    "Average power values between updates": "对更新间的功率值取平均值",
+    "Average power values help": "仅影响功率值（W/kW）。适用于定期更新的功率传感器。对于突然开启和关闭的设备，请保持禁用。",
     "Calculate consumption": "计算消费",
     "Calculate costs": "计算费用",
     "Calculation settings": "计算设定",

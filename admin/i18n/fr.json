@@ -1,6 +1,8 @@
 {
     "Alias name": "Alias",
     "Basic configuration": "Configuration de base",
+    "Average power values between updates": "Moyenner les valeurs de puissance entre les mises à jour",
+    "Average power values help": "Concerne uniquement les valeurs de puissance (W/kW). Activez cette option pour les capteurs de puissance régulièrement mis à jour. Laissez-la désactivée pour les appareils qui s'allument et s'éteignent brusquement.",
     "Calculate consumption": "Calculer la consommation",
     "Calculate costs": "Calculer les coûts",
     "Calculation settings": "Paramètres de calcul",

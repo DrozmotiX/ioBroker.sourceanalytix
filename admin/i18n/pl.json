@@ -1,6 +1,8 @@
 {
     "Alias name": "Pseudonim",
     "Basic configuration": "Podstawowa konfiguracja",
+    "Average power values between updates": "Uśredniaj wartości mocy między aktualizacjami",
+    "Average power values help": "Dotyczy tylko wartości mocy (W/kW). Włącz dla czujników mocy aktualizowanych regularnie. Pozostaw wyłączone dla urządzeń, które gwałtownie się włączają i wyłączają.",
     "Calculate consumption": "Oblicz zużycie",
     "Calculate costs": "Oblicz koszty",
     "Calculation settings": "Ustawienia obliczeń",

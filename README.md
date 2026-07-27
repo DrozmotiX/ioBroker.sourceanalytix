@@ -65,7 +65,7 @@ If you have any issues, please read the **[Troubleshooting](#troubleshooting)** 
  
 #### valueTransformation
 *ToDo : Document link to library (document lib also !)*<br/>
-*ToDo : Document watt to kWh transformation*<br/>
+For power states in W, SourceAnalytix calculates the energy between two state updates. By default, the previous power value is used for the complete interval. Enable **Average power values between updates** in the state's custom settings for sensors whose readings change gradually and are updated regularly. This averages the previous and current power values for the interval. Leave it disabled for devices that switch on and off abruptly.<br/>
 *ToDo : Document unit transformation (like Watt, to Wh to KWh)*
 
 #### Year-Statistics

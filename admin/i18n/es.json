@@ -1,6 +1,8 @@
 {
     "Alias name": "Sobre nombre",
     "Basic configuration": "Configuracion basica",
+    "Average power values between updates": "Promediar los valores de potencia entre actualizaciones",
+    "Average power values help": "Solo afecta a los valores de potencia (W/kW). Actívelo para sensores de potencia que se actualizan periódicamente. Déjelo desactivado para dispositivos que se encienden y apagan bruscamente.",
     "Calculate consumption": "Calcular el consumo",
     "Calculate costs": "Calcular costos",
     "Calculation settings": "Configuraciones de cálculo",

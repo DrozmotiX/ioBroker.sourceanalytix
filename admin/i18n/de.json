@@ -5,6 +5,8 @@
     "Acknowledged": "Bestätigt",
     "Basic configuration": "Basiseinstellung",
     "Cancel": "Abbrechen",
+    "Average power values between updates": "Leistungswerte zwischen Aktualisierungen mitteln",
+    "Average power values help": "Wirkt nur bei Leistungswerten (W/kW). Für regelmäßig aktualisierte Leistungssensoren aktivieren. Bei Geräten, die häufig abrupt ein- oder ausgeschaltet werden, deaktiviert lassen.",
     "Calculate consumption": "Verbrauch berechnen",
     "Calculate costs": "Kosten berechnen",
     "Calculation settings": "Berechnungseinstellungen",

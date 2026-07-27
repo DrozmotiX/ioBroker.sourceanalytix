@@ -1,6 +1,8 @@
 {
     "Alias name": "Alias name",
     "Basic configuration": "Basic configuration",
+    "Average power values between updates": "Усереднювати значення потужності між оновленнями",
+    "Average power values help": "Впливає лише на значення потужності (Вт/кВт). Увімкніть для датчиків потужності, які регулярно оновлюються. Залиште вимкненим для пристроїв, що різко вмикаються та вимикаються.",
     "Calculate consumption": "Calculate consumption",
     "Calculate costs": "Calculate costs",
     "Calculation settings": "Calculation settings",

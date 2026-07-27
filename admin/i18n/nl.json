@@ -1,6 +1,8 @@
 {
     "Alias name": "Alias ​​naam",
     "Basic configuration": "Basisconfiguratie",
+    "Average power values between updates": "Vermogenswaarden tussen updates middelen",
+    "Average power values help": "Heeft alleen invloed op vermogenswaarden (W/kW). Schakel dit in voor vermogenssensoren die regelmatig worden bijgewerkt. Laat dit uitgeschakeld voor apparaten die abrupt in- en uitschakelen.",
     "Calculate consumption": "Bereken verbruik",
     "Calculate costs": "Bereken de kosten",
     "Calculation settings": "Bepaal welke berekeningen plaats moeten vinden",
