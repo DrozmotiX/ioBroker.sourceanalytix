@@ -265,16 +265,6 @@ When the adapter crashes or any other Code error happens, this error message tha
 * Tooling and maintenance were refreshed for current ioBroker and Node.js versions, including better tests, CI updates and dependency cleanup ([#1018](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1018), [#1064](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1064), [#1121](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1121), [#1177](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1177)).
 * (DutchmanNL) Earlier work-in-progress fixes remain included: Sentry-reported issues, logging cleanup and the `common.type` repository checker fix.
 
-### 0.4.15-alpha.1 (2025-09-10) Repository checker fixes and dependency updates
-* (DutchmanNL) Update dependencies to latest versions
-* (DutchmanNL) Fix repository checker issues
-* (DutchmanNL) Update @iobroker/adapter-core to ^3.3.2
-* (DutchmanNL) Update @alcalzone/release-script to ^3.8.0
-* (DutchmanNL) Update @iobroker/testing to ^5.0.4
-* (DutchmanNL) Add Node.js version requirement
-* (DutchmanNL) Add .releaseconfig.json for release script
-* (DutchmanNL) Remove deprecated admin configurations
-
 ### 0.4.14 (2022-02-23) Optimize Device reset handling
 * (DutchmanNL) Small code updates, lifecycle patches
 * (DutchmanNL) Option to disable device reset feature added
