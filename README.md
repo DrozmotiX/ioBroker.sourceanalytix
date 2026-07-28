@@ -253,7 +253,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.3 (2026-07-28)
 * Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield ([#466](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/466)).
 
 ### 0.5.2 (2026-07-28)
@@ -289,11 +289,6 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * (DutchmanNL) Add Node.js version requirement
 * (DutchmanNL) Add .releaseconfig.json for release script
 * (DutchmanNL) Remove deprecated admin configurations
-
-### 0.4.14 (2022-02-23) Optimize Device reset handling
-* (DutchmanNL) Small code updates, lifecycle patches
-* (DutchmanNL) Option to disable device reset feature added
-* (DutchmanNL) Bugfix: Cannot read property 'name' of undefined solved
 
 [Older changelog entries](CHANGELOG_OLD.md)
 
