@@ -172,7 +172,17 @@
                 { "label": "l", "value": "l" },
                 { "label": "dl", "value": "dl" },
                 { "label": "cl", "value": "cl" },
-                { "label": "ml", "value": "ml" }
+                { "label": "ml", "value": "ml" },
+                { "label": "t", "value": "t" },
+                { "label": "kg", "value": "kg" },
+                { "label": "g", "value": "g" },
+                { "label": "km", "value": "km" },
+                { "label": "m", "value": "m" },
+                { "label": "dm", "value": "dm" },
+                { "label": "cm", "value": "cm" },
+                { "label": "mm", "value": "mm" },
+                { "label": "nm", "value": "nm" },
+                { "label": "µm", "value": "µm" }
               ]
             },
             {

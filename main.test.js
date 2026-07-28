@@ -1,10 +1,16 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const adapterHelpers = require('iobroker-adapter-helpers');
 const {
+	buildUnitConfig,
 	calculateBasicPriceTotals,
 	classifyCumulativeReading,
+	convertUnitValue,
+	getCurrentYearPeriodStateDefinitions,
 	getPeriodChanges,
+	initializePeriodStartValues,
+	normalizePeriodSnapshot,
 	resolveCumulativeReading,
 } = require('./lib/calculation');
 const {
@@ -19,6 +25,38 @@ const {
 
 const minute = 60_000;
 const at = (hour, minutes = 0) => Date.UTC(2026, 0, 1, hour, minutes);
+
+describe('unit conversion', () => {
+	const units = buildUnitConfig(adapterHelpers.units);
+
+	it('provides mass and length units for automatic detection and price definitions', () => {
+		assert.deepEqual(units.t, {exponent: 6, category: 'Kilogram'});
+		assert.deepEqual(units.kg, {exponent: 3, category: 'Kilogram'});
+		assert.deepEqual(units.g, {exponent: 0, category: 'Kilogram'});
+		assert.deepEqual(units.km, {exponent: 3, category: 'Meter'});
+		assert.deepEqual(units.m, {exponent: 0, category: 'Meter'});
+	});
+
+	it('converts mass values between tonnes, kilograms and grams', () => {
+		assert.equal(convertUnitValue(1.5, units.t, units.kg), 1500);
+		assert.equal(convertUnitValue(1000, units.kg, units.t), 1);
+		assert.equal(convertUnitValue(2.5, units.kg, units.g), 2500);
+	});
+
+	it('converts distance values between metric units', () => {
+		assert.equal(convertUnitValue(2500, units.m, units.km), 2.5);
+		assert.equal(convertUnitValue(1, units.km, units.cm), 100000);
+	});
+
+	it('retains existing liter and cubic-meter conversion behavior', () => {
+		assert.equal(convertUnitValue(1000, units.l, units['m³']), 1);
+		assert.equal(convertUnitValue(1, units['m³'], units.l), 1000);
+	});
+
+	it('rejects conversions between incompatible quantities', () => {
+		assert.equal(convertUnitValue(1, units.kg, units.km), null);
+	});
+});
 
 describe('dynamic pricing', () => {
 	describe('parsePriceValue', () => {
@@ -213,6 +251,127 @@ describe('period and cumulative calculations', () => {
 				),
 				{day: true, week: false, month: false, quarter: false, year: false},
 			);
+		});
+
+		it('detects elapsed whole weeks even when the weekday name is unchanged', () => {
+			assert.deepEqual(
+				getPeriodChanges(
+					{date: '2026-07-20', day: '01_Monday', week: '30', month: '07_July', quarter: 3, year: 2026},
+					{date: '2026-07-27', day: '01_Monday', week: '31', month: '07_July', quarter: 3, year: 2026},
+				),
+				{day: true, week: true, month: false, quarter: false, year: false},
+			);
+		});
+	});
+
+	describe('period persistence', () => {
+		it('normalizes valid persisted period identifiers', () => {
+			assert.deepEqual(normalizePeriodSnapshot({
+				date: '2026-07-28',
+				day: '02_Tuesday',
+				week: '31',
+				month: '07_July',
+				quarter: '3',
+				year: '2026',
+			}), {
+				date: '2026-07-28',
+				day: '02_Tuesday',
+				week: '31',
+				month: '07_July',
+				quarter: 3,
+				year: 2026,
+			});
+		});
+
+		it('rejects incomplete or invalid persisted period identifiers', () => {
+			assert.equal(normalizePeriodSnapshot(null), null);
+			assert.equal(normalizePeriodSnapshot({day: '01_Monday'}), null);
+			assert.equal(normalizePeriodSnapshot({
+				date: 'not-a-date', day: '01_Monday', week: '31', month: '07_July', quarter: 3, year: 2026,
+			}), null);
+		});
+	});
+
+	describe('first activation period starts', () => {
+		it('uses the current reading for empty legacy start values', () => {
+			assert.deepEqual(initializePeriodStartValues({
+				start_day: 0,
+				start_week: '',
+				start_month: null,
+				start_quarter: undefined,
+				start_year: 0,
+			}, 7837.612, true), {
+				start_day: 7837.612,
+				start_week: 7837.612,
+				start_month: 7837.612,
+				start_quarter: 7837.612,
+				start_year: 7837.612,
+			});
+		});
+
+		it('preserves explicitly configured starts and all values after activation', () => {
+			const configured = {
+				start_day: 7830,
+				start_week: 7800,
+				start_month: 7700,
+				start_quarter: 7500,
+				start_year: 7000,
+			};
+			assert.deepEqual(initializePeriodStartValues(configured, 7837.612, true), configured);
+			assert.deepEqual(initializePeriodStartValues({...configured, start_day: 0}, 7837.612, false), {
+				...configured,
+				start_day: 0,
+			});
+		});
+
+		it('fills only missing starts when some historical readings are known', () => {
+			assert.deepEqual(initializePeriodStartValues({
+				start_day: 0,
+				start_week: 7800,
+				start_month: 7700,
+				start_quarter: 0,
+				start_year: 7000,
+			}, 7837.612, true), {
+				start_day: 7837.612,
+				start_week: 7800,
+				start_month: 7700,
+				start_quarter: 7837.612,
+				start_year: 7000,
+			});
+		});
+	});
+
+	describe('current-year period settings', () => {
+		const weekdays = ['01_Monday', '02_Tuesday'];
+		const months = ['01_January', '02_February'];
+
+		it('maps every enabled switch to its own collection', () => {
+			const definitions = getCurrentYearPeriodStateDefinitions({
+				currentYearDays: true,
+				currentYearPrevious: true,
+				currentYearWeek: true,
+				currentYearMonth: true,
+				currentYearQuarter: true,
+			}, weekdays, months);
+
+			assert.equal(definitions.filter(definition => definition.collection === 'currentWeek' && definition.enabled).length, 2);
+			assert.equal(definitions.filter(definition => definition.collection === 'previousWeek' && definition.enabled).length, 2);
+			assert.equal(definitions.filter(definition => definition.collection === 'weeks' && definition.enabled).length, 53);
+			assert.equal(definitions.filter(definition => definition.collection === 'months' && definition.enabled).length, 2);
+			assert.equal(definitions.filter(definition => definition.collection === 'quarters' && definition.enabled).length, 4);
+		});
+
+		it('marks only disabled collections for cleanup', () => {
+			const definitions = getCurrentYearPeriodStateDefinitions({
+				currentYearDays: false,
+				currentYearPrevious: true,
+				currentYearWeek: true,
+				currentYearMonth: false,
+				currentYearQuarter: false,
+			}, weekdays, months);
+
+			assert.equal(definitions.filter(definition => definition.collection === 'weeks' && definition.enabled).length, 53);
+			assert.equal(definitions.filter(definition => definition.collection !== 'weeks' && definition.enabled).length, 0);
 		});
 	});
 

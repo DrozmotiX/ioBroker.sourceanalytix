@@ -74,6 +74,17 @@
       "lg": 6,
       "xl": 6
     },
+    "averagePowerValues": {
+      "type": "checkbox",
+      "label": "Average power values between updates",
+      "tooltip": "Average power values help",
+      "default": false,
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
     "meter_values": {
       "type": "checkbox",
       "label": "Store Meter Values",
