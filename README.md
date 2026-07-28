@@ -11,6 +11,12 @@ SourceAnalytix turns cumulative meter readings or regularly updated power values
 
 The adapter requires **Admin 7.6.20 or newer**, **js-controller 6.0.11 or newer** and **Node.js 22 or newer**.
 
+## What is Sentry.io and what is reported to the servers of that company?
+
+This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers. For more details and for information how to disable the error reporting see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)! Sentry reporting is used starting with js-controller 3.0.
+
+When the adapter crashes or another code error occurs, the error message which also appears in the ioBroker log is submitted to Sentry. If you allowed ioBroker GmbH to collect diagnostic data, your installation ID is included. This is an anonymous identifier without personal information such as your name or email address. It allows errors to be grouped and shows how many installations are affected.
+
 ## Features
 
 - Current day, week, month, quarter and year totals
@@ -239,16 +245,15 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 
 [![Donate](https://raw.githubusercontent.com/DrozmotiX/ioBroker.sourceanalytix/main/admin/button.png)](https://paypal.me/DutchmanNL)
 
-## What is Sentry.io and what is reported to the servers of that company?
-Sentry.io gives developers an overview of errors in their applications. SourceAnalytix uses it to report unexpected adapter errors.
-
-When the adapter crashes or another code error occurs, the error message which also appears in the ioBroker log is submitted to Sentry. If you allowed ioBroker GmbH to collect diagnostic data, your installation ID is included. This is an anonymous identifier without personal information such as your name or email address. It allows errors to be grouped and shows how many installations are affected.
-
 <!--
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+* The npm release workflow no longer fails at the Sentry step: commit association is disabled because the previous release commit is not reachable in the shallow, squash-merged history ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
+* README now carries the standard Sentry notice required by the ioBroker repository checker ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
+
 ### 0.5.1 (2026-07-28)
 * Power states can optionally use the average of consecutive readings over their actual update interval ([#1166](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1166)).
 * First-time activation initializes empty period starts from the current cumulative reading while keeping them editable ([#148](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/148)).

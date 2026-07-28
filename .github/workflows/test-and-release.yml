@@ -88,5 +88,7 @@ jobs:
           sentry-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
           sentry-project: "iobroker-sourceanalytix"
           sentry-version-prefix: "iobroker.sourceanalytix"
-          # If your sentry project is linked to a GitHub repository, you can enable the following option
-          sentry-github-integration: true
+          # Commit association is disabled: sentry-cli 'releases set-commits --auto'
+          # aborts when the previous release's commit is missing from the shallow,
+          # squash-merged history. The release itself is still created and finalized.
+          sentry-github-integration: false
