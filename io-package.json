@@ -93,19 +93,6 @@
         "pl": "Poprawka: uniknięto awarii adaptera w nocy z powodu nieprawidłowo skonfigurowanych stanów #460",
         "zh-cn": "修复：避免适配器在夜间因状态配置错误而崩溃 #460",
         "uk": "Виправлення: усунено збій адаптера вночі через неправильно налаштовані стани #460"
-      },
-      "0.4.9": {
-        "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",
-        "de": "Unterstützung für Admin 5 hinzugefügt (erfordert Admin >= 5.1.2)",
-        "ru": "Добавлена поддержка Admin 5 (требуется Admin >= 5.1.2)",
-        "pt": "Adicionado suporte para Admin 5 (requer Admin >= 5.1.2)",
-        "nl": "Ondersteuning toegevoegd voor Admin 5 (vereist Admin >= 5.1.2)",
-        "fr": "Ajout de la prise en charge d'Admin 5 (nécessite Admin >= 5.1.2)",
-        "it": "Aggiunto supporto per Admin 5 (richiede Admin >= 5.1.2)",
-        "es": "Añadido soporte para Admin 5 (requiere Admin >= 5.1.2)",
-        "pl": "Dodano obsługę Admin 5 (wymaga Admin >= 5.1.2)",
-        "zh-cn": "新增对 Admin 5 的支持（需要 Admin >= 5.1.2）",
-        "uk": "Додано підтримку Admin 5 (потребує Admin >= 5.1.2)"
       }
     },
     "titleLang": {
