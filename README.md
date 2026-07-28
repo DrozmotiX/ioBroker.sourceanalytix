@@ -249,12 +249,13 @@ When the adapter crashes or another code error occurs, the error message which a
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.1 (2026-07-28)
 * Power states can optionally use the average of consecutive readings over their actual update interval ([#1166](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1166)).
 * First-time activation initializes empty period starts from the current cumulative reading while keeping them editable ([#148](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/148)).
 * Missed calendar rollovers are recovered after restarts, and all current-year week, month and quarter settings now control their complete state lifecycle ([#904](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/904), [#307](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/307)).
 * Cumulative mass and metric length units are supported with validated conversions between compatible quantities ([#614](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/614)).
 * User documentation and neutral English Admin screenshots were refreshed ([#613](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/613)).
+* Dependabot runs again: its cron schedules used an unsupported key and failed config validation ([#1182](https://github.com/DrozmotiX/ioBroker.sourceanalytix/pull/1182)).
 
 ### 0.5.0 (2026-07-28)
 * A large quality and feature update, with thanks to **softwarecrash** for providing the solutions behind this release.
