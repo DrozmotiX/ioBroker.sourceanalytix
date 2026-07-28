@@ -4,7 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: cron
-      cron: "37 3 11 * *"
+      cronjob: "37 3 11 * *"
       timezone: Europe/Berlin
     cooldown:
       default-days: 7
@@ -18,6 +18,6 @@ updates:
     directory: "/"
     schedule:
       interval: cron
-      cron: "17 4 23 * *"
+      cronjob: "17 4 23 * *"
       timezone: Europe/Berlin
     open-pull-requests-limit: 30
