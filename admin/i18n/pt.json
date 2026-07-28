@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "Ignorar valores de potência negativos",
+    "Ignore negative power values help": "Afeta apenas valores de potência (W/kW). Leituras negativas contam como 0 W. Ative para inversores que indicam potência negativa quando estão desligados."
 }

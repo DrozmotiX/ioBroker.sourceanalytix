@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "Игнорировать отрицательные значения мощности",
+    "Ignore negative power values help": "Влияет только на значения мощности (Вт/кВт). Отрицательные показания считаются как 0 Вт. Включите для инверторов, которые сообщают отрицательную мощность в выключенном состоянии."
 }

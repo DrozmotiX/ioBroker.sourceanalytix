@@ -85,6 +85,17 @@
       "lg": 6,
       "xl": 6
     },
+    "ignoreNegativeValues": {
+      "type": "checkbox",
+      "label": "Ignore negative power values",
+      "tooltip": "Ignore negative power values help",
+      "default": false,
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
     "meter_values": {
       "type": "checkbox",
       "label": "Store Meter Values",

@@ -1098,6 +1098,7 @@ class Sourceanalytix extends utils.Adapter {
 						stateUnit: useUnit,
 						useUnit: selectedPriceConfig.unitType,
 						deviceResetLogicEnabled: customData.deviceResetLogicEnabled ?? true,
+						ignoreNegativeValues: customData.ignoreNegativeValues === true,
 						threshold: customData.threshold ?? 1,
 					},
 					calcValues: {
@@ -2313,10 +2314,15 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[wattToWattHour] Watt to kWh, current reading : ${value.val} previousReading : ${JSON.stringify(calcValues)}`);
 
 			// Prepare needed data to handle calculations
+			const rawReadingWatt = Number(value.val);
+			const currentReadingWatt = calculation.normalizePowerReading(rawReadingWatt, stateDetails.ignoreNegativeValues);
+			if (currentReadingWatt !== rawReadingWatt) {
+				this.log.debug(`[wattToWattHour] ${stateID} negative power reading ${rawReadingWatt} treated as 0 W`);
+			}
 			const readingData = {
 				previousReadingWatt: Number(calcValues.previousReadingWatt),
 				previousReadingWattTs: Number(calcValues.previousReadingWattTs),
-				currentReadingWatt: Number(value.val),
+				currentReadingWatt: currentReadingWatt,
 				currentReadingWattTs: Number(value.ts),
 			};
 

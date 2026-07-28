@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "Ignorer les valeurs de puissance négatives",
+    "Ignore negative power values help": "Affecte uniquement les valeurs de puissance (W/kW). Les relevés négatifs comptent pour 0 W. Activez cette option pour les onduleurs qui indiquent une puissance négative lorsqu’ils sont éteints."
 }

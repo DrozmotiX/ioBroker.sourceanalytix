@@ -27,7 +27,7 @@ When the adapter crashes or another code error occurs, the error message which a
 - Fixed, scheduled, state-provided and selector-controlled unit prices
 - Timestamped price history which preserves already calculated costs
 - Automatic conversion between compatible energy, volume, mass and metric length units
-- Integration of power readings over their actual update intervals
+- Integration of power readings over their actual update intervals, optionally ignoring negative readings
 - Recovery of missed calendar rollovers after an adapter restart
 - Handling of meter resets, meter replacements and small backwards fluctuations
 
@@ -121,6 +121,7 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Including basic rate | Adds the price definition's monthly basic price. |
 | Calculate consumption | Creates and updates consumption or delivery states. |
 | Average power values between updates | Optional calculation mode for power states; see [Power states](#power-states). |
+| Ignore negative power values | Counts negative power readings as `0 W`; see [Power states](#power-states). |
 | Store Meter Values | Stores meter readings in the enabled period collections. |
 | Device value reset detection | Continues a cumulative total after a meter reset or replacement. |
 | Threshold | Largest backwards fluctuation ignored as measurement jitter, expressed in the target unit. |
@@ -150,6 +151,8 @@ Enter manual start values in the **target unit** selected by the price definitio
 Power values such as `W` or `kW` are integrated over the actual time between state updates to produce energy. The first reading establishes the baseline and does not create consumption.
 
 By default, the previous power value is treated as valid for the complete interval. Enable **Average power values between updates** for sensors which report regularly and change gradually; SourceAnalytix then uses the average of the previous and current values. Leave it disabled for devices that switch abruptly when the update marks the switch event.
+
+Some inverters report a strongly negative power while they are switched off, which would otherwise be integrated as negative energy and reduce the accumulated yield. Enable **Ignore negative power values** to count such readings as `0 W`. The reading is clamped rather than discarded, so the interval still advances; discarding it would keep the last positive power as the baseline and integrate it across the whole downtime.
 
 ### Supported units
 
@@ -250,6 +253,9 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+* Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield ([#466](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/466)).
+
 ### 0.5.2 (2026-07-28)
 * The npm release workflow no longer fails at the Sentry step: commit association is disabled because the previous release commit is not reachable in the shallow, squash-merged history ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
 * README now carries the standard Sentry notice required by the ioBroker repository checker ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
