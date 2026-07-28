@@ -253,7 +253,7 @@ When the adapter crashes or any other Code error happens, this error message tha
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.0 (2026-07-28)
 * A large quality and feature update, with thanks to **softwarecrash** for providing the solutions behind this release.
 * Dynamic and historical unit prices can now be taken from ioBroker states, including tariff switching and timestamped price changes ([#1159](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1159), [#715](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/715), [#687](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/687), [#485](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/485), [#486](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/486), [#487](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/487)).
 * Cost calculations stay precise across restarts and price changes, without rewriting already calculated history ([#625](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/625), [#783](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/783), [#750](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/750)).
@@ -280,6 +280,10 @@ When the adapter crashes or any other Code error happens, this error message tha
 ### 0.4.11 (2021-08-16)
 * (DutchmanNL) Improve log/error messages at adapter start
 * (DutchmanNL) Bugfix : Cannot read property 'calcValues' of null & related issues found by Sentry
+
+### 0.4.10 (2021-08-10)
+* (DutchmanNL) Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)
+
 
 [Older changelog entries](CHANGELOG_OLD.md)
 
