@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "忽略负功率值",
+    "Ignore negative power values help": "仅影响功率值（W/kW）。负读数按 0 W 计。对于关机时报告负功率的逆变器请启用此选项。"
 }

@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "Ignoruj ujemne wartości mocy",
+    "Ignore negative power values help": "Dotyczy tylko wartości mocy (W/kW). Ujemne odczyty liczone są jako 0 W. Włącz dla falowników, które w stanie wyłączonym zgłaszają ujemną moc."
 }

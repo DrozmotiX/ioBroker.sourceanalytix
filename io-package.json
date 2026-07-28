@@ -3,6 +3,19 @@
     "name": "sourceanalytix",
     "version": "0.5.2",
     "news": {
+      "0.5.3": {
+        "en": "Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield",
+        "de": "Leistungs-Datenpunkte können negative Messwerte optional ignorieren, damit Wechselrichter, die im abgeschalteten Zustand eine negative Leistung melden, den aufsummierten Ertrag nicht mehr verringern",
+        "ru": "Состояния мощности могут при желании игнорировать отрицательные показания, чтобы инверторы, сообщающие отрицательную мощность в выключенном состоянии, больше не уменьшали накопленную выработку",
+        "pt": "Os estados de potência podem opcionalmente ignorar leituras negativas, para que os inversores que indicam potência negativa quando desligados deixem de reduzir a produção acumulada",
+        "nl": "Vermogensdatapunten kunnen negatieve metingen optioneel negeren, zodat omvormers die in uitgeschakelde toestand een negatief vermogen melden de opgetelde opbrengst niet langer verlagen",
+        "fr": "Les états de puissance peuvent ignorer en option les relevés négatifs, afin que les onduleurs indiquant une puissance négative à l’arrêt ne réduisent plus la production cumulée",
+        "it": "Gli stati di potenza possono facoltativamente ignorare le letture negative, così gli inverter che segnalano una potenza negativa da spenti non riducono più la produzione accumulata",
+        "es": "Los estados de potencia pueden ignorar opcionalmente las lecturas negativas, de modo que los inversores que indican una potencia negativa cuando están apagados ya no reducen la producción acumulada",
+        "pl": "Stany mocy mogą opcjonalnie ignorować ujemne odczyty, dzięki czemu falowniki zgłaszające ujemną moc w stanie wyłączonym nie zmniejszają już zsumowanego uzysku",
+        "zh-cn": "功率状态可选择忽略负读数，使关机时报告负功率的逆变器不再减少累计发电量",
+        "uk": "Стани потужності можуть за бажанням ігнорувати від’ємні покази, щоб інвертори, які у вимкненому стані повідомляють від’ємну потужність, більше не зменшували накопичений виробіток"
+      },
       "0.5.2": {
         "en": "The npm release workflow no longer fails at the Sentry step because commit association is disabled\nThe README now contains the standard Sentry notice required by the ioBroker repository checker",
         "de": "Der npm-Release-Workflow scheitert nicht mehr am Sentry-Schritt, da die Commit-Zuordnung deaktiviert ist\nDie README enthält jetzt den standardmäßigen Sentry-Hinweis, den der ioBroker-Repository-Checker verlangt",
@@ -80,19 +93,6 @@
         "pl": "Poprawiono komunikaty dziennika i błędów podczas uruchamiania adaptera\nPoprawka: rozwiązano \"Cannot read property 'calcValues' of null\" oraz powiązane problemy wykryte przez Sentry",
         "zh-cn": "改进了适配器启动时的日志与错误消息\n修复：解决了 \"Cannot read property 'calcValues' of null\" 及 Sentry 发现的相关问题",
         "uk": "Покращено повідомлення журналу та помилок під час запуску адаптера\nВиправлення: усунено \"Cannot read property 'calcValues' of null\" та пов'язані проблеми, виявлені Sentry"
-      },
-      "0.4.10": {
-        "en": "Bugfix : Avoid adapter crash during night for incorrect configured states #460",
-        "de": "Bugfix: Adapterabsturz während der Nacht bei falsch konfigurierten Datenpunkten vermieden #460",
-        "ru": "Исправление: предотвращён сбой адаптера ночью из-за неправильно настроенных состояний #460",
-        "pt": "Correção: evitada a falha do adaptador durante a noite devido a estados mal configurados #460",
-        "nl": "Bugfix: voorkomen dat de adapter 's nachts crasht door onjuist geconfigureerde datapunten #460",
-        "fr": "Correction : plantage de l'adaptateur pendant la nuit évité pour des états mal configurés #460",
-        "it": "Bugfix: evitato l'arresto anomalo dell'adattatore durante la notte per stati configurati in modo errato #460",
-        "es": "Corrección: evitado el bloqueo del adaptador durante la noche por estados mal configurados #460",
-        "pl": "Poprawka: uniknięto awarii adaptera w nocy z powodu nieprawidłowo skonfigurowanych stanów #460",
-        "zh-cn": "修复：避免适配器在夜间因状态配置错误而崩溃 #460",
-        "uk": "Виправлення: усунено збій адаптера вночі через неправильно налаштовані стани #460"
       }
     },
     "titleLang": {

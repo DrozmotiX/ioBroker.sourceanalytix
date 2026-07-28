@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "Negatieve vermogenswaarden negeren",
+    "Ignore negative power values help": "Heeft alleen invloed op vermogenswaarden (W/kW). Negatieve metingen tellen als 0 W. Schakel dit in voor omvormers die een negatief vermogen melden terwijl ze uitgeschakeld zijn."
 }

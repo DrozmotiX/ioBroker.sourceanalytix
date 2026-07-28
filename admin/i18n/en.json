@@ -113,5 +113,7 @@
     "cm": "cm",
     "mm": "mm",
     "nm": "nm",
-    "µm": "µm"
+    "µm": "µm",
+    "Ignore negative power values": "Ignore negative power values",
+    "Ignore negative power values help": "Only affects power values (W/kW). Negative readings count as 0 W. Enable for inverters that report a negative power while they are switched off."
 }

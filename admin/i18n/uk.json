@@ -113,5 +113,7 @@
     "enabled": "enabled",
     "number of days": "Number of days",
     "number of months": "Number of months",
-    "period of time": "Period of time"
+    "period of time": "Period of time",
+    "Ignore negative power values": "Ігнорувати від’ємні значення потужності",
+    "Ignore negative power values help": "Впливає лише на значення потужності (Вт/кВт). Від’ємні покази зараховуються як 0 Вт. Увімкніть для інверторів, які у вимкненому стані повідомляють від’ємну потужність."
 }

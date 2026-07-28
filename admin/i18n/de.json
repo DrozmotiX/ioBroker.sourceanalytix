@@ -113,5 +113,7 @@
     "cm": "cm",
     "mm": "mm",
     "nm": "nm",
-    "µm": "µm"
+    "µm": "µm",
+    "Ignore negative power values": "Negative Leistungswerte ignorieren",
+    "Ignore negative power values help": "Wirkt nur bei Leistungswerten (W/kW). Negative Messwerte zählen als 0 W. Für Wechselrichter aktivieren, die im abgeschalteten Zustand eine negative Leistung melden."
 }
