@@ -3,10 +3,7 @@
     "name": "sourceanalytix",
     "version": "0.4.15-bet.1",
     "news": {
-      "0.4.15-bet.1": {
-        "en": "Planned for 0.4.5: a large quality and feature update with thanks to **softwarecrash** for providing the solutions behind this release.\nDynamic and historical unit prices can now be taken from ioBroker states, including tariff switching and timestamped price changes (#1159, #715, #687, #485, #486, #487).\nCost calculations stay precise across restarts and price changes, without rewriting already calculated history (#625, #783, #750).\nMeter resets, meter replacements and small counter fluctuations are handled much more reliably, avoiding broken totals and duplicate consumption (#686, #754, #759, #794).\nDay, week, month and year rollovers are more robust, including midnight resets and automatic creation of new year statistics (#478, #481, #536, #775).\nDeleted or disabled sources no longer keep writing unwanted values, while their existing history is preserved (#704, #919, #1009).\nMonthly basic charges are applied correctly again across the current period calculations (#1144).\nThe admin configuration has been modernized to `jsonConfig`, with improved price settings, state pickers and translations (#1007).\nTooling and maintenance were refreshed for current ioBroker and Node.js versions, including better tests, CI updates and dependency cleanup (#1018, #1064, #1121, #1177).\nEarlier work-in-progress fixes remain included: Sentry-reported issues, logging cleanup and the `common.type` repository checker fix."
-      },
-      "0.4.15-alpha.1": {
+      "0.4.15": {
         "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solved\nDependency updates and repository checker fixes\n",
         "de": "Kleine Code-Updates, Lifecycle-Patches\nOption zum Deaktivieren der Geraete-Reset-Funktion hinzugefuegt\nBugfix: Eigenschaft \"Name\" von undefiniertem geloest\nAbhaengigkeitsupdates und Repository-Checker-Fixes\n",
         "ru": "Небольшие обновления кода, исправления жизненного цикла\nДобавлена возможность отключения функции сброса устройства\nBugfix: невозможно прочитать имя свойства неопределенного решения\nОбновления зависимостей и исправления проверки репозитория\n",
@@ -18,19 +15,6 @@
         "pl": "Male aktualizacje kodu, poprawki cyklu zycia\nDodana opcja wylaczenia funkcji resetowania urzadzenia\nNaprawa bledu: Nie mozna odczytac wlasciwosci \"nazwa\" niezdefiniowanego rozwiazania\nAktualizacje zaleznosci i poprawki sprawdzania repozytorium\n",
         "zh-cn": "小代码更新、生命周期补丁\n添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性\"名称\"\n依赖性更新和存储库检查器修复\n",
         "uk": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solved\nDependency updates and repository checker fixes\n"
-      },
-      "0.4.14": {
-        "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n",
-        "de": "Kleine Code-Updates, Lifecycle-Patches\nOption zum Deaktivieren der Geräte-Reset-Funktion hinzugefügt\nBugfix: Eigenschaft „Name“ von undefiniertem Solv kann nicht gelesen werden\n\n",
-        "ru": "Небольшие обновления кода, исправления жизненного цикла\nДобавлена возможность отключения функции сброса устройства\nBugfix: невозможно прочитать имя свойства неопределенного решения\n",
-        "pt": "Pequenas atualizações de código, patches de ciclo de vida\nOpção para desabilitar o recurso de redefinição de dispositivo adicionado\nBugfix: Não é possível ler a propriedade 'nome' de solução indefinida\n",
-        "nl": "Kleine code-updates, levenscycluspatches\nOptie om de functie voor apparaatreset uit te schakelen toegevoegd\nBugfix: kan eigenschap 'naam' van niet-gedefinieerde solv niet lezen\n",
-        "fr": "Petites mises à jour de code, correctifs du cycle de vie\nOption pour désactiver la fonction de réinitialisation de l'appareil ajoutée\nBugfix : impossible de lire la propriété \"nom\" d'une solution non définie\n",
-        "it": "Piccoli aggiornamenti del codice, patch del ciclo di vita\nOpzione per disabilitare la funzione di ripristino del dispositivo aggiunta\nBugfix: impossibile leggere la proprietà 'nome' di una soluzione non definita\n",
-        "es": "Pequeñas actualizaciones de código, parches de ciclo de vida\nOpción para deshabilitar la función de restablecimiento del dispositivo agregada\nCorrección de error: no se puede leer la propiedad 'nombre' de una solución indefinida\n",
-        "pl": "Małe aktualizacje kodu, poprawki cyklu życia\nDodana opcja wyłączenia funkcji resetowania urządzenia\nNaprawa błędu: Nie można odczytać właściwości „nazwa” niezdefiniowanego rozwiązania\n",
-        "zh-cn": "小代码更新、生命周期补丁/添加了禁用设备重置功能的选项\nBugfix：无法读取未定义解决方案的属性“名称”\n",
-        "uk": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solv\n"
       },
       "0.4.12": {
         "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",

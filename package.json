@@ -1,6 +1,6 @@
 {
   "name": "iobroker.sourceanalytix",
-  "version": "0.4.15-bet.1",
+  "version": "0.4.15-beta.1",
   "description": "SourceAnalytix",
   "author": {
     "name": "DutchmanNL",
@@ -40,6 +40,7 @@
     "@alcalzone/release-script": "^5.2.1",
     "@alcalzone/release-script-plugin-iobroker": "^5.2.0",
     "@alcalzone/release-script-plugin-license": "^5.2.0",
+    "@alcalzone/release-script-plugin-manual-review": "^5.2.0",
     "@iobroker/eslint-config": "^2.3.4",
     "@iobroker/testing": "^5.3.0",
     "@types/node": "^22.20.1",
@@ -65,7 +66,8 @@
     "lint": "npm run lint:js",
     "lint:js": "eslint",
     "build": "echo 'No compilation needed for JavaScript adapter'",
-    "release": "release-script"
+    "release": "release-script --all --branchPattern '*'",
+    "release-dry": "release-script --all --dry"
   },
   "bugs": {
     "url": "https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues"
