@@ -1,11 +1,7 @@
 # Older changes
-## 0.4.10 (2021-08-10)
-* (DutchmanNL) Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)
-
 ## 0.4.9 (2021-05-31)
 * (DutchmanNL) Added support for Admin 5 (Requires Admin >= 5.1.2)
 * (Bluefox) Fix error in admin
-
 
 ## 0.4.8 (2021-01-20)
 #### Breaking changes

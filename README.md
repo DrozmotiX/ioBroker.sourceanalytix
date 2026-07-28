@@ -9,7 +9,7 @@
 
 SourceAnalytix turns cumulative meter readings or regularly updated power values into consumption, delivery, cost and earnings statistics. It supports fixed prices, scheduled price changes, dynamic tariffs from ioBroker states and selector-controlled tariffs.
 
-The adapter requires **Admin 7.6.17 or newer**, **js-controller 6.0.11 or newer** and **Node.js 22 or newer**.
+The adapter requires **Admin 7.6.20 or newer**, **js-controller 6.0.11 or newer** and **Node.js 22 or newer**.
 
 ## Features
 
@@ -250,12 +250,14 @@ When the adapter crashes or another code error occurs, the error message which a
 -->
 ## Changelog
 ### __WORK IN PROGRESS__
-* Planned for the next release: a large quality and feature update with thanks to **softwarecrash** for providing the solutions behind this release.
 * Power states can optionally use the average of consecutive readings over their actual update interval ([#1166](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1166)).
 * First-time activation initializes empty period starts from the current cumulative reading while keeping them editable ([#148](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/148)).
 * Missed calendar rollovers are recovered after restarts, and all current-year week, month and quarter settings now control their complete state lifecycle ([#904](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/904), [#307](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/307)).
 * Cumulative mass and metric length units are supported with validated conversions between compatible quantities ([#614](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/614)).
 * User documentation and neutral English Admin screenshots were refreshed ([#613](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/613)).
+
+### 0.5.0 (2026-07-28)
+* A large quality and feature update, with thanks to **softwarecrash** for providing the solutions behind this release.
 * Dynamic and historical unit prices can now be taken from ioBroker states, including tariff switching and timestamped price changes ([#1159](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1159), [#715](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/715), [#687](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/687), [#485](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/485), [#486](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/486), [#487](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/487)).
 * Cost calculations stay precise across restarts and price changes, without rewriting already calculated history ([#625](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/625), [#783](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/783), [#750](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/750)).
 * Meter resets, meter replacements and small counter fluctuations are handled much more reliably, avoiding broken totals and duplicate consumption ([#686](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/686), [#754](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/754), [#759](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/759), [#794](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/794)).
@@ -291,6 +293,9 @@ When the adapter crashes or another code error occurs, the error message which a
 ### 0.4.11 (2021-08-16)
 * (DutchmanNL) Improve log/error messages at adapter start
 * (DutchmanNL) Bugfix : Cannot read property 'calcValues' of null & related issues found by Sentry
+
+### 0.4.10 (2021-08-10)
+* (DutchmanNL) Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)
 
 [Older changelog entries](CHANGELOG_OLD.md)
 

@@ -1,6 +1,6 @@
 {
   "name": "iobroker.sourceanalytix",
-  "version": "0.4.15-beta.1",
+  "version": "0.5.0",
   "description": "SourceAnalytix",
   "author": {
     "name": "DutchmanNL",
@@ -41,16 +41,18 @@
     "@alcalzone/release-script-plugin-iobroker": "^5.2.0",
     "@alcalzone/release-script-plugin-license": "^5.2.0",
     "@alcalzone/release-script-plugin-manual-review": "^5.2.0",
+    "@iobroker/adapter-dev": "^1.5.0",
     "@iobroker/eslint-config": "^2.3.4",
     "@iobroker/testing": "^5.3.0",
+    "@tsconfig/node22": "^22.0.5",
     "@types/node": "^22.20.1",
-    "mocha": "^11.7.6",
     "typescript": "^5.9.3"
   },
   "overrides": {
     "@alcalzone/esbuild-register": {
       "esbuild": "0.28.1"
     },
+    "adm-zip": "0.6.0",
     "mocha": {
       "diff": "8.0.4",
       "serialize-javascript": "7.0.7"
@@ -65,6 +67,7 @@
     "test": "npm run check && npm run test:js && npm run test:package",
     "lint": "npm run lint:js",
     "lint:js": "eslint",
+    "translate": "translate-adapter",
     "build": "echo 'No compilation needed for JavaScript adapter'",
     "release": "release-script --all --branchPattern '*'",
     "release-dry": "release-script --all --dry"

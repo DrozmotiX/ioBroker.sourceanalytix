@@ -3,8 +3,8 @@ updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: monthly
-      time: "03:37"
+      interval: cron
+      cronjob: "37 3 11 * *"
       timezone: Europe/Berlin
     cooldown:
       default-days: 7
@@ -17,7 +17,7 @@ updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: monthly
-      time: "04:17"
+      interval: cron
+      cronjob: "17 4 23 * *"
       timezone: Europe/Berlin
     open-pull-requests-limit: 30

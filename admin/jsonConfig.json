@@ -245,7 +245,6 @@
               "attr": "validFrom",
               "title": "Valid from",
               "width": "13%",
-              "default": "",
               "hidden": "data.priceSource !== 'static'"
             },
             {

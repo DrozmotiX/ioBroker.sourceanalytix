@@ -1,0 +1,22 @@
+{
+	"eslint.enable": true,
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"json.schemas": [
+		{
+			"fileMatch": ["io-package.json"],
+			"url": "https://raw.githubusercontent.com/ioBroker/ioBroker.js-controller/master/schemas/io-package.json"
+		},
+		{
+			"fileMatch": [
+				"admin/jsonConfig.json",
+				"admin/jsonConfig.json5",
+				"admin/jsonCustom.json",
+				"admin/jsonCustom.json5",
+				"admin/jsonTab.json",
+				"admin/jsonTab.json5"
+			],
+			"url": "https://raw.githubusercontent.com/ioBroker/ioBroker.admin/master/packages/jsonConfig/schemas/jsonConfig.json"
+		}
+	]
+}
