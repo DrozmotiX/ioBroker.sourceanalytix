@@ -9,7 +9,7 @@
 [![NPM](https://nodei.co/npm/iobroker.sourceanalytix.png?downloads=true)](https://nodei.co/npm/iobroker.sourceanalytix/)  
 ![Test and Release](https://github.com/DrozmotiX/ioBroker.coronavirus-statistics/workflows/Test%20and%20Release/badge.svg)   
 
-**This adapter uses the service [Sentry.io](https://sentry.io) to automatically report exceptions and code errors and new device schemas to me as the developer.** More details see below!
+**This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers.** For more details and for information how to disable the error reporting see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)! Sentry reporting is used starting with js-controller 3.0. More details see below!
 
 Detailed analysis of your Energy, gas and liquid consumptions
 Any source (kWh, Wh, Watt, l/h or m3) can be used for data analyses:
@@ -254,7 +254,7 @@ When the adapter crashes or any other Code error happens, this error message tha
 -->
 ## Changelog
 ### __WORK IN PROGRESS__
-* Planned for 0.4.5: a large quality and feature update with thanks to **softwarecrash** for providing the solutions behind this release.
+* A large quality and feature update, with thanks to **softwarecrash** for providing the solutions behind this release.
 * Dynamic and historical unit prices can now be taken from ioBroker states, including tariff switching and timestamped price changes ([#1159](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1159), [#715](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/715), [#687](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/687), [#485](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/485), [#486](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/486), [#487](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/487)).
 * Cost calculations stay precise across restarts and price changes, without rewriting already calculated history ([#625](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/625), [#783](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/783), [#750](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/750)).
 * Meter resets, meter replacements and small counter fluctuations are handled much more reliably, avoiding broken totals and duplicate consumption ([#686](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/686), [#754](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/754), [#759](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/759), [#794](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/794)).

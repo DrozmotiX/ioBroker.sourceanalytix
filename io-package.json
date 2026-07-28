@@ -3,57 +3,83 @@
     "name": "sourceanalytix",
     "version": "0.4.15-beta.1",
     "news": {
+      "NEXT": {
+        "en": "Dynamic and historical unit prices can now be read from ioBroker states, including tariff switching and timestamped price changes\nCost calculations stay accurate across restarts and price changes, without rewriting already calculated history\nMeter resets, meter replacements and small counter fluctuations are handled far more reliably\nDay, week, month and year rollovers are more robust, including midnight resets and automatic creation of new year statistics\nDeleted or disabled sources no longer write unwanted values, while their existing history is preserved\nMonthly basic charges are applied correctly again in the current period calculations\nThe admin configuration has been modernized to jsonConfig, with improved price settings, state pickers and translations\nTooling and maintenance refreshed for current ioBroker and Node.js versions",
+        "de": "Dynamische und historische Einheitspreise können jetzt aus ioBroker-Datenpunkten gelesen werden, inklusive Tarifwechsel und zeitgestempelter Preisänderungen\nKostenberechnungen bleiben über Neustarts und Preisänderungen hinweg genau, ohne bereits berechnete Historie zu überschreiben\nZählerrücksetzungen, Zählerwechsel und kleine Zählerschwankungen werden deutlich zuverlässiger behandelt\nTages-, Wochen-, Monats- und Jahreswechsel sind robuster, inklusive Mitternachtsrücksetzung und automatischer Anlage neuer Jahresstatistiken\nGelöschte oder deaktivierte Quellen schreiben keine unerwünschten Werte mehr, ihre bestehende Historie bleibt erhalten\nMonatliche Grundpreise werden in den Berechnungen der aktuellen Periode wieder korrekt angewendet\nDie Admin-Konfiguration wurde auf jsonConfig modernisiert, mit verbesserten Preiseinstellungen, Datenpunkt-Auswahl und Übersetzungen\nWerkzeuge und Wartung für aktuelle ioBroker- und Node.js-Versionen aufgefrischt",
+        "ru": "Динамические и исторические цены за единицу теперь можно считывать из состояний ioBroker, включая переключение тарифов и изменения цен с отметкой времени\nРасчёты затрат остаются точными после перезапусков и изменений цен, без перезаписи уже рассчитанной истории\nСброс счётчика, замена счётчика и небольшие колебания показаний обрабатываются гораздо надёжнее\nПереходы дня, недели, месяца и года стали устойчивее, включая сброс в полночь и автоматическое создание статистики нового года\nУдалённые или отключённые источники больше не записывают ненужные значения, их существующая история сохраняется\nЕжемесячная базовая плата снова корректно применяется в расчётах текущего периода\nКонфигурация администратора переведена на jsonConfig с улучшенными настройками цен, выбором состояний и переводами\nИнструменты и сопровождение обновлены под актуальные версии ioBroker и Node.js",
+        "pt": "Preços unitários dinâmicos e históricos podem agora ser lidos a partir de estados do ioBroker, incluindo troca de tarifa e alterações de preço com data e hora\nOs cálculos de custo permanecem exatos entre reinícios e alterações de preço, sem reescrever o histórico já calculado\nReinicializações de contador, substituições de contador e pequenas flutuações de leitura são tratadas de forma muito mais fiável\nAs mudanças de dia, semana, mês e ano são mais robustas, incluindo o reinício à meia-noite e a criação automática das estatísticas do novo ano\nFontes eliminadas ou desativadas deixam de escrever valores indesejados, mantendo o histórico existente\nAs taxas básicas mensais voltam a ser aplicadas corretamente nos cálculos do período atual\nA configuração do admin foi modernizada para jsonConfig, com melhores definições de preço, seletores de estado e traduções\nFerramentas e manutenção atualizadas para as versões atuais do ioBroker e do Node.js",
+        "nl": "Dynamische en historische eenheidsprijzen kunnen nu uit ioBroker-datapunten worden gelezen, inclusief tariefwisseling en prijswijzigingen met tijdstempel\nKostenberekeningen blijven nauwkeurig over herstarts en prijswijzigingen heen, zonder reeds berekende historie te overschrijven\nMeterresets, metervervangingen en kleine schommelingen in de tellerstand worden veel betrouwbaarder afgehandeld\nDag-, week-, maand- en jaarovergangen zijn robuuster, inclusief middernachtreset en automatisch aanmaken van nieuwe jaarstatistieken\nVerwijderde of uitgeschakelde bronnen schrijven geen ongewenste waarden meer, terwijl hun bestaande historie behouden blijft\nMaandelijkse vastrechtkosten worden weer correct toegepast in de berekeningen van de huidige periode\nDe adminconfiguratie is gemoderniseerd naar jsonConfig, met verbeterde prijsinstellingen, datapuntkiezers en vertalingen\nGereedschap en onderhoud vernieuwd voor actuele ioBroker- en Node.js-versies",
+        "fr": "Les prix unitaires dynamiques et historiques peuvent désormais être lus depuis des états ioBroker, y compris le changement de tarif et les modifications de prix horodatées\nLes calculs de coûts restent exacts après un redémarrage ou un changement de prix, sans réécrire l'historique déjà calculé\nLes remises à zéro de compteur, les remplacements de compteur et les petites fluctuations de relevé sont traités bien plus fiablement\nLes changements de jour, de semaine, de mois et d'année sont plus robustes, y compris la remise à zéro de minuit et la création automatique des statistiques de la nouvelle année\nLes sources supprimées ou désactivées n'écrivent plus de valeurs indésirables, tandis que leur historique existant est conservé\nLes frais de base mensuels sont de nouveau appliqués correctement dans les calculs de la période en cours\nLa configuration admin a été modernisée vers jsonConfig, avec de meilleurs réglages de prix, des sélecteurs d'états et des traductions\nOutils et maintenance rafraîchis pour les versions actuelles d'ioBroker et de Node.js",
+        "it": "I prezzi unitari dinamici e storici possono ora essere letti dagli stati di ioBroker, inclusi il cambio di tariffa e le variazioni di prezzo con data e ora\nI calcoli dei costi restano precisi anche dopo riavvii e variazioni di prezzo, senza riscrivere lo storico già calcolato\nAzzeramenti del contatore, sostituzioni del contatore e piccole oscillazioni di lettura vengono gestiti in modo molto più affidabile\nI passaggi di giorno, settimana, mese e anno sono più robusti, inclusi l'azzeramento a mezzanotte e la creazione automatica delle statistiche del nuovo anno\nLe sorgenti eliminate o disattivate non scrivono più valori indesiderati, mentre il loro storico esistente viene conservato\nI costi fissi mensili vengono nuovamente applicati correttamente nei calcoli del periodo corrente\nLa configurazione admin è stata modernizzata a jsonConfig, con impostazioni dei prezzi, selettori di stato e traduzioni migliorati\nStrumenti e manutenzione aggiornati per le versioni attuali di ioBroker e Node.js",
+        "es": "Los precios unitarios dinámicos e históricos ahora pueden leerse desde estados de ioBroker, incluidos el cambio de tarifa y los cambios de precio con marca de tiempo\nLos cálculos de costes se mantienen exactos tras reinicios y cambios de precio, sin reescribir el histórico ya calculado\nLos reinicios de contador, las sustituciones de contador y las pequeñas fluctuaciones de lectura se gestionan de forma mucho más fiable\nLos cambios de día, semana, mes y año son más robustos, incluidos el reinicio de medianoche y la creación automática de las estadísticas del nuevo año\nLas fuentes eliminadas o desactivadas ya no escriben valores no deseados, mientras que su histórico existente se conserva\nLos cargos básicos mensuales vuelven a aplicarse correctamente en los cálculos del periodo actual\nLa configuración de admin se ha modernizado a jsonConfig, con mejores ajustes de precios, selectores de estados y traducciones\nHerramientas y mantenimiento renovados para las versiones actuales de ioBroker y Node.js",
+        "pl": "Dynamiczne i historyczne ceny jednostkowe można teraz odczytywać ze stanów ioBrokera, w tym przełączanie taryf i zmiany cen ze znacznikiem czasu\nObliczenia kosztów pozostają dokładne po restartach i zmianach cen, bez nadpisywania już obliczonej historii\nZerowanie licznika, wymiana licznika i niewielkie wahania odczytu są obsługiwane znacznie bardziej niezawodnie\nZmiany dnia, tygodnia, miesiąca i roku są bardziej odporne, w tym zerowanie o północy i automatyczne tworzenie statystyk nowego roku\nUsunięte lub wyłączone źródła nie zapisują już niechcianych wartości, a ich dotychczasowa historia jest zachowywana\nMiesięczne opłaty stałe są ponownie poprawnie uwzględniane w obliczeniach bieżącego okresu\nKonfiguracja admina została zmodernizowana do jsonConfig, z ulepszonymi ustawieniami cen, wyborem stanów i tłumaczeniami\nNarzędzia i utrzymanie odświeżone pod aktualne wersje ioBrokera i Node.js",
+        "zh-cn": "现在可以从 ioBroker 状态读取动态和历史单价，包括资费切换和带时间戳的价格变更\n成本计算在重启和价格变更后仍保持准确，且不会重写已计算的历史数据\n计量表归零、计量表更换以及读数的小幅波动的处理更加可靠\n日、周、月和年的切换更加稳健，包括午夜归零和自动创建新年度统计\n已删除或已禁用的数据源不再写入多余的值，同时保留其现有历史数据\n每月基本费用在当前周期计算中再次被正确应用\n管理界面配置已升级为 jsonConfig，改进了价格设置、状态选择器和翻译\n工具链和维护已针对当前的 ioBroker 与 Node.js 版本进行更新",
+        "uk": "Динамічні та історичні ціни за одиницю тепер можна зчитувати зі станів ioBroker, включно з перемиканням тарифів і змінами цін із міткою часу\nРозрахунки витрат залишаються точними після перезапусків і змін цін, без перезапису вже обчисленої історії\nСкидання лічильника, заміна лічильника та невеликі коливання показів обробляються значно надійніше\nПереходи доби, тижня, місяця та року стали стійкішими, включно зі скиданням опівночі й автоматичним створенням статистики нового року\nВидалені або вимкнені джерела більше не записують небажані значення, а їхня наявна історія зберігається\nЩомісячна базова плата знову правильно застосовується в розрахунках поточного періоду\nКонфігурацію адміністратора модернізовано до jsonConfig із покращеними налаштуваннями цін, вибором станів і перекладами\nІнструменти та супровід оновлено під актуальні версії ioBroker і Node.js"
+      },
+      "0.4.14": {
+        "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solved",
+        "de": "Kleine Code-Aktualisierungen, Lifecycle-Korrekturen\nOption zum Deaktivieren der Geräte-Reset-Funktion hinzugefügt\nBugfix: \"Cannot read property 'name' of undefined\" behoben",
+        "ru": "Небольшие обновления кода, исправления жизненного цикла\nДобавлена опция отключения функции сброса устройства\nИсправление: устранена ошибка \"Cannot read property 'name' of undefined\"",
+        "pt": "Pequenas atualizações de código, correções de ciclo de vida\nAdicionada a opção para desativar a função de reinício do dispositivo\nCorreção: resolvido \"Cannot read property 'name' of undefined\"",
+        "nl": "Kleine codeaanpassingen, lifecycle-correcties\nOptie toegevoegd om de apparaatresetfunctie uit te schakelen\nBugfix: \"Cannot read property 'name' of undefined\" opgelost",
+        "fr": "Petites mises à jour du code, correctifs de cycle de vie\nAjout d'une option pour désactiver la fonction de réinitialisation des appareils\nCorrection : « Cannot read property 'name' of undefined » résolu",
+        "it": "Piccoli aggiornamenti del codice, correzioni del ciclo di vita\nAggiunta l'opzione per disattivare la funzione di reset del dispositivo\nBugfix: risolto \"Cannot read property 'name' of undefined\"",
+        "es": "Pequeñas actualizaciones de código, correcciones del ciclo de vida\nAñadida la opción para desactivar la función de reinicio de dispositivos\nCorrección: resuelto \"Cannot read property 'name' of undefined\"",
+        "pl": "Drobne aktualizacje kodu, poprawki cyklu życia\nDodano opcję wyłączenia funkcji resetowania urządzenia\nPoprawka: rozwiązano \"Cannot read property 'name' of undefined\"",
+        "zh-cn": "小幅代码更新与生命周期修复\n新增可关闭设备重置功能的选项\n修复：解决了 \"Cannot read property 'name' of undefined\"",
+        "uk": "Невеликі оновлення коду, виправлення життєвого циклу\nДодано опцію вимкнення функції скидання пристрою\nВиправлення: усунено \"Cannot read property 'name' of undefined\""
+      },
       "0.4.12": {
         "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",
-        "de": "Fügen Sie eine Protokollierung hinzu, um vom Sentry abgefangene Fehler zu analysieren\n",
-        "ru": "Добавить ведение журнала для анализа ошибок, обнаруженных часовым\n",
-        "pt": "Adicionar registro para analisar o erro capturado pela sentinela\n",
-        "nl": "Logboekregistratie toevoegen om de door de schildwacht gevangen fout te analyseren\n",
-        "fr": "Ajouter une journalisation pour analyser les erreurs détectées par la sentinelle\n",
-        "it": "Aggiungi la registrazione per analizzare l'errore rilevato dalla sentinella\n",
-        "es": "Agregar registro para analizar el error detectado por centinela\n",
-        "pl": "Dodaj logowanie, aby przeanalizować błąd wykryty przez wartownika\n",
-        "zh-cn": "添加日志记录以分析哨兵捕获的错误\n",
-        "uk": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470"
+        "de": "Protokollierung hinzugefügt, um von Sentry erfasste Fehler zu analysieren\n\"Cannot set property 'date' of undefined\" behoben\nWichtig: Die neue Version erfordert JS-Controller >= 3.2!\nMöglichkeit hinzugefügt, einen alternativen Namen (Alias) zu verwenden\nSchreiben des Quell-Datenpunkts vermieden, das beim Tagesreset zu falschen Berechnungen führte #470",
+        "ru": "Добавлено ведение журнала для анализа ошибок, обнаруженных Sentry\nИсправлена ошибка \"Cannot set property 'date' of undefined\"\nВажно: новая версия требует JS-Controller >= 3.2!\nДобавлена возможность использовать альтернативное имя (алиас)\nИсключена запись в исходное состояние, приводившая к неверным расчётам при суточном сбросе #470",
+        "pt": "Adicionado registo para analisar erros detetados pelo Sentry\nResolvido \"Cannot set property 'date' of undefined\"\nImportante: a nova versão requer JS-Controller >= 3.2!\nAdicionada a possibilidade de usar um nome alternativo (alias)\nEvitada a escrita no estado de origem que causava cálculos incorretos no reinício diário #470",
+        "nl": "Logboekregistratie toegevoegd om door Sentry gevangen fouten te analyseren\n\"Cannot set property 'date' of undefined\" opgelost\nBelangrijk: de nieuwe versie vereist JS-Controller >= 3.2!\nMogelijkheid toegevoegd om een alternatieve naam (alias) te gebruiken\nSchrijven naar het brondatapunt vermeden dat bij de dagreset onjuiste berekeningen veroorzaakte #470",
+        "fr": "Ajout d'une journalisation pour analyser les erreurs détectées par Sentry\n« Cannot set property 'date' of undefined » corrigé\nImportant : la nouvelle version nécessite JS-Controller >= 3.2 !\nAjout de la possibilité d'utiliser un nom alternatif (alias)\nÉcriture de l'état source évitée, car elle provoquait des calculs incorrects lors de la remise à zéro quotidienne #470",
+        "it": "Aggiunta la registrazione per analizzare gli errori rilevati da Sentry\nRisolto \"Cannot set property 'date' of undefined\"\nImportante: la nuova versione richiede JS-Controller >= 3.2!\nAggiunta la possibilità di usare un nome alternativo (alias)\nEvitata la scrittura sullo stato di origine che causava calcoli errati al reset giornaliero #470",
+        "es": "Añadido registro para analizar los errores detectados por Sentry\nResuelto \"Cannot set property 'date' of undefined\"\nImportante: la nueva versión requiere JS-Controller >= 3.2!\nAñadida la posibilidad de usar un nombre alternativo (alias)\nEvitada la escritura en el estado de origen que causaba cálculos incorrectos en el reinicio diario #470",
+        "pl": "Dodano logowanie do analizy błędów wykrytych przez Sentry\nRozwiązano \"Cannot set property 'date' of undefined\"\nWażne: nowa wersja wymaga JS-Controller >= 3.2!\nDodano możliwość użycia alternatywnej nazwy (aliasu)\nUniknięto zapisu do stanu źródłowego, który powodował błędne obliczenia przy dobowym zerowaniu #470",
+        "zh-cn": "新增日志记录以分析 Sentry 捕获的错误\n修复了 \"Cannot set property 'date' of undefined\"\n重要：新版本需要 JS-Controller >= 3.2！\n新增使用替代名称（别名）的功能\n避免写入源状态，该写入会在每日归零时导致计算错误 #470",
+        "uk": "Додано журналювання для аналізу помилок, виявлених Sentry\nВиправлено \"Cannot set property 'date' of undefined\"\nВажливо: нова версія потребує JS-Controller >= 3.2!\nДодано можливість використовувати альтернативну назву (псевдонім)\nУникнено запису у вихідний стан, що спричиняв неправильні розрахунки під час добового скидання #470"
       },
       "0.4.11": {
         "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
-        "de": "Log-/Fehlermeldungen beim Adapterstart verbessern\nBugfix : Eigenschaft 'calcValues' von null und verwandten Problemen, die von Sentry gefunden wurden, kann nicht gelesen werden",
-        "ru": "Улучшение сообщений журнала / ошибок при запуске адаптера\nИсправление: не удавалось прочитать свойство «calcValues» для нулевых и связанных проблем, обнаруженных Sentry.",
-        "pt": "Melhorar as mensagens de log / erro no início do adaptador\nCorreção de bug: não é possível ler a propriedade 'calcValues' de problemas nulos e relacionados encontrados pelo Sentry",
-        "nl": "Logboek-/foutmeldingen verbeteren bij het starten van de adapter\nBugfix: kan eigenschap 'calcValues' van null en gerelateerde problemen gevonden door Sentry niet lezen",
-        "fr": "Améliorer les journaux/messages d'erreur au démarrage de l'adaptateur\nCorrection de bug : Impossible de lire la propriété 'calcValues' des problèmes null et connexes trouvés par Sentry",
-        "it": "Migliora i messaggi di registro/errore all'avvio dell'adattatore\nBugfix: impossibile leggere la proprietà 'calcValues' di problemi nulli e correlati rilevati da Sentry",
-        "es": "Mejorar los mensajes de registro / error al iniciar el adaptador\nCorrección de error: no se puede leer la propiedad 'calcValues' de problemas nulos y relacionados encontrados por Sentry",
-        "pl": "Popraw komunikaty dziennika/błędów podczas uruchamiania adaptera\nPoprawka błędu: Nie można odczytać właściwości „calcValues” wartości null i powiązanych problemów znalezionych przez Sentry",
-        "zh-cn": "改进适配器启动时的日志/错误消息\n错误修正：无法读取 Sentry 发现的 null 和相关问题的属性“calcValues”",
-        "uk": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry"
+        "de": "Log-/Fehlermeldungen beim Adapterstart verbessert\nBugfix: \"Cannot read property 'calcValues' of null\" und verwandte, von Sentry gefundene Probleme behoben",
+        "ru": "Улучшены сообщения журнала и об ошибках при запуске адаптера\nИсправление: устранена ошибка \"Cannot read property 'calcValues' of null\" и связанные проблемы, обнаруженные Sentry",
+        "pt": "Melhoradas as mensagens de log e de erro no arranque do adaptador\nCorreção: resolvido \"Cannot read property 'calcValues' of null\" e problemas relacionados detetados pelo Sentry",
+        "nl": "Logboek- en foutmeldingen bij het starten van de adapter verbeterd\nBugfix: \"Cannot read property 'calcValues' of null\" en gerelateerde door Sentry gevonden problemen opgelost",
+        "fr": "Amélioration des messages de journal et d'erreur au démarrage de l'adaptateur\nCorrection : « Cannot read property 'calcValues' of null » et problèmes connexes détectés par Sentry résolus",
+        "it": "Migliorati i messaggi di log e di errore all'avvio dell'adattatore\nBugfix: risolto \"Cannot read property 'calcValues' of null\" e i problemi correlati rilevati da Sentry",
+        "es": "Mejorados los mensajes de registro y de error al iniciar el adaptador\nCorrección: resuelto \"Cannot read property 'calcValues' of null\" y problemas relacionados detectados por Sentry",
+        "pl": "Poprawiono komunikaty dziennika i błędów podczas uruchamiania adaptera\nPoprawka: rozwiązano \"Cannot read property 'calcValues' of null\" oraz powiązane problemy wykryte przez Sentry",
+        "zh-cn": "改进了适配器启动时的日志与错误消息\n修复：解决了 \"Cannot read property 'calcValues' of null\" 及 Sentry 发现的相关问题",
+        "uk": "Покращено повідомлення журналу та помилок під час запуску адаптера\nВиправлення: усунено \"Cannot read property 'calcValues' of null\" та пов'язані проблеми, виявлені Sentry"
       },
       "0.4.10": {
-        "en": "Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "de": "Bugfix : Adapterabsturz während der Nacht bei falsch konfigurierten Zuständen vermeiden [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "ru": "Исправление: предотвращение сбоя адаптера в ночное время из-за неправильных настроенных состояний [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "pt": "Correção de bug: evite a falha do adaptador durante a noite para estados configurados incorretos [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "nl": "Bugfix: Voorkom dat de adapter 's nachts crasht vanwege onjuist geconfigureerde statussen [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "fr": "Correction de bug : évitez le crash de l'adaptateur pendant la nuit pour les états configurés incorrects [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "it": "Bugfix: evita l'arresto anomalo dell'adattatore durante la notte per stati di configurazione errati [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "es": "Corrección de error: evite el bloqueo del adaptador durante la noche para estados configurados incorrectamente [# 460] (https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "pl": "Poprawka błędu: Unikaj awarii karty w nocy w przypadku niepoprawnie skonfigurowanych stanów [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "zh-cn": "修正：避免夜间适配器因错误配置状态而崩溃 [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)",
-        "uk": "Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)"
+        "en": "Bugfix : Avoid adapter crash during night for incorrect configured states #460",
+        "de": "Bugfix: Adapterabsturz während der Nacht bei falsch konfigurierten Datenpunkten vermieden #460",
+        "ru": "Исправление: предотвращён сбой адаптера ночью из-за неправильно настроенных состояний #460",
+        "pt": "Correção: evitada a falha do adaptador durante a noite devido a estados mal configurados #460",
+        "nl": "Bugfix: voorkomen dat de adapter 's nachts crasht door onjuist geconfigureerde datapunten #460",
+        "fr": "Correction : plantage de l'adaptateur pendant la nuit évité pour des états mal configurés #460",
+        "it": "Bugfix: evitato l'arresto anomalo dell'adattatore durante la notte per stati configurati in modo errato #460",
+        "es": "Corrección: evitado el bloqueo del adaptador durante la noche por estados mal configurados #460",
+        "pl": "Poprawka: uniknięto awarii adaptera w nocy z powodu nieprawidłowo skonfigurowanych stanów #460",
+        "zh-cn": "修复：避免适配器在夜间因状态配置错误而崩溃 #460",
+        "uk": "Виправлення: усунено збій адаптера вночі через неправильно налаштовані стани #460"
       },
       "0.4.9": {
         "en": "Added support for Admin 5 (Requires Admin >= 5.1.2)",
-        "de": "Unterstützung für Admin 5 hinzugefügt (Admin erforderlich >= 5.1.2)",
-        "ru": "Добавлена поддержка для Admin 5 (требуется Admin >= 5.1.2).",
+        "de": "Unterstützung für Admin 5 hinzugefügt (erfordert Admin >= 5.1.2)",
+        "ru": "Добавлена поддержка Admin 5 (требуется Admin >= 5.1.2)",
         "pt": "Adicionado suporte para Admin 5 (requer Admin >= 5.1.2)",
         "nl": "Ondersteuning toegevoegd voor Admin 5 (vereist Admin >= 5.1.2)",
-        "fr": "Ajout du support pour Admin 5 (nécessite Admin >= 5.1.2)",
+        "fr": "Ajout de la prise en charge d'Admin 5 (nécessite Admin >= 5.1.2)",
         "it": "Aggiunto supporto per Admin 5 (richiede Admin >= 5.1.2)",
-        "es": "Soporte agregado para Admin 5 (Requiere Admin >= 5.1.2)",
-        "pl": "Dodano obsługę administratora 5 (wymaga administratora >= 5.1.2)",
-        "zh-cn": "添加了对Admin 5的支持（需要Admin >= 5.1.2）",
-        "uk": "Added support for Admin 5 (Requires Admin >= 5.1.2)"
+        "es": "Añadido soporte para Admin 5 (requiere Admin >= 5.1.2)",
+        "pl": "Dodano obsługę Admin 5 (wymaga Admin >= 5.1.2)",
+        "zh-cn": "新增对 Admin 5 的支持（需要 Admin >= 5.1.2）",
+        "uk": "Додано підтримку Admin 5 (потребує Admin >= 5.1.2)"
       }
     },
     "titleLang": {
@@ -121,7 +147,7 @@
     "supportCustoms": true,
     "globalDependencies": [
       {
-        "admin": ">=7.6.17"
+        "admin": ">=7.6.20"
       }
     ],
     "dependencies": [
