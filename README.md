@@ -250,7 +250,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.2 (2026-07-28)
 * The npm release workflow no longer fails at the Sentry step: commit association is disabled because the previous release commit is not reachable in the shallow, squash-merged history ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
 * README now carries the standard Sentry notice required by the ioBroker repository checker ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
 
@@ -288,20 +288,6 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * (DutchmanNL) Small code updates, lifecycle patches
 * (DutchmanNL) Option to disable device reset feature added
 * (DutchmanNL) Bugfix: Cannot read property 'name' of undefined solved
-
-### 0.4.12 (2021-11-15) - requires JS-Controller >= 3.2!
-* (DutchmanNL) Add logging to analyse error caught by sentry
-* (DutchmanNL) "Cannot set property 'date' of undefined" solved
-* (DutchmanNL) Major : New version requires JS-Controller >= 3.2!
-* (DutchmanNL) Add possibility to use an alternative name (alias)
-* (DutchmanNL) Avoid writing source state causing incorrect calculations at day reset #470
-
-### 0.4.11 (2021-08-16)
-* (DutchmanNL) Improve log/error messages at adapter start
-* (DutchmanNL) Bugfix : Cannot read property 'calcValues' of null & related issues found by Sentry
-
-### 0.4.10 (2021-08-10)
-* (DutchmanNL) Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)
 
 [Older changelog entries](CHANGELOG_OLD.md)
 

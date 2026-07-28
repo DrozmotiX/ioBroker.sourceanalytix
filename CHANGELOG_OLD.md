@@ -1,4 +1,18 @@
 # Older changes
+## 0.4.12 (2021-11-15) - requires JS-Controller >= 3.2!
+* (DutchmanNL) Add logging to analyse error caught by sentry
+* (DutchmanNL) "Cannot set property 'date' of undefined" solved
+* (DutchmanNL) Major : New version requires JS-Controller >= 3.2!
+* (DutchmanNL) Add possibility to use an alternative name (alias)
+* (DutchmanNL) Avoid writing source state causing incorrect calculations at day reset #470
+
+## 0.4.11 (2021-08-16)
+* (DutchmanNL) Improve log/error messages at adapter start
+* (DutchmanNL) Bugfix : Cannot read property 'calcValues' of null & related issues found by Sentry
+
+## 0.4.10 (2021-08-10)
+* (DutchmanNL) Bugfix : Avoid adapter crash during night for incorrect configured states [#460](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/460)
+
 ## 0.4.9 (2021-05-31)
 * (DutchmanNL) Added support for Admin 5 (Requires Admin >= 5.1.2)
 * (Bluefox) Fix error in admin

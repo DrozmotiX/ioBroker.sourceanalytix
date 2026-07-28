@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "news": {
       "0.5.2": {
         "en": "The npm release workflow no longer fails at the Sentry step because commit association is disabled\nThe README now contains the standard Sentry notice required by the ioBroker repository checker",
