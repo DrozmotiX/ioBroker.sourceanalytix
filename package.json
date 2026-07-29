@@ -29,6 +29,7 @@
     "io-package.json",
     "lib/calculation.js",
     "lib/dynamic-pricing.js",
+    "lib/statistics-json.js",
     "main.js"
   ],
   "dependencies": {

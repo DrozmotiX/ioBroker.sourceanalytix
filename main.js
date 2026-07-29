@@ -11,6 +11,7 @@ const adapterHelpers = require('iobroker-adapter-helpers'); // Lib used for Unit
 const schedule = require('cron').CronJob; // Cron Scheduler
 const calculation = require('./lib/calculation');
 const dynamicPricing = require('./lib/dynamic-pricing');
+const statisticsJson = require('./lib/statistics-json');
 
 // Sentry error reporting, disable when testing alpha source code locally!
 const disableSentry = false;
@@ -56,6 +57,9 @@ class Sourceanalytix extends utils.Adapter {
 		this.priceHistories = {}; // Price definition category -> ordered price history
 		this.validStates = {}; // Array of all created states
 		this.visWidgetJson ={}; // Array containing all calculation values to use in vis widget
+		this.statisticsJsonSnapshots = {};
+		this.statisticsJsonTimers = {};
+		this.statisticsJsonLastValues = {};
 	}
 
 	/**
@@ -787,6 +791,16 @@ class Sourceanalytix extends utils.Adapter {
 			val: calculationRounded.priceYear,
 			ack: true
 		});
+		const currentValues = [
+			['01_currentDay', calculationRounded.priceDay],
+			['02_currentWeek', calculationRounded.priceWeek],
+			['03_currentMonth', calculationRounded.priceMonth],
+			['04_currentQuarter', calculationRounded.priceQuarter],
+			['05_currentYear', calculationRounded.priceYear],
+		];
+		for (const [state, value] of currentValues) {
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.${state}`, value);
+		}
 
 		if (this.config.store_weeks || this.config.store_months || this.config.store_quarters) {
 			await this.setStateChangedAsync(`${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}Cumulative`, {
@@ -800,24 +814,28 @@ class Sourceanalytix extends utils.Adapter {
 				val: calculationRounded.priceDay,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.currentWeek.${weekdays[date.getDay()]}`, calculationRounded.priceDay);
 		}
 		if (this.config.currentYearWeek) {
 			await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 				val: calculationRounded.priceWeek,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.weeks.${actualDate.week}`, calculationRounded.priceWeek);
 		}
 		if (this.config.currentYearMonth) {
 			await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {
 				val: calculationRounded.priceMonth,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.months.${actualDate.month}`, calculationRounded.priceMonth);
 		}
 		if (this.config.currentYearQuarter) {
 			await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 				val: calculationRounded.priceQuarter,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.quarters.Q${actualDate.quarter}`, calculationRounded.priceQuarter);
 		}
 
 		stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}`;
@@ -854,6 +872,7 @@ class Sourceanalytix extends utils.Adapter {
 		];
 		for (const [state, value] of currentValues) {
 			await this.setStateChangedAsync(`${stateName}.${state}`, {val: value, ack: true});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.${state}`, value);
 		}
 
 		if (this.config.store_weeks || this.config.store_months || this.config.store_quarters) {
@@ -867,30 +886,180 @@ class Sourceanalytix extends utils.Adapter {
 				val: calculationRounded.consumedDay,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.currentWeek.${weekdays[date.getDay()]}`, calculationRounded.consumedDay);
 		}
 		if (this.config.currentYearWeek) {
 			await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 				val: calculationRounded.consumedWeek,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.weeks.${actualDate.week}`, calculationRounded.consumedWeek);
 		}
 		if (this.config.currentYearMonth) {
 			await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {
 				val: calculationRounded.consumedMonth,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.months.${actualDate.month}`, calculationRounded.consumedMonth);
 		}
 		if (this.config.currentYearQuarter) {
 			await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 				val: calculationRounded.consumedQuarter,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.quarters.Q${actualDate.quarter}`, calculationRounded.consumedQuarter);
 		}
 
 		stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}`;
 		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {val: calculationRounded.consumedWeek, ack: true});
 		if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {val: calculationRounded.consumedMonth, ack: true});
 		if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {val: calculationRounded.consumedQuarter, ack: true});
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 * @returns {object|null} Empty snapshot for the active source
+	 */
+	createStatisticsJsonSnapshot(stateID) {
+		const activeState = this.activeStates[stateID];
+		if (!activeState || !activeState.stateDetails) return null;
+		const details = activeState.stateDetails;
+		return statisticsJson.createStatisticsSnapshot({
+			year: actualDate.year,
+			sourceId: stateID,
+			sourceName: details.alias || details.name,
+			unit: details.useUnit,
+			quantityType: details.headCategory,
+			financialType: details.financialCategory,
+			currency: useCurrency,
+			consumption: details.consumption,
+			costs: details.costs,
+			meterValues: details.meter_values,
+			days: this.config.currentYearDays,
+			weeks: this.config.currentYearWeek,
+			months: this.config.currentYearMonth,
+			quarters: this.config.currentYearQuarter,
+			previous: this.config.currentYearPrevious,
+		});
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 * @returns {string|null} Local JSON state ID
+	 */
+	getStatisticsJsonStateName(stateID) {
+		const activeState = this.activeStates[stateID];
+		return activeState && activeState.stateDetails
+			? `${activeState.stateDetails.deviceName}.statisticsJson`
+			: null;
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 */
+	async ensureStatisticsJsonState(stateID) {
+		const stateName = this.getStatisticsJsonStateName(stateID);
+		if (!stateName) return;
+		await this.extendObjectAsync(stateName, {
+			type: 'state',
+			common: {
+				name: 'Statistics JSON',
+				type: 'string',
+				role: 'json',
+				read: true,
+				write: false,
+				def: '',
+			},
+			native: {
+				sourceState: stateID,
+				schemaVersion: 1,
+			},
+		});
+	}
+
+	/**
+	 * Rebuild the cache from existing current-year states.
+	 * @param {string} stateID - Source state ID
+	 */
+	async refreshStatisticsJson(stateID) {
+		const snapshot = this.createStatisticsJsonSnapshot(stateID);
+		const stateName = this.getStatisticsJsonStateName(stateID);
+		if (!snapshot || !stateName) return;
+
+		const deviceName = this.activeStates[stateID].stateDetails.deviceName;
+		const existingStates = await this.getStatesAsync(`${deviceName}.*`);
+		for (const [id, state] of Object.entries(existingStates || {})) {
+			if (!state) continue;
+			const localPrefix = `${deviceName}.`;
+			const fullPrefix = `${this.namespace}.${localPrefix}`;
+			const relativePath = id.startsWith(fullPrefix)
+				? id.slice(fullPrefix.length)
+				: id.startsWith(localPrefix)
+					? id.slice(localPrefix.length)
+					: null;
+			if (relativePath) statisticsJson.applyStatisticsState(snapshot, relativePath, state.val);
+		}
+
+		const existingJson = await this.getStateAsync(stateName);
+		this.statisticsJsonLastValues[stateID] = existingJson && typeof existingJson.val === 'string'
+			? existingJson.val
+			: null;
+		this.statisticsJsonSnapshots[stateID] = snapshot;
+		this.scheduleStatisticsJsonWrite(stateID);
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 * @param {string} relativePath - State path below the source device
+	 * @param {unknown} value - Calculated value
+	 */
+	recordStatisticsValue(stateID, relativePath, value) {
+		const snapshot = this.statisticsJsonSnapshots[stateID];
+		if (!snapshot) return;
+		if (statisticsJson.applyStatisticsState(snapshot, relativePath, value)) {
+			this.scheduleStatisticsJsonWrite(stateID);
+		}
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 */
+	scheduleStatisticsJsonWrite(stateID) {
+		if (this.statisticsJsonTimers[stateID]) return;
+		this.statisticsJsonTimers[stateID] = this.setTimeout(() => {
+			delete this.statisticsJsonTimers[stateID];
+			void this.flushStatisticsJson(stateID);
+		}, 300);
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 */
+	async flushStatisticsJson(stateID) {
+		try {
+			const snapshot = this.statisticsJsonSnapshots[stateID];
+			const stateName = this.getStatisticsJsonStateName(stateID);
+			if (!snapshot || !stateName || !this.activeStates[stateID]) return;
+			const serialized = statisticsJson.serializeStatisticsSnapshot(snapshot);
+			if (serialized === this.statisticsJsonLastValues[stateID]) return;
+			await this.setStateChangedAsync(stateName, {val: serialized, ack: true});
+			this.statisticsJsonLastValues[stateID] = serialized;
+		} catch (error) {
+			this.errorHandling(`[flushStatisticsJson] ${stateID}`, error);
+		}
+	}
+
+	/**
+	 * Stop updates while retaining the last persisted JSON state.
+	 * @param {string} stateID - Source state ID
+	 */
+	stopStatisticsJsonUpdates(stateID) {
+		if (this.statisticsJsonTimers[stateID]) {
+			this.clearTimeout(this.statisticsJsonTimers[stateID]);
+			delete this.statisticsJsonTimers[stateID];
+		}
+		delete this.statisticsJsonSnapshots[stateID];
+		delete this.statisticsJsonLastValues[stateID];
 	}
 
 	//ToDo 0.5: Implement cleanup for unused states
@@ -997,6 +1166,7 @@ class Sourceanalytix extends utils.Adapter {
 				stateInfo = await this.getForeignObjectAsync(stateID);
 				if (!stateInfo) {
 					this.log.error(`Can't get information for ${stateID}, state will be ignored`);
+					this.stopStatisticsJsonUpdates(stateID);
 					delete this.activeStates[stateID];
 					this.unsubscribeForeignStates(stateID);
 					initError = true;
@@ -1004,6 +1174,7 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			} catch (error) {
 				this.log.error(`${stateID} is incorrectly correctly formatted, ${JSON.stringify(error)}`);
+				this.stopStatisticsJsonUpdates(stateID);
 				delete this.activeStates[stateID];
 				this.unsubscribeForeignStates(stateID);
 				initError = true;
@@ -1071,6 +1242,7 @@ class Sourceanalytix extends utils.Adapter {
 				// In case of one of above checks fails, abort procedure
 				if (initError){
 					this.log.error(`Cannot handle calculations for ${stateID}, check log messages and adjust settings!`);
+					this.stopStatisticsJsonUpdates(stateID);
 					delete this.activeStates[stateID];
 					this.unsubscribeForeignStates(stateID);
 					return false;
@@ -1231,6 +1403,9 @@ class Sourceanalytix extends utils.Adapter {
 			const stateName = 'cumulativeReading';
 			await this.doLocalStateCreate(stateID, stateName, 'Cumulative Reading', true);
 
+			await this.ensureStatisticsJsonState(stateID);
+			await this.refreshStatisticsJson(stateID);
+
 			// Recover a calendar reset missed while the adapter was stopped.
 			await this.processPeriodRollover(stateID, new Date());
 
@@ -1296,6 +1471,7 @@ class Sourceanalytix extends utils.Adapter {
 					}
 
 				} else if (this.activeStates[stateID]) {
+					this.stopStatisticsJsonUpdates(stateID);
 					delete this.activeStates[stateID];
 					this.log.info(`Disabled SourceAnalytix for : ${stateID}`);
 					this.log.debug(`Active state array after deactivation of ${stateID} : ${JSON.stringify(this.activeStates)}`);
@@ -1303,6 +1479,7 @@ class Sourceanalytix extends utils.Adapter {
 				}
 
 			} else if (this.activeStates[stateID]) {
+				this.stopStatisticsJsonUpdates(stateID);
 				delete this.activeStates[stateID];
 				delete previousCalculationRounded[stateID];
 				this.unsubscribeForeignStates(stateID);
@@ -1681,6 +1858,7 @@ class Sourceanalytix extends utils.Adapter {
 		});
 		await this.writeCurrentPeriodValuesAfterReset(stateID, Number(reading), date);
 		await this.persistPeriodMemory(stateID, currentPeriods);
+		await this.refreshStatisticsJson(stateID);
 		return true;
 	}
 
@@ -2107,6 +2285,7 @@ class Sourceanalytix extends utils.Adapter {
 				val: reading,
 				ack: true
 			});
+			this.recordStatisticsValue(stateID, 'cumulativeReading', reading);
 
 			// Write current reading at year statistics
 			if (this.config.store_weeks || this.config.store_months || 	this.config.store_quarters){
@@ -2149,24 +2328,28 @@ class Sourceanalytix extends utils.Adapter {
 							val: readingRounded,
 							ack: true
 						});
+						this.recordStatisticsValue(stateID, `currentYear.meterReadings.currentWeek.${weekdays[date.getDay()]}`, readingRounded);
 					}
 					if (this.config.currentYearWeek) {
 						await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 							val: readingRounded,
 							ack: true
 						});
+						this.recordStatisticsValue(stateID, `currentYear.meterReadings.weeks.${actualDate.week}`, readingRounded);
 					}
 					if (this.config.currentYearMonth) {
 						await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {
 							val: readingRounded,
 							ack: true
 						});
+						this.recordStatisticsValue(stateID, `currentYear.meterReadings.months.${actualDate.month}`, readingRounded);
 					}
 					if (this.config.currentYearQuarter) {
 						await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {
 							val: readingRounded,
 							ack: true
 						});
+						this.recordStatisticsValue(stateID, `currentYear.meterReadings.quarters.Q${actualDate.quarter}`, readingRounded);
 					}
 					stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
 					if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
@@ -2517,6 +2700,10 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	onUnload(callback) {
 		try {
+			for (const timer of Object.values(this.statisticsJsonTimers)) {
+				this.clearTimeout(timer);
+			}
+			this.statisticsJsonTimers = {};
 			this.log.info(`SourceAnalytix stopped, now you have to calculate by yourself :'( ...`);
 			callback();
 		} catch {
