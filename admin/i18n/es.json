@@ -11,7 +11,7 @@
     "Current year": "Año corriente",
     "Description": "Descripción",
     "Enable device value reset detection": "Detección de restablecimiento del valor del dispositivo Habilitado",
-    "If no alias is set, name will be used": "Si no se establece un alias, se usará el nombre",
+    "Alias changes only the display name; the generated state ID remains unchanged": "El alias solo cambia el nombre mostrado; el ID del estado generado permanece sin cambios",
     "Including basic rate": "Incluyendo tarifa básica",
     "Meter reading at the beginning of the day": "Lectura del medidor al comienzo del día.",
     "Meter reading at the beginning of the month": "Lectura de contadores a principios de mes",

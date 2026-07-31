@@ -26,7 +26,7 @@
     "Active tariff price": "Active tariff price",
     "From": "From",
     "ID": "ID",
-    "If no alias is set, name will be used": "If no alias is set, name will be used",
+    "Alias changes only the display name; the generated state ID remains unchanged": "Alias changes only the display name; the generated state ID remains unchanged",
     "Including basic rate": "Including basic rate",
     "Invert selection": "Invert selection",
     "Last changed": "Last changed",

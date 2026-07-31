@@ -11,7 +11,7 @@
     "Current year": "今年",
     "Description": "描述",
     "Enable device value reset detection": "软元件值复位检测 启用",
-    "If no alias is set, name will be used": "如果未设置别名，将使用名称",
+    "Alias changes only the display name; the generated state ID remains unchanged": "别名仅更改显示名称；生成的状态 ID 保持不变",
     "Including basic rate": "含基本费率",
     "Meter reading at the beginning of the day": "一天开始时抄表",
     "Meter reading at the beginning of the month": "月初抄表",

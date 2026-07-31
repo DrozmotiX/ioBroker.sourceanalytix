@@ -115,7 +115,7 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Setting | Description |
 | --- | --- |
 | Enabled | Activates this source for the selected SourceAnalytix instance. |
-| Alias name | Optional readable name for the generated device. |
+| Alias | Optional display name for the generated device. It does not change the generated state ID. |
 | Select price definition | Mandatory category from the adapter's price definitions. |
 | Select Unit | Source unit. Leave on automatic detection when the source object has a correct supported unit. |
 | Calculate costs | Creates and updates cost or earnings states. |

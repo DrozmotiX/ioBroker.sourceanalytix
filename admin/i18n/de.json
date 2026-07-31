@@ -26,7 +26,7 @@
     "Active tariff price": "Aktiver Tarifpreis",
     "From": "Von",
     "ID": "ID",
-    "If no alias is set, name will be used": "Wenn kein Alias ​​festgelegt ist, wird der Name verwendet",
+    "Alias changes only the display name; the generated state ID remains unchanged": "Der Alias ändert nur den Anzeigenamen; die erzeugte Datenpunkt-ID bleibt unverändert",
     "Including basic rate": "Inklusive Grundpreis",
     "Invert selection": "Auswahl umkehren",
     "Last changed": "Letzte Änderung",

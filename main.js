@@ -1256,7 +1256,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.activeStates[stateID] = {
 					firstActivation: useUnit !== 'W' && valueAtDeviceReset === null,
 					stateDetails: {
-						alias: customData.alias !== '' ? customData.alias : '',
+						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
 						averagePowerValues: customData.averagePowerValues === true,
 						basicRate: customData.basicRate === true,
 						consumption: customData.consumption,
@@ -1265,7 +1265,7 @@ class Sourceanalytix extends utils.Adapter {
 						financialCategory: stateType,
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
 						meter_values: customData.meter_values,
-						name: stateInfo.common.name !== '' ? customData.alias : 'No name known, please provide alias',
+						name: commonData.name || 'No name known, please provide alias',
 						stateType: customData.selectedPrice,
 						stateUnit: useUnit,
 						useUnit: selectedPriceConfig.unitType,
