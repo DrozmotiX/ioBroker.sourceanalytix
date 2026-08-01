@@ -22,6 +22,7 @@ const basicPreviousStates = ['01_previousDay', '02_previousWeek', '03_previousMo
 const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday","04_Thursday","05_Friday","06_Saturday"]');
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const stateDeletion = true, previousCalculationRounded = {};
+const recoverPeriodsState = 'info.recoverPeriods';
 const storeSettings = {};
 let calcBlock = null; // Global variable to block all calculations
 let delay = null; // Global array for all running timers
@@ -57,6 +58,9 @@ class Sourceanalytix extends utils.Adapter {
 		this.priceHistories = {}; // Price definition category -> ordered price history
 		this.validStates = {}; // Array of all created states
 		this.visWidgetJson ={}; // Array containing all calculation values to use in vis widget
+		this.resetDayJob = null; // Midnight cron job
+		this.periodCheckInterval = null; // Hourly safety check for missed rollovers
+		this.rolloverRunning = false; // Guard against concurrent rollovers
 		this.statisticsJsonSnapshots = {};
 		this.statisticsJsonTimers = {};
 		this.statisticsJsonLastValues = {};
@@ -152,6 +156,9 @@ class Sourceanalytix extends utils.Adapter {
 				}
 				count = count + 1;
 			}
+
+			// Provide the manual rollover button before the scheduler is started
+			await this.ensureRecoverPeriodsState();
 
 			// Start Daily reset function by cron job
 			await this.resetStartValues();
@@ -1635,6 +1642,17 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {ioBroker.State | null | undefined} state - Changed state, or null when deleted
 	 */
 	async onStateChange(id, state) {
+		// Handled before the calculation block, a manual rollover must always be possible
+		if (state && !state.ack && id === `${this.namespace}.${recoverPeriodsState}`) {
+			try {
+				this.log.info(`Manual period rollover requested`);
+				await this.runPeriodRollovers('button');
+				await this.setStateAsync(recoverPeriodsState, {val: false, ack: true});
+			} catch (error) {
+				this.errorHandling(`[onStateChange] for ${id}`, error);
+			}
+			return;
+		}
 		if (calcBlock) return; // cancel operation if global calculation block is activate
 		try {
 			// Check if a valid state change has been received
@@ -1953,31 +1971,98 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async resetStartValues() {
 		try {
-			const resetDay = new schedule('0 0 * * *', async () => {
-				calcBlock = true;
-				const date = new Date();
-				await this.refreshDates();
-				for (const stateID in this.activeStates) {
-					try {
-						await this.processPeriodRollover(stateID, date);
-					} catch (error) {
-						this.errorHandling(`[resetStartValues] ${stateID}`, error);
-					}
+			// The cron library does not await the callback, so it must never reject.
+			this.resetDayJob = new schedule('0 0 * * *', async () => {
+				try {
+					await this.runPeriodRollovers('midnight scheduler');
+				} catch (error) {
+					this.errorHandling(`[resetStartValues]`, error);
+					calcBlock = false; // Continue all calculations
 				}
-
-				if (delay) this.clearTimeout(delay);
-				delay = this.setTimeout(() => {
-					calcBlock = false;
-				}, 500);
 			});
 
-			resetDay.start();
+			this.resetDayJob.start();
+
+			// Recover a rollover the scheduler could have missed while the adapter kept
+			// running, for example after a host suspend or a system time correction.
+			this.periodCheckInterval = this.setInterval(async () => {
+				try {
+					await this.runPeriodRollovers('safety check');
+				} catch (error) {
+					this.errorHandling(`[periodCheck]`, error);
+					calcBlock = false;
+				}
+			}, 3600000);
 
 		} catch (error) {
 			this.errorHandling(`[resetStartValues]`, error);
 			calcBlock = false; // Continue all calculations
 		}
 
+	}
+
+	/**
+	 * Process a calendar rollover for all active sources, from the scheduler,
+	 * the safety check, the button state or a sendTo message.
+	 * @param {string} trigger - What asked for the rollover, used for logging
+	 * @returns {Promise<number>} Number of sources with a processed rollover
+	 */
+	async runPeriodRollovers(trigger) {
+		if (this.rolloverRunning) {
+			this.log.debug(`[runPeriodRollovers] Rollover already running, ignoring ${trigger}`);
+			return 0;
+		}
+		this.rolloverRunning = true;
+		calcBlock = true;
+		let recovered = 0;
+		try {
+			const date = new Date();
+			await this.refreshDates();
+			for (const stateID in this.activeStates) {
+				try {
+					if (await this.processPeriodRollover(stateID, date)) recovered = recovered + 1;
+				} catch (error) {
+					this.errorHandling(`[runPeriodRollovers] ${stateID}`, error);
+				}
+			}
+		} finally {
+			this.rolloverRunning = false;
+			if (delay) this.clearTimeout(delay);
+			delay = this.setTimeout(() => {
+				calcBlock = false;
+			}, 500);
+		}
+
+		if (recovered > 0) {
+			this.log.info(`Processed calendar rollover for ${recovered} source(s), triggered by ${trigger}`);
+		} else {
+			this.log.debug(`[runPeriodRollovers] No rollover needed, triggered by ${trigger}`);
+		}
+		return recovered;
+	}
+
+	/**
+	 * Create the button which runs a missed rollover without restarting the instance.
+	 */
+	async ensureRecoverPeriodsState() {
+		await this.extendObjectAsync('info', {
+			type: 'channel',
+			common: {name: 'Information'},
+			native: {},
+		});
+		await this.extendObjectAsync(recoverPeriodsState, {
+			type: 'state',
+			common: {
+				name: 'Run missed period rollover',
+				type: 'boolean',
+				role: 'button',
+				read: false,
+				write: true,
+				def: false,
+			},
+			native: {},
+		});
+		this.subscribeStates(recoverPeriodsState);
 	}
 
 	/**
@@ -2748,6 +2833,13 @@ class Sourceanalytix extends utils.Adapter {
 						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
 					}
 					break;
+
+				case 'recoverPeriods': {
+					this.log.info(`Period rollover requested by ${obj.from}`);
+					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`);
+					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+					break;
+				}
 			}
 		}
 	}
@@ -2758,6 +2850,18 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	onUnload(callback) {
 		try {
+			if (this.resetDayJob) {
+				this.resetDayJob.stop();
+				this.resetDayJob = null;
+			}
+			if (this.periodCheckInterval) {
+				this.clearInterval(this.periodCheckInterval);
+				this.periodCheckInterval = null;
+			}
+			if (delay) {
+				this.clearTimeout(delay);
+				delay = null;
+			}
 			for (const timer of Object.values(this.statisticsJsonTimers)) {
 				this.clearTimeout(timer);
 			}
