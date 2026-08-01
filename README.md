@@ -28,7 +28,7 @@ When the adapter crashes or another code error occurs, the error message which a
 - Timestamped price history which preserves already calculated costs
 - Automatic conversion between compatible energy, volume, mass and metric length units
 - Integration of power readings over their actual update intervals, optionally ignoring negative readings
-- Recovery of missed calendar rollovers after an adapter restart
+- Recovery of missed calendar rollovers after a restart, on request or by an hourly check
 - Handling of meter resets, meter replacements and small backwards fluctuations
 - One compact, automatically updated statistics JSON state per active source
 
@@ -52,6 +52,13 @@ The **General settings** tab controls which detailed statistics are created. Dis
 Both rounding settings accept `-1` to store the exact calculated value without rounding. A single source can deviate from them: its **Decimals for consumption values** and **Decimals for cost values** fields override the global setting and use it whenever they are left empty. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
 
 SourceAnalytix remembers the last successfully processed calendar periods. If the adapter or ioBroker is not running at midnight, missed day, week, month, quarter and year changes are processed once at the next start.
+
+A rollover can also be triggered without restarting the instance, which is useful when the instance is noticed to be down shortly after midnight:
+
+- Set `sourceanalytix.<instance>.info.recoverPeriods` to `true`. The button resets itself when the run is finished.
+- Or send a message from a script: `sendTo('sourceanalytix.<instance>', 'recoverPeriods', {}, result => log(result.recovered))`. The reply contains the number of sources whose rollover was processed.
+
+An hourly check performs the same recovery on its own, so a rollover missed while the adapter kept running - after a host suspend or a system time correction - is corrected automatically. Every route is idempotent: sources whose periods are already up to date are skipped.
 
 ### 2. Create price definitions
 
@@ -324,6 +331,8 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 ### __WORK IN PROGRESS__
 * Previous day, week, month, quarter and year values are written with the timestamp of the period they belong to (23:59:59 on its last day), so history adapters and Flot plot them in the correct period ([#497](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/497)).
 * The number of decimals for consumption and cost values is configurable globally and per source, including an option to store the exact value without rounding ([#934](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/934)).
+* A missed calendar rollover can be processed without restarting the instance, through the new `info.recoverPeriods` button or a `recoverPeriods` message, and an hourly check recovers a rollover the scheduler missed while the adapter kept running ([#905](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/905)).
+* The midnight scheduler can no longer raise an unhandled rejection, and its cron job and timers are stopped when the instance shuts down ([#904](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/904)).
 
 ### 0.5.4 (2026-08-01)
 * Each active source automatically exposes a compact `statisticsJson` state containing its current-year quantity, financial and optional meter-reading statistics ([#361](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/361), [#967](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/967)).
