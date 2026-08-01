@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "news": {
       "0.5.4": {
         "en": "Each active source automatically exposes a compact statisticsJson state with its current-year quantity, financial and optional meter-reading statistics\nMonthly basic prices are no longer imported into the variable-cost accumulator and added a second time after a restart",
@@ -93,19 +93,6 @@
         "pl": "Dodano logowanie do analizy błędów wykrytych przez Sentry\nRozwiązano \"Cannot set property 'date' of undefined\"\nWażne: nowa wersja wymaga JS-Controller >= 3.2!\nDodano możliwość użycia alternatywnej nazwy (aliasu)\nUniknięto zapisu do stanu źródłowego, który powodował błędne obliczenia przy dobowym zerowaniu #470",
         "zh-cn": "新增日志记录以分析 Sentry 捕获的错误\n修复了 \"Cannot set property 'date' of undefined\"\n重要：新版本需要 JS-Controller >= 3.2！\n新增使用替代名称（别名）的功能\n避免写入源状态，该写入会在每日归零时导致计算错误 #470",
         "uk": "Додано журналювання для аналізу помилок, виявлених Sentry\nВиправлено \"Cannot set property 'date' of undefined\"\nВажливо: нова версія потребує JS-Controller >= 3.2!\nДодано можливість використовувати альтернативну назву (псевдонім)\nУникнено запису у вихідний стан, що спричиняв неправильні розрахунки під час добового скидання #470"
-      },
-      "0.4.11": {
-        "en": "Improve log/error messages at adapter start\nBugfix : Cannot read property 'calcValues' of null & related issues found by Sentry",
-        "de": "Log-/Fehlermeldungen beim Adapterstart verbessert\nBugfix: \"Cannot read property 'calcValues' of null\" und verwandte, von Sentry gefundene Probleme behoben",
-        "ru": "Улучшены сообщения журнала и об ошибках при запуске адаптера\nИсправление: устранена ошибка \"Cannot read property 'calcValues' of null\" и связанные проблемы, обнаруженные Sentry",
-        "pt": "Melhoradas as mensagens de log e de erro no arranque do adaptador\nCorreção: resolvido \"Cannot read property 'calcValues' of null\" e problemas relacionados detetados pelo Sentry",
-        "nl": "Logboek- en foutmeldingen bij het starten van de adapter verbeterd\nBugfix: \"Cannot read property 'calcValues' of null\" en gerelateerde door Sentry gevonden problemen opgelost",
-        "fr": "Amélioration des messages de journal et d'erreur au démarrage de l'adaptateur\nCorrection : « Cannot read property 'calcValues' of null » et problèmes connexes détectés par Sentry résolus",
-        "it": "Migliorati i messaggi di log e di errore all'avvio dell'adattatore\nBugfix: risolto \"Cannot read property 'calcValues' of null\" e i problemi correlati rilevati da Sentry",
-        "es": "Mejorados los mensajes de registro y de error al iniciar el adaptador\nCorrección: resuelto \"Cannot read property 'calcValues' of null\" y problemas relacionados detectados por Sentry",
-        "pl": "Poprawiono komunikaty dziennika i błędów podczas uruchamiania adaptera\nPoprawka: rozwiązano \"Cannot read property 'calcValues' of null\" oraz powiązane problemy wykryte przez Sentry",
-        "zh-cn": "改进了适配器启动时的日志与错误消息\n修复：解决了 \"Cannot read property 'calcValues' of null\" 及 Sentry 发现的相关问题",
-        "uk": "Покращено повідомлення журналу та помилок під час запуску адаптера\nВиправлення: усунено \"Cannot read property 'calcValues' of null\" та пов'язані проблеми, виявлені Sentry"
       }
     },
     "titleLang": {

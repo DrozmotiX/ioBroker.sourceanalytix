@@ -315,7 +315,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.4 (2026-08-01)
 * Each active source automatically exposes a compact `statisticsJson` state containing its current-year quantity, financial and optional meter-reading statistics ([#361](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/361), [#967](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/967)).
 * Monthly basic prices are no longer imported into the variable-cost accumulator and added a second time after a restart ([#1188](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1188)).
 
@@ -345,16 +345,6 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * The admin configuration has been modernized to `jsonConfig`, with improved price settings, state pickers and translations ([#1007](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1007)).
 * Tooling and maintenance were refreshed for current ioBroker and Node.js versions, including better tests, CI updates and dependency cleanup ([#1018](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1018), [#1064](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1064), [#1121](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1121), [#1177](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1177)).
 * (DutchmanNL) Earlier work-in-progress fixes remain included: Sentry-reported issues, logging cleanup and the `common.type` repository checker fix.
-
-### 0.4.15-alpha.1 (2025-09-10) Repository checker fixes and dependency updates
-* (DutchmanNL) Update dependencies to latest versions
-* (DutchmanNL) Fix repository checker issues
-* (DutchmanNL) Update @iobroker/adapter-core to ^3.3.2
-* (DutchmanNL) Update @alcalzone/release-script to ^3.8.0
-* (DutchmanNL) Update @iobroker/testing to ^5.0.4
-* (DutchmanNL) Add Node.js version requirement
-* (DutchmanNL) Add .releaseconfig.json for release script
-* (DutchmanNL) Remove deprecated admin configurations
 
 [Older changelog entries](CHANGELOG_OLD.md)
 
