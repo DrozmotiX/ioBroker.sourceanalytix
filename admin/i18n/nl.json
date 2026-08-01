@@ -11,7 +11,7 @@
     "Current year": "Huidig jaar",
     "Description": "Omschrijving",
     "Enable device value reset detection": "Hersteldetectie apparaatwaarde Ingeschakeld",
-    "If no alias is set, name will be used": "Als er geen alias is ingesteld, wordt de naam gebruikt",
+    "Alias changes only the display name; the generated state ID remains unchanged": "De alias wijzigt alleen de weergavenaam; de gegenereerde status-ID blijft ongewijzigd",
     "Including basic rate": "Inclusief basistarief",
     "Meter reading at the beginning of the day": "Meterstand aan het begin van de dag",
     "Meter reading at the beginning of the month": "Meterstand aan het begin van de maand",

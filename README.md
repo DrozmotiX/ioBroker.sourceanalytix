@@ -30,6 +30,7 @@ When the adapter crashes or another code error occurs, the error message which a
 - Integration of power readings over their actual update intervals, optionally ignoring negative readings
 - Recovery of missed calendar rollovers after an adapter restart
 - Handling of meter resets, meter replacements and small backwards fluctuations
+- One compact, automatically updated statistics JSON state per active source
 
 ## Setup
 
@@ -114,7 +115,7 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Setting | Description |
 | --- | --- |
 | Enabled | Activates this source for the selected SourceAnalytix instance. |
-| Alias name | Optional readable name for the generated device. |
+| Alias | Optional display name for the generated device. It does not change the generated state ID. |
 | Select price definition | Mandatory category from the adapter's price definitions. |
 | Select Unit | Source unit. Leave on automatic detection when the source object has a correct supported unit. |
 | Calculate costs | Creates and updates cost or earnings states. |
@@ -181,8 +182,69 @@ For every source, SourceAnalytix creates a `cumulativeReading` and the enabled r
 | `<source>.currentYear.earnings` | Current earnings totals. |
 | `<source>.currentYear.meterReadings` | Optional meter readings by enabled periods. |
 | `<source>.<year>` | Optional archived week, month and quarter statistics. |
+| `<source>.statisticsJson` | Compact current-year statistics for VIS, scripts and other adapters. |
 
 The basic current and optional previous states use names such as `01_currentDay`, `02_currentWeek`, `03_currentMonth`, `04_currentQuarter`, `05_currentYear` and their `previous` equivalents.
+
+### Statistics JSON
+
+Every active source automatically exposes a read-only `statisticsJson` state with role `json`; no additional setting is required. It contains the same calculated values as the individual states and does not perform a separate calculation.
+
+```json
+{
+  "schemaVersion": 1,
+  "year": 2026,
+  "source": {
+    "id": "smartmeter.0.total",
+    "name": "Electricity meter",
+    "unit": "kWh"
+  },
+  "quantity": {
+    "type": "consumed",
+    "current": {
+      "day": 4.21,
+      "week": 28.65,
+      "month": 114.32,
+      "quarter": 301.77,
+      "year": 894.15
+    },
+    "previous": null,
+    "periods": {
+      "weekdays": null,
+      "previousWeekdays": null,
+      "weeks": {},
+      "months": {},
+      "quarters": {}
+    }
+  },
+  "financial": {
+    "type": "costs",
+    "currency": "EUR",
+    "current": {
+      "day": 1.24,
+      "week": 8.47,
+      "month": 34.19,
+      "quarter": 89.51,
+      "year": 261.42
+    },
+    "previous": null,
+    "periods": {
+      "weekdays": null,
+      "previousWeekdays": null,
+      "weeks": {},
+      "months": {},
+      "quarters": {}
+    }
+  },
+  "meterReadings": null
+}
+```
+
+`quantity` represents either `consumed` or `delivered` values. `financial` represents either `costs` or `earnings`. `meterReadings` is populated when meter-value storage is enabled. Disabled calculations and period collections are represented by `null`, so the schema remains predictable.
+
+Weekdays use `1` for Monday through `7` for Sunday. Week and month keys are zero-padded, and quarter keys use `1` through `4`. Only current-year collections and the optional previous-period values are included, preventing the state from growing indefinitely. The ioBroker state timestamp indicates when the JSON was last changed.
+
+The state is rebuilt from existing statistics when the adapter starts and its writes are bundled during normal calculations. If a source is disabled or deleted, the last JSON value is retained together with the other calculated history and is no longer updated.
 
 ## Meter Resets And Corrections
 
@@ -253,6 +315,10 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+* Each active source automatically exposes a compact `statisticsJson` state containing its current-year quantity, financial and optional meter-reading statistics ([#361](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/361), [#967](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/967)).
+* Monthly basic prices are no longer imported into the variable-cost accumulator and added a second time after a restart ([#1188](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1188)).
+
 ### 0.5.3 (2026-07-28)
 * Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield ([#466](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/466)).
 

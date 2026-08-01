@@ -5,11 +5,13 @@ const adapterHelpers = require('iobroker-adapter-helpers');
 const {
 	buildUnitConfig,
 	calculateBasicPriceTotals,
+	calculateVariablePriceTotals,
 	classifyCumulativeReading,
 	convertUnitValue,
 	getCurrentYearPeriodStateDefinitions,
 	getPeriodChanges,
 	initializePeriodStartValues,
+	migrateLegacyVariableCostTotals,
 	normalizePeriodSnapshot,
 	resolveCumulativeReading,
 } = require('./lib/calculation');
@@ -67,6 +69,7 @@ describe('dynamic pricing', () => {
 
 		it('rejects empty and non-numeric values', () => {
 			assert.equal(parsePriceValue(''), null);
+			assert.equal(parsePriceValue('   '), null);
 			assert.equal(parsePriceValue('invalid'), null);
 			assert.equal(parsePriceValue(false), null);
 		});
@@ -190,7 +193,7 @@ describe('dynamic pricing', () => {
 
 	describe('normalizeDynamicCostMemory', () => {
 		const preciseMemory = {
-			version: 1,
+			version: 2,
 			priceDefinition: 'Electricity',
 			lastReading: 7837.556,
 			lastTs: at(11),
@@ -223,8 +226,14 @@ describe('dynamic pricing', () => {
 			assert.equal(restoredMemory.totals.priceDay + priceDelta, 1.285789);
 		});
 
+		it('accepts legacy memory for migration', () => {
+			const legacyMemory = normalizeDynamicCostMemory({...preciseMemory, version: 1});
+			assert.ok(legacyMemory);
+			assert.equal(legacyMemory.version, 1);
+		});
+
 		it('rejects incompatible versions and incomplete totals', () => {
-			assert.equal(normalizeDynamicCostMemory({...preciseMemory, version: 2}), null);
+			assert.equal(normalizeDynamicCostMemory({...preciseMemory, version: 3}), null);
 			assert.equal(normalizeDynamicCostMemory({...preciseMemory, totals: {priceDay: 1}}), null);
 			assert.equal(normalizeDynamicCostMemory(null), null);
 		});
@@ -438,6 +447,75 @@ describe('period and cumulative calculations', () => {
 			assert.equal(totals.priceMonth, 31);
 			assert.equal(totals.priceQuarter, 31);
 			assert.equal(totals.priceYear, 124);
+		});
+
+		it('keeps the basic price separate from variable costs when restoring fixed prices', () => {
+			const variable = calculateVariablePriceTotals(5584.936, {
+				start_day: 5581.891,
+				start_week: 5581.891,
+				start_month: 5581.891,
+				start_quarter: 5581.891,
+				start_year: 5571,
+			}, 0.35);
+			const basic = calculateBasicPriceTotals(19.15, new Date(2026, 7, 1, 12));
+
+			assert.ok(Math.abs(variable.priceYear - 4.8776) < 1e-9);
+			assert.ok(Math.abs((variable.priceYear + basic.priceYear) - 158.0776) < 1e-9);
+			assert.notEqual(Math.round((variable.priceYear + basic.priceYear) * 100) / 100, 306.48);
+		});
+
+		it('treats empty legacy period starts as missing instead of zero', () => {
+			const variable = calculateVariablePriceTotals(5584.936, {
+				start_day: null,
+				start_week: '',
+				start_month: '   ',
+				start_quarter: undefined,
+				start_year: '5571,0',
+			}, '0,35');
+
+			assert.equal(variable.priceDay, 0);
+			assert.equal(variable.priceWeek, 0);
+			assert.equal(variable.priceMonth, 0);
+			assert.equal(variable.priceQuarter, 0);
+			assert.ok(Math.abs(variable.priceYear - 4.8776) < 1e-9);
+		});
+
+		it('removes an included basic price from dynamic and selector memories', () => {
+			const legacy = {priceDay: 1.5, priceWeek: 3, priceMonth: 12, priceQuarter: 31, priceYear: 124};
+			const basic = {priceDay: 1, priceWeek: 2, priceMonth: 10, priceQuarter: 30, priceYear: 120};
+			const expected = {priceDay: 0.5, priceWeek: 1, priceMonth: 2, priceQuarter: 1, priceYear: 4};
+
+			assert.deepEqual(migrateLegacyVariableCostTotals(legacy, basic, expected, 'state', 10, true), expected);
+			assert.deepEqual(migrateLegacyVariableCostTotals(legacy, basic, expected, 'selector', 10, true), expected);
+		});
+
+		it('does not subtract the basic price from an already variable legacy memory', () => {
+			const variable = {priceDay: 0.5, priceWeek: 1, priceMonth: 2, priceQuarter: 1, priceYear: 4};
+			const basic = {priceDay: 1, priceWeek: 2, priceMonth: 10, priceQuarter: 30, priceYear: 120};
+
+			assert.deepEqual(migrateLegacyVariableCostTotals(variable, basic, variable, 'state', 10, true), variable);
+			assert.deepEqual(migrateLegacyVariableCostTotals(variable, basic, {}, 'state', 10, true), variable);
+		});
+
+		it('preserves negative variable costs during legacy migration', () => {
+			const migrated = migrateLegacyVariableCostTotals(
+				{priceDay: 0.5, priceWeek: 1, priceMonth: 8, priceQuarter: 28, priceYear: 118},
+				{priceDay: 1, priceWeek: 2, priceMonth: 10, priceQuarter: 30, priceYear: 120},
+				{priceDay: -0.5, priceWeek: -1, priceMonth: -2, priceQuarter: -2, priceYear: -2},
+				'state',
+				10,
+				true,
+			);
+
+			assert.deepEqual(migrated, {priceDay: -0.5, priceWeek: -1, priceMonth: -2, priceQuarter: -2, priceYear: -2});
+		});
+
+		it('rebuilds one-price fixed memories and preserves memories without a basic price', () => {
+			const legacy = {priceDay: 1, priceWeek: 2, priceMonth: 3, priceQuarter: 4, priceYear: 5};
+			const fallback = {priceDay: 6, priceWeek: 7, priceMonth: 8, priceQuarter: 9, priceYear: 10};
+
+			assert.deepEqual(migrateLegacyVariableCostTotals(legacy, {}, fallback, 'static', 1, true), fallback);
+			assert.deepEqual(migrateLegacyVariableCostTotals(legacy, {}, fallback, 'state', 5, false), legacy);
 		});
 	});
 });

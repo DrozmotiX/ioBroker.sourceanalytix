@@ -11,7 +11,7 @@
     "Current year": "Current year",
     "Description": "Description",
     "Enable device value reset detection": "Device value reset detection Enabled",
-    "If no alias is set, name will be used": "Якщо псевдонім не задано, буде використано назву",
+    "Alias changes only the display name; the generated state ID remains unchanged": "Псевдонім змінює лише відображуване ім'я; ідентифікатор створеного стану залишається незмінним",
     "Including basic rate": "Including basic rate",
     "Meter reading at the beginning of the day": "Показання лічильника на початок дня",
     "Meter reading at the beginning of the month": "Показання лічильника на початок місяця",

@@ -11,8 +11,8 @@
     },
     "alias": {
       "type": "text",
-      "label": "Alias name",
-      "help": "If no alias is set, name will be used",
+      "label": "Alias",
+      "help": "Alias changes only the display name; the generated state ID remains unchanged",
       "xs": 12,
       "sm": 12,
       "md": 5,

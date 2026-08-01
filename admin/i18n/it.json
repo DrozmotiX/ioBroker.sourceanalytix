@@ -11,7 +11,7 @@
     "Current year": "Anno corrente",
     "Description": "Descrizione",
     "Enable device value reset detection": "Rilevamento reset valore dispositivo Abilitato",
-    "If no alias is set, name will be used": "Se non viene impostato alcun alias, verrà utilizzato il nome",
+    "Alias changes only the display name; the generated state ID remains unchanged": "L'alias modifica solo il nome visualizzato; l'ID dello stato generato rimane invariato",
     "Including basic rate": "Inclusa tariffa base",
     "Meter reading at the beginning of the day": "Lettura del contatore all'inizio della giornata",
     "Meter reading at the beginning of the month": "Lettura del contatore all'inizio del mese",
