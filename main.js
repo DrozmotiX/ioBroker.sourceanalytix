@@ -489,28 +489,26 @@ class Sourceanalytix extends utils.Adapter {
 	 * @returns {object} Cost totals calculated with the fallback price
 	 */
 	getFallbackDynamicCostTotals(reading, calcValues, unitPrice) {
-		return {
-			priceDay: unitPrice * (reading - this.getNumberOrDefault(calcValues.start_day, reading)),
-			priceWeek: unitPrice * (reading - this.getNumberOrDefault(calcValues.start_week, reading)),
-			priceMonth: unitPrice * (reading - this.getNumberOrDefault(calcValues.start_month, reading)),
-			priceQuarter: unitPrice * (reading - this.getNumberOrDefault(calcValues.start_quarter, reading)),
-			priceYear: unitPrice * (reading - this.getNumberOrDefault(calcValues.start_year, reading)),
-		};
+		return calculation.calculateVariablePriceTotals(reading, calcValues, unitPrice);
 	}
 
 	/**
 	 * @param {string} stateID - Local ioBroker state ID
-	 * @param {number} fallback - Fallback value
+	 * @param {number} fallback - Fallback variable cost
+	 * @param {number} basicPrice - Basic-price share already included in the state
 	 * @returns {Promise<number>} Stored cost value or fallback
 	 */
-	async readCostStateOrFallback(stateID, fallback) {
+	async readVariableCostStateOrFallback(stateID, fallback, basicPrice) {
 		try {
 			const state = await this.getStateAsync(stateID);
 			const stateValue = state ? this.parsePriceValue(state.val) : null;
-			return stateValue === null ? fallback : stateValue;
+			if (stateValue === null) return fallback;
+			// Newly created ioBroker states use 0 before the first calculation.
+			if (stateValue === 0) return fallback;
+			return stateValue - basicPrice;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			this.log.debug(`[readCostStateOrFallback] Could not read ${stateID}, using fallback ${fallback}: ${message}`);
+			this.log.debug(`[readVariableCostStateOrFallback] Could not read ${stateID}, using fallback ${fallback}: ${message}`);
 			return fallback;
 		}
 	}
@@ -572,7 +570,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		try {
 			const parsedMemory = JSON.parse(memoryState.val.toString());
-			const memory = dynamicPricing.normalizeDynamicCostMemory(parsedMemory);
+			let memory = dynamicPricing.normalizeDynamicCostMemory(parsedMemory);
 			if (!memory) {
 				this.log.warn(`[loadDynamicCostMemory] Ignoring invalid calculation memory for ${stateID}`);
 				return null;
@@ -582,6 +580,10 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.info(`[loadDynamicCostMemory] Ignoring calculation memory for ${stateID} because price definition changed from ${memory.priceDefinition} to ${priceDefinition}`);
 				return null;
 			}
+			if (memory.version === 1) {
+				memory = await this.migrateLegacyDynamicCostMemory(stateID, memory);
+			}
+			if (!memory) return null;
 			this.log.info(`Restored precise dynamic cost memory for ${stateID} from ${new Date(memory.lastTs).toISOString()}`);
 			this.log.debug(`[loadDynamicCostMemory] Restored precise dynamic costs for ${stateID}: ${JSON.stringify(memory)}`);
 			return memory;
@@ -593,6 +595,35 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Version 1 could initialize its accumulator from visible costs which already
+	 * included the monthly basic price. Version 2 always stores variable costs.
+	 * @param {string} stateID - Source state ID
+	 * @param {object} memory - Valid version 1 memory
+	 * @returns {Promise<object>} Migrated version 2 memory
+	 */
+	async migrateLegacyDynamicCostMemory(stateID, memory) {
+		const activeState = this.activeStates[stateID];
+		const priceHistory = this.priceHistories[activeState.stateDetails.stateType] || [];
+		const unitPrice = this.getNumberOrDefault(activeState.prices.unitPrice, 0);
+		const fallbackTotals = this.getFallbackDynamicCostTotals(memory.lastReading, activeState.calcValues, unitPrice);
+		const monthlyPrice = activeState.stateDetails.basicRate ? this.getNumberOrDefault(activeState.prices.basicPrice, 0) : 0;
+		const basicTotals = calculation.calculateBasicPriceTotals(monthlyPrice, new Date(memory.lastTs));
+		const totals = calculation.migrateLegacyVariableCostTotals(
+			memory.totals,
+			basicTotals,
+			fallbackTotals,
+			activeState.prices.priceSource,
+			priceHistory.length,
+			activeState.stateDetails.basicRate,
+		);
+
+		const migratedMemory = {...memory, version: 2, totals};
+		await this.persistDynamicCostMemory(stateID, migratedMemory);
+		this.log.info(`Migrated dynamic cost memory for ${stateID} to variable-cost schema version 2`);
+		return migratedMemory;
+	}
+
+	/**
 	 * @param {string} stateID - Source state ID
 	 * @param {object} dynamicCosts - Unrounded dynamic cost memory
 	 */
@@ -600,7 +631,7 @@ class Sourceanalytix extends utils.Adapter {
 		await this.ensureDynamicCostMemoryState(stateID);
 		const memoryStateName = this.getDynamicCostMemoryStateName(stateID);
 		const payload = {
-			version: 1,
+			version: 2,
 			priceDefinition: this.activeStates[stateID].stateDetails.stateType,
 			lastReading: dynamicCosts.lastReading,
 			lastTs: dynamicCosts.lastTs,
@@ -651,16 +682,19 @@ class Sourceanalytix extends utils.Adapter {
 
 		const unitPrice = this.getNumberOrDefault(activeState.prices.unitPrice, 0);
 		const fallbackTotals = this.getFallbackDynamicCostTotals(readingNumber, activeState.calcValues, unitPrice);
+		const monthlyPrice = activeState.stateDetails.basicRate ? this.getNumberOrDefault(activeState.prices.basicPrice, 0) : 0;
+		const basicTotals = calculation.calculateBasicPriceTotals(monthlyPrice, new Date(readingTimestamp));
 		const stateRoot = `${activeState.stateDetails.deviceName}.currentYear.${activeState.stateDetails.financialCategory}`;
 		const totals = {
-			priceDay: await this.readCostStateOrFallback(`${stateRoot}.01_currentDay`, fallbackTotals.priceDay),
-			priceWeek: await this.readCostStateOrFallback(`${stateRoot}.02_currentWeek`, fallbackTotals.priceWeek),
-			priceMonth: await this.readCostStateOrFallback(`${stateRoot}.03_currentMonth`, fallbackTotals.priceMonth),
-			priceQuarter: await this.readCostStateOrFallback(`${stateRoot}.04_currentQuarter`, fallbackTotals.priceQuarter),
-			priceYear: await this.readCostStateOrFallback(`${stateRoot}.05_currentYear`, fallbackTotals.priceYear),
+			priceDay: await this.readVariableCostStateOrFallback(`${stateRoot}.01_currentDay`, fallbackTotals.priceDay, basicTotals.priceDay),
+			priceWeek: await this.readVariableCostStateOrFallback(`${stateRoot}.02_currentWeek`, fallbackTotals.priceWeek, basicTotals.priceWeek),
+			priceMonth: await this.readVariableCostStateOrFallback(`${stateRoot}.03_currentMonth`, fallbackTotals.priceMonth, basicTotals.priceMonth),
+			priceQuarter: await this.readVariableCostStateOrFallback(`${stateRoot}.04_currentQuarter`, fallbackTotals.priceQuarter, basicTotals.priceQuarter),
+			priceYear: await this.readVariableCostStateOrFallback(`${stateRoot}.05_currentYear`, fallbackTotals.priceYear, basicTotals.priceYear),
 		};
 
 		activeState.dynamicCosts = {
+			version: 2,
 			lastReading: readingNumber,
 			lastTs: readingTimestamp,
 			totals: totals
