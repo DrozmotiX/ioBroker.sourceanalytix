@@ -115,5 +115,10 @@
     "nm": "nm",
     "µm": "µm",
     "Ignore negative power values": "Negative Leistungswerte ignorieren",
-    "Ignore negative power values help": "Wirkt nur bei Leistungswerten (W/kW). Negative Messwerte zählen als 0 W. Für Wechselrichter aktivieren, die im abgeschalteten Zustand eine negative Leistung melden."
+    "Ignore negative power values help": "Wirkt nur bei Leistungswerten (W/kW). Negative Messwerte zählen als 0 W. Für Wechselrichter aktivieren, die im abgeschalteten Zustand eine negative Leistung melden.",
+    "Rounding": "Rundung",
+    "Decimals for consumption values": "Nachkommastellen für Verbrauchswerte",
+    "Decimals for cost values": "Nachkommastellen für Kostenwerte",
+    "Rounding decimals help": "Anzahl der Nachkommastellen für berechnete Werte. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
+    "Individual rounding decimals help": "Überschreibt die globale Einstellung für diese Quelle. Leer lassen, um die globale Einstellung zu verwenden; -1 speichert den exakten Wert."
 }

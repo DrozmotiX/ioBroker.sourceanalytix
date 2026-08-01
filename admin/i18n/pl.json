@@ -115,5 +115,10 @@
     "number of months": "Number of months",
     "period of time": "Period of time",
     "Ignore negative power values": "Ignoruj ujemne wartości mocy",
-    "Ignore negative power values help": "Dotyczy tylko wartości mocy (W/kW). Ujemne odczyty liczone są jako 0 W. Włącz dla falowników, które w stanie wyłączonym zgłaszają ujemną moc."
+    "Ignore negative power values help": "Dotyczy tylko wartości mocy (W/kW). Ujemne odczyty liczone są jako 0 W. Włącz dla falowników, które w stanie wyłączonym zgłaszają ujemną moc.",
+    "Rounding": "Zaokrąglanie",
+    "Decimals for consumption values": "Miejsca dziesiętne dla wartości zużycia",
+    "Decimals for cost values": "Miejsca dziesiętne dla wartości kosztów",
+    "Rounding decimals help": "Liczba miejsc dziesiętnych dla obliczonych wartości. Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
+    "Individual rounding decimals help": "Zastępuje ustawienie globalne dla tego źródła. Pozostaw puste, aby użyć ustawienia globalnego; -1 zapisuje dokładną wartość."
 }

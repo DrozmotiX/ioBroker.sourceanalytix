@@ -14,8 +14,10 @@ const {
 	getPreviousPeriodTimestamp,
 	initializePeriodStartValues,
 	migrateLegacyVariableCostTotals,
+	normalizeDecimals,
 	normalizePeriodSnapshot,
 	resolveCumulativeReading,
+	roundValue,
 } = require('./lib/calculation');
 const {
 	calculatePriceDelta,
@@ -300,6 +302,43 @@ describe('period and cumulative calculations', () => {
 			assert.equal(normalizePeriodSnapshot({
 				date: 'not-a-date', day: '01_Monday', week: '31', month: '07_July', quarter: 3, year: 2026,
 			}), null);
+		});
+	});
+
+	describe('configurable rounding', () => {
+		it('keeps the previous defaults when nothing is configured', () => {
+			assert.equal(normalizeDecimals(undefined, 3), 3);
+			assert.equal(normalizeDecimals('', 2), 2);
+			assert.equal(normalizeDecimals(null, 3), 3);
+			assert.equal(roundValue(1.23456789, 3), 1.235);
+			assert.equal(roundValue(1.23456789, 2), 1.23);
+		});
+
+		it('applies a configured number of decimals', () => {
+			assert.equal(roundValue(7837.6127, 0), 7838);
+			assert.equal(roundValue(7837.6127, 1), 7837.6);
+			assert.equal(roundValue(0.000123456, 6), 0.000123);
+		});
+
+		it('keeps the exact value when rounding is disabled', () => {
+			assert.equal(normalizeDecimals(-1, 3), -1);
+			assert.equal(normalizeDecimals(-5, 3), -1);
+			assert.equal(roundValue(1.234567890123, -1), 1.234567890123);
+		});
+
+		it('rounds values which previously returned unrounded', () => {
+			// roundDigits used to return the raw input whenever the result was 0
+			assert.equal(roundValue(0.0004, 3), 0);
+			assert.equal(roundValue(-0.0004, 3), -0);
+		});
+
+		it('falls back for unusable settings and rejects non-numeric values', () => {
+			assert.equal(normalizeDecimals('not a number', 3), 3);
+			assert.equal(normalizeDecimals(2.7, 3), 2);
+			assert.equal(normalizeDecimals(99, 3), 15);
+			assert.equal(roundValue('abc', 3), null);
+			assert.equal(roundValue(null, 3), null);
+			assert.equal(roundValue(undefined, 3), null);
 		});
 	});
 
