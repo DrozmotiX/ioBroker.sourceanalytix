@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "news": {
       "0.5.5": {
         "en": "Previous day, week, month, quarter and year values are written with the timestamp of the period they belong to, so history adapters plot them in the correct period\nThe number of decimals for consumption and cost values is configurable globally and per source, including an option to store the exact value without rounding\nA missed calendar rollover can be processed without restarting the instance, through a new button or message, and an hourly check recovers a rollover the scheduler missed\nThe midnight scheduler can no longer raise an unhandled rejection, and its cron job and timers are stopped when the instance shuts down",
@@ -93,19 +93,6 @@
         "pl": "Drobne aktualizacje kodu, poprawki cyklu życia\nDodano opcję wyłączenia funkcji resetowania urządzenia\nPoprawka: rozwiązano \"Cannot read property 'name' of undefined\"",
         "zh-cn": "小幅代码更新与生命周期修复\n新增可关闭设备重置功能的选项\n修复：解决了 \"Cannot read property 'name' of undefined\"",
         "uk": "Невеликі оновлення коду, виправлення життєвого циклу\nДодано опцію вимкнення функції скидання пристрою\nВиправлення: усунено \"Cannot read property 'name' of undefined\""
-      },
-      "0.4.12": {
-        "en": "Add logging to analyse error caught by sentry\nCannot set property 'date' of undefined solved\nMajor : New version requires JS-Controller >= 3.2!\nAdd possibility to use an alternative name (alias)\nAvoid writing source state causing incorrect calculations at day reset #470",
-        "de": "Protokollierung hinzugefügt, um von Sentry erfasste Fehler zu analysieren\n\"Cannot set property 'date' of undefined\" behoben\nWichtig: Die neue Version erfordert JS-Controller >= 3.2!\nMöglichkeit hinzugefügt, einen alternativen Namen (Alias) zu verwenden\nSchreiben des Quell-Datenpunkts vermieden, das beim Tagesreset zu falschen Berechnungen führte #470",
-        "ru": "Добавлено ведение журнала для анализа ошибок, обнаруженных Sentry\nИсправлена ошибка \"Cannot set property 'date' of undefined\"\nВажно: новая версия требует JS-Controller >= 3.2!\nДобавлена возможность использовать альтернативное имя (алиас)\nИсключена запись в исходное состояние, приводившая к неверным расчётам при суточном сбросе #470",
-        "pt": "Adicionado registo para analisar erros detetados pelo Sentry\nResolvido \"Cannot set property 'date' of undefined\"\nImportante: a nova versão requer JS-Controller >= 3.2!\nAdicionada a possibilidade de usar um nome alternativo (alias)\nEvitada a escrita no estado de origem que causava cálculos incorretos no reinício diário #470",
-        "nl": "Logboekregistratie toegevoegd om door Sentry gevangen fouten te analyseren\n\"Cannot set property 'date' of undefined\" opgelost\nBelangrijk: de nieuwe versie vereist JS-Controller >= 3.2!\nMogelijkheid toegevoegd om een alternatieve naam (alias) te gebruiken\nSchrijven naar het brondatapunt vermeden dat bij de dagreset onjuiste berekeningen veroorzaakte #470",
-        "fr": "Ajout d'une journalisation pour analyser les erreurs détectées par Sentry\n« Cannot set property 'date' of undefined » corrigé\nImportant : la nouvelle version nécessite JS-Controller >= 3.2 !\nAjout de la possibilité d'utiliser un nom alternatif (alias)\nÉcriture de l'état source évitée, car elle provoquait des calculs incorrects lors de la remise à zéro quotidienne #470",
-        "it": "Aggiunta la registrazione per analizzare gli errori rilevati da Sentry\nRisolto \"Cannot set property 'date' of undefined\"\nImportante: la nuova versione richiede JS-Controller >= 3.2!\nAggiunta la possibilità di usare un nome alternativo (alias)\nEvitata la scrittura sullo stato di origine che causava calcoli errati al reset giornaliero #470",
-        "es": "Añadido registro para analizar los errores detectados por Sentry\nResuelto \"Cannot set property 'date' of undefined\"\nImportante: la nueva versión requiere JS-Controller >= 3.2!\nAñadida la posibilidad de usar un nombre alternativo (alias)\nEvitada la escritura en el estado de origen que causaba cálculos incorrectos en el reinicio diario #470",
-        "pl": "Dodano logowanie do analizy błędów wykrytych przez Sentry\nRozwiązano \"Cannot set property 'date' of undefined\"\nWażne: nowa wersja wymaga JS-Controller >= 3.2!\nDodano możliwość użycia alternatywnej nazwy (aliasu)\nUniknięto zapisu do stanu źródłowego, który powodował błędne obliczenia przy dobowym zerowaniu #470",
-        "zh-cn": "新增日志记录以分析 Sentry 捕获的错误\n修复了 \"Cannot set property 'date' of undefined\"\n重要：新版本需要 JS-Controller >= 3.2！\n新增使用替代名称（别名）的功能\n避免写入源状态，该写入会在每日归零时导致计算错误 #470",
-        "uk": "Додано журналювання для аналізу помилок, виявлених Sentry\nВиправлено \"Cannot set property 'date' of undefined\"\nВажливо: нова версія потребує JS-Controller >= 3.2!\nДодано можливість використовувати альтернативну назву (псевдонім)\nУникнено запису у вихідний стан, що спричиняв неправильні розрахунки під час добового скидання #470"
       }
     },
     "titleLang": {

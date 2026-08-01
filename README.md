@@ -328,7 +328,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.5 (2026-08-01)
 * Previous day, week, month, quarter and year values are written with the timestamp of the period they belong to (23:59:59 on its last day), so history adapters and Flot plot them in the correct period ([#497](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/497)).
 * The number of decimals for consumption and cost values is configurable globally and per source, including an option to store the exact value without rounding ([#934](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/934)).
 * A missed calendar rollover can be processed without restarting the instance, through the new `info.recoverPeriods` button or a `recoverPeriods` message, and an hourly check recovers a rollover the scheduler missed while the adapter kept running ([#905](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/905)).
@@ -352,18 +352,6 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * Cumulative mass and metric length units are supported with validated conversions between compatible quantities ([#614](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/614)).
 * User documentation and neutral English Admin screenshots were refreshed ([#613](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/613)).
 * Dependabot runs again: its cron schedules used an unsupported key and failed config validation ([#1182](https://github.com/DrozmotiX/ioBroker.sourceanalytix/pull/1182)).
-
-### 0.5.0 (2026-07-28)
-* A large quality and feature update, with thanks to **softwarecrash** for providing the solutions behind this release.
-* Dynamic and historical unit prices can now be taken from ioBroker states, including tariff switching and timestamped price changes ([#1159](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1159), [#715](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/715), [#687](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/687), [#485](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/485), [#486](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/486), [#487](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/487)).
-* Cost calculations stay precise across restarts and price changes, without rewriting already calculated history ([#625](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/625), [#783](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/783), [#750](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/750)).
-* Meter resets, meter replacements and small counter fluctuations are handled much more reliably, avoiding broken totals and duplicate consumption ([#686](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/686), [#754](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/754), [#759](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/759), [#794](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/794)).
-* Day, week, month and year rollovers are more robust, including midnight resets and automatic creation of new year statistics ([#478](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/478), [#481](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/481), [#536](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/536), [#775](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/775)).
-* Deleted or disabled sources no longer keep writing unwanted values, while their existing history is preserved ([#704](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/704), [#919](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/919), [#1009](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1009)).
-* Monthly basic charges are applied correctly again across the current period calculations ([#1144](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1144)).
-* The admin configuration has been modernized to `jsonConfig`, with improved price settings, state pickers and translations ([#1007](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1007)).
-* Tooling and maintenance were refreshed for current ioBroker and Node.js versions, including better tests, CI updates and dependency cleanup ([#1018](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1018), [#1064](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1064), [#1121](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1121), [#1177](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1177)).
-* (DutchmanNL) Earlier work-in-progress fixes remain included: Sentry-reported issues, logging cleanup and the `common.type` repository checker fix.
 
 [Older changelog entries](CHANGELOG_OLD.md)
 
