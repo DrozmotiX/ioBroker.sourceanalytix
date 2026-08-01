@@ -1675,8 +1675,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * Copy completed generic periods to their configured previous-period states.
 	 * @param {object} stateDetails - Active state details
 	 * @param {object} changes - Changed calendar periods
+	 * @param {number} [previousPeriodTimestamp] - Timestamp of the completed period
 	 */
-	async copyPreviousPeriodStates(stateDetails, changes) {
+	async copyPreviousPeriodStates(stateDetails, changes, previousPeriodTimestamp) {
 		if (!this.config.currentYearPrevious) return;
 		const periods = [
 			['day', '01_currentDay', '01_previousDay'],
@@ -1689,14 +1690,14 @@ class Sourceanalytix extends utils.Adapter {
 			if (!changes[period]) continue;
 			if (stateDetails.consumption) {
 				const root = `${stateDetails.deviceName}.currentYear.${stateDetails.headCategory}`;
-				await this.setPreviousValues(`${root}.${currentState}`, `${root}.${previousState}`);
+				await this.setPreviousValues(`${root}.${currentState}`, `${root}.${previousState}`, previousPeriodTimestamp);
 			}
 			if (stateDetails.costs) {
 				const root = `${stateDetails.deviceName}.currentYear.${stateDetails.financialCategory}`;
-				await this.setPreviousValues(`${root}.${currentState}`, `${root}.${previousState}`);
+				await this.setPreviousValues(`${root}.${currentState}`, `${root}.${previousState}`, previousPeriodTimestamp);
 			}
 			if (stateDetails.meter_values) {
-				await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.${previousState}`);
+				await this.setPreviousValues(`${stateDetails.deviceName}.cumulativeReading`, `${stateDetails.deviceName}.currentYear.meterReadings.${previousState}`, previousPeriodTimestamp);
 			}
 		}
 	}
@@ -1705,8 +1706,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * Move weekday values to previousWeek and clear the new week.
 	 * @param {object} stateDetails - Active state details
 	 * @param {boolean} weekChanged - Whether a new week started
+	 * @param {number} [previousPeriodTimestamp] - Timestamp of the completed week
 	 */
-	async resetCurrentWeekdayStates(stateDetails, weekChanged) {
+	async resetCurrentWeekdayStates(stateDetails, weekChanged, previousPeriodTimestamp) {
 		if (!weekChanged || !this.config.currentYearDays) return;
 		for (const weekday of weekdays) {
 			const stateRoots = [];
@@ -1716,7 +1718,7 @@ class Sourceanalytix extends utils.Adapter {
 			for (const root of stateRoots) {
 				const currentState = `${stateDetails.deviceName}.currentYear.${root}.currentWeek.${weekday}`;
 				if (this.config.currentYearPrevious) {
-					await this.setPreviousValues(currentState, `${stateDetails.deviceName}.currentYear.${root}.previousWeek.${weekday}`);
+					await this.setPreviousValues(currentState, `${stateDetails.deviceName}.currentYear.${root}.previousWeek.${weekday}`, previousPeriodTimestamp);
 				}
 				await this.setStateAsync(currentState, {val: 0, ack: true});
 			}
@@ -1859,9 +1861,11 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		this.log.info(`Processing calendar rollover for ${stateID}: ${JSON.stringify(changes)}`);
+		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
+		const previousPeriodTimestamp = calculation.getPreviousPeriodTimestamp(date);
 		if (changes.year) await this.initializeYearStatisticsStates(stateID);
-		await this.copyPreviousPeriodStates(stateDetails, changes);
-		await this.resetCurrentWeekdayStates(stateDetails, changes.week);
+		await this.copyPreviousPeriodStates(stateDetails, changes, previousPeriodTimestamp);
+		await this.resetCurrentWeekdayStates(stateDetails, changes.week, previousPeriodTimestamp);
 		await this.resetCurrentYearCollectionStates(stateDetails, changes.year);
 
 		const newCalcValues = {
@@ -1878,7 +1882,6 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		activeState.calcValues = newCalcValues;
-		const boundaryTimestamp = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 		if (this.usesHistoricalCostCalculation(stateID)) {
 			await this.ensureDynamicCostMemory(stateID, Number(reading), boundaryTimestamp);
 		}
@@ -1978,8 +1981,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * Function to handle previousState values
 	 * @param {string} currentState - RAW state ID currentValue
 	 * @param {string} [previousState] - RAW state ID previousValue
+	 * @param {number} [timestamp] - Timestamp of the completed period, defaults to now
 	 */
-	async setPreviousValues(currentState, previousState) {
+	async setPreviousValues(currentState, previousState, timestamp) {
 		// Only set previous state if option is chosen
 		try {
 			if (this.config.currentYearPrevious) {
@@ -1988,10 +1992,12 @@ class Sourceanalytix extends utils.Adapter {
 					// Get value of currentState
 					const currentVal = await this.getStateAsync(currentState);
 					if (currentVal) {
-						// Set current value to previous state
+						// Set current value to previous state, stamped at the end of the
+						// period it belongs to so history adapters plot it there
 						await this.setStateAsync(previousState, {
 							val: currentVal.val,
-							ack: true
+							ack: true,
+							...(Number.isFinite(timestamp) ? {ts: timestamp} : {})
 						});
 					}
 				} else {

@@ -9,7 +9,9 @@ const {
 	classifyCumulativeReading,
 	convertUnitValue,
 	getCurrentYearPeriodStateDefinitions,
+	getPeriodBoundaryTimestamp,
 	getPeriodChanges,
+	getPreviousPeriodTimestamp,
 	initializePeriodStartValues,
 	migrateLegacyVariableCostTotals,
 	normalizePeriodSnapshot,
@@ -298,6 +300,42 @@ describe('period and cumulative calculations', () => {
 			assert.equal(normalizePeriodSnapshot({
 				date: 'not-a-date', day: '01_Monday', week: '31', month: '07_July', quarter: 3, year: 2026,
 			}), null);
+		});
+	});
+
+	describe('previous period timestamps', () => {
+		it('stamps completed periods at 23:59:59 of their last day', () => {
+			const rolloverDate = new Date(2026, 6, 29, 0, 0, 0, 120);
+			const previous = new Date(getPreviousPeriodTimestamp(rolloverDate));
+			assert.equal(previous.getFullYear(), 2026);
+			assert.equal(previous.getMonth(), 6);
+			assert.equal(previous.getDate(), 28);
+			assert.equal(previous.getHours(), 23);
+			assert.equal(previous.getMinutes(), 59);
+			assert.equal(previous.getSeconds(), 59);
+		});
+
+		it('stays inside the completed month and year at their boundaries', () => {
+			const newYear = new Date(getPreviousPeriodTimestamp(new Date(2027, 0, 1, 0, 0, 3)));
+			assert.equal(newYear.getFullYear(), 2026);
+			assert.equal(newYear.getMonth(), 11);
+			assert.equal(newYear.getDate(), 31);
+
+			const newMonth = new Date(getPreviousPeriodTimestamp(new Date(2026, 2, 1, 0, 0, 0)));
+			assert.equal(newMonth.getMonth(), 1);
+			assert.equal(newMonth.getDate(), 28);
+		});
+
+		it('uses the current day for a rollover recovered later in the day', () => {
+			const recovered = new Date(2026, 6, 29, 10, 42, 17);
+			assert.equal(
+				getPeriodBoundaryTimestamp(recovered),
+				new Date(2026, 6, 29).getTime(),
+			);
+			assert.equal(
+				getPreviousPeriodTimestamp(recovered),
+				getPeriodBoundaryTimestamp(recovered) - 1000,
+			);
 		});
 	});
 
