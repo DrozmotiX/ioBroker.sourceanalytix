@@ -98,6 +98,43 @@
           "md": 4,
           "lg": 4,
           "xl": 4
+        },
+        "_rounding": {
+          "type": "header",
+          "text": "Rounding",
+          "size": 2,
+          "newLine": true,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12
+        },
+        "decimalsQuantity": {
+          "type": "number",
+          "label": "Decimals for consumption values",
+          "help": "Rounding decimals help",
+          "default": 3,
+          "min": -1,
+          "max": 15,
+          "xs": 12,
+          "sm": 6,
+          "md": 6,
+          "lg": 6,
+          "xl": 6
+        },
+        "decimalsCosts": {
+          "type": "number",
+          "label": "Decimals for cost values",
+          "help": "Rounding decimals help",
+          "default": 2,
+          "min": -1,
+          "max": 15,
+          "xs": 12,
+          "sm": 6,
+          "md": 6,
+          "lg": 6,
+          "xl": 6
         }
       }
     },

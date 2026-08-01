@@ -115,5 +115,10 @@
     "number of months": "Number of months",
     "period of time": "Period of time",
     "Ignore negative power values": "Negatieve vermogenswaarden negeren",
-    "Ignore negative power values help": "Heeft alleen invloed op vermogenswaarden (W/kW). Negatieve metingen tellen als 0 W. Schakel dit in voor omvormers die een negatief vermogen melden terwijl ze uitgeschakeld zijn."
+    "Ignore negative power values help": "Heeft alleen invloed op vermogenswaarden (W/kW). Negatieve metingen tellen als 0 W. Schakel dit in voor omvormers die een negatief vermogen melden terwijl ze uitgeschakeld zijn.",
+    "Rounding": "Afronding",
+    "Decimals for consumption values": "Decimalen voor verbruikswaarden",
+    "Decimals for cost values": "Decimalen voor kostenwaarden",
+    "Rounding decimals help": "Aantal decimalen voor berekende waarden. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
+    "Individual rounding decimals help": "Overschrijft de globale instelling voor deze bron. Laat leeg om de globale instelling te gebruiken; -1 slaat de exacte waarde op."
 }

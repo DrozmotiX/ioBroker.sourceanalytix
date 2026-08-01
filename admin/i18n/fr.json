@@ -115,5 +115,10 @@
     "number of months": "Number of months",
     "period of time": "Period of time",
     "Ignore negative power values": "Ignorer les valeurs de puissance négatives",
-    "Ignore negative power values help": "Affecte uniquement les valeurs de puissance (W/kW). Les relevés négatifs comptent pour 0 W. Activez cette option pour les onduleurs qui indiquent une puissance négative lorsqu’ils sont éteints."
+    "Ignore negative power values help": "Affecte uniquement les valeurs de puissance (W/kW). Les relevés négatifs comptent pour 0 W. Activez cette option pour les onduleurs qui indiquent une puissance négative lorsqu’ils sont éteints.",
+    "Rounding": "Arrondi",
+    "Decimals for consumption values": "Décimales pour les valeurs de consommation",
+    "Decimals for cost values": "Décimales pour les valeurs de coût",
+    "Rounding decimals help": "Nombre de décimales pour les valeurs calculées. Utilisez -1 pour enregistrer la valeur exacte sans arrondi.",
+    "Individual rounding decimals help": "Remplace le réglage global pour cette source. Laissez vide pour utiliser le réglage global ; -1 enregistre la valeur exacte."
 }
