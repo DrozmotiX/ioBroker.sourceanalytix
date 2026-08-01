@@ -115,5 +115,10 @@
     "number of months": "Number of months",
     "period of time": "Period of time",
     "Ignore negative power values": "Ignora i valori di potenza negativi",
-    "Ignore negative power values help": "Riguarda solo i valori di potenza (W/kW). Le letture negative valgono 0 W. Attiva per gli inverter che segnalano una potenza negativa quando sono spenti."
+    "Ignore negative power values help": "Riguarda solo i valori di potenza (W/kW). Le letture negative valgono 0 W. Attiva per gli inverter che segnalano una potenza negativa quando sono spenti.",
+    "Rounding": "Arrotondamento",
+    "Decimals for consumption values": "Decimali per i valori di consumo",
+    "Decimals for cost values": "Decimali per i valori di costo",
+    "Rounding decimals help": "Numero di decimali per i valori calcolati. Usare -1 per memorizzare il valore esatto senza arrotondamento.",
+    "Individual rounding decimals help": "Sostituisce l'impostazione globale per questa sorgente. Lasciare vuoto per usare l'impostazione globale; -1 memorizza il valore esatto."
 }

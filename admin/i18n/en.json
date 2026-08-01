@@ -115,5 +115,10 @@
     "nm": "nm",
     "µm": "µm",
     "Ignore negative power values": "Ignore negative power values",
-    "Ignore negative power values help": "Only affects power values (W/kW). Negative readings count as 0 W. Enable for inverters that report a negative power while they are switched off."
+    "Ignore negative power values help": "Only affects power values (W/kW). Negative readings count as 0 W. Enable for inverters that report a negative power while they are switched off.",
+    "Rounding": "Rounding",
+    "Decimals for consumption values": "Decimals for consumption values",
+    "Decimals for cost values": "Decimals for cost values",
+    "Rounding decimals help": "Number of decimals for calculated values. Use -1 to store the exact value without rounding.",
+    "Individual rounding decimals help": "Overrides the global setting for this source. Leave empty to use the global setting, -1 stores the exact value."
 }

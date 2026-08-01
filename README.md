@@ -46,6 +46,10 @@ The **General settings** tab controls which detailed statistics are created. Dis
 | Current year: Weekday | Stores the current week's values by weekday. |
 | Current year: Weeks / Months / Quarters | Stores values for each period below `<source>.currentYear`. |
 | Current year: Previous period | Stores the completed day, week, month, quarter and year, plus the previous week's weekday values. |
+| Rounding: Decimals for consumption values | Decimals for calculated quantities and meter readings, `3` by default. |
+| Rounding: Decimals for cost values | Decimals for calculated costs and earnings, `2` by default. |
+
+Both rounding settings accept `-1` to store the exact calculated value without rounding. A single source can deviate from them: its **Decimals for consumption values** and **Decimals for cost values** fields override the global setting and use it whenever they are left empty. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
 
 SourceAnalytix remembers the last successfully processed calendar periods. If the adapter or ioBroker is not running at midnight, missed day, week, month, quarter and year changes are processed once at the next start.
 
@@ -319,6 +323,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 ## Changelog
 ### __WORK IN PROGRESS__
 * Previous day, week, month, quarter and year values are written with the timestamp of the period they belong to (23:59:59 on its last day), so history adapters and Flot plot them in the correct period ([#497](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/497)).
+* The number of decimals for consumption and cost values is configurable globally and per source, including an option to store the exact value without rounding ([#934](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/934)).
 
 ### 0.5.4 (2026-08-01)
 * Each active source automatically exposes a compact `statisticsJson` state containing its current-year quantity, financial and optional meter-reading statistics ([#361](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/361), [#967](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/967)).

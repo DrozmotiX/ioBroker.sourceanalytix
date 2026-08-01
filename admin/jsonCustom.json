@@ -127,6 +127,30 @@
       "lg": 6,
       "xl": 6
     },
+    "decimalsQuantity": {
+      "type": "number",
+      "label": "Decimals for consumption values",
+      "help": "Individual rounding decimals help",
+      "min": -1,
+      "max": 15,
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
+    "decimalsCosts": {
+      "type": "number",
+      "label": "Decimals for cost values",
+      "help": "Individual rounding decimals help",
+      "min": -1,
+      "max": 15,
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
     "_startValues": {
       "newLine": true,
       "type": "header",

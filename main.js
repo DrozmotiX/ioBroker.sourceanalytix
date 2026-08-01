@@ -219,11 +219,11 @@ class Sourceanalytix extends utils.Adapter {
 		const basicTotals = calculation.calculateBasicPriceTotals(monthlyPrice, date);
 
 		return {
-			priceDay: await this.roundCosts(this.getNumberOrDefault(totals.priceDay, 0) + basicTotals.priceDay),
-			priceWeek: await this.roundCosts(this.getNumberOrDefault(totals.priceWeek, 0) + basicTotals.priceWeek),
-			priceMonth: await this.roundCosts(this.getNumberOrDefault(totals.priceMonth, 0) + basicTotals.priceMonth),
-			priceQuarter: await this.roundCosts(this.getNumberOrDefault(totals.priceQuarter, 0) + basicTotals.priceQuarter),
-			priceYear: await this.roundCosts(this.getNumberOrDefault(totals.priceYear, 0) + basicTotals.priceYear),
+			priceDay: await this.roundCosts(this.getNumberOrDefault(totals.priceDay, 0) + basicTotals.priceDay, stateID),
+			priceWeek: await this.roundCosts(this.getNumberOrDefault(totals.priceWeek, 0) + basicTotals.priceWeek, stateID),
+			priceMonth: await this.roundCosts(this.getNumberOrDefault(totals.priceMonth, 0) + basicTotals.priceMonth, stateID),
+			priceQuarter: await this.roundCosts(this.getNumberOrDefault(totals.priceQuarter, 0) + basicTotals.priceQuarter, stateID),
+			priceYear: await this.roundCosts(this.getNumberOrDefault(totals.priceYear, 0) + basicTotals.priceYear, stateID),
 		};
 	}
 
@@ -515,15 +515,16 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * @param {object} dynamicCosts - Dynamic cost memory
+	 * @param {string} [stateID] - Source state ID for its individual decimals setting
 	 * @returns {Promise<object>} Rounded dynamic cost totals
 	 */
-	async roundDynamicCostTotals(dynamicCosts) {
+	async roundDynamicCostTotals(dynamicCosts, stateID) {
 		return {
-			priceDay: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceDay, 0)),
-			priceWeek: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceWeek, 0)),
-			priceMonth: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceMonth, 0)),
-			priceQuarter: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceQuarter, 0)),
-			priceYear: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceYear, 0)),
+			priceDay: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceDay, 0), stateID),
+			priceWeek: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceWeek, 0), stateID),
+			priceMonth: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceMonth, 0), stateID),
+			priceQuarter: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceQuarter, 0), stateID),
+			priceYear: await this.roundCosts(this.getNumberOrDefault(dynamicCosts.totals.priceYear, 0), stateID),
 		};
 	}
 
@@ -721,7 +722,7 @@ class Sourceanalytix extends utils.Adapter {
 		const readingTimestamp = this.getTimestampOrNow(timestamp);
 		if (readingNumber === null) {
 			this.log.warn(`[calculateDynamicCostsForState] Cannot calculate dynamic costs for ${stateID}, reading ${JSON.stringify(reading)} is not numeric`);
-			return this.roundDynamicCostTotals(dynamicCosts);
+			return this.roundDynamicCostTotals(dynamicCosts, stateID);
 		}
 
 		const lastReading = this.parsePriceValue(dynamicCosts.lastReading);
@@ -729,7 +730,7 @@ class Sourceanalytix extends utils.Adapter {
 			dynamicCosts.lastReading = readingNumber;
 			dynamicCosts.lastTs = readingTimestamp;
 			await this.persistDynamicCostMemory(stateID, dynamicCosts);
-			return this.roundDynamicCostTotals(dynamicCosts);
+			return this.roundDynamicCostTotals(dynamicCosts, stateID);
 		}
 
 		const delta = readingNumber - lastReading;
@@ -738,14 +739,14 @@ class Sourceanalytix extends utils.Adapter {
 			dynamicCosts.lastReading = readingNumber;
 			dynamicCosts.lastTs = readingTimestamp;
 			await this.persistDynamicCostMemory(stateID, dynamicCosts);
-			return this.roundDynamicCostTotals(dynamicCosts);
+			return this.roundDynamicCostTotals(dynamicCosts, stateID);
 		}
 
 		if (delta > 0) {
 			const priceDelta = await this.calculateDynamicPriceDelta(activeState.stateDetails.stateType, delta, dynamicCosts.lastTs, readingTimestamp, activeState.prices.unitPrice);
 			if (priceDelta === null) {
 				this.log.warn(`[calculateDynamicCostsForState] Cannot calculate dynamic costs for ${stateID}, no valid price found for ${new Date(readingTimestamp).toISOString()}`);
-				return this.roundDynamicCostTotals(dynamicCosts);
+				return this.roundDynamicCostTotals(dynamicCosts, stateID);
 			}
 			dynamicCosts.totals.priceDay = this.getNumberOrDefault(dynamicCosts.totals.priceDay, 0) + priceDelta;
 			dynamicCosts.totals.priceWeek = this.getNumberOrDefault(dynamicCosts.totals.priceWeek, 0) + priceDelta;
@@ -761,7 +762,7 @@ class Sourceanalytix extends utils.Adapter {
 			await this.persistDynamicCostMemory(stateID, dynamicCosts);
 		}
 
-		return this.roundDynamicCostTotals(dynamicCosts);
+		return this.roundDynamicCostTotals(dynamicCosts, stateID);
 	}
 
 	/**
@@ -1295,6 +1296,8 @@ class Sourceanalytix extends utils.Adapter {
 						basicRate: customData.basicRate === true,
 						consumption: customData.consumption,
 						costs: customData.costs,
+						decimalsCosts: customData.decimalsCosts,
+						decimalsQuantity: customData.decimalsQuantity,
 						deviceName: newDeviceName.toString(),
 						financialCategory: stateType,
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
@@ -1917,11 +1920,11 @@ class Sourceanalytix extends utils.Adapter {
 			consumedYear: reading - this.getNumberOrDefault(calcValues.start_year, reading),
 		};
 		const calculationRounded = {
-			consumedDay: await this.roundDigits(consumed.consumedDay),
-			consumedWeek: await this.roundDigits(consumed.consumedWeek),
-			consumedMonth: await this.roundDigits(consumed.consumedMonth),
-			consumedQuarter: await this.roundDigits(consumed.consumedQuarter),
-			consumedYear: await this.roundDigits(consumed.consumedYear),
+			consumedDay: await this.roundDigits(consumed.consumedDay, stateID),
+			consumedWeek: await this.roundDigits(consumed.consumedWeek, stateID),
+			consumedMonth: await this.roundDigits(consumed.consumedMonth, stateID),
+			consumedQuarter: await this.roundDigits(consumed.consumedQuarter, stateID),
+			consumedYear: await this.roundDigits(consumed.consumedYear, stateID),
 		};
 		if (stateDetails.consumption) await this.writeConsumptionStates(stateID, calculationRounded, date);
 
@@ -2359,7 +2362,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (stateDetails.meter_values === true) {
 				// Always write generic meterReadings for current year
 				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.meterReadings`;
-				const readingRounded = await this.roundDigits(reading);
+				const readingRounded = await this.roundDigits(reading, stateID);
 
 				// Store meter reading to related period
 				if (readingRounded) {
@@ -2427,11 +2430,11 @@ class Sourceanalytix extends utils.Adapter {
 
 			// Handle rounding of values
 			const calculationRounded = {
-				consumedDay: await this.roundDigits(calculations.consumedDay),
-				consumedWeek: await this.roundDigits(calculations.consumedWeek),
-				consumedMonth: await this.roundDigits(calculations.consumedMonth),
-				consumedQuarter: await this.roundDigits(calculations.consumedQuarter),
-				consumedYear: await this.roundDigits(calculations.consumedYear),
+				consumedDay: await this.roundDigits(calculations.consumedDay, stateID),
+				consumedWeek: await this.roundDigits(calculations.consumedWeek, stateID),
+				consumedMonth: await this.roundDigits(calculations.consumedMonth, stateID),
+				consumedQuarter: await this.roundDigits(calculations.consumedQuarter, stateID),
+				consumedYear: await this.roundDigits(calculations.consumedYear, stateID),
 			};
 
 			let variableCosts = {
@@ -2487,35 +2490,50 @@ class Sourceanalytix extends utils.Adapter {
 	// }
 
 	/**
-	 * @param {number} [value] - Number to round with , separator
+	 * Decimals to apply for a source, preferring its own setting over the global one.
+	 * @param {string | undefined} stateID - Source state ID
+	 * @param {'quantity' | 'costs'} kind - Type of value to round
+	 * @returns {number} Decimals to apply, or -1 to keep the exact value
 	 */
-	async roundDigits(value) {
-		let rounded;
+	getDecimals(stateID, kind) {
+		const globalSetting = kind === 'costs' ? this.config.decimalsCosts : this.config.decimalsQuantity;
+		const globalDecimals = calculation.normalizeDecimals(globalSetting, kind === 'costs' ? 2 : 3);
+		const stateDetails = stateID && this.activeStates[stateID] ? this.activeStates[stateID].stateDetails : null;
+		if (!stateDetails) return globalDecimals;
+		const sourceSetting = kind === 'costs' ? stateDetails.decimalsCosts : stateDetails.decimalsQuantity;
+		return calculation.normalizeDecimals(sourceSetting, globalDecimals);
+	}
+
+	/**
+	 * @param {number} [value] - Consumption or meter value to round
+	 * @param {string} [stateID] - Source state ID for its individual decimals setting
+	 */
+	async roundDigits(value, stateID) {
 		try {
-			rounded = Number(value);
-			rounded = Math.round(rounded * 1000) / 1000;
+			const rounded = calculation.roundValue(value, this.getDecimals(stateID, 'quantity'));
+			if (rounded === null) {
+				this.log.debug(`roundDigits received non-numeric value ${JSON.stringify(value)}, returning it unchanged`);
+				return value;
+			}
 			this.log.debug(`roundDigits with ${value} rounded ${rounded}`);
-			if (!rounded) return value;
 			return rounded;
 		} catch (error) {
 			this.errorHandling(`[roundDigits] ${value}`, error);
-			rounded = value;
-			return rounded;
+			return value;
 		}
 	}
 
 	/**
-	 * @param {number} [value] - Number to round with . separator
+	 * @param {number} [value] - Cost value to round
+	 * @param {string} [stateID] - Source state ID for its individual decimals setting
 	 */
-	async roundCosts(value) {
+	async roundCosts(value, stateID) {
 		try {
-			const numericValue = Number(value);
-			if (!Number.isFinite(numericValue)) {
+			const rounded = calculation.roundValue(value, this.getDecimals(stateID, 'costs'));
+			if (rounded === null) {
 				this.log.warn(`roundCosts received non-numeric value ${JSON.stringify(value)}, returning 0`);
 				return 0;
 			}
-			let rounded = numericValue;
-			rounded = Math.round(rounded * 100) / 100;
 			this.log.debug(`roundCosts with ${value} rounded ${rounded}`);
 			return rounded;
 		} catch (error) {

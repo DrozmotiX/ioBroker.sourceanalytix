@@ -115,5 +115,10 @@
     "number of months": "Number of months",
     "period of time": "Period of time",
     "Ignore negative power values": "忽略负功率值",
-    "Ignore negative power values help": "仅影响功率值（W/kW）。负读数按 0 W 计。对于关机时报告负功率的逆变器请启用此选项。"
+    "Ignore negative power values help": "仅影响功率值（W/kW）。负读数按 0 W 计。对于关机时报告负功率的逆变器请启用此选项。",
+    "Rounding": "四舍五入",
+    "Decimals for consumption values": "用量值的小数位数",
+    "Decimals for cost values": "费用值的小数位数",
+    "Rounding decimals help": "计算值保留的小数位数。设为 -1 则保存精确值，不进行舍入。",
+    "Individual rounding decimals help": "覆盖此数据源的全局设置。留空则使用全局设置；设为 -1 保存精确值。"
 }
