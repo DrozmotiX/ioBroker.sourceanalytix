@@ -3,6 +3,19 @@
     "name": "sourceanalytix",
     "version": "0.5.3",
     "news": {
+      "0.5.4": {
+        "en": "Each active source automatically exposes a compact statisticsJson state with its current-year quantity, financial and optional meter-reading statistics\nMonthly basic prices are no longer imported into the variable-cost accumulator and added a second time after a restart",
+        "de": "Jede aktive Quelle stellt automatisch einen kompakten statisticsJson-Datenpunkt mit ihren Mengen-, Kosten- und optionalen Zählerstandsstatistiken des laufenden Jahres bereit\nMonatliche Grundpreise werden nicht mehr in den Akkumulator der variablen Kosten übernommen und nach einem Neustart ein zweites Mal addiert",
+        "ru": "Каждый активный источник автоматически предоставляет компактный датапоинт statisticsJson со статистикой количества, расходов и, при необходимости, показаний счётчика за текущий год\nМесячные базовые цены больше не переносятся в накопитель переменных расходов и не добавляются повторно после перезапуска",
+        "pt": "Cada fonte ativa disponibiliza automaticamente um estado statisticsJson compacto com as suas estatísticas de quantidade, financeiras e, opcionalmente, de leituras do contador do ano corrente\nOs preços base mensais deixam de ser importados para o acumulador de custos variáveis e adicionados uma segunda vez após um reinício",
+        "nl": "Elke actieve bron stelt automatisch een compact statisticsJson-datapunt beschikbaar met de hoeveelheids-, kosten- en optionele meterstandstatistieken van het lopende jaar\nMaandelijkse vastrechtprijzen worden niet langer in de accumulator voor variabele kosten opgenomen en na een herstart een tweede keer opgeteld",
+        "fr": "Chaque source active expose automatiquement un état statisticsJson compact contenant ses statistiques de quantité, financières et, en option, de relevés de compteur pour l’année en cours\nLes prix de base mensuels ne sont plus importés dans l’accumulateur de coûts variables ni ajoutés une seconde fois après un redémarrage",
+        "it": "Ogni sorgente attiva espone automaticamente uno stato statisticsJson compatto con le statistiche di quantità, finanziarie e, facoltativamente, delle letture del contatore dell’anno corrente\nI prezzi base mensili non vengono più importati nell’accumulatore dei costi variabili né aggiunti una seconda volta dopo un riavvio",
+        "es": "Cada fuente activa expone automáticamente un estado statisticsJson compacto con sus estadísticas de cantidad, financieras y, opcionalmente, de lecturas del contador del año en curso\nLos precios base mensuales ya no se importan al acumulador de costes variables ni se suman por segunda vez tras un reinicio",
+        "pl": "Każde aktywne źródło automatycznie udostępnia kompaktowy datapoint statisticsJson ze statystykami ilości, kosztów oraz opcjonalnie odczytów licznika za bieżący rok\nMiesięczne opłaty stałe nie są już przenoszone do akumulatora kosztów zmiennych ani dodawane po raz drugi po ponownym uruchomieniu",
+        "zh-cn": "每个启用的数据源都会自动生成一个精简的 statisticsJson 状态，包含本年度的用量、费用以及可选的表计读数统计\n每月基本费用不再被导入可变费用累加器，重启后也不会被重复计入",
+        "uk": "Кожне активне джерело автоматично надає компактний датапоінт statisticsJson зі статистикою кількості, витрат і, за потреби, показань лічильника за поточний рік\nМісячні базові ціни більше не переносяться до накопичувача змінних витрат і не додаються вдруге після перезапуску"
+      },
       "0.5.3": {
         "en": "Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield",
         "de": "Leistungs-Datenpunkte können negative Messwerte optional ignorieren, damit Wechselrichter, die im abgeschalteten Zustand eine negative Leistung melden, den aufsummierten Ertrag nicht mehr verringern",
