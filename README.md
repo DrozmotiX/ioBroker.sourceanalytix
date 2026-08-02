@@ -77,7 +77,7 @@ Open **Price definitions** and add the categories that source states should use.
 | Price state | Full ID of the numeric price state or tariff selector state. |
 | Active tariff price | Price used while a selector is active. |
 | Active selector value | Optional exact value which activates the alternate tariff. |
-| Valid from | Optional date from which a fixed price applies. |
+| Valid from | Optional date from which the tariff, including its monthly basic price, applies. |
 | Price per month | Monthly basic price, applied only to sources with **Including basic rate** enabled. |
 
 #### Fixed and scheduled prices
@@ -113,7 +113,9 @@ The precise cost accumulator and price history survive adapter restarts. Explici
 
 #### Monthly basic price
 
-Enable **Including basic rate** on a source to add the configured monthly price. Day and week values use the daily share for the respective calendar month. Month, quarter and year values include the applicable calendar months, including weeks that cross a month boundary.
+Enable **Including basic rate** on a source to add the configured monthly price. **Valid from** also defines the first month for this charge. The full basic price is booked once when the tariff first becomes valid and then at the beginning of every following calendar month. A price change during a month applies to the next monthly booking, while previous months remain unchanged. Existing tariffs without a validity date retain the previous behavior by starting at the beginning of the current calendar year.
+
+Day and week totals include the full monthly charge only when its booking date falls into that period. Month, quarter and year totals contain the full charges booked in their respective calendar periods.
 
 ### 3. Activate a source state
 

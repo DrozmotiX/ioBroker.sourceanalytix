@@ -56,6 +56,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.dynamicPriceStates = {}; // Price source state ID -> price definition categories
 		this.priceControlStates = {}; // Writable local price state ID -> price definition category
 		this.priceHistories = {}; // Price definition category -> ordered price history
+		this.basicPriceHistories = {}; // Price definition category -> ordered monthly basic-price history
 		this.validStates = {}; // Array of all created states
 		this.visWidgetJson ={}; // Array containing all calculation values to use in vis widget
 		this.resetDayJob = null; // Midnight cron job
@@ -222,8 +223,8 @@ class Sourceanalytix extends utils.Adapter {
 	async addBasicPriceTotals(stateID, totals, date) {
 		const activeState = this.activeStates[stateID];
 		const includeBasicPrice = !!(activeState && activeState.stateDetails && activeState.stateDetails.basicRate);
-		const monthlyPrice = includeBasicPrice ? this.getNumberOrDefault(activeState.prices.basicPrice, 0) : 0;
-		const basicTotals = calculation.calculateBasicPriceTotals(monthlyPrice, date);
+		const basicHistory = includeBasicPrice ? await this.loadBasicPriceHistory(activeState.stateDetails.stateType) : [];
+		const basicTotals = calculation.calculateHistoricalBasicPriceTotals(basicHistory, date);
 
 		return {
 			priceDay: await this.roundCosts(this.getNumberOrDefault(totals.priceDay, 0) + basicTotals.priceDay, stateID),
@@ -279,6 +280,14 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * @param {string} priceDefinition - Price definition category
+	 * @returns {string} Local state ID for the monthly basic-price history
+	 */
+	getBasicPriceHistoryStateName(priceDefinition) {
+		return `basicPriceHistory.${priceDefinition.toString().replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
 	 * @returns {string} Local writable state ID
 	 */
 	getPriceControlStateName(priceDefinition) {
@@ -294,6 +303,30 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * @param {string} priceDefinition - Price definition category
+	 * @returns {string} State which remembers the effective date of the configured unit price
+	 */
+	getConfiguredPriceValidityStateName(priceDefinition) {
+		return `priceDefinitions.${priceDefinition.toString().replace(/[^a-zA-Z0-9_-]/g, '_')}.configuredPriceValidFrom`;
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
+	 * @returns {string} State which remembers the last processed monthly basic price
+	 */
+	getConfiguredBasicPriceStateName(priceDefinition) {
+		return `priceDefinitions.${priceDefinition.toString().replace(/[^a-zA-Z0-9_-]/g, '_')}.configuredBasicPrice`;
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
+	 * @returns {string} State which remembers the effective date of the configured monthly basic price
+	 */
+	getConfiguredBasicPriceValidityStateName(priceDefinition) {
+		return `priceDefinitions.${priceDefinition.toString().replace(/[^a-zA-Z0-9_-]/g, '_')}.configuredBasicPriceValidFrom`;
+	}
+
+	/**
 	 * Store a fixed price only when the admin setting actually changed.
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Price from adapter settings
@@ -301,6 +334,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async storeConfiguredPrice(priceDefinition, configuredPrice, validFrom) {
 		const stateName = this.getConfiguredPriceStateName(priceDefinition);
+		const validityStateName = this.getConfiguredPriceValidityStateName(priceDefinition);
 		await this.extendObjectAsync(stateName, {
 			type: 'state',
 			common: {
@@ -312,13 +346,50 @@ class Sourceanalytix extends utils.Adapter {
 			},
 			native: {priceDefinition},
 		});
+		await this.extendObjectAsync(validityStateName, {
+			type: 'state',
+			common: {
+				name: `Configured price validity ${priceDefinition}`,
+				type: 'number',
+				role: 'value.time',
+				read: true,
+				write: false,
+			},
+			native: {priceDefinition},
+		});
 		const storedConfigState = await this.getStateAsync(stateName);
 		const storedConfigPrice = storedConfigState ? this.parsePriceValue(storedConfigState.val) : null;
-		if (storedConfigPrice !== configuredPrice || (validFrom !== null && validFrom !== undefined && validFrom !== '')) {
-			const priceTimestamp = dynamicPricing.parseValidityTimestamp(validFrom, Date.now());
-			await this.storeDynamicPriceHistory(priceDefinition, configuredPrice, priceTimestamp);
+		const storedValidityState = await this.getStateAsync(validityStateName);
+		const storedValidityTimestamp = storedValidityState ? this.parsePriceValue(storedValidityState.val) : null;
+		const history = await this.loadPriceHistory(priceDefinition);
+		const hasValidityDate = validFrom !== null && validFrom !== undefined && validFrom !== '';
+		const requestedValidityTimestamp = hasValidityDate
+			? dynamicPricing.parseTariffValidityTimestamp(validFrom, Date.now())
+			: null;
+		let effectiveTimestamp = storedValidityTimestamp;
+		if (effectiveTimestamp === null) {
+			const latestMatchingEntry = history.filter(entry => entry.price === configuredPrice).at(-1);
+			if (latestMatchingEntry) effectiveTimestamp = latestMatchingEntry.ts;
+		}
+		if (storedConfigPrice !== configuredPrice) {
+			effectiveTimestamp = requestedValidityTimestamp === null ? Date.now() : requestedValidityTimestamp;
+			await this.storeDynamicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
+		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
+			const moved = dynamicPricing.moveConfiguredPriceHistoryEntry(
+				history,
+				configuredPrice,
+				effectiveTimestamp,
+				requestedValidityTimestamp,
+			);
+			if (moved.changed) {
+				this.priceHistories[priceDefinition] = moved.history;
+				await this.persistPriceHistory(priceDefinition);
+				effectiveTimestamp = requestedValidityTimestamp;
+				this.log.info(`Moved configured price ${configuredPrice} for ${priceDefinition} to ${new Date(requestedValidityTimestamp).toISOString()}`);
+			}
 		}
 		await this.setStateChangedAsync(stateName, {val: configuredPrice, ack: true});
+		if (effectiveTimestamp !== null) await this.setStateChangedAsync(validityStateName, {val: effectiveTimestamp, ack: true});
 	}
 
 	/**
@@ -426,6 +497,151 @@ class Sourceanalytix extends utils.Adapter {
 			val: JSON.stringify(this.priceHistories[priceDefinition] || []),
 			ack: true
 		});
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
+	 */
+	async ensureBasicPriceHistoryState(priceDefinition) {
+		const stateName = this.getBasicPriceHistoryStateName(priceDefinition);
+		await this.extendObjectAsync(stateName, {
+			type: 'state',
+			common: {
+				name: `Monthly basic-price history ${priceDefinition}`,
+				type: 'string',
+				role: 'json',
+				read: true,
+				write: false,
+				def: '[]',
+			},
+			native: {priceDefinition},
+		});
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
+	 * @returns {Promise<Array<{ts: number, price: number}>>} Stored monthly basic-price history
+	 */
+	async loadBasicPriceHistory(priceDefinition) {
+		if (this.basicPriceHistories[priceDefinition]) return this.basicPriceHistories[priceDefinition];
+
+		await this.ensureBasicPriceHistoryState(priceDefinition);
+		const historyState = await this.getStateAsync(this.getBasicPriceHistoryStateName(priceDefinition));
+		let historyEntries = [];
+		if (historyState && historyState.val) {
+			try {
+				historyEntries = JSON.parse(historyState.val.toString());
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				this.log.warn(`[loadBasicPriceHistory] Cannot parse monthly basic-price history for ${priceDefinition}: ${message}`);
+			}
+		}
+		this.basicPriceHistories[priceDefinition] = this.normalizePriceHistory(historyEntries);
+		return this.basicPriceHistories[priceDefinition];
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
+	 */
+	async persistBasicPriceHistory(priceDefinition) {
+		await this.ensureBasicPriceHistoryState(priceDefinition);
+		await this.setStateAsync(this.getBasicPriceHistoryStateName(priceDefinition), {
+			val: JSON.stringify(this.basicPriceHistories[priceDefinition] || []),
+			ack: true,
+		});
+	}
+
+	/**
+	 * @param {string} priceDefinition - Price definition category
+	 * @param {number} price - Monthly basic price
+	 * @param {number} timestamp - Effective timestamp
+	 * @returns {Promise<boolean>} Whether the stored history changed
+	 */
+	async storeBasicPriceHistory(priceDefinition, price, timestamp) {
+		const history = await this.loadBasicPriceHistory(priceDefinition);
+		const priceTimestamp = this.getTimestampOrNow(timestamp);
+		const existingEntry = history.find(entry => entry.ts === priceTimestamp);
+		if (existingEntry) {
+			if (existingEntry.price === price) return false;
+			existingEntry.price = price;
+		} else {
+			history.push({ts: priceTimestamp, price});
+		}
+		this.basicPriceHistories[priceDefinition] = this.normalizePriceHistory(history);
+		await this.persistBasicPriceHistory(priceDefinition);
+		this.log.info(`Stored monthly basic price ${price} for ${priceDefinition} at ${new Date(priceTimestamp).toISOString()}`);
+		return true;
+	}
+
+	/**
+	 * Store a monthly basic price when it is first configured or changed.
+	 * Existing configurations without a validity date start at the current year boundary.
+	 * @param {string} priceDefinition - Price definition category
+	 * @param {number} configuredPrice - Monthly basic price from adapter settings
+	 * @param {unknown} validFrom - Optional effective date for the tariff
+	 */
+	async storeConfiguredBasicPrice(priceDefinition, configuredPrice, validFrom) {
+		const stateName = this.getConfiguredBasicPriceStateName(priceDefinition);
+		const validityStateName = this.getConfiguredBasicPriceValidityStateName(priceDefinition);
+		await this.extendObjectAsync(stateName, {
+			type: 'state',
+			common: {
+				name: `Configured monthly basic price ${priceDefinition}`,
+				type: 'number',
+				role: 'value.price',
+				read: true,
+				write: false,
+			},
+			native: {priceDefinition},
+		});
+		await this.extendObjectAsync(validityStateName, {
+			type: 'state',
+			common: {
+				name: `Configured monthly basic-price validity ${priceDefinition}`,
+				type: 'number',
+				role: 'value.time',
+				read: true,
+				write: false,
+			},
+			native: {priceDefinition},
+		});
+
+		const storedConfigState = await this.getStateAsync(stateName);
+		const storedConfigPrice = storedConfigState ? this.parsePriceValue(storedConfigState.val) : null;
+		const storedValidityState = await this.getStateAsync(validityStateName);
+		const storedValidityTimestamp = storedValidityState ? this.parsePriceValue(storedValidityState.val) : null;
+		const history = await this.loadBasicPriceHistory(priceDefinition);
+		const hasValidityDate = validFrom !== null && validFrom !== undefined && validFrom !== '';
+		const requestedValidityTimestamp = hasValidityDate
+			? dynamicPricing.parseTariffValidityTimestamp(validFrom, Date.now())
+			: null;
+		let effectiveTimestamp = storedValidityTimestamp;
+		if (effectiveTimestamp === null) {
+			const latestMatchingEntry = history.filter(entry => entry.price === configuredPrice).at(-1);
+			if (latestMatchingEntry) effectiveTimestamp = latestMatchingEntry.ts;
+		}
+		if (history.length === 0 || storedConfigPrice !== configuredPrice) {
+			const defaultTimestamp = history.length === 0
+				? new Date(new Date().getFullYear(), 0, 1).getTime()
+				: Date.now();
+			effectiveTimestamp = requestedValidityTimestamp === null ? defaultTimestamp : requestedValidityTimestamp;
+			await this.storeBasicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
+		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
+			const moved = dynamicPricing.moveConfiguredPriceHistoryEntry(
+				history,
+				configuredPrice,
+				effectiveTimestamp,
+				requestedValidityTimestamp,
+			);
+			if (moved.changed) {
+				this.basicPriceHistories[priceDefinition] = moved.history;
+				await this.persistBasicPriceHistory(priceDefinition);
+				effectiveTimestamp = requestedValidityTimestamp;
+				this.log.info(`Moved monthly basic price ${configuredPrice} for ${priceDefinition} to ${new Date(requestedValidityTimestamp).toISOString()}`);
+			}
+		}
+		await this.setStateChangedAsync(stateName, {val: configuredPrice, ack: true});
+		if (effectiveTimestamp !== null) await this.setStateChangedAsync(validityStateName, {val: effectiveTimestamp, ack: true});
 	}
 
 	/**
@@ -690,8 +906,8 @@ class Sourceanalytix extends utils.Adapter {
 
 		const unitPrice = this.getNumberOrDefault(activeState.prices.unitPrice, 0);
 		const fallbackTotals = this.getFallbackDynamicCostTotals(readingNumber, activeState.calcValues, unitPrice);
-		const monthlyPrice = activeState.stateDetails.basicRate ? this.getNumberOrDefault(activeState.prices.basicPrice, 0) : 0;
-		const basicTotals = calculation.calculateBasicPriceTotals(monthlyPrice, new Date(readingTimestamp));
+		const basicHistory = activeState.stateDetails.basicRate ? await this.loadBasicPriceHistory(activeState.stateDetails.stateType) : [];
+		const basicTotals = calculation.calculateHistoricalBasicPriceTotals(basicHistory, new Date(readingTimestamp));
 		const stateRoot = `${activeState.stateDetails.deviceName}.currentYear.${activeState.stateDetails.financialCategory}`;
 		const totals = {
 			priceDay: await this.readVariableCostStateOrFallback(`${stateRoot}.01_currentDay`, fallbackTotals.priceDay, basicTotals.priceDay),
@@ -1130,9 +1346,11 @@ class Sourceanalytix extends utils.Adapter {
 				const configuredUnitPrice = this.parsePriceValue(priceConfig.uPpU);
 				const alternatePrice = this.parsePriceValue(priceConfig.alternatePrice);
 				const configuredBasicPrice = this.parsePriceValue(priceConfig.uPpM);
+				const basicPrice = configuredBasicPrice === null ? 0 : configuredBasicPrice;
 				let unitPrice = configuredUnitPrice;
 
 				await this.ensurePriceHistoryState(priceConfig.cat);
+				await this.storeConfiguredBasicPrice(priceConfig.cat, basicPrice, priceConfig.validFrom);
 				if (priceSource === 'static' && configuredUnitPrice !== null) {
 					await this.storeConfiguredPrice(priceConfig.cat, configuredUnitPrice, priceConfig.validFrom);
 					unitPrice = await this.getDynamicPriceForTimestamp(priceConfig.cat, Date.now(), configuredUnitPrice);
@@ -1173,7 +1391,7 @@ class Sourceanalytix extends utils.Adapter {
 					uDes: priceConfig.cat,
 					uPpU: unitPrice,
 					basePrice: configuredUnitPrice,
-					uPpM: configuredBasicPrice === null ? priceConfig.uPpM : configuredBasicPrice,
+					uPpM: basicPrice,
 					costType: priceConfig.costType,
 					unitType: priceConfig.unitType,
 					priceSource: priceSource,

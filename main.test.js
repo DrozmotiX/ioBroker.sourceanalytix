@@ -5,6 +5,7 @@ const adapterHelpers = require('iobroker-adapter-helpers');
 const {
 	buildUnitConfig,
 	calculateBasicPriceTotals,
+	calculateHistoricalBasicPriceTotals,
 	calculateVariablePriceTotals,
 	classifyCumulativeReading,
 	convertUnitValue,
@@ -23,9 +24,11 @@ const {
 	calculatePriceDelta,
 	getSelectorPrice,
 	getPriceForTimestamp,
+	moveConfiguredPriceHistoryEntry,
 	normalizeDynamicCostMemory,
 	normalizePriceHistory,
 	parsePriceValue,
+	parseTariffValidityTimestamp,
 	parseValidityTimestamp,
 } = require('./lib/dynamic-pricing');
 
@@ -85,6 +88,14 @@ describe('dynamic pricing', () => {
 			assert.equal(parseValidityTimestamp('', 123), 123);
 		});
 
+		it('treats date-picker tariff dates as local calendar days', () => {
+			const localMidnight = new Date(2026, 8, 1).getTime();
+			assert.equal(parseTariffValidityTimestamp('2026-09-01', 1), localMidnight);
+			assert.equal(parseTariffValidityTimestamp('2026-09-01T00:00:00.000Z', 1), localMidnight);
+			assert.equal(parseTariffValidityTimestamp('2026-02-30', 123), 123);
+			assert.equal(parseTariffValidityTimestamp('', 123), 123);
+		});
+
 		it('switches tariffs with boolean, contact and configured values', () => {
 			assert.equal(getSelectorPrice(false, 0.2, 0.4), 0.2);
 			assert.equal(getSelectorPrice(true, 0.2, 0.4), 0.4);
@@ -108,6 +119,35 @@ describe('dynamic pricing', () => {
 				{ts: at(10), price: 0.3},
 				{ts: at(11), price: 0.4},
 			]);
+		});
+	});
+
+	describe('moveConfiguredPriceHistoryEntry', () => {
+		it('moves only the remembered configured tariff entry', () => {
+			const moved = moveConfiguredPriceHistoryEntry([
+				{ts: at(10), price: 0.25},
+				{ts: at(11), price: 0.4},
+			], 0.4, at(11), at(12));
+
+			assert.equal(moved.changed, true);
+			assert.deepEqual(moved.history, [
+				{ts: at(10), price: 0.25},
+				{ts: at(12), price: 0.4},
+			]);
+		});
+
+		it('moves a single matching migration entry without metadata', () => {
+			const moved = moveConfiguredPriceHistoryEntry([{ts: at(10), price: 0.25}], 0.25, null, at(12));
+			assert.equal(moved.changed, true);
+			assert.deepEqual(moved.history, [{ts: at(12), price: 0.25}]);
+		});
+
+		it('leaves ambiguous and unrelated histories untouched', () => {
+			const history = [{ts: at(10), price: 0.25}, {ts: at(11), price: 0.4}];
+			assert.deepEqual(moveConfiguredPriceHistoryEntry(history, 0.4, null, at(12)), {
+				history,
+				changed: false,
+			});
 		});
 	});
 
@@ -593,6 +633,99 @@ describe('period and cumulative calculations', () => {
 
 			assert.deepEqual(migrateLegacyVariableCostTotals(legacy, {}, fallback, 'static', 1, true), fallback);
 			assert.deepEqual(migrateLegacyVariableCostTotals(legacy, {}, fallback, 'state', 5, false), legacy);
+		});
+	});
+
+	describe('calculateHistoricalBasicPriceTotals', () => {
+		const localTimestamp = (year, month, day, hour = 0) => new Date(year, month - 1, day, hour).getTime();
+
+		it('charges only August when a tariff starts on August 1', () => {
+			const totals = calculateHistoricalBasicPriceTotals(
+				[{ts: localTimestamp(2026, 8, 1), price: 19.15}],
+				new Date(2026, 7, 2, 12),
+			);
+
+			assert.deepEqual(totals, {
+				priceDay: 0,
+				priceWeek: 19.15,
+				priceMonth: 19.15,
+				priceQuarter: 19.15,
+				priceYear: 19.15,
+			});
+		});
+
+		it('does not charge before the tariff becomes valid', () => {
+			const totals = calculateHistoricalBasicPriceTotals(
+				[{ts: localTimestamp(2026, 8, 15), price: 19.15}],
+				new Date(2026, 7, 14, 23),
+			);
+
+			assert.deepEqual(totals, {priceDay: 0, priceWeek: 0, priceMonth: 0, priceQuarter: 0, priceYear: 0});
+		});
+
+		it('books the full first month on a mid-month tariff start', () => {
+			const totals = calculateHistoricalBasicPriceTotals(
+				[{ts: localTimestamp(2026, 8, 15), price: 19.15}],
+				new Date(2026, 7, 15, 12),
+			);
+
+			assert.deepEqual(totals, {
+				priceDay: 19.15,
+				priceWeek: 19.15,
+				priceMonth: 19.15,
+				priceQuarter: 19.15,
+				priceYear: 19.15,
+			});
+		});
+
+		it('applies a mid-month price change to the next monthly booking', () => {
+			const history = [
+				{ts: localTimestamp(2026, 8, 1), price: 19.15},
+				{ts: localTimestamp(2026, 8, 15), price: 21},
+			];
+			assert.equal(calculateHistoricalBasicPriceTotals(history, new Date(2026, 7, 20, 12)).priceMonth, 19.15);
+
+			const september = calculateHistoricalBasicPriceTotals(history, new Date(2026, 8, 1, 12));
+			assert.equal(september.priceDay, 21);
+			assert.equal(september.priceMonth, 21);
+			assert.equal(september.priceQuarter, 40.15);
+			assert.equal(september.priceYear, 40.15);
+		});
+
+		it('uses a new price immediately when it changes at the month boundary', () => {
+			const totals = calculateHistoricalBasicPriceTotals([
+				{ts: localTimestamp(2026, 8, 1), price: 19.15},
+				{ts: localTimestamp(2026, 9, 1), price: 21},
+			], new Date(2026, 8, 1, 12));
+
+			assert.equal(totals.priceMonth, 21);
+			assert.equal(totals.priceYear, 40.15);
+		});
+
+		it('counts only bookings in the current year across a year boundary', () => {
+			const totals = calculateHistoricalBasicPriceTotals([
+				{ts: localTimestamp(2025, 12, 15), price: 10},
+				{ts: localTimestamp(2026, 1, 15), price: 20},
+			], new Date(2026, 1, 1, 12));
+
+			assert.equal(totals.priceDay, 20);
+			assert.equal(totals.priceMonth, 20);
+			assert.equal(totals.priceQuarter, 30);
+			assert.equal(totals.priceYear, 30);
+		});
+
+		it('preserves negative monthly prices and rejects invalid input', () => {
+			const negative = calculateHistoricalBasicPriceTotals(
+				[{ts: localTimestamp(2026, 8, 1), price: -5}],
+				new Date(2026, 7, 1, 12),
+			);
+			assert.equal(negative.priceYear, -5);
+			assert.deepEqual(calculateHistoricalBasicPriceTotals([], new Date()), {
+				priceDay: 0, priceWeek: 0, priceMonth: 0, priceQuarter: 0, priceYear: 0,
+			});
+			assert.deepEqual(calculateHistoricalBasicPriceTotals([{ts: 1, price: 2}], new Date('invalid')), {
+				priceDay: 0, priceWeek: 0, priceMonth: 0, priceQuarter: 0, priceYear: 0,
+			});
 		});
 	});
 });

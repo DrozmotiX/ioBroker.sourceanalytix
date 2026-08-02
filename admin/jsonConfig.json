@@ -281,8 +281,7 @@
               "type": "datePicker",
               "attr": "validFrom",
               "title": "Valid from",
-              "width": "13%",
-              "hidden": "data.priceSource !== 'static'"
+              "width": "13%"
             },
             {
               "type": "number",
