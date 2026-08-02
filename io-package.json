@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.5.5",
+    "version": "0.5.6",
     "news": {
       "0.5.6": {
         "en": "The monthly basic price is booked as a full charge when the tariff first becomes valid and at the beginning of every following calendar month, instead of being spread over the days of a month\nValid from also defines the first month the monthly basic price is charged, while tariffs without a validity date keep starting at the beginning of the current calendar year\nMonthly basic prices are recorded in their own history state, so a price change during a month only applies to the next monthly booking and already booked months stay unchanged\nValid from is available for every price source, not only for fixed prices, and a selected date becomes effective at local midnight",
@@ -93,19 +93,6 @@
         "pl": "Dynamiczne i historyczne ceny jednostkowe można teraz odczytywać ze stanów ioBrokera, w tym przełączanie taryf i zmiany cen ze znacznikiem czasu\nObliczenia kosztów pozostają dokładne po restartach i zmianach cen, bez nadpisywania już obliczonej historii\nZerowanie licznika, wymiana licznika i niewielkie wahania odczytu są obsługiwane znacznie bardziej niezawodnie\nZmiany dnia, tygodnia, miesiąca i roku są bardziej odporne, w tym zerowanie o północy i automatyczne tworzenie statystyk nowego roku\nUsunięte lub wyłączone źródła nie zapisują już niechcianych wartości, a ich dotychczasowa historia jest zachowywana\nMiesięczne opłaty stałe są ponownie poprawnie uwzględniane w obliczeniach bieżącego okresu\nKonfiguracja admina została zmodernizowana do jsonConfig, z ulepszonymi ustawieniami cen, wyborem stanów i tłumaczeniami\nNarzędzia i utrzymanie odświeżone pod aktualne wersje ioBrokera i Node.js",
         "zh-cn": "现在可以从 ioBroker 状态读取动态和历史单价，包括资费切换和带时间戳的价格变更\n成本计算在重启和价格变更后仍保持准确，且不会重写已计算的历史数据\n计量表归零、计量表更换以及读数的小幅波动的处理更加可靠\n日、周、月和年的切换更加稳健，包括午夜归零和自动创建新年度统计\n已删除或已禁用的数据源不再写入多余的值，同时保留其现有历史数据\n每月基本费用在当前周期计算中再次被正确应用\n管理界面配置已升级为 jsonConfig，改进了价格设置、状态选择器和翻译\n工具链和维护已针对当前的 ioBroker 与 Node.js 版本进行更新",
         "uk": "Динамічні та історичні ціни за одиницю тепер можна зчитувати зі станів ioBroker, включно з перемиканням тарифів і змінами цін із міткою часу\nРозрахунки витрат залишаються точними після перезапусків і змін цін, без перезапису вже обчисленої історії\nСкидання лічильника, заміна лічильника та невеликі коливання показів обробляються значно надійніше\nПереходи доби, тижня, місяця та року стали стійкішими, включно зі скиданням опівночі й автоматичним створенням статистики нового року\nВидалені або вимкнені джерела більше не записують небажані значення, а їхня наявна історія зберігається\nЩомісячна базова плата знову правильно застосовується в розрахунках поточного періоду\nКонфігурацію адміністратора модернізовано до jsonConfig із покращеними налаштуваннями цін, вибором станів і перекладами\nІнструменти та супровід оновлено під актуальні версії ioBroker і Node.js"
-      },
-      "0.4.14": {
-        "en": "Small code updates, lifecycle patches\nOption to disable device reset feature added\nBugfix: Cannot read property 'name' of undefined solved",
-        "de": "Kleine Code-Aktualisierungen, Lifecycle-Korrekturen\nOption zum Deaktivieren der Geräte-Reset-Funktion hinzugefügt\nBugfix: \"Cannot read property 'name' of undefined\" behoben",
-        "ru": "Небольшие обновления кода, исправления жизненного цикла\nДобавлена опция отключения функции сброса устройства\nИсправление: устранена ошибка \"Cannot read property 'name' of undefined\"",
-        "pt": "Pequenas atualizações de código, correções de ciclo de vida\nAdicionada a opção para desativar a função de reinício do dispositivo\nCorreção: resolvido \"Cannot read property 'name' of undefined\"",
-        "nl": "Kleine codeaanpassingen, lifecycle-correcties\nOptie toegevoegd om de apparaatresetfunctie uit te schakelen\nBugfix: \"Cannot read property 'name' of undefined\" opgelost",
-        "fr": "Petites mises à jour du code, correctifs de cycle de vie\nAjout d'une option pour désactiver la fonction de réinitialisation des appareils\nCorrection : « Cannot read property 'name' of undefined » résolu",
-        "it": "Piccoli aggiornamenti del codice, correzioni del ciclo di vita\nAggiunta l'opzione per disattivare la funzione di reset del dispositivo\nBugfix: risolto \"Cannot read property 'name' of undefined\"",
-        "es": "Pequeñas actualizaciones de código, correcciones del ciclo de vida\nAñadida la opción para desactivar la función de reinicio de dispositivos\nCorrección: resuelto \"Cannot read property 'name' of undefined\"",
-        "pl": "Drobne aktualizacje kodu, poprawki cyklu życia\nDodano opcję wyłączenia funkcji resetowania urządzenia\nPoprawka: rozwiązano \"Cannot read property 'name' of undefined\"",
-        "zh-cn": "小幅代码更新与生命周期修复\n新增可关闭设备重置功能的选项\n修复：解决了 \"Cannot read property 'name' of undefined\"",
-        "uk": "Невеликі оновлення коду, виправлення життєвого циклу\nДодано опцію вимкнення функції скидання пристрою\nВиправлення: усунено \"Cannot read property 'name' of undefined\""
       }
     },
     "titleLang": {
