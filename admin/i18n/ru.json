@@ -98,6 +98,8 @@
     "Output ID": "ID выхода",
     "Output ID help": "Технический ID в sourceanalytix.0. При изменении существующего ID его значения переносятся; скрипты, визуализации и внешние ссылки на историю необходимо изменить.",
     "Output ID format error": "Используйте от 1 до 128 букв, цифр, символов подчёркивания или дефисов",
+    "Price definition required error": "Выберите определение цены",
+    "Unit required error": "Поддерживаемая единица не обнаружена. Выберите единицу вручную",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",

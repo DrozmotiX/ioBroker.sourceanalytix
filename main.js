@@ -1767,6 +1767,7 @@ class Sourceanalytix extends utils.Adapter {
 					&& !await this.migrateOutputTree(stateID, currentOutputId, newDeviceName)) {
 					return false;
 				}
+				await this.persistDefaultOutputId(stateID, customData, newDeviceName);
 
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
 				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
@@ -1870,8 +1871,6 @@ class Sourceanalytix extends utils.Adapter {
 						priceState: selectedPriceConfig.priceState,
 					},
 				};
-				await this.persistDefaultOutputId(stateID, customData, newDeviceName);
-
 				// Extend memory with objects for watt to kWh calculation
 				if (useUnit === 'W') {
 					this.activeStates[stateID].calcValues.previousReadingWatt = null;

@@ -98,6 +98,8 @@
     "Output ID": "ID di output",
     "Output ID help": "ID tecnica sotto sourceanalytix.0. Modificando un'ID esistente vengono migrati i valori; script, visualizzazioni e riferimenti alla cronologia esterna devono essere aggiornati.",
     "Output ID format error": "Utilizzare da 1 a 128 lettere, numeri, trattini bassi o trattini",
+    "Price definition required error": "Selezionare una definizione del prezzo",
+    "Unit required error": "Non è stata rilevata un'unità supportata. Selezionare un'unità",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",
