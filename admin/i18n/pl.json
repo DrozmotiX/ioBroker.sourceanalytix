@@ -97,7 +97,7 @@
     "Name help": "Czytelna nazwa wyświetlana utworzonego urządzenia SourceAnalytix",
     "Output ID": "Identyfikator wyjściowy",
     "Output ID help": "Identyfikator techniczny w sourceanalytix.0. Zmiana istniejącego identyfikatora przenosi jego wartości; skrypty, wizualizacje i zewnętrzne odwołania do historii wymagają dostosowania.",
-    "Output ID format error": "Użyj od 1 do 128 liter, cyfr, podkreśleń lub łączników",
+    "Output ID format error": "Identyfikator jest nieprawidłowy, zarezerwowany lub już używany",
     "Price definition required error": "Wybierz definicję ceny",
     "Unit required error": "Nie wykryto obsługiwanej jednostki. Wybierz jednostkę",
     "Number of quarters": "Number of quarters",

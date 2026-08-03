@@ -23,10 +23,10 @@
       "type": "text",
       "label": "Output ID",
       "tooltip": "Output ID help",
+      "noMultiEdit": true,
       "defaultFunc": "customObj && customObj._id ? customObj._id.split('.').join('__') : ''",
-      "validator": "!data.enabled || (!!data.outputId && !['info', 'priceDefinitions', 'priceHistory', 'basicPriceHistory'].includes(data.outputId) && (/^[A-Za-z0-9_-]{1,128}$/.test(data.outputId) || (customObj && data.outputId === customObj._id.split('.').join('__'))))",
+      "validator": "!data.enabled || (!!data.outputId && !['info', 'priceDefinitions', 'priceHistory', 'basicPriceHistory'].includes(data.outputId) && (/^[A-Za-z0-9_-]{1,128}$/.test(data.outputId) || !!(customObj && customObj._id && data.outputId === customObj._id.split('.').join('__'))) && (!data._usedOutputIds || data._usedOutputIds[data.outputId] === undefined || !!(customObj && customObj._id && (data._usedOutputIds[data.outputId] === customObj._id || data.outputId === customObj._id.split('.').join('__')))))",
       "validatorErrorText": "Output ID format error",
-      "validatorNoSaveOnError": true,
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -40,7 +40,6 @@
       "label": "Select price definition",
       "validator": "!data.enabled || (!!data.selectedPrice && data.selectedPrice !== 'Choose')",
       "validatorErrorText": "Price definition required error",
-      "validatorNoSaveOnError": true,
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -54,12 +53,16 @@
       "default": "Detect automatically",
       "validator": "!data.enabled || ['GW', 'GWh', 'MW', 'MWh', 'W', 'Wh', 'cl', 'cm', 'cm³', 'dl', 'dm', 'dm³', 'g', 'hl', 'kW', 'kWh', 'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 't', 'µm'].includes(data.selectedUnit && data.selectedUnit !== 'Detect automatically' ? data.selectedUnit : customObj && customObj.common && customObj.common.unit)",
       "validatorErrorText": "Unit required error",
-      "validatorNoSaveOnError": true,
       "xs": 12,
       "sm": 12,
       "md": 6,
       "lg": 6,
       "xl": 6
+    },
+    "_usedOutputIds": {
+      "type": "text",
+      "hidden": true,
+      "defaultSendTo": "getUsedOutputIds"
     },
     "_calcSettings": {
       "newLine": true,

@@ -97,7 +97,7 @@
     "Name help": "生成的 SourceAnalytix 设备的易读显示名称",
     "Output ID": "输出 ID",
     "Output ID help": "sourceanalytix.0 下的技术 ID。更改现有 ID 时会迁移其值，但必须调整脚本、可视化和外部历史记录引用。",
-    "Output ID format error": "请使用 1 到 128 个字母、数字、下划线或连字符",
+    "Output ID format error": "该 ID 无效、已保留或已被使用",
     "Price definition required error": "请选择价格定义",
     "Unit required error": "未检测到支持的单位。请选择一个单位",
     "Number of quarters": "Number of quarters",

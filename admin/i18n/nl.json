@@ -97,7 +97,7 @@
     "Name help": "Leesbare weergavenaam van het aangemaakte SourceAnalytix-apparaat",
     "Output ID": "Uitvoer-ID",
     "Output ID help": "Technische ID onder sourceanalytix.0. Bij wijziging van een bestaande ID worden de waarden gemigreerd; scripts, visualisaties en externe historieverwijzingen moeten worden aangepast.",
-    "Output ID format error": "Gebruik 1 tot 128 letters, cijfers, onderstrepingstekens of koppeltekens",
+    "Output ID format error": "De ID is ongeldig, gereserveerd of al in gebruik",
     "Price definition required error": "Selecteer een prijsdefinitie",
     "Unit required error": "Er is geen ondersteunde eenheid herkend. Selecteer een eenheid",
     "Number of quarters": "Number of quarters",

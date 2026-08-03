@@ -32,6 +32,27 @@ describe('custom settings validation', () => {
 		assert.equal(executeCustom(schema.selectedPrice.validator, {enabled: true, selectedPrice: 'Electricity'}, source), true);
 	});
 
+	it('rejects an output ID owned by another source', () => {
+		assert.equal(executeCustom(schema.outputId.validator, {
+			enabled: true,
+			outputId: 'Kitchen',
+			_usedOutputIds: {Kitchen: 'alias.0.other'},
+		}, source), false);
+		assert.equal(executeCustom(schema.outputId.validator, {
+			enabled: true,
+			outputId: 'Kitchen',
+			_usedOutputIds: {Kitchen: source._id},
+		}, source), true);
+	});
+
+	it('handles output ID validation without a single source object', () => {
+		assert.equal(executeCustom(schema.outputId.validator, {
+			enabled: true,
+			outputId: 'Kitchen',
+			_usedOutputIds: {Kitchen: 'alias.0.other'},
+		}, {common: {custom: {}}, native: {}}), false);
+	});
+
 	it('accepts detected or manually selected supported units', () => {
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, source), true);
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'kW'}, {_id: source._id, common: {}}), true);

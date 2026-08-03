@@ -97,7 +97,7 @@
     "Name help": "Nome de apresentação legível do dispositivo SourceAnalytix criado",
     "Output ID": "ID de saída",
     "Output ID help": "ID técnica abaixo de sourceanalytix.0. Alterar uma ID existente migra os respetivos valores; scripts, visualizações e referências externas do histórico têm de ser adaptados.",
-    "Output ID format error": "Utilize entre 1 e 128 letras, números, sublinhados ou hífenes",
+    "Output ID format error": "O ID é inválido, reservado ou já está a ser utilizado",
     "Price definition required error": "Selecione uma definição de preço",
     "Unit required error": "Não foi detetada uma unidade suportada. Selecione uma unidade",
     "Number of quarters": "Number of quarters",

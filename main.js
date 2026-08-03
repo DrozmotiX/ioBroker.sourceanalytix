@@ -1544,6 +1544,25 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * @returns {Promise<Record<string, string|null>>} Output IDs and their owning source states
+	 */
+	async getUsedOutputIds() {
+		const usedOutputIds = Object.fromEntries([]);
+		const devices = await this.getObjectViewAsync('system', 'device', {
+			startkey: `${this.namespace}.`,
+			endkey: `${this.namespace}.\u9999`,
+		});
+		for (const row of devices && Array.isArray(devices.rows) ? devices.rows : []) {
+			const object = await this.getForeignObjectAsync(row.id);
+			const localId = row.id.slice(`${this.namespace}.`.length);
+			usedOutputIds[localId] = object && object.native && typeof object.native.sourceState === 'string'
+				? object.native.sourceState
+				: null;
+		}
+		return usedOutputIds;
+	}
+
+	/**
 	 * @param {ioBroker.Object} object - Object to copy
 	 * @param {boolean} isRoot - Whether this is the output device root
 	 * @param {string} sourceId - Source state ID
@@ -3389,6 +3408,12 @@ class Sourceanalytix extends utils.Adapter {
 							unitArray.push({label: priceDefinition, value: priceDefinition});
 						}
 						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+					}
+					break;
+
+				case 'getUsedOutputIds':
+					if (obj.callback) {
+						this.sendTo(obj.from, obj.command, await this.getUsedOutputIds(), obj.callback);
 					}
 					break;
 
