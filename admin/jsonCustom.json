@@ -11,23 +11,36 @@
     },
     "alias": {
       "type": "text",
-      "label": "Alias",
-      "help": "Alias changes only the display name; the generated state ID remains unchanged",
+      "label": "Name",
+      "tooltip": "Name help",
       "xs": 12,
       "sm": 12,
-      "md": 5,
-      "lg": 5,
-      "xl": 5
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
+    "outputId": {
+      "type": "text",
+      "label": "Output ID",
+      "tooltip": "Output ID help",
+      "validator": "!data.outputId || /^[A-Za-z0-9_-]{1,128}$/.test(data.outputId)",
+      "validatorErrorText": "Output ID format error",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "selectedPrice": {
+      "newLine": true,
       "command": "getPriceDefinitions",
       "type": "autocompleteSendTo",
       "label": "Select price definition",
       "xs": 12,
       "sm": 12,
-      "md": 4,
-      "lg": 4,
-      "xl": 4
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "selectedUnit": {
       "command": "getUnits",
@@ -36,9 +49,9 @@
       "default": "Detect automatically",
       "xs": 12,
       "sm": 12,
-      "md": 3,
-      "lg": 3,
-      "xl": 3
+      "md": 6,
+      "lg": 6,
+      "xl": 6
     },
     "_calcSettings": {
       "newLine": true,

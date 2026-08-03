@@ -128,7 +128,8 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Setting | Description |
 | --- | --- |
 | Enabled | Activates this source for the selected SourceAnalytix instance. |
-| Alias | Optional display name for the generated device. It does not change the generated state ID. |
+| Name | Optional display name for the generated device. |
+| Output ID | Technical device ID below `sourceanalytix.<instance>`. It is initialized with the backward-compatible source-derived ID and can be shortened. |
 | Select price definition | Mandatory category from the adapter's price definitions. |
 | Select Unit | Source unit. Leave on automatic detection when the source object has a correct supported unit. |
 | Calculate costs | Creates and updates cost or earnings states. |
@@ -140,7 +141,7 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Device value reset detection | Continues a cumulative total after a meter reset or replacement. |
 | Threshold | Largest backwards fluctuation ignored as measurement jitter, expressed in the target unit. |
 
-The source state ID is converted to the generated SourceAnalytix device ID by replacing dots with double underscores.
+For existing and newly activated sources, the initial output ID is derived from the source state ID by replacing dots with double underscores. It may be changed to a shorter unique ID containing letters, numbers, underscores and hyphens. SourceAnalytix copies and verifies its complete generated object tree before deleting the old tree. Existing scripts, visualizations, aliases and external history queries which refer to the old ID must be updated manually.
 
 ## Source Values And Units
 
