@@ -1,7 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const schema = require('./admin/jsonCustom.json').items;
+const customConfig = require('./admin/jsonCustom.json');
+const schema = customConfig.items;
 
 function executeCustom(expression, data, customObj) {
 	return new Function(
@@ -20,6 +21,13 @@ function executeCustom(expression, data, customObj) {
 
 describe('custom settings validation', () => {
 	const source = {_id: '0_userdata.0.energy', common: {unit: 'kWh'}};
+
+	it('opts into blocking validation without triggering legacy field dialogs', () => {
+		assert.equal(customConfig.validatorNoSaveOnError, true);
+		assert.equal(Object.hasOwn(schema.outputId, 'validatorNoSaveOnError'), false);
+		assert.equal(Object.hasOwn(schema.selectedPrice, 'validatorNoSaveOnError'), false);
+		assert.equal(Object.hasOwn(schema.selectedUnit, 'validatorNoSaveOnError'), false);
+	});
 
 	it('pre-fills the backward-compatible output ID', () => {
 		assert.equal(executeCustom(schema.outputId.defaultFunc, {}, source), '0_userdata__0__energy');

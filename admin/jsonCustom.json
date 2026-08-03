@@ -1,6 +1,7 @@
 {
   "i18n": true,
   "type": "panel",
+  "validatorNoSaveOnError": true,
   "items": {
     "_basicSettings": {
       "newLine": true,
