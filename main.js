@@ -2580,10 +2580,19 @@ class Sourceanalytix extends utils.Adapter {
 						this.getNumberOrDefault(calcValues.cumulativeValue, reading),
 						stateDetails.deviceResetLogicEnabled,
 						this.getNumberOrDefault(stateDetails.threshold, 0),
+						this.activeStates[stateID].pendingDeviceReset,
 					);
 					if (resolvedReading.type === 'invalid') {
 						this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
 						return;
+					}
+					this.activeStates[stateID].pendingDeviceReset = resolvedReading.pendingReset;
+					if (resolvedReading.type === 'resetPending') {
+						this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
+						return;
+					}
+					if (resolvedReading.type === 'resetRejected') {
+						this.log.info(`[calculationHandler] Rejected a possible device reset for ${stateID} after the reading returned to its previous range`);
 					}
 					if (resolvedReading.type === 'jitter') {
 						this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);

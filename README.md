@@ -263,7 +263,7 @@ The state is rebuilt from existing statistics when the adapter starts and its wr
 
 ## Meter Resets And Corrections
 
-With reset detection enabled, a decrease larger than **Threshold** is treated as a real meter reset or replacement. SourceAnalytix stores an offset and continues its cumulative reading without losing earlier consumption. A smaller backwards change is treated as jitter and ignored. A threshold of `0` treats every decrease as a reset.
+With reset detection enabled, a decrease larger than **Threshold** starts reset confirmation. SourceAnalytix keeps the last accepted total until another reading remains in the lower range and confirms the reset or replacement. It then stores an offset and continues its cumulative reading without losing earlier consumption. If the source returns to its previous range instead, the candidate is discarded as a temporary invalid reading. A smaller backwards change is treated as jitter and ignored. A threshold of `0` treats every decrease as a possible reset that still requires confirmation.
 
 If reset detection is disabled, decreasing source readings are accepted and can reduce calculated totals. This mode is intended only for sources where that behavior is expected.
 
