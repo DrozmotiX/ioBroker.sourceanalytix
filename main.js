@@ -2486,9 +2486,11 @@ class Sourceanalytix extends utils.Adapter {
 	 *  @param {object} [stateVal] - object with current value (val) and timestamp (ts)
 	 */
 	async calculationHandler(stateID, stateVal) {
+		let activeState;
 		try {
 			this.log.debug(`[calculationHandler] Calculation for ${stateID} with values : ${JSON.stringify(stateVal)}`);
-			this.log.debug(`[calculationHandler] Configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			activeState = stateID ? this.activeStates[stateID] : undefined;
+			this.log.debug(`[calculationHandler] Configuration : ${JSON.stringify(activeState)}`);
 
 			// Verify if received value is null or undefined
 			if (!stateVal){
@@ -2503,15 +2505,15 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Check if for some reason calculation handler ist called for an object not initialised
-			if (!this.activeStates[stateID]){
+			if (!activeState){
 
 				this.errorHandling(`calculationHandler`, `Called for non-initialised state ${stateID}`);
 				return;
 			}
 
-			const calcValues = this.activeStates[stateID].calcValues;
-			const stateDetails = this.activeStates[stateID].stateDetails;
-			const statePrices = this.activeStates[stateID].prices;
+			const calcValues = activeState.calcValues;
+			const stateDetails = activeState.stateDetails;
+			const statePrices = activeState.prices;
 			const currentCath = this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
 			const date = new Date();
@@ -2602,10 +2604,10 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
-			if (this.activeStates[stateID].firstActivation) {
+			if (activeState.firstActivation) {
 				const initializedStarts = calculation.initializePeriodStartValues(calcValues, reading, true);
 				Object.assign(calcValues, initializedStarts);
-				this.activeStates[stateID].firstActivation = false;
+				activeState.firstActivation = false;
 				await this.extendForeignObject(stateID, {
 					common: {
 						custom: {
@@ -2622,9 +2624,9 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
 			// Update current value to memory
-			this.activeStates[stateID]['calcValues'].cumulativeValue = reading;
+			activeState.calcValues.cumulativeValue = reading;
 			// this.visWidgetJson[stateID].cumulativeValue = reading;
-			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(this.activeStates[stateID])})`);
+			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(activeState)})`);
 
 			// Write current reading at device root
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.cumulativeReading`, {
@@ -2749,8 +2751,8 @@ class Sourceanalytix extends utils.Adapter {
 			};
 			if (this.usesHistoricalCostCalculation(stateID)) {
 				const dynamicCalculationRounded = await this.calculateDynamicCostsForState(stateID, reading, readingTimestamp);
-				if (dynamicCalculationRounded && this.activeStates[stateID].dynamicCosts) {
-					variableCosts = this.activeStates[stateID].dynamicCosts.totals;
+				if (dynamicCalculationRounded && activeState.dynamicCosts) {
+					variableCosts = activeState.dynamicCosts.totals;
 				}
 			}
 			if (stateDetails.costs) Object.assign(calculationRounded, await this.addBasicPriceTotals(stateID, variableCosts, date));
@@ -2774,7 +2776,7 @@ class Sourceanalytix extends utils.Adapter {
 
 
 		} catch (error) {
-			this.errorHandling(`[calculationHandler] ${stateID} with config ${JSON.stringify(this.activeStates[stateID])}`, error);
+			this.errorHandling(`[calculationHandler] ${stateID} with config ${JSON.stringify(activeState)}`, error);
 		}
 
 	}
