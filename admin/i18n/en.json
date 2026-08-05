@@ -125,6 +125,6 @@
     "Rounding": "Rounding",
     "Decimals for consumption values": "Decimals for consumption values",
     "Decimals for cost values": "Decimals for cost values",
-    "Rounding decimals help": "Number of decimals for calculated values. Use -1 to store the exact value without rounding.",
-    "Individual rounding decimals help": "Overrides the global setting for this source. Leave empty to use the global setting, -1 stores the exact value."
+    "Rounding decimals help": "Initial value copied into newly configured sources. Existing sources keep their own value. Use -1 to store the exact value without rounding.",
+    "Individual rounding decimals help": "Use -1 to store the exact value without rounding."
 }

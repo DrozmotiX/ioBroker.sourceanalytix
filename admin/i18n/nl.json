@@ -125,6 +125,6 @@
     "Rounding": "Afronding",
     "Decimals for consumption values": "Decimalen voor verbruikswaarden",
     "Decimals for cost values": "Decimalen voor kostenwaarden",
-    "Rounding decimals help": "Aantal decimalen voor berekende waarden. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
-    "Individual rounding decimals help": "Overschrijft de globale instelling voor deze bron. Laat leeg om de globale instelling te gebruiken; -1 slaat de exacte waarde op."
+    "Rounding decimals help": "Beginwaarde die naar nieuw geconfigureerde bronnen wordt gekopieerd. Bestaande bronnen behouden hun eigen waarde. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
+    "Individual rounding decimals help": "Gebruik -1 om de exacte waarde zonder afronding op te slaan."
 }

@@ -46,10 +46,10 @@ The **General settings** tab controls which detailed statistics are created. Dis
 | Current year: Weekday | Stores the current week's values by weekday. |
 | Current year: Weeks / Months / Quarters | Stores values for each period below `<source>.currentYear`. |
 | Current year: Previous period | Stores the completed day, week, month, quarter and year, plus the previous week's weekday values. |
-| Rounding: Decimals for consumption values | Decimals for calculated quantities and meter readings, `3` by default. |
-| Rounding: Decimals for cost values | Decimals for calculated costs and earnings, `2` by default. |
+| Rounding: Decimals for consumption values | Initial decimals copied into newly configured sources, `3` by default. |
+| Rounding: Decimals for cost values | Initial decimals copied into newly configured sources, `2` by default. |
 
-Both rounding settings accept `-1` to store the exact calculated value without rounding. A single source can deviate from them: its **Decimals for consumption values** and **Decimals for cost values** fields override the global setting and use it whenever they are left empty. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
+Both rounding settings accept `-1` to store the exact calculated value without rounding. Every source stores its own explicit **Decimals for consumption values** and **Decimals for cost values**. New sources are pre-filled from the instance settings above. Existing sources without these fields receive their previously effective instance values once during migration, so later changes to the instance defaults do not alter their results. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
 
 SourceAnalytix remembers the last successfully processed calendar periods. If the adapter or ioBroker is not running at midnight, missed day, week, month, quarter and year changes are processed once at the next start.
 

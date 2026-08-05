@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const customConfig = require('./admin/jsonCustom.json');
 const schema = customConfig.items;
 
-function executeCustom(expression, data, customObj) {
+function executeCustom(expression, data, customObj, instanceObj = {}) {
 	return new Function(
 		'data',
 		'originalData',
@@ -16,7 +16,7 @@ function executeCustom(expression, data, customObj) {
 		'globalData',
 		'_changed',
 		`return ${expression}`,
-	)(data, {}, {}, {}, customObj, {}, 0, {}, false);
+	)(data, {}, {}, instanceObj, customObj, {}, 0, {}, false);
 }
 
 describe('custom settings validation', () => {
@@ -65,5 +65,22 @@ describe('custom settings validation', () => {
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, source), true);
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'kW'}, {_id: source._id, common: {}}), true);
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, {_id: source._id, common: {}}), false);
+	});
+
+	it('pre-fills explicit rounding values from the selected instance', () => {
+		const instance = {native: {decimalsQuantity: 5, decimalsCosts: 4}};
+		assert.equal(executeCustom(schema.decimalsQuantity.defaultFunc, {}, source, instance), 5);
+		assert.equal(executeCustom(schema.decimalsCosts.defaultFunc, {}, source, instance), 4);
+		assert.equal(executeCustom(schema.decimalsQuantity.defaultFunc, {}, source), 3);
+		assert.equal(executeCustom(schema.decimalsCosts.defaultFunc, {}, source), 2);
+	});
+
+	it('normalizes unusual instance templates before pre-filling a source', () => {
+		assert.equal(executeCustom(schema.decimalsQuantity.defaultFunc, {}, source, {native: {decimalsQuantity: 0}}), 0);
+		assert.equal(executeCustom(schema.decimalsCosts.defaultFunc, {}, source, {native: {decimalsCosts: -1}}), -1);
+		assert.equal(executeCustom(schema.decimalsQuantity.defaultFunc, {}, source, {native: {decimalsQuantity: ''}}), 3);
+		assert.equal(executeCustom(schema.decimalsCosts.defaultFunc, {}, source, {native: {decimalsCosts: 'invalid'}}), 2);
+		assert.equal(executeCustom(schema.decimalsQuantity.defaultFunc, {}, source, {native: {decimalsQuantity: 99}}), 15);
+		assert.equal(executeCustom(schema.decimalsCosts.defaultFunc, {}, source, {native: {decimalsCosts: -5}}), -1);
 	});
 });

@@ -125,6 +125,6 @@
     "Rounding": "Arrondi",
     "Decimals for consumption values": "Décimales pour les valeurs de consommation",
     "Decimals for cost values": "Décimales pour les valeurs de coût",
-    "Rounding decimals help": "Nombre de décimales pour les valeurs calculées. Utilisez -1 pour enregistrer la valeur exacte sans arrondi.",
-    "Individual rounding decimals help": "Remplace le réglage global pour cette source. Laissez vide pour utiliser le réglage global ; -1 enregistre la valeur exacte."
+    "Rounding decimals help": "Valeur initiale copiée dans les nouvelles sources configurées. Les sources existantes conservent leur propre valeur. Utilisez -1 pour enregistrer la valeur exacte sans arrondi.",
+    "Individual rounding decimals help": "Utilisez -1 pour enregistrer la valeur exacte sans arrondi."
 }

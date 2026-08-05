@@ -17,6 +17,7 @@ const {
 	migrateLegacyVariableCostTotals,
 	normalizeDecimals,
 	normalizePeriodSnapshot,
+	resolveDecimals,
 	resolveCumulativeReading,
 	roundValue,
 } = require('./lib/calculation');
@@ -358,6 +359,17 @@ describe('period and cumulative calculations', () => {
 			assert.equal(roundValue(7837.6127, 0), 7838);
 			assert.equal(roundValue(7837.6127, 1), 7837.6);
 			assert.equal(roundValue(0.000123456, 6), 0.000123);
+		});
+
+		it('copies the configured instance template into sources without a value', () => {
+			assert.equal(resolveDecimals(undefined, 5, 3), 5);
+			assert.equal(resolveDecimals('', 4, 2), 4);
+			assert.equal(resolveDecimals(undefined, undefined, 3), 3);
+			assert.equal(resolveDecimals(6, 5, 3), 6);
+			assert.equal(resolveDecimals(undefined, 0, 3), 0);
+			assert.equal(resolveDecimals(undefined, -1, 2), -1);
+			assert.equal(resolveDecimals(undefined, 99, 3), 15);
+			assert.equal(resolveDecimals(undefined, 'invalid', 2), 2);
 		});
 
 		it('keeps the exact value when rounding is disabled', () => {

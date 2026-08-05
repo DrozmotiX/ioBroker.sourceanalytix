@@ -68,7 +68,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.statisticsJsonTimers = {};
 		this.statisticsJsonLastValues = {};
 		this.migratingStates = new Set();
-		this.outputIdBackfills = new Map();
+		this.customConfigBackfills = new Map();
 	}
 
 	/**
@@ -1712,24 +1712,32 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * Store the effective output ID in the source custom configuration.
+	 * Store defaults which were missing from the source custom configuration.
 	 * @param {string} sourceId - Source state ID
 	 * @param {object} customData - Existing SourceAnalytix custom configuration
 	 * @param {string} effectiveOutputId - Effective local output ID
+	 * @param {number} decimalsQuantity - Effective consumption decimals
+	 * @param {number} decimalsCosts - Effective cost decimals
 	 */
-	async persistDefaultOutputId(sourceId, customData, effectiveOutputId) {
-		if (typeof customData.outputId === 'string' && customData.outputId.trim()) return;
+	async persistCustomConfigDefaults(sourceId, customData, effectiveOutputId, decimalsQuantity, decimalsCosts) {
+		const updates = {};
+		if (customData.decimalsQuantity !== decimalsQuantity) updates.decimalsQuantity = decimalsQuantity;
+		if (customData.decimalsCosts !== decimalsCosts) updates.decimalsCosts = decimalsCosts;
 		// Legacy IDs may contain characters which are no longer offered for custom IDs.
-		if (!outputId.validateOutputId(effectiveOutputId).valid) return;
-		const marker = {...customData, outputId: effectiveOutputId};
-		this.outputIdBackfills.set(sourceId, marker);
+		const hasOutputId = typeof customData.outputId === 'string' && customData.outputId.trim();
+		if (!hasOutputId && outputId.validateOutputId(effectiveOutputId).valid) {
+			updates.outputId = effectiveOutputId;
+		}
+		if (!Object.keys(updates).length) return;
+		const marker = {...customData, ...updates};
+		this.customConfigBackfills.set(sourceId, marker);
 		try {
 			await this.extendForeignObjectAsync(sourceId, {
-				common: {custom: {[this.namespace]: {outputId: effectiveOutputId}}},
+				common: {custom: {[this.namespace]: updates}},
 			});
 		} finally {
 			this.setTimeout(() => {
-				if (this.outputIdBackfills.get(sourceId) === marker) this.outputIdBackfills.delete(sourceId);
+				if (this.customConfigBackfills.get(sourceId) === marker) this.customConfigBackfills.delete(sourceId);
 			}, 5000);
 		}
 	}
@@ -1768,6 +1776,16 @@ class Sourceanalytix extends utils.Adapter {
 			if (stateInfo && stateInfo.common && stateInfo.common.custom && stateInfo.common.custom[this.namespace]) {
 				const customData = stateInfo.common.custom[this.namespace];
 				const commonData = stateInfo.common;
+				const decimalsQuantity = calculation.resolveDecimals(
+					customData.decimalsQuantity,
+					this.config.decimalsQuantity,
+					3,
+				);
+				const decimalsCosts = calculation.resolveDecimals(
+					customData.decimalsCosts,
+					this.config.decimalsCosts,
+					2,
+				);
 				this.log.debug(`[buildStateDetailsArray] commonData ${JSON.stringify(commonData)}`);
 				const newDeviceName = outputId.resolveOutputId(customData.outputId, stateID);
 				const idValidation = outputId.validateResolvedOutputId(customData.outputId, stateID);
@@ -1786,7 +1804,13 @@ class Sourceanalytix extends utils.Adapter {
 					&& !await this.migrateOutputTree(stateID, currentOutputId, newDeviceName)) {
 					return false;
 				}
-				await this.persistDefaultOutputId(stateID, customData, newDeviceName);
+				await this.persistCustomConfigDefaults(
+					stateID,
+					customData,
+					newDeviceName,
+					decimalsQuantity,
+					decimalsCosts,
+				);
 
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
 				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
@@ -1859,8 +1883,8 @@ class Sourceanalytix extends utils.Adapter {
 						basicRate: customData.basicRate === true,
 						consumption: customData.consumption,
 						costs: customData.costs,
-						decimalsCosts: customData.decimalsCosts,
-						decimalsQuantity: customData.decimalsQuantity,
+						decimalsCosts,
+						decimalsQuantity,
 						deviceName: newDeviceName.toString(),
 						financialCategory: stateType,
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
@@ -2031,12 +2055,12 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async onObjectChange(id, obj) {
 	    //ToDo : Verify with test-results if debounce on object change must be implemented
-		const outputIdBackfill = this.outputIdBackfills.get(id);
-		if (outputIdBackfill) {
-			this.outputIdBackfills.delete(id);
+		const customConfigBackfill = this.customConfigBackfills.get(id);
+		if (customConfigBackfill) {
+			this.customConfigBackfills.delete(id);
 			const changedCustomData = obj && obj.common && obj.common.custom && obj.common.custom[this.namespace];
-			if (isDeepStrictEqual(changedCustomData, outputIdBackfill)) {
-				this.log.debug(`Ignored SourceAnalytix output ID backfill for ${id}`);
+			if (isDeepStrictEqual(changedCustomData, customConfigBackfill)) {
+				this.log.debug(`Ignored SourceAnalytix custom configuration backfill for ${id}`);
 				return;
 			}
 		}
@@ -3152,7 +3176,7 @@ class Sourceanalytix extends utils.Adapter {
 	// }
 
 	/**
-	 * Decimals to apply for a source, preferring its own setting over the global one.
+	 * Decimals to apply for a source. Active sources always contain an explicit setting.
 	 * @param {string | undefined} stateID - Source state ID
 	 * @param {'quantity' | 'costs'} kind - Type of value to round
 	 * @returns {number} Decimals to apply, or -1 to keep the exact value
@@ -3163,7 +3187,7 @@ class Sourceanalytix extends utils.Adapter {
 		const stateDetails = stateID && this.activeStates[stateID] ? this.activeStates[stateID].stateDetails : null;
 		if (!stateDetails) return globalDecimals;
 		const sourceSetting = kind === 'costs' ? stateDetails.decimalsCosts : stateDetails.decimalsQuantity;
-		return calculation.normalizeDecimals(sourceSetting, globalDecimals);
+		return calculation.normalizeDecimals(sourceSetting, kind === 'costs' ? 2 : 3);
 	}
 
 	/**

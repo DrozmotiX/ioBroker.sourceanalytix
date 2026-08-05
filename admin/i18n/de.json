@@ -125,6 +125,6 @@
     "Rounding": "Rundung",
     "Decimals for consumption values": "Nachkommastellen für Verbrauchswerte",
     "Decimals for cost values": "Nachkommastellen für Kostenwerte",
-    "Rounding decimals help": "Anzahl der Nachkommastellen für berechnete Werte. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
-    "Individual rounding decimals help": "Überschreibt die globale Einstellung für diese Quelle. Leer lassen, um die globale Einstellung zu verwenden; -1 speichert den exakten Wert."
+    "Rounding decimals help": "Startwert, der in neu konfigurierte Quellen übernommen wird. Bestehende Quellen behalten ihren eigenen Wert. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
+    "Individual rounding decimals help": "Mit -1 wird der exakte Wert ohne Rundung gespeichert."
 }

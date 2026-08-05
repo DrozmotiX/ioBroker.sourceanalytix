@@ -125,6 +125,6 @@
     "Rounding": "Arredondamento",
     "Decimals for consumption values": "Casas decimais para valores de consumo",
     "Decimals for cost values": "Casas decimais para valores de custo",
-    "Rounding decimals help": "Número de casas decimais para os valores calculados. Use -1 para guardar o valor exato sem arredondamento.",
-    "Individual rounding decimals help": "Substitui a definição global para esta fonte. Deixe vazio para usar a definição global; -1 guarda o valor exato."
+    "Rounding decimals help": "Valor inicial copiado para fontes recém-configuradas. As fontes existentes mantêm o seu próprio valor. Use -1 para guardar o valor exato sem arredondamento.",
+    "Individual rounding decimals help": "Use -1 para guardar o valor exato sem arredondamento."
 }

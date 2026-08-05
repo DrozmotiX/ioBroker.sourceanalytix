@@ -125,6 +125,6 @@
     "Rounding": "Redondeo",
     "Decimals for consumption values": "Decimales para los valores de consumo",
     "Decimals for cost values": "Decimales para los valores de coste",
-    "Rounding decimals help": "Número de decimales para los valores calculados. Use -1 para guardar el valor exacto sin redondeo.",
-    "Individual rounding decimals help": "Sustituye el ajuste global para esta fuente. Déjelo vacío para usar el ajuste global; -1 guarda el valor exacto."
+    "Rounding decimals help": "Valor inicial que se copia en las fuentes recién configuradas. Las fuentes existentes conservan su propio valor. Use -1 para guardar el valor exacto sin redondeo.",
+    "Individual rounding decimals help": "Use -1 para guardar el valor exacto sin redondeo."
 }
