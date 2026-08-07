@@ -37,7 +37,8 @@
     "selectedPrice": {
       "newLine": true,
       "command": "getPriceDefinitions",
-      "type": "autocompleteSendTo",
+      "type": "selectSendTo",
+      "manual": false,
       "label": "Select price definition",
       "validator": "!data.enabled || (!!data.selectedPrice && data.selectedPrice !== 'Choose')",
       "validatorErrorText": "Price definition required error",
@@ -49,7 +50,8 @@
     },
     "selectedUnit": {
       "command": "getUnits",
-      "type": "autocompleteSendTo",
+      "type": "selectSendTo",
+      "manual": false,
       "label": "Select Unit",
       "default": "Detect automatically",
       "validator": "!data.enabled || ['GW', 'GWh', 'MW', 'MWh', 'W', 'Wh', 'cl', 'cm', 'cm³', 'dl', 'dm', 'dm³', 'g', 'hl', 'kW', 'kWh', 'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 't', 'µm'].includes(data.selectedUnit && data.selectedUnit !== 'Detect automatically' ? data.selectedUnit : customObj && customObj.common && customObj.common.unit)",

@@ -29,6 +29,13 @@ describe('custom settings validation', () => {
 		assert.equal(Object.hasOwn(schema.selectedUnit, 'validatorNoSaveOnError'), false);
 	});
 
+	it('restricts prices and units to the options provided by the adapter', () => {
+		assert.equal(schema.selectedPrice.type, 'selectSendTo');
+		assert.equal(schema.selectedPrice.manual, false);
+		assert.equal(schema.selectedUnit.type, 'selectSendTo');
+		assert.equal(schema.selectedUnit.manual, false);
+	});
+
 	it('pre-fills the backward-compatible output ID', () => {
 		assert.equal(executeCustom(schema.outputId.defaultFunc, {}, source), '0_userdata__0__energy');
 	});
