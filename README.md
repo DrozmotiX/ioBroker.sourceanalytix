@@ -46,10 +46,10 @@ The **General settings** tab controls which detailed statistics are created. Dis
 | Current year: Weekday | Stores the current week's values by weekday. |
 | Current year: Weeks / Months / Quarters | Stores values for each period below `<source>.currentYear`. |
 | Current year: Previous period | Stores the completed day, week, month, quarter and year, plus the previous week's weekday values. |
-| Rounding: Decimals for consumption values | Decimals for calculated quantities and meter readings, `3` by default. |
-| Rounding: Decimals for cost values | Decimals for calculated costs and earnings, `2` by default. |
+| Rounding: Decimals for consumption values | Initial decimals copied into newly configured sources, `3` by default. |
+| Rounding: Decimals for cost values | Initial decimals copied into newly configured sources, `2` by default. |
 
-Both rounding settings accept `-1` to store the exact calculated value without rounding. A single source can deviate from them: its **Decimals for consumption values** and **Decimals for cost values** fields override the global setting and use it whenever they are left empty. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
+Both rounding settings accept `-1` to store the exact calculated value without rounding. Every source stores its own explicit **Decimals for consumption values** and **Decimals for cost values**. New sources are pre-filled from the instance settings above. Existing sources without these fields receive their previously effective instance values once during migration, so later changes to the instance defaults do not alter their results. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
 
 SourceAnalytix remembers the last successfully processed calendar periods. If the adapter or ioBroker is not running at midnight, missed day, week, month, quarter and year changes are processed once at the next start.
 
@@ -128,7 +128,8 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Setting | Description |
 | --- | --- |
 | Enabled | Activates this source for the selected SourceAnalytix instance. |
-| Alias | Optional display name for the generated device. It does not change the generated state ID. |
+| Name | Optional display name for the generated device. |
+| Output ID | Technical device ID below `sourceanalytix.<instance>`. It is initialized with the backward-compatible source-derived ID and can be shortened. |
 | Select price definition | Mandatory category from the adapter's price definitions. |
 | Select Unit | Source unit. Leave on automatic detection when the source object has a correct supported unit. |
 | Calculate costs | Creates and updates cost or earnings states. |
@@ -140,7 +141,7 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Device value reset detection | Continues a cumulative total after a meter reset or replacement. |
 | Threshold | Largest backwards fluctuation ignored as measurement jitter, expressed in the target unit. |
 
-The source state ID is converted to the generated SourceAnalytix device ID by replacing dots with double underscores.
+For existing and newly activated sources, the initial output ID is derived from the source state ID by replacing dots with double underscores. It may be changed to a shorter unique ID containing letters, numbers, underscores and hyphens. SourceAnalytix copies and verifies its complete generated object tree before deleting the old tree. Existing scripts, visualizations, aliases and external history queries which refer to the old ID must be updated manually.
 
 ## Source Values And Units
 
@@ -263,7 +264,7 @@ The state is rebuilt from existing statistics when the adapter starts and its wr
 
 ## Meter Resets And Corrections
 
-With reset detection enabled, a decrease larger than **Threshold** is treated as a real meter reset or replacement. SourceAnalytix stores an offset and continues its cumulative reading without losing earlier consumption. A smaller backwards change is treated as jitter and ignored. A threshold of `0` treats every decrease as a reset.
+With reset detection enabled, a decrease larger than **Threshold** starts reset confirmation. SourceAnalytix keeps the last accepted total until another reading remains in the lower range and confirms the reset or replacement. It then stores an offset and continues its cumulative reading without losing earlier consumption. If the source returns to its previous range instead, the candidate is discarded as a temporary invalid reading. A smaller backwards change is treated as jitter and ignored. A threshold of `0` treats every decrease as a possible reset that still requires confirmation.
 
 If reset detection is disabled, decreasing source readings are accepted and can reduce calculated totals. This mode is intended only for sources where that behavior is expected.
 

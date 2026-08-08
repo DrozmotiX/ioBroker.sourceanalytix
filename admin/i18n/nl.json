@@ -93,7 +93,13 @@
     "ID": "ID",
     "Invert selection": "Invert selection",
     "Last changed": "Last changed",
-    "Name": "Name",
+    "Name": "Naam",
+    "Name help": "Leesbare weergavenaam van het aangemaakte SourceAnalytix-apparaat",
+    "Output ID": "Uitvoer-ID",
+    "Output ID help": "Technische ID onder sourceanalytix.0. Bij wijziging van een bestaande ID worden de waarden gemigreerd; scripts, visualisaties en externe historieverwijzingen moeten worden aangepast.",
+    "Output ID format error": "De ID is ongeldig, gereserveerd of al in gebruik",
+    "Price definition required error": "Selecteer een prijsdefinitie",
+    "Unit required error": "Er is geen ondersteunde eenheid herkend. Selecteer een eenheid",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",
@@ -119,6 +125,6 @@
     "Rounding": "Afronding",
     "Decimals for consumption values": "Decimalen voor verbruikswaarden",
     "Decimals for cost values": "Decimalen voor kostenwaarden",
-    "Rounding decimals help": "Aantal decimalen voor berekende waarden. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
-    "Individual rounding decimals help": "Overschrijft de globale instelling voor deze bron. Laat leeg om de globale instelling te gebruiken; -1 slaat de exacte waarde op."
+    "Rounding decimals help": "Beginwaarde die naar nieuw geconfigureerde bronnen wordt gekopieerd. Bestaande bronnen behouden hun eigen waarde. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
+    "Individual rounding decimals help": "Gebruik -1 om de exacte waarde zonder afronding op te slaan."
 }
