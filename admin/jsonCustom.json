@@ -1,7 +1,6 @@
 {
   "i18n": true,
   "type": "panel",
-  "validatorNoSaveOnError": true,
   "items": {
     "_basicSettings": {
       "newLine": true,
@@ -27,6 +26,7 @@
       "noMultiEdit": true,
       "defaultFunc": "customObj && customObj._id ? customObj._id.split('.').join('__') : ''",
       "validator": "!data.enabled || (!!data.outputId && !['info', 'priceDefinitions', 'priceHistory', 'basicPriceHistory'].includes(data.outputId) && (/^[A-Za-z0-9_-]{1,128}$/.test(data.outputId) || !!(customObj && customObj._id && data.outputId === customObj._id.split('.').join('__'))) && (!data._usedOutputIds || data._usedOutputIds[data.outputId] === undefined || !!(customObj && customObj._id && (data._usedOutputIds[data.outputId] === customObj._id || data.outputId === customObj._id.split('.').join('__')))))",
+      "validatorNoSaveOnError": true,
       "validatorErrorText": "Output ID format error",
       "xs": 12,
       "sm": 12,
@@ -41,6 +41,7 @@
       "manual": false,
       "label": "Select price definition",
       "validator": "!data.enabled || (!!data.selectedPrice && data.selectedPrice !== 'Choose')",
+      "validatorNoSaveOnError": true,
       "validatorErrorText": "Price definition required error",
       "xs": 12,
       "sm": 12,
@@ -55,6 +56,7 @@
       "label": "Select Unit",
       "default": "Detect automatically",
       "validator": "!data.enabled || ['GW', 'GWh', 'MW', 'MWh', 'W', 'Wh', 'cl', 'cm', 'cm³', 'dl', 'dm', 'dm³', 'g', 'hl', 'kW', 'kWh', 'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 't', 'µm'].includes(data.selectedUnit && data.selectedUnit !== 'Detect automatically' ? data.selectedUnit : customObj && customObj.common && customObj.common.unit)",
+      "validatorNoSaveOnError": true,
       "validatorErrorText": "Unit required error",
       "xs": 12,
       "sm": 12,

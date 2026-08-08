@@ -22,11 +22,11 @@ function executeCustom(expression, data, customObj, instanceObj = {}) {
 describe('custom settings validation', () => {
 	const source = {_id: '0_userdata.0.energy', common: {unit: 'kWh'}};
 
-	it('opts into blocking validation without triggering legacy field dialogs', () => {
-		assert.equal(customConfig.validatorNoSaveOnError, true);
-		assert.equal(Object.hasOwn(schema.outputId, 'validatorNoSaveOnError'), false);
-		assert.equal(Object.hasOwn(schema.selectedPrice, 'validatorNoSaveOnError'), false);
-		assert.equal(Object.hasOwn(schema.selectedUnit, 'validatorNoSaveOnError'), false);
+	it('blocks saving while required source settings are invalid', () => {
+		assert.equal(Object.hasOwn(customConfig, 'validatorNoSaveOnError'), false);
+		assert.equal(schema.outputId.validatorNoSaveOnError, true);
+		assert.equal(schema.selectedPrice.validatorNoSaveOnError, true);
+		assert.equal(schema.selectedUnit.validatorNoSaveOnError, true);
 	});
 
 	it('restricts prices and units to the options provided by the adapter', () => {
