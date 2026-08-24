@@ -6,9 +6,14 @@ updates:
       interval: cron
       cronjob: "37 3 11 * *"
       timezone: Europe/Berlin
+    open-pull-requests-limit: 15
     cooldown:
       default-days: 7
     ignore:
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
       - dependency-name: "@types/node"
         update-types:
           - "version-update:semver-major"
@@ -20,4 +25,4 @@ updates:
       interval: cron
       cronjob: "17 4 23 * *"
       timezone: Europe/Berlin
-    open-pull-requests-limit: 30
+    open-pull-requests-limit: 15

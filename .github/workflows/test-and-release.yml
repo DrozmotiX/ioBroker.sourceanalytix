@@ -13,10 +13,12 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+-**"
   pull_request: {}
 
-# Cancel previous PR/branch runs when a new commit is pushed
+# Cancel previous PR/branch runs when a new commit is pushed.
+# Release runs (tag pushes) are never cancelled - cancelling them aborts the deploy job and
+# leaves the release half finished, which the ioBroker repo checker reports as W3032.
 concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   # Performs quick checks before the expensive test runs
@@ -39,7 +41,11 @@ jobs:
     needs: check-and-lint
 
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
+      # Do not cancel the remaining matrix legs when one of them fails,
+      # otherwise a single flaky OS/node combination hides all other results
+      fail-fast: false
       matrix:
         node-version: [22.x, 24.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
