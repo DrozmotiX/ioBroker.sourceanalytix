@@ -20,6 +20,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
+# Restrict the default GITHUB_TOKEN to read-only; the deploy job widens this for itself.
+permissions:
+    contents: read
+
 jobs:
   # Performs quick checks before the expensive test runs
   check-and-lint:
