@@ -6,6 +6,7 @@ export default [
 		ignores: [
 			".dev-server/",
 			".vscode/",
+			".claude/",
 			"*.test.js",
 			"test/**/*.js",
 			"admin/admin.d.ts",
