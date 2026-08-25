@@ -1,28 +1,30 @@
+# Dependabot will run on day 8 of each month at 02:29 (Europe/Berlin timezone)
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: "/"
+
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: cron
-      cronjob: "37 3 11 * *"
-      timezone: Europe/Berlin
+      interval: 'cron'
+      cronjob: '37 3 11 * *'
+      timezone: 'Europe/Berlin'
     open-pull-requests-limit: 15
     cooldown:
       default-days: 7
     ignore:
-      - dependency-name: "typescript"
+      - dependency-name: 'typescript'
         update-types:
-          - "version-update:semver-minor"
-          - "version-update:semver-major"
-      - dependency-name: "@types/node"
+          - 'version-update:semver-minor'
+          - 'version-update:semver-major'
+      - dependency-name: '@types/node'
         update-types:
-          - "version-update:semver-major"
-    versioning-strategy: increase
+          - 'version-update:semver-major'
+    versioning-strategy: 'increase'
 
-  - package-ecosystem: github-actions
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: cron
-      cronjob: "17 4 23 * *"
-      timezone: Europe/Berlin
+      interval: 'cron'
+      cronjob: '17 4 23 * *'
+      timezone: 'Europe/Berlin'
     open-pull-requests-limit: 15
