@@ -9,8 +9,10 @@
 const utils = require('@iobroker/adapter-core');
 const adapterHelpers = require('iobroker-adapter-helpers'); // Lib used for Unit calculations
 const schedule = require('cron').CronJob; // Cron Scheduler
+const {isDeepStrictEqual} = require('node:util');
 const calculation = require('./lib/calculation');
 const dynamicPricing = require('./lib/dynamic-pricing');
+const outputId = require('./lib/output-id');
 const statisticsJson = require('./lib/statistics-json');
 
 // Sentry error reporting, disable when testing alpha source code locally!
@@ -65,6 +67,8 @@ class Sourceanalytix extends utils.Adapter {
 		this.statisticsJsonSnapshots = {};
 		this.statisticsJsonTimers = {};
 		this.statisticsJsonLastValues = {};
+		this.migratingStates = new Set();
+		this.customConfigBackfills = new Map();
 	}
 
 	/**
@@ -1412,6 +1416,333 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * @param {string} deviceName - Local output device ID
+	 * @returns {string} Full ioBroker object ID
+	 */
+	getFullOutputRoot(deviceName) {
+		return `${this.namespace}.${deviceName}`;
+	}
+
+	/**
+	 * @param {string} deviceName - Local output device ID
+	 * @returns {Promise<Array<{id: string, object: ioBroker.Object}>>} Objects below the output root
+	 */
+	async getOutputTreeObjects(deviceName) {
+		const fullRoot = this.getFullOutputRoot(deviceName);
+		const result = await this.getObjectListAsync({startkey: fullRoot, endkey: `${fullRoot}\u9999`});
+		const objects = [];
+		for (const row of result && Array.isArray(result.rows) ? result.rows : []) {
+			if (row.id !== fullRoot && !row.id.startsWith(`${fullRoot}.`)) continue;
+			const object = await this.getForeignObjectAsync(row.id);
+			if (object) objects.push({id: row.id, object});
+		}
+		return objects.sort((a, b) => a.id.length - b.id.length || a.id.localeCompare(b.id));
+	}
+
+	/**
+	 * @param {string} deviceName - Local output device ID
+	 * @returns {Promise<Record<string, ioBroker.State>>} States below the output root
+	 */
+	async getOutputTreeStates(deviceName) {
+		const states = await this.getForeignStatesAsync(`${this.getFullOutputRoot(deviceName)}.*`);
+		return Object.fromEntries(Object.entries(states || {}).filter(([, state]) => !!state));
+	}
+
+	/**
+	 * @param {string} deviceName - Local output device ID
+	 */
+	async deleteOutputTree(deviceName) {
+		const states = await this.getOutputTreeStates(deviceName);
+		for (const stateId of Object.keys(states)) await this.delForeignStateAsync(stateId);
+
+		const objects = await this.getOutputTreeObjects(deviceName);
+		for (const entry of objects.sort((a, b) => b.id.length - a.id.length || b.id.localeCompare(a.id))) {
+			await this.delForeignObjectAsync(entry.id);
+		}
+	}
+
+	/**
+	 * @param {string} sourceId - Source state ID
+	 * @param {string} desiredOutputId - Configured output ID
+	 * @returns {Promise<string|null>} Existing output ID owned by the source
+	 */
+	async findCurrentOutputId(sourceId, desiredOutputId) {
+		const activeOutputId = this.activeStates[sourceId]
+			&& this.activeStates[sourceId].stateDetails
+			&& this.activeStates[sourceId].stateDetails.deviceName;
+		if (activeOutputId) return activeOutputId;
+
+		const desiredObject = await this.getObjectAsync(desiredOutputId);
+		if (desiredObject && desiredObject.native && desiredObject.native.sourceState === sourceId) return desiredOutputId;
+
+		const devices = await this.getObjectViewAsync('system', 'device', {
+			startkey: `${this.namespace}.`,
+			endkey: `${this.namespace}.\u9999`,
+		});
+		for (const row of devices && Array.isArray(devices.rows) ? devices.rows : []) {
+			const object = await this.getForeignObjectAsync(row.id);
+			if (object && object.native && object.native.sourceState === sourceId) {
+				return row.id.slice(`${this.namespace}.`.length);
+			}
+		}
+
+		const legacyOutputId = outputId.getLegacyOutputId(sourceId);
+		return await this.getObjectAsync(legacyOutputId) ? legacyOutputId : null;
+	}
+
+	/**
+	 * Resume or roll back a migration interrupted by an adapter restart.
+	 * @param {string} sourceId - Source state ID
+	 * @param {string} desiredOutputId - Configured output ID
+	 */
+	async recoverOutputMigration(sourceId, desiredOutputId) {
+		const targetObject = await this.getObjectAsync(desiredOutputId);
+		const migration = targetObject && targetObject.native && Reflect.get(targetObject.native, 'outputMigration');
+		if (!migration || typeof migration.from !== 'string') return;
+
+		if (migration.status === 'copying') {
+			const oldObjects = await this.getOutputTreeObjects(migration.from);
+			if (oldObjects.length === 0) {
+				throw new Error(`Incomplete output migration for ${sourceId} has no intact source tree ${migration.from}`);
+			}
+			await this.deleteOutputTree(desiredOutputId);
+			this.log.warn(`Removed incomplete output migration for ${sourceId}; migration from ${migration.from} will be retried`);
+			return;
+		}
+
+		if (migration.status === 'verified') {
+			await this.deleteOutputTree(migration.from);
+			const cleanTargetObject = await this.getObjectAsync(desiredOutputId);
+			if (cleanTargetObject) {
+				const copiedObject = this.createMigratedObject(cleanTargetObject, false, sourceId, migration.from);
+				if (copiedObject.native) Reflect.deleteProperty(copiedObject.native, 'outputMigration');
+				await this.setObjectAsync(desiredOutputId, copiedObject);
+			}
+			this.log.info(`Completed pending output migration cleanup for ${sourceId}`);
+		}
+	}
+
+	/**
+	 * @param {string} sourceId - Source state ID
+	 * @param {string} desiredOutputId - Configured output ID
+	 * @param {string|null} currentOutputId - Current output ID
+	 * @returns {Promise<{valid: boolean, reason: string|null}>} Availability result
+	 */
+	async validateOutputIdAvailability(sourceId, desiredOutputId, currentOutputId) {
+		for (const [otherSourceId, activeState] of Object.entries(this.activeStates)) {
+			if (otherSourceId !== sourceId && activeState && activeState.stateDetails
+				&& activeState.stateDetails.deviceName === desiredOutputId) {
+				return {valid: false, reason: `is already used by ${otherSourceId}`};
+			}
+		}
+		if (desiredOutputId === currentOutputId) return {valid: true, reason: null};
+
+		const existingObject = await this.getObjectAsync(desiredOutputId);
+		if (!existingObject) return {valid: true, reason: null};
+		if (existingObject.native && existingObject.native.sourceState === sourceId) return {valid: true, reason: null};
+		return {valid: false, reason: `already exists below ${this.namespace}`};
+	}
+
+	/**
+	 * @returns {Promise<Record<string, string|null>>} Output IDs and their owning source states
+	 */
+	async getUsedOutputIds() {
+		const usedOutputIds = Object.fromEntries([]);
+		const devices = await this.getObjectViewAsync('system', 'device', {
+			startkey: `${this.namespace}.`,
+			endkey: `${this.namespace}.\u9999`,
+		});
+		for (const row of devices && Array.isArray(devices.rows) ? devices.rows : []) {
+			const object = await this.getForeignObjectAsync(row.id);
+			const localId = row.id.slice(`${this.namespace}.`.length);
+			usedOutputIds[localId] = object && object.native && typeof object.native.sourceState === 'string'
+				? object.native.sourceState
+				: null;
+		}
+		return usedOutputIds;
+	}
+
+	/**
+	 * @param {ioBroker.Object} object - Object to copy
+	 * @param {boolean} isRoot - Whether this is the output device root
+	 * @param {string} sourceId - Source state ID
+	 * @param {string} oldOutputId - Previous local output ID
+	 * @returns {ioBroker.SettableObject} Copy suitable for setForeignObjectAsync
+	 */
+	createMigratedObject(object, isRoot, sourceId, oldOutputId) {
+		const copiedObject = JSON.parse(JSON.stringify(object));
+		delete copiedObject._id;
+		delete copiedObject.from;
+		delete copiedObject.ts;
+		delete copiedObject.user;
+		if (isRoot) {
+			copiedObject.native = {
+				...(copiedObject.native || {}),
+				sourceState: sourceId,
+				outputIdSchema: 1,
+				outputMigration: {from: oldOutputId, status: 'copying'},
+			};
+		}
+		return copiedObject;
+	}
+
+	/**
+	 * @param {ioBroker.State} state - State to copy
+	 * @returns {ioBroker.SettableState} State fields supported when writing
+	 */
+	createMigratedState(state) {
+		return {
+			val: state.val,
+			ack: state.ack,
+			q: state.q,
+			...(Number.isFinite(state.ts) ? {ts: state.ts} : {}),
+			...(typeof state.c === 'string' ? {c: state.c} : {}),
+			...(Number.isFinite(state.expire) ? {expire: state.expire} : {}),
+		};
+	}
+
+	/**
+	 * @param {Record<string, ioBroker.State>} sourceStates - States below the old root
+	 * @param {Record<string, ioBroker.State>} targetStates - States below the new root
+	 * @param {string} oldRoot - Full old root ID
+	 * @param {string} newRoot - Full new root ID
+	 * @returns {boolean} Whether all persisted values match
+	 */
+	verifyMigratedStates(sourceStates, targetStates, oldRoot, newRoot) {
+		const sourceIds = Object.keys(sourceStates);
+		if (sourceIds.length !== Object.keys(targetStates).length) return false;
+		return sourceIds.every(sourceStateId => {
+			const targetStateId = outputId.mapOutputTreeId(sourceStateId, oldRoot, newRoot);
+			const sourceState = sourceStates[sourceStateId];
+			const targetState = targetStateId ? targetStates[targetStateId] : null;
+			return !!targetState
+				&& JSON.stringify(targetState.val) === JSON.stringify(sourceState.val)
+				&& targetState.ack === sourceState.ack
+				&& (targetState.q || 0) === (sourceState.q || 0);
+		});
+	}
+
+	/**
+	 * Copy and verify a complete SourceAnalytix device tree before deleting it.
+	 * @param {string} sourceId - Source state ID
+	 * @param {string} oldOutputId - Previous local output ID
+	 * @param {string} newOutputId - Requested local output ID
+	 * @returns {Promise<boolean>} Whether migration succeeded
+	 */
+	async migrateOutputTree(sourceId, oldOutputId, newOutputId) {
+		if (oldOutputId === newOutputId) return true;
+		const sourceObjects = await this.getOutputTreeObjects(oldOutputId);
+		if (sourceObjects.length === 0) return true;
+
+		this.migratingStates.add(sourceId);
+		let verified = false;
+		try {
+			const existingTargetObjects = await this.getOutputTreeObjects(newOutputId);
+			if (existingTargetObjects.length > 0) {
+				const targetRoot = existingTargetObjects.find(entry => entry.id === this.getFullOutputRoot(newOutputId));
+				const migration = targetRoot && targetRoot.object.native && targetRoot.object.native.outputMigration;
+				if (!migration || migration.from !== oldOutputId) {
+					throw new Error(`target ${newOutputId} is not an incomplete migration from ${oldOutputId}`);
+				}
+				await this.deleteOutputTree(newOutputId);
+			}
+
+			const oldRoot = this.getFullOutputRoot(oldOutputId);
+			const newRoot = this.getFullOutputRoot(newOutputId);
+			const sourceStates = await this.getOutputTreeStates(oldOutputId);
+			for (const entry of sourceObjects) {
+				const targetId = outputId.mapOutputTreeId(entry.id, oldRoot, newRoot);
+				if (!targetId) throw new Error(`cannot map object ${entry.id}`);
+				await this.setForeignObjectAsync(
+					targetId,
+					this.createMigratedObject(entry.object, entry.id === oldRoot, sourceId, oldOutputId),
+				);
+			}
+			for (const [stateId, state] of Object.entries(sourceStates)) {
+				const targetId = outputId.mapOutputTreeId(stateId, oldRoot, newRoot);
+				if (!targetId) throw new Error(`cannot map state ${stateId}`);
+				await this.setForeignStateAsync(targetId, this.createMigratedState(state));
+			}
+
+			const targetObjects = await this.getOutputTreeObjects(newOutputId);
+			const targetStates = await this.getOutputTreeStates(newOutputId);
+			if (!outputId.verifyMappedObjects(sourceObjects, targetObjects, oldRoot, newRoot)
+				|| !this.verifyMigratedStates(sourceStates, targetStates, oldRoot, newRoot)) {
+				throw new Error(`verification failed (${sourceObjects.length} objects, ${Object.keys(sourceStates).length} states)`);
+			}
+			verified = true;
+			await this.extendObjectAsync(newOutputId, {
+				native: {sourceState: sourceId, outputIdSchema: 1, outputMigration: {from: oldOutputId, status: 'verified'}},
+			});
+
+			try {
+				await this.deleteOutputTree(oldOutputId);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				this.log.warn(`Output ID migration for ${sourceId} was verified, but cleanup of ${oldOutputId} must be retried: ${message}`);
+				return true;
+			}
+			const targetRootObject = await this.getObjectAsync(newOutputId);
+			if (targetRootObject) {
+				const cleanRootObject = JSON.parse(JSON.stringify(targetRootObject));
+				delete cleanRootObject._id;
+				delete cleanRootObject.from;
+				delete cleanRootObject.ts;
+				delete cleanRootObject.user;
+				if (cleanRootObject.native) delete cleanRootObject.native.outputMigration;
+				await this.setObjectAsync(newOutputId, cleanRootObject);
+			}
+			this.log.info(`Migrated SourceAnalytix output for ${sourceId} from ${oldOutputId} to ${newOutputId}`);
+			return true;
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			if (!verified) {
+				try {
+					await this.deleteOutputTree(newOutputId);
+				} catch (cleanupError) {
+					const cleanupMessage = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+					this.log.warn(`Cannot remove incomplete output tree ${newOutputId}: ${cleanupMessage}`);
+				}
+			}
+			this.log.error(`Cannot migrate output ID for ${sourceId} from ${oldOutputId} to ${newOutputId}: ${message}`);
+			return false;
+		} finally {
+			this.migratingStates.delete(sourceId);
+		}
+	}
+
+	/**
+	 * Store defaults which were missing from the source custom configuration.
+	 * @param {string} sourceId - Source state ID
+	 * @param {object} customData - Existing SourceAnalytix custom configuration
+	 * @param {string} effectiveOutputId - Effective local output ID
+	 * @param {number} decimalsQuantity - Effective consumption decimals
+	 * @param {number} decimalsCosts - Effective cost decimals
+	 */
+	async persistCustomConfigDefaults(sourceId, customData, effectiveOutputId, decimalsQuantity, decimalsCosts) {
+		const updates = {};
+		if (customData.decimalsQuantity !== decimalsQuantity) updates.decimalsQuantity = decimalsQuantity;
+		if (customData.decimalsCosts !== decimalsCosts) updates.decimalsCosts = decimalsCosts;
+		// Legacy IDs may contain characters which are no longer offered for custom IDs.
+		const hasOutputId = typeof customData.outputId === 'string' && customData.outputId.trim();
+		if (!hasOutputId && outputId.validateOutputId(effectiveOutputId).valid) {
+			updates.outputId = effectiveOutputId;
+		}
+		if (!Object.keys(updates).length) return;
+		const marker = {...customData, ...updates};
+		this.customConfigBackfills.set(sourceId, marker);
+		try {
+			await this.extendForeignObjectAsync(sourceId, {
+				common: {custom: {[this.namespace]: updates}},
+			});
+		} finally {
+			this.setTimeout(() => {
+				if (this.customConfigBackfills.get(sourceId) === marker) this.customConfigBackfills.delete(sourceId);
+			}, 5000);
+		}
+	}
+
+	/**
 	 * Load state definitions to memory this.activeStates[stateID]
 	 * @param {string} stateID ID  of state to refresh memory values
 	 */
@@ -1441,14 +1772,45 @@ class Sourceanalytix extends utils.Adapter {
 				return false;
 			}
 
-			// Replace not allowed characters for state name
-			const newDeviceName = stateID.split('.').join('__');
-
 			// Check if configuration for SourceAnalytix is present, trow error in case of issue in configuration
 			if (stateInfo && stateInfo.common && stateInfo.common.custom && stateInfo.common.custom[this.namespace]) {
 				const customData = stateInfo.common.custom[this.namespace];
 				const commonData = stateInfo.common;
+				const decimalsQuantity = calculation.resolveDecimals(
+					customData.decimalsQuantity,
+					this.config.decimalsQuantity,
+					3,
+				);
+				const decimalsCosts = calculation.resolveDecimals(
+					customData.decimalsCosts,
+					this.config.decimalsCosts,
+					2,
+				);
 				this.log.debug(`[buildStateDetailsArray] commonData ${JSON.stringify(commonData)}`);
+				const newDeviceName = outputId.resolveOutputId(customData.outputId, stateID);
+				const idValidation = outputId.validateResolvedOutputId(customData.outputId, stateID);
+				if (!idValidation.valid) {
+					this.log.error(`Output ID ${JSON.stringify(newDeviceName)} for ${stateID} ${idValidation.reason}`);
+					return false;
+				}
+				await this.recoverOutputMigration(stateID, newDeviceName);
+				const currentOutputId = await this.findCurrentOutputId(stateID, newDeviceName);
+				const availability = await this.validateOutputIdAvailability(stateID, newDeviceName, currentOutputId);
+				if (!availability.valid) {
+					this.log.error(`Output ID ${JSON.stringify(newDeviceName)} for ${stateID} ${availability.reason}`);
+					return false;
+				}
+				if (currentOutputId && currentOutputId !== newDeviceName
+					&& !await this.migrateOutputTree(stateID, currentOutputId, newDeviceName)) {
+					return false;
+				}
+				await this.persistCustomConfigDefaults(
+					stateID,
+					customData,
+					newDeviceName,
+					decimalsQuantity,
+					decimalsCosts,
+				);
 
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
 				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
@@ -1521,8 +1883,8 @@ class Sourceanalytix extends utils.Adapter {
 						basicRate: customData.basicRate === true,
 						consumption: customData.consumption,
 						costs: customData.costs,
-						decimalsCosts: customData.decimalsCosts,
-						decimalsQuantity: customData.decimalsQuantity,
+						decimalsCosts,
+						decimalsQuantity,
 						deviceName: newDeviceName.toString(),
 						financialCategory: stateType,
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
@@ -1552,7 +1914,6 @@ class Sourceanalytix extends utils.Adapter {
 						priceState: selectedPriceConfig.priceState,
 					},
 				};
-
 				// Extend memory with objects for watt to kWh calculation
 				if (useUnit === 'W') {
 					this.activeStates[stateID].calcValues.previousReadingWatt = null;
@@ -1639,7 +2000,7 @@ class Sourceanalytix extends utils.Adapter {
 				common: {
 					name: alias
 				},
-				native: {},
+				native: {sourceState: stateID, outputIdSchema: 1},
 			});
 
 			await this.initializeCurrentYearPeriodStates(stateID);
@@ -1694,6 +2055,15 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async onObjectChange(id, obj) {
 	    //ToDo : Verify with test-results if debounce on object change must be implemented
+		const customConfigBackfill = this.customConfigBackfills.get(id);
+		if (customConfigBackfill) {
+			this.customConfigBackfills.delete(id);
+			const changedCustomData = obj && obj.common && obj.common.custom && obj.common.custom[this.namespace];
+			if (isDeepStrictEqual(changedCustomData, customConfigBackfill)) {
+				this.log.debug(`Ignored SourceAnalytix custom configuration backfill for ${id}`);
+				return;
+			}
+		}
 		if (calcBlock) return; // cancel operation if calculation block is activate
 		try {
 			const stateID = id;
@@ -1894,7 +2264,9 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Handle calculation for state
 				// Check if for some reason calculation handler ist called for an object not initialised
-				if (this.activeStates[id]){
+				if (this.migratingStates.has(id)) {
+					this.log.debug(`[onStateChange] calculation for ${id} paused during output ID migration`);
+				} else if (this.activeStates[id]){
 					await this.calculationHandler(id, state);
 				} else if (!isDynamicPriceState) {
 					this.log.debug(`[onStateChange] state not initialised, calculation cancelled]`);
@@ -2486,9 +2858,11 @@ class Sourceanalytix extends utils.Adapter {
 	 *  @param {object} [stateVal] - object with current value (val) and timestamp (ts)
 	 */
 	async calculationHandler(stateID, stateVal) {
+		let activeState;
 		try {
 			this.log.debug(`[calculationHandler] Calculation for ${stateID} with values : ${JSON.stringify(stateVal)}`);
-			this.log.debug(`[calculationHandler] Configuration : ${JSON.stringify(this.activeStates[stateID])}`);
+			activeState = stateID ? this.activeStates[stateID] : undefined;
+			this.log.debug(`[calculationHandler] Configuration : ${JSON.stringify(activeState)}`);
 
 			// Verify if received value is null or undefined
 			if (!stateVal){
@@ -2503,15 +2877,15 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Check if for some reason calculation handler ist called for an object not initialised
-			if (!this.activeStates[stateID]){
+			if (!activeState){
 
 				this.errorHandling(`calculationHandler`, `Called for non-initialised state ${stateID}`);
 				return;
 			}
 
-			const calcValues = this.activeStates[stateID].calcValues;
-			const stateDetails = this.activeStates[stateID].stateDetails;
-			const statePrices = this.activeStates[stateID].prices;
+			const calcValues = activeState.calcValues;
+			const stateDetails = activeState.stateDetails;
+			const statePrices = activeState.prices;
 			const currentCath = this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
 			const date = new Date();
@@ -2578,10 +2952,19 @@ class Sourceanalytix extends utils.Adapter {
 						this.getNumberOrDefault(calcValues.cumulativeValue, reading),
 						stateDetails.deviceResetLogicEnabled,
 						this.getNumberOrDefault(stateDetails.threshold, 0),
+						this.activeStates[stateID].pendingDeviceReset,
 					);
 					if (resolvedReading.type === 'invalid') {
 						this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
 						return;
+					}
+					this.activeStates[stateID].pendingDeviceReset = resolvedReading.pendingReset;
+					if (resolvedReading.type === 'resetPending') {
+						this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
+						return;
+					}
+					if (resolvedReading.type === 'resetRejected') {
+						this.log.info(`[calculationHandler] Rejected a possible device reset for ${stateID} after the reading returned to its previous range`);
 					}
 					if (resolvedReading.type === 'jitter') {
 						this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);
@@ -2602,10 +2985,10 @@ class Sourceanalytix extends utils.Adapter {
 				}
 			}
 
-			if (this.activeStates[stateID].firstActivation) {
+			if (activeState.firstActivation) {
 				const initializedStarts = calculation.initializePeriodStartValues(calcValues, reading, true);
 				Object.assign(calcValues, initializedStarts);
-				this.activeStates[stateID].firstActivation = false;
+				activeState.firstActivation = false;
 				await this.extendForeignObject(stateID, {
 					common: {
 						custom: {
@@ -2622,9 +3005,9 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
 			// Update current value to memory
-			this.activeStates[stateID]['calcValues'].cumulativeValue = reading;
+			activeState.calcValues.cumulativeValue = reading;
 			// this.visWidgetJson[stateID].cumulativeValue = reading;
-			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(this.activeStates[stateID])})`);
+			this.log.debug(`[calculationHandler] ActiveStatesArray ${JSON.stringify(activeState)})`);
 
 			// Write current reading at device root
 			await this.setStateChangedAsync(`${stateDetails.deviceName}.cumulativeReading`, {
@@ -2749,8 +3132,8 @@ class Sourceanalytix extends utils.Adapter {
 			};
 			if (this.usesHistoricalCostCalculation(stateID)) {
 				const dynamicCalculationRounded = await this.calculateDynamicCostsForState(stateID, reading, readingTimestamp);
-				if (dynamicCalculationRounded && this.activeStates[stateID].dynamicCosts) {
-					variableCosts = this.activeStates[stateID].dynamicCosts.totals;
+				if (dynamicCalculationRounded && activeState.dynamicCosts) {
+					variableCosts = activeState.dynamicCosts.totals;
 				}
 			}
 			if (stateDetails.costs) Object.assign(calculationRounded, await this.addBasicPriceTotals(stateID, variableCosts, date));
@@ -2774,7 +3157,7 @@ class Sourceanalytix extends utils.Adapter {
 
 
 		} catch (error) {
-			this.errorHandling(`[calculationHandler] ${stateID} with config ${JSON.stringify(this.activeStates[stateID])}`, error);
+			this.errorHandling(`[calculationHandler] ${stateID} with config ${JSON.stringify(activeState)}`, error);
 		}
 
 	}
@@ -2793,7 +3176,7 @@ class Sourceanalytix extends utils.Adapter {
 	// }
 
 	/**
-	 * Decimals to apply for a source, preferring its own setting over the global one.
+	 * Decimals to apply for a source. Active sources always contain an explicit setting.
 	 * @param {string | undefined} stateID - Source state ID
 	 * @param {'quantity' | 'costs'} kind - Type of value to round
 	 * @returns {number} Decimals to apply, or -1 to keep the exact value
@@ -2804,7 +3187,7 @@ class Sourceanalytix extends utils.Adapter {
 		const stateDetails = stateID && this.activeStates[stateID] ? this.activeStates[stateID].stateDetails : null;
 		if (!stateDetails) return globalDecimals;
 		const sourceSetting = kind === 'costs' ? stateDetails.decimalsCosts : stateDetails.decimalsQuantity;
-		return calculation.normalizeDecimals(sourceSetting, globalDecimals);
+		return calculation.normalizeDecimals(sourceSetting, kind === 'costs' ? 2 : 3);
 	}
 
 	/**
@@ -3049,6 +3432,12 @@ class Sourceanalytix extends utils.Adapter {
 							unitArray.push({label: priceDefinition, value: priceDefinition});
 						}
 						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+					}
+					break;
+
+				case 'getUsedOutputIds':
+					if (obj.callback) {
+						this.sendTo(obj.from, obj.command, await this.getUsedOutputIds(), obj.callback);
 					}
 					break;
 
