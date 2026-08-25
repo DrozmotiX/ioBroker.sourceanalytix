@@ -330,6 +330,10 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+
+### **WORK IN PROGRESS**
+- (ioBroker-Bot) Adapter requires admin >= 7.8.23 now.
+
 ### __WORK IN PROGRESS__
 * (DutchmanNL) Maintenance: raise Node.js to 22, modernise CI and release tooling, update dependencies, resolve repository checker findings
 
