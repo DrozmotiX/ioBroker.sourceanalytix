@@ -1,24 +1,35 @@
-# Automatically merge Dependabot PRs based on .github/auto-merge.yml
+# Workflow for auto-merging Dependabot PRs
+# This workflow uses the action-automerge-dependabot action to automatically merge
+# Dependabot PRs based on the rules defined in .github/auto-merge.yml
 
 name: Auto-Merge Dependabot PRs
 
 on:
+  # Trigger when a PR is opened or updated
   # WARNING: This needs to be run in the PR base, DO NOT build untrusted code in this action
-  # details under https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions/
   pull_request_target:
     types: [opened, synchronize, reopened]
 
 jobs:
   auto-merge:
-    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    # Only run if actor is dependabot
+    if: github.actor == 'dependabot[bot]'
+    
     permissions:
       contents: write
       pull-requests: write
+      
     steps:
       - name: Auto-merge Dependabot PRs
         uses: iobroker-bot-orga/action-automerge-dependabot@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          config-file-path: ".github/auto-merge.yml"
-          merge-method: "squash"
+          # Optional: Path to your auto-merge configuration file
+          # config-file-path: '.github/auto-merge.yml'
+          # Optional: Merge method (merge, squash, or rebase)
+          # merge-method: 'squash'
+          # Optional: Wait for other checks to complete
+          # wait-for-checks: 'true'
+          # Optional: Maximum time to wait for checks in seconds (default: 3600)
+          # max-wait-time: '3600'
