@@ -17,6 +17,7 @@ const {
 	migrateLegacyVariableCostTotals,
 	normalizeDecimals,
 	normalizePeriodSnapshot,
+	resolveDecimals,
 	resolveCumulativeReading,
 	roundValue,
 } = require('./lib/calculation');
@@ -360,6 +361,17 @@ describe('period and cumulative calculations', () => {
 			assert.equal(roundValue(0.000123456, 6), 0.000123);
 		});
 
+		it('copies the configured instance template into sources without a value', () => {
+			assert.equal(resolveDecimals(undefined, 5, 3), 5);
+			assert.equal(resolveDecimals('', 4, 2), 4);
+			assert.equal(resolveDecimals(undefined, undefined, 3), 3);
+			assert.equal(resolveDecimals(6, 5, 3), 6);
+			assert.equal(resolveDecimals(undefined, 0, 3), 0);
+			assert.equal(resolveDecimals(undefined, -1, 2), -1);
+			assert.equal(resolveDecimals(undefined, 99, 3), 15);
+			assert.equal(resolveDecimals(undefined, 'invalid', 2), 2);
+		});
+
 		it('keeps the exact value when rounding is disabled', () => {
 			assert.equal(normalizeDecimals(-1, 3), -1);
 			assert.equal(normalizeDecimals(-5, 3), -1);
@@ -518,32 +530,68 @@ describe('period and cumulative calculations', () => {
 	});
 
 	describe('resolveCumulativeReading', () => {
-		it('anchors a reset at the previous cumulative value and continues from there', () => {
-			assert.deepEqual(resolveCumulativeReading(0, 0, 102, true, 1), {
-				type: 'reset', decrease: 102, reading: 102, resetOffset: 102,
+		it('confirms a reset only after another reading continues from the lower range', () => {
+			const pending = resolveCumulativeReading(0, 0, 102, true, 1);
+			assert.deepEqual(pending, {
+				type: 'resetPending',
+				decrease: 102,
+				reading: 102,
+				resetOffset: 0,
+				pendingReset: {rawReading: 0, previousRawReading: 102, previousReading: 102},
 			});
-			assert.deepEqual(resolveCumulativeReading(1, 102, 102, true, 1), {
-				type: 'normal', decrease: 0, reading: 103, resetOffset: 102,
+			assert.deepEqual(resolveCumulativeReading(1, 0, 102, true, 1, pending.pendingReset), {
+				type: 'reset', decrease: 102, reading: 103, resetOffset: 102, pendingReset: null,
 			});
 		});
 
 		it('supports replacement meters which start above zero', () => {
-			assert.equal(resolveCumulativeReading(50, 0, 102, true, 1).resetOffset, 52);
-			assert.equal(resolveCumulativeReading(51, 52, 102, true, 1).reading, 103);
+			const pending = resolveCumulativeReading(50, 0, 102, true, 1);
+			const confirmed = resolveCumulativeReading(51, 0, 102, true, 1, pending.pendingReset);
+			assert.equal(confirmed.resetOffset, 52);
+			assert.equal(confirmed.reading, 103);
+		});
+
+		it('rejects a temporary zero when the meter returns to its previous range', () => {
+			const pending = resolveCumulativeReading(0, 0, 877.2, true, 1);
+			assert.deepEqual(resolveCumulativeReading(878.9, 0, 877.2, true, 1, pending.pendingReset), {
+				type: 'resetRejected', decrease: 0, reading: 878.9, resetOffset: 0, pendingReset: null,
+			});
+		});
+
+		it('confirms another reset after an earlier persisted reset offset', () => {
+			const pending = resolveCumulativeReading(0, 100, 102, true, 1);
+			assert.deepEqual(resolveCumulativeReading(0.25, 100, 102, true, 1, pending.pendingReset), {
+				type: 'reset', decrease: 2, reading: 102.25, resetOffset: 102, pendingReset: null,
+			});
+		});
+
+		it('moves a reset candidate down before confirming the new baseline', () => {
+			const firstCandidate = resolveCumulativeReading(50, 0, 100, true, 1);
+			const lowerCandidate = resolveCumulativeReading(0, 0, 100, true, 1, firstCandidate.pendingReset);
+			assert.equal(lowerCandidate.type, 'resetPending');
+			assert.ok(lowerCandidate.pendingReset);
+			assert.equal(lowerCandidate.pendingReset.rawReading, 0);
+			assert.equal(resolveCumulativeReading(1, 0, 100, true, 1, lowerCandidate.pendingReset).reading, 101);
+		});
+
+		it('never creates a reset candidate while reset detection is disabled', () => {
+			assert.deepEqual(resolveCumulativeReading(50, 0, 100, false, 1), {
+				type: 'decrease', decrease: 50, reading: 50, resetOffset: 0, pendingReset: null,
+			});
 		});
 
 		it('keeps small backwards jitter at the accepted high-water mark', () => {
 			assert.deepEqual(resolveCumulativeReading(99.9, 0, 100, true, 0.2), {
-				type: 'jitter', decrease: 0.09999999999999432, reading: 100, resetOffset: 0,
+				type: 'jitter', decrease: 0.09999999999999432, reading: 100, resetOffset: 0, pendingReset: null,
 			});
 		});
 
 		it('keeps the last valid reading when the device reports a non-finite value', () => {
 			assert.deepEqual(resolveCumulativeReading(Number.NaN, 12, 100, true, 1), {
-				type: 'invalid', decrease: 0, reading: 100, resetOffset: 12,
+				type: 'invalid', decrease: 0, reading: 100, resetOffset: 12, pendingReset: null,
 			});
 			assert.deepEqual(resolveCumulativeReading(Number.POSITIVE_INFINITY, 12, 100, true, 1), {
-				type: 'invalid', decrease: 0, reading: 100, resetOffset: 12,
+				type: 'invalid', decrease: 0, reading: 100, resetOffset: 12, pendingReset: null,
 			});
 		});
 	});

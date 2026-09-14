@@ -39,6 +39,12 @@
     "Month": "Month",
     "Months": "Months",
     "Name": "Name",
+    "Name help": "Readable display name of the generated SourceAnalytix device",
+    "Output ID": "Output ID",
+    "Output ID help": "Technical ID below sourceanalytix.0. Changing an existing ID migrates its values, but scripts, visualizations and external history references must be adjusted.",
+    "Output ID format error": "The ID is invalid, reserved or already in use",
+    "Price definition required error": "Please select a price definition",
+    "Unit required error": "No supported unit was detected. Please select a unit",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",
@@ -119,6 +125,6 @@
     "Rounding": "Rounding",
     "Decimals for consumption values": "Decimals for consumption values",
     "Decimals for cost values": "Decimals for cost values",
-    "Rounding decimals help": "Number of decimals for calculated values. Use -1 to store the exact value without rounding.",
-    "Individual rounding decimals help": "Overrides the global setting for this source. Leave empty to use the global setting, -1 stores the exact value."
+    "Rounding decimals help": "Initial value copied into newly configured sources. Existing sources keep their own value. Use -1 to store the exact value without rounding.",
+    "Individual rounding decimals help": "Use -1 to store the exact value without rounding."
 }

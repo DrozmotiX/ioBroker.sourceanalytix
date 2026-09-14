@@ -39,6 +39,12 @@
     "Month": "Monat",
     "Months": "Monate",
     "Name": "Name",
+    "Name help": "Lesbarer Anzeigename des erzeugten SourceAnalytix-Geräts",
+    "Output ID": "Ausgabe-ID",
+    "Output ID help": "Technische ID unter sourceanalytix.0. Beim Ändern einer bestehenden ID werden deren Werte migriert; Skripte, Visualisierungen und externe Historienverweise müssen angepasst werden.",
+    "Output ID format error": "Die ID ist ungültig, reserviert oder bereits vergeben",
+    "Price definition required error": "Bitte eine Preisdefinition auswählen",
+    "Unit required error": "Keine passende Einheit erkannt. Bitte eine Einheit auswählen",
     "Number of quarters": "Anzahl Quartale",
     "Number of weeks": "Anzahl Wochen",
     "Number of years": "Anzahl Jahre",
@@ -119,6 +125,6 @@
     "Rounding": "Rundung",
     "Decimals for consumption values": "Nachkommastellen für Verbrauchswerte",
     "Decimals for cost values": "Nachkommastellen für Kostenwerte",
-    "Rounding decimals help": "Anzahl der Nachkommastellen für berechnete Werte. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
-    "Individual rounding decimals help": "Überschreibt die globale Einstellung für diese Quelle. Leer lassen, um die globale Einstellung zu verwenden; -1 speichert den exakten Wert."
+    "Rounding decimals help": "Startwert, der in neu konfigurierte Quellen übernommen wird. Bestehende Quellen behalten ihren eigenen Wert. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
+    "Individual rounding decimals help": "Mit -1 wird der exakte Wert ohne Rundung gespeichert."
 }

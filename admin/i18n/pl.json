@@ -93,7 +93,13 @@
     "ID": "ID",
     "Invert selection": "Invert selection",
     "Last changed": "Last changed",
-    "Name": "Name",
+    "Name": "Nazwa",
+    "Name help": "Czytelna nazwa wyświetlana utworzonego urządzenia SourceAnalytix",
+    "Output ID": "Identyfikator wyjściowy",
+    "Output ID help": "Identyfikator techniczny w sourceanalytix.0. Zmiana istniejącego identyfikatora przenosi jego wartości; skrypty, wizualizacje i zewnętrzne odwołania do historii wymagają dostosowania.",
+    "Output ID format error": "Identyfikator jest nieprawidłowy, zarezerwowany lub już używany",
+    "Price definition required error": "Wybierz definicję ceny",
+    "Unit required error": "Nie wykryto obsługiwanej jednostki. Wybierz jednostkę",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",
@@ -119,6 +125,6 @@
     "Rounding": "Zaokrąglanie",
     "Decimals for consumption values": "Miejsca dziesiętne dla wartości zużycia",
     "Decimals for cost values": "Miejsca dziesiętne dla wartości kosztów",
-    "Rounding decimals help": "Liczba miejsc dziesiętnych dla obliczonych wartości. Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
-    "Individual rounding decimals help": "Zastępuje ustawienie globalne dla tego źródła. Pozostaw puste, aby użyć ustawienia globalnego; -1 zapisuje dokładną wartość."
+    "Rounding decimals help": "Wartość początkowa kopiowana do nowo konfigurowanych źródeł. Istniejące źródła zachowują własną wartość. Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
+    "Individual rounding decimals help": "Wartość -1 zapisuje dokładną wartość bez zaokrąglania."
 }
