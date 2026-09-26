@@ -68,6 +68,40 @@ describe('custom settings validation', () => {
 		}, {common: {custom: {}}, native: {}}), false);
 	});
 
+	describe('editing several sources at once', () => {
+		// Admin passes this stand-in instead of a state object and turns differing values into arrays
+		const multiEditObject = {common: {custom: {}}, native: {}};
+
+		it('keeps the different output IDs of the selected sources', () => {
+			assert.equal(executeCustom(schema.outputId.validator, {
+				enabled: true,
+				outputId: ['Kitchen', 'Office'],
+			}, multiEditObject), true);
+		});
+
+		it('rejects one output ID shared by all selected sources', () => {
+			assert.equal(executeCustom(schema.outputId.validator, {enabled: true, outputId: 'Kitchen'}, multiEditObject), false);
+		});
+
+		it('leaves automatic unit detection to the adapter', () => {
+			assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, multiEditObject), true);
+			assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: ['Detect automatically', 'kWh']}, multiEditObject), true);
+		});
+
+		it('saves a change to a shared setting such as the threshold', () => {
+			const data = {
+				enabled: true,
+				outputId: ['Kitchen', 'Office'],
+				selectedPrice: 'Electricity',
+				selectedUnit: ['Detect automatically', 'kWh'],
+				threshold: 5,
+			};
+			for (const field of ['outputId', 'selectedPrice', 'selectedUnit']) {
+				assert.equal(executeCustom(schema[field].validator, data, multiEditObject), true, field);
+			}
+		});
+	});
+
 	it('accepts detected or manually selected supported units', () => {
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, source), true);
 		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'kW'}, {_id: source._id, common: {}}), true);
