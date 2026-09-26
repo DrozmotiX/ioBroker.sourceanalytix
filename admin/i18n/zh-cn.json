@@ -93,7 +93,13 @@
     "ID": "ID",
     "Invert selection": "Invert selection",
     "Last changed": "Last changed",
-    "Name": "Name",
+    "Name": "名称",
+    "Name help": "生成的 SourceAnalytix 设备的易读显示名称",
+    "Output ID": "输出 ID",
+    "Output ID help": "sourceanalytix.0 下的技术 ID。更改现有 ID 时会迁移其值，但必须调整脚本、可视化和外部历史记录引用。",
+    "Output ID format error": "该 ID 无效、已保留或已被使用",
+    "Price definition required error": "请选择价格定义",
+    "Unit required error": "未检测到支持的单位。请选择一个单位",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",
@@ -119,6 +125,6 @@
     "Rounding": "四舍五入",
     "Decimals for consumption values": "用量值的小数位数",
     "Decimals for cost values": "费用值的小数位数",
-    "Rounding decimals help": "计算值保留的小数位数。设为 -1 则保存精确值，不进行舍入。",
-    "Individual rounding decimals help": "覆盖此数据源的全局设置。留空则使用全局设置；设为 -1 保存精确值。"
+    "Rounding decimals help": "复制到新配置数据源的初始值。现有数据源保留各自的值。设为 -1 则保存精确值，不进行舍入。",
+    "Individual rounding decimals help": "设为 -1 则保存精确值，不进行舍入。"
 }

@@ -93,7 +93,13 @@
     "ID": "ID",
     "Invert selection": "Invert selection",
     "Last changed": "Last changed",
-    "Name": "Name",
+    "Name": "Nome",
+    "Name help": "Nome de apresentação legível do dispositivo SourceAnalytix criado",
+    "Output ID": "ID de saída",
+    "Output ID help": "ID técnica abaixo de sourceanalytix.0. Alterar uma ID existente migra os respetivos valores; scripts, visualizações e referências externas do histórico têm de ser adaptados.",
+    "Output ID format error": "O ID é inválido, reservado ou já está a ser utilizado",
+    "Price definition required error": "Selecione uma definição de preço",
+    "Unit required error": "Não foi detetada uma unidade suportada. Selecione uma unidade",
     "Number of quarters": "Number of quarters",
     "Number of weeks": "Number of weeks",
     "Number of years": "Number of years",
@@ -119,6 +125,6 @@
     "Rounding": "Arredondamento",
     "Decimals for consumption values": "Casas decimais para valores de consumo",
     "Decimals for cost values": "Casas decimais para valores de custo",
-    "Rounding decimals help": "Número de casas decimais para os valores calculados. Use -1 para guardar o valor exato sem arredondamento.",
-    "Individual rounding decimals help": "Substitui a definição global para esta fonte. Deixe vazio para usar a definição global; -1 guarda o valor exato."
+    "Rounding decimals help": "Valor inicial copiado para fontes recém-configuradas. As fontes existentes mantêm o seu próprio valor. Use -1 para guardar o valor exato sem arredondamento.",
+    "Individual rounding decimals help": "Use -1 para guardar o valor exato sem arredondamento."
 }

@@ -46,10 +46,10 @@ The **General settings** tab controls which detailed statistics are created. Dis
 | Current year: Weekday | Stores the current week's values by weekday. |
 | Current year: Weeks / Months / Quarters | Stores values for each period below `<source>.currentYear`. |
 | Current year: Previous period | Stores the completed day, week, month, quarter and year, plus the previous week's weekday values. |
-| Rounding: Decimals for consumption values | Decimals for calculated quantities and meter readings, `3` by default. |
-| Rounding: Decimals for cost values | Decimals for calculated costs and earnings, `2` by default. |
+| Rounding: Decimals for consumption values | Initial decimals copied into newly configured sources, `3` by default. |
+| Rounding: Decimals for cost values | Initial decimals copied into newly configured sources, `2` by default. |
 
-Both rounding settings accept `-1` to store the exact calculated value without rounding. A single source can deviate from them: its **Decimals for consumption values** and **Decimals for cost values** fields override the global setting and use it whenever they are left empty. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
+Both rounding settings accept `-1` to store the exact calculated value without rounding. Every source stores its own explicit **Decimals for consumption values** and **Decimals for cost values**. New sources are pre-filled from the instance settings above. Existing sources without these fields receive their previously effective instance values once during migration, so later changes to the instance defaults do not alter their results. Rounding only affects the values written to states; internal calculations, the cumulative reading and the persisted memories always keep full precision, so no accuracy is lost over time.
 
 SourceAnalytix remembers the last successfully processed calendar periods. If the adapter or ioBroker is not running at midnight, missed day, week, month, quarter and year changes are processed once at the next start.
 
@@ -128,7 +128,8 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Setting | Description |
 | --- | --- |
 | Enabled | Activates this source for the selected SourceAnalytix instance. |
-| Alias | Optional display name for the generated device. It does not change the generated state ID. |
+| Name | Optional display name for the generated device. |
+| Output ID | Technical device ID below `sourceanalytix.<instance>`. It is initialized with the backward-compatible source-derived ID and can be shortened. |
 | Select price definition | Mandatory category from the adapter's price definitions. |
 | Select Unit | Source unit. Leave on automatic detection when the source object has a correct supported unit. |
 | Calculate costs | Creates and updates cost or earnings states. |
@@ -140,7 +141,7 @@ SourceAnalytix is configured through the ioBroker custom settings of each source
 | Device value reset detection | Continues a cumulative total after a meter reset or replacement. |
 | Threshold | Largest backwards fluctuation ignored as measurement jitter, expressed in the target unit. |
 
-The source state ID is converted to the generated SourceAnalytix device ID by replacing dots with double underscores.
+For existing and newly activated sources, the initial output ID is derived from the source state ID by replacing dots with double underscores. It may be changed to a shorter unique ID containing letters, numbers, underscores and hyphens. SourceAnalytix copies and verifies its complete generated object tree before deleting the old tree. Existing scripts, visualizations, aliases and external history queries which refer to the old ID must be updated manually. History adapter settings are copied, so logging continues under the new ID, but values logged before the change stay under the old state IDs. Room and function memberships are not copied.
 
 ## Source Values And Units
 
@@ -263,7 +264,7 @@ The state is rebuilt from existing statistics when the adapter starts and its wr
 
 ## Meter Resets And Corrections
 
-With reset detection enabled, a decrease larger than **Threshold** is treated as a real meter reset or replacement. SourceAnalytix stores an offset and continues its cumulative reading without losing earlier consumption. A smaller backwards change is treated as jitter and ignored. A threshold of `0` treats every decrease as a reset.
+With reset detection enabled, a decrease larger than **Threshold** starts reset confirmation. SourceAnalytix keeps the last accepted total until another reading remains in the lower range and confirms the reset or replacement. It then stores an offset and continues its cumulative reading without losing earlier consumption. If the next reading is back within **Threshold** of the last accepted reading instead, the candidate is discarded as a temporary invalid reading. A reading that comes back further below the last accepted reading than **Threshold** confirms the reset, so choose a threshold that covers how far the meter can fall back after a temporary glitch. A smaller backwards change is treated as jitter and ignored. A threshold of `0` treats every decrease as a possible reset that still requires confirmation.
 
 If reset detection is disabled, decreasing source readings are accepted and can reduce calculated totals. This mode is intended only for sources where that behavior is expected.
 
@@ -334,6 +335,11 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * (DutchmanNL) Maintenance: raise Node.js to 22, modernise CI and release tooling, update dependencies, resolve repository checker findings
 * (DutchmanNL) The adapter now requires Admin 7.8.23 or newer.
 * (DutchmanNL) Tests now also run on Node.js 26 ([#1222](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1222)).
+* (softwarecrash) Price definition and unit selection work again with Admin 8, and settings with a missing price definition, unit or output ID can no longer be saved ([#1202](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1202)).
+* (softwarecrash) Each source has an editable output ID, pre-filled with its existing ID so nothing changes for current installations. Changing it copies and verifies the complete object tree before the old tree is removed, and reserved, invalid or already used IDs are rejected ([#617](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/617), [#1200](https://github.com/DrozmotiX/ioBroker.sourceanalytix/pull/1200)).
+* (softwarecrash) A meter decrease larger than the threshold is only accepted as a reset or replacement once the following reading confirms it; a reading back within the threshold of the last accepted value discards it ([#1199](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1199)).
+* (softwarecrash) Fixed a crash when a source was reconfigured or disabled while a calculation was running ([#1198](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1198)).
+* (softwarecrash) Each source stores its own rounding settings, taken once from the instance defaults, so later changes to the defaults no longer affect existing sources ([#1200](https://github.com/DrozmotiX/ioBroker.sourceanalytix/pull/1200)).
 
 ### 0.5.6 (2026-08-02)
 * The monthly basic price is booked as a full charge when the tariff first becomes valid and at the beginning of every following calendar month, instead of being spread over the days of a month ([#1193](https://github.com/DrozmotiX/ioBroker.sourceanalytix/pull/1193)).
