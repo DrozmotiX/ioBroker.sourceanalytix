@@ -1,4 +1,8 @@
 # Older changes
+## 0.5.2 (2026-07-28)
+* The npm release workflow no longer fails at the Sentry step: commit association is disabled because the previous release commit is not reachable in the shallow, squash-merged history ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
+* README now carries the standard Sentry notice required by the ioBroker repository checker ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
+
 ## 0.5.1 (2026-07-28)
 * Power states can optionally use the average of consecutive readings over their actual update interval ([#1166](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1166)).
 * First-time activation initializes empty period starts from the current cumulative reading while keeping them editable ([#148](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/148)).

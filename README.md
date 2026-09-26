@@ -331,7 +331,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.6.0 (2026-09-26)
 * (DutchmanNL) Maintenance: raise Node.js to 22, modernise CI and release tooling, update dependencies, resolve repository checker findings
 * (DutchmanNL) The adapter now requires Admin 7.8.23 or newer.
 * (DutchmanNL) Tests now also run on Node.js 26 ([#1222](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1222)).
@@ -359,10 +359,6 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 
 ### 0.5.3 (2026-07-28)
 * Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield ([#466](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/466)).
-
-### 0.5.2 (2026-07-28)
-* The npm release workflow no longer fails at the Sentry step: commit association is disabled because the previous release commit is not reachable in the shallow, squash-merged history ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
-* README now carries the standard Sentry notice required by the ioBroker repository checker ([#1179](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1179)).
 
 [Older changelog entries](CHANGELOG_OLD.md)
 
