@@ -5,6 +5,7 @@ const {
 	getLegacyOutputId,
 	mapOutputTreeId,
 	resolveOutputId,
+	runQueued,
 	validateResolvedOutputId,
 	validateOutputId,
 	verifyMappedObjects,
@@ -68,5 +69,54 @@ describe('custom output IDs', () => {
 		assert.equal(verifyMappedObjects(source, target, oldRoot, newRoot), true);
 		target[1].object.common.unit = 'Wh';
 		assert.equal(verifyMappedObjects(source, target, oldRoot, newRoot), false);
+	});
+});
+
+describe('serialized source builds', () => {
+	const tick = () => new Promise(resolve => setImmediate(resolve));
+
+	it('runs a second build for the same source only after the first has finished', async () => {
+		const queues = new Map();
+		const events = [];
+		/** @type {(value?: unknown) => void} */
+		let releaseFirst = () => {};
+		const first = runQueued(queues, 'meter', async () => {
+			events.push('first:start');
+			await new Promise(resolve => { releaseFirst = resolve; });
+			events.push('first:end');
+			return 'Meter2';
+		});
+		const second = runQueued(queues, 'meter', async () => {
+			events.push('second:start');
+			return 'Meter3';
+		});
+		await tick();
+		assert.deepEqual(events, ['first:start']);
+		releaseFirst();
+		assert.equal(await first, 'Meter2');
+		assert.equal(await second, 'Meter3');
+		assert.deepEqual(events, ['first:start', 'first:end', 'second:start']);
+	});
+
+	it('does not block other sources', async () => {
+		const queues = new Map();
+		const events = [];
+		/** @type {(value?: unknown) => void} */
+		let releaseFirst = () => {};
+		const first = runQueued(queues, 'meter-a', () => new Promise(resolve => { releaseFirst = resolve; }));
+		await runQueued(queues, 'meter-b', async () => events.push('b'));
+		assert.deepEqual(events, ['b']);
+		releaseFirst();
+		await first;
+	});
+
+	it('continues the queue after a failed build and cleans up when idle', async () => {
+		const queues = new Map();
+		const failed = runQueued(queues, 'meter', async () => { throw new Error('boom'); });
+		const next = runQueued(queues, 'meter', async () => 'ok');
+		await assert.rejects(failed, /boom/);
+		assert.equal(await next, 'ok');
+		await tick();
+		assert.equal(queues.size, 0);
 	});
 });

@@ -68,6 +68,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.statisticsJsonTimers = {};
 		this.statisticsJsonLastValues = {};
 		this.migratingStates = new Set();
+		this.stateBuildQueues = new Map(); // Source state ID -> tail of its serialized configuration builds
 		this.customConfigBackfills = new Map();
 	}
 
@@ -1479,12 +1480,19 @@ class Sourceanalytix extends utils.Adapter {
 			startkey: `${this.namespace}.`,
 			endkey: `${this.namespace}.\u9999`,
 		});
+		const ownedOutputIds = [];
 		for (const row of devices && Array.isArray(devices.rows) ? devices.rows : []) {
 			const object = await this.getForeignObjectAsync(row.id);
-			if (object && object.native && object.native.sourceState === sourceId) {
-				return row.id.slice(`${this.namespace}.`.length);
-			}
+			if (!object || !object.native || object.native.sourceState !== sourceId) continue;
+			// A root still marked as copying is an unfinished migration target, not the live tree
+			const migration = Reflect.get(object.native, 'outputMigration');
+			if (migration && migration.status === 'copying') continue;
+			ownedOutputIds.push(row.id.slice(`${this.namespace}.`.length));
 		}
+		if (ownedOutputIds.length > 1) {
+			throw new Error(`${sourceId} owns several output trees (${ownedOutputIds.join(', ')}); remove the stale ones before changing its output ID`);
+		}
+		if (ownedOutputIds.length === 1) return ownedOutputIds[0];
 
 		const legacyOutputId = outputId.getLegacyOutputId(sourceId);
 		return await this.getObjectAsync(legacyOutputId) ? legacyOutputId : null;
@@ -1743,10 +1751,20 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * Load state definitions to memory this.activeStates[stateID]
+	 * Load state definitions to memory this.activeStates[stateID].
+	 * Builds for the same source run one after another, so a second configuration change
+	 * cannot start an output ID migration while the previous one is still copying.
+	 * @param {string} stateID ID  of state to refresh memory values
+	 * @returns {Promise<boolean|undefined>} Result of the build
+	 */
+	buildStateDetailsArray(stateID) {
+		return outputId.runQueued(this.stateBuildQueues, stateID, () => this.buildStateDetailsArrayNow(stateID));
+	}
+
+	/**
 	 * @param {string} stateID ID  of state to refresh memory values
 	 */
-	async buildStateDetailsArray(stateID) {
+	async buildStateDetailsArrayNow(stateID) {
 		let initError  = false;
 		this.log.debug(`[buildStateDetailsArray] started for ${stateID}`);
 		try {
