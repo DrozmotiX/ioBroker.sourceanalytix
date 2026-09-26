@@ -13,12 +13,11 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+-**"
   pull_request: {}
 
-# Cancel previous PR/branch runs when a new commit is pushed.
-# Release runs (tag pushes) are never cancelled - cancelling them aborts the deploy job and
-# leaves the release half finished, which the ioBroker repo checker reports as W3032.
+# Cancel previous runs for the same ref when a new commit is pushed (repo checker W3009).
+# A release tag is its own ref, so a release run is only cancelled if that same tag is pushed again.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 # Restrict the default GITHUB_TOKEN to read-only; the deploy job widens this for itself.
 permissions:
@@ -51,7 +50,7 @@ jobs:
       # otherwise a single flaky OS/node combination hides all other results
       fail-fast: false
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
