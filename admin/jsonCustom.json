@@ -67,7 +67,8 @@
     "_usedOutputIds": {
       "type": "text",
       "hidden": true,
-      "defaultSendTo": "getUsedOutputIds"
+      "defaultSendTo": "getUsedOutputIds",
+      "allowSaveWithError": true
     },
     "_calcSettings": {
       "newLine": true,

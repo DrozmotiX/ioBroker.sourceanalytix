@@ -558,6 +558,27 @@ describe('period and cumulative calculations', () => {
 			});
 		});
 
+		it('rejects a temporary zero followed by a slightly lower previous reading', () => {
+			const pending = resolveCumulativeReading(0, 0, 1000, true, 1);
+			assert.deepEqual(resolveCumulativeReading(998, 0, 1000, true, 1, pending.pendingReset), {
+				type: 'resetRejected', decrease: 2, reading: 1000, resetOffset: 0, pendingReset: null,
+			});
+		});
+
+		it('rejects a near-return even when the reset threshold is zero', () => {
+			const pending = resolveCumulativeReading(0, 0, 1000, true, 0);
+			assert.deepEqual(resolveCumulativeReading(999.99, 0, 1000, true, 0, pending.pendingReset), {
+				type: 'resetRejected', decrease: 0.009999999999990905, reading: 1000, resetOffset: 0, pendingReset: null,
+			});
+		});
+
+		it('still confirms a genuine reset which continues near the low candidate', () => {
+			const pending = resolveCumulativeReading(0, 0, 1000, true, 1);
+			assert.deepEqual(resolveCumulativeReading(0.5, 0, 1000, true, 1, pending.pendingReset), {
+				type: 'reset', decrease: 1000, reading: 1000.5, resetOffset: 1000, pendingReset: null,
+			});
+		});
+
 		it('confirms another reset after an earlier persisted reset offset', () => {
 			const pending = resolveCumulativeReading(0, 100, 102, true, 1);
 			assert.deepEqual(resolveCumulativeReading(0.25, 100, 102, true, 1, pending.pendingReset), {

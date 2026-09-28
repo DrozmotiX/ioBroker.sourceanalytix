@@ -41,7 +41,7 @@
     "Name": "Name",
     "Name help": "Readable display name of the generated SourceAnalytix device",
     "Output ID": "Output ID",
-    "Output ID help": "Technical ID below sourceanalytix.0. Changing an existing ID migrates its values, but scripts, visualizations and external history references must be adjusted.",
+    "Output ID help": "Technical ID below this SourceAnalytix instance. Changing an existing ID migrates its values, but scripts, visualizations and external history references must be adjusted.",
     "Output ID format error": "The ID is invalid, reserved or already in use",
     "Price definition required error": "Please select a price definition",
     "Unit required error": "No supported unit was detected. Please select a unit",

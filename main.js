@@ -1474,7 +1474,11 @@ class Sourceanalytix extends utils.Adapter {
 		if (activeOutputId) return activeOutputId;
 
 		const desiredObject = await this.getObjectAsync(desiredOutputId);
-		if (desiredObject && desiredObject.native && desiredObject.native.sourceState === sourceId) return desiredOutputId;
+		const desiredMigration = desiredObject && desiredObject.native && Reflect.get(desiredObject.native, 'outputMigration');
+		if (desiredObject && desiredObject.native && desiredObject.native.sourceState === sourceId
+			&& (!desiredMigration || desiredMigration.status !== 'copying')) {
+			return desiredOutputId;
+		}
 
 		const devices = await this.getObjectViewAsync('system', 'device', {
 			startkey: `${this.namespace}.`,
@@ -1644,6 +1648,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		this.migratingStates.add(sourceId);
 		let verified = false;
+		let wroteTarget = false;
 		try {
 			const existingTargetObjects = await this.getOutputTreeObjects(newOutputId);
 			if (existingTargetObjects.length > 0) {
@@ -1661,6 +1666,7 @@ class Sourceanalytix extends utils.Adapter {
 			for (const entry of sourceObjects) {
 				const targetId = outputId.mapOutputTreeId(entry.id, oldRoot, newRoot);
 				if (!targetId) throw new Error(`cannot map object ${entry.id}`);
+				wroteTarget = true;
 				await this.setForeignObjectAsync(
 					targetId,
 					this.createMigratedObject(entry.object, entry.id === oldRoot, sourceId, oldOutputId),
@@ -1704,7 +1710,7 @@ class Sourceanalytix extends utils.Adapter {
 			return true;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			if (!verified) {
+			if (!verified && wroteTarget) {
 				try {
 					await this.deleteOutputTree(newOutputId);
 				} catch (cleanupError) {
@@ -1717,6 +1723,64 @@ class Sourceanalytix extends utils.Adapter {
 		} finally {
 			this.migratingStates.delete(sourceId);
 		}
+	}
+
+	/**
+	 * Persist selected SourceAnalytix custom settings without replacing settings of other adapters.
+	 * @param {string} sourceId - Source state ID
+	 * @param {object} customData - Existing SourceAnalytix custom configuration
+	 * @param {object} updates - SourceAnalytix settings to merge
+	 */
+	async persistCustomConfigUpdates(sourceId, customData, updates) {
+		if (!Object.keys(updates).length) return;
+		const marker = {...customData, ...updates};
+		this.customConfigBackfills.set(sourceId, marker);
+		try {
+			await this.extendForeignObjectAsync(sourceId, {
+				common: {custom: {[this.namespace]: updates}},
+			});
+		} finally {
+			this.setTimeout(() => {
+				if (this.customConfigBackfills.get(sourceId) === marker) this.customConfigBackfills.delete(sourceId);
+			}, 5000);
+		}
+	}
+
+	/**
+	 * Keep a source operational on its previous output after a requested output ID cannot be used.
+	 * @param {string} sourceId - Source state ID
+	 * @param {object} customData - Existing SourceAnalytix custom configuration
+	 * @param {string|null} currentOutputId - Previously active or persisted output ID
+	 * @param {string} requestedOutputId - Rejected output ID
+	 * @param {string} reason - User-facing log reason
+	 * @returns {Promise<string>} Safe fallback output ID, or an empty string when none is available
+	 */
+	async restoreEffectiveOutputId(sourceId, customData, currentOutputId, requestedOutputId, reason) {
+		let fallbackOutputId = currentOutputId;
+		if (!fallbackOutputId) {
+			const legacyOutputId = outputId.getLegacyOutputId(sourceId);
+			try {
+				fallbackOutputId = await this.findCurrentOutputId(sourceId, legacyOutputId);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				this.log.error(`Cannot determine fallback output ID for ${sourceId}: ${message}`);
+				return '';
+			}
+			if (!fallbackOutputId) {
+				const availability = await this.validateOutputIdAvailability(sourceId, legacyOutputId, null);
+				if (availability.valid) fallbackOutputId = legacyOutputId;
+			}
+		}
+		if (!fallbackOutputId) {
+			this.log.error(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; no safe fallback is available`);
+			return '';
+		}
+
+		this.log.warn(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; keeping ${JSON.stringify(fallbackOutputId)}`);
+		if (outputId.validateOutputId(fallbackOutputId).valid && customData.outputId !== fallbackOutputId) {
+			await this.persistCustomConfigUpdates(sourceId, customData, {outputId: fallbackOutputId});
+		}
+		return fallbackOutputId;
 	}
 
 	/**
@@ -1736,18 +1800,7 @@ class Sourceanalytix extends utils.Adapter {
 		if (!hasOutputId && outputId.validateOutputId(effectiveOutputId).valid) {
 			updates.outputId = effectiveOutputId;
 		}
-		if (!Object.keys(updates).length) return;
-		const marker = {...customData, ...updates};
-		this.customConfigBackfills.set(sourceId, marker);
-		try {
-			await this.extendForeignObjectAsync(sourceId, {
-				common: {custom: {[this.namespace]: updates}},
-			});
-		} finally {
-			this.setTimeout(() => {
-				if (this.customConfigBackfills.get(sourceId) === marker) this.customConfigBackfills.delete(sourceId);
-			}, 5000);
-		}
+		await this.persistCustomConfigUpdates(sourceId, customData, updates);
 	}
 
 	/**
@@ -1805,26 +1858,52 @@ class Sourceanalytix extends utils.Adapter {
 					2,
 				);
 				this.log.debug(`[buildStateDetailsArray] commonData ${JSON.stringify(commonData)}`);
-				const newDeviceName = outputId.resolveOutputId(customData.outputId, stateID);
+				const requestedOutputId = outputId.resolveOutputId(customData.outputId, stateID);
+				let newDeviceName = requestedOutputId;
+				let currentOutputId = this.activeStates[stateID]
+					&& this.activeStates[stateID].stateDetails
+					&& this.activeStates[stateID].stateDetails.deviceName;
 				const idValidation = outputId.validateResolvedOutputId(customData.outputId, stateID);
 				if (!idValidation.valid) {
-					this.log.error(`Output ID ${JSON.stringify(newDeviceName)} for ${stateID} ${idValidation.reason}`);
+					newDeviceName = await this.restoreEffectiveOutputId(
+						stateID, customData, currentOutputId, requestedOutputId, idValidation.reason || 'is invalid',
+					);
+				} else {
+					try {
+						await this.recoverOutputMigration(stateID, newDeviceName);
+						currentOutputId = await this.findCurrentOutputId(stateID, newDeviceName);
+						const availability = await this.validateOutputIdAvailability(stateID, newDeviceName, currentOutputId);
+						if (!availability.valid) {
+							newDeviceName = await this.restoreEffectiveOutputId(
+								stateID, customData, currentOutputId, requestedOutputId, availability.reason || 'is unavailable',
+							);
+						} else if (currentOutputId && currentOutputId !== newDeviceName
+							&& !await this.migrateOutputTree(stateID, currentOutputId, newDeviceName)) {
+							newDeviceName = await this.restoreEffectiveOutputId(
+								stateID, customData, currentOutputId, requestedOutputId, 'migration failed',
+							);
+						}
+					} catch (error) {
+						const message = error instanceof Error ? error.message : String(error);
+						newDeviceName = await this.restoreEffectiveOutputId(
+							stateID, customData, currentOutputId, requestedOutputId, message,
+						);
+					}
+				}
+				if (!newDeviceName) {
+					if (!this.activeStates[stateID] || !this.activeStates[stateID].stateDetails) {
+						this.stopStatisticsJsonUpdates(stateID);
+						delete this.activeStates[stateID];
+						this.unsubscribeForeignStates(stateID);
+					}
 					return false;
 				}
-				await this.recoverOutputMigration(stateID, newDeviceName);
-				const currentOutputId = await this.findCurrentOutputId(stateID, newDeviceName);
-				const availability = await this.validateOutputIdAvailability(stateID, newDeviceName, currentOutputId);
-				if (!availability.valid) {
-					this.log.error(`Output ID ${JSON.stringify(newDeviceName)} for ${stateID} ${availability.reason}`);
-					return false;
-				}
-				if (currentOutputId && currentOutputId !== newDeviceName
-					&& !await this.migrateOutputTree(stateID, currentOutputId, newDeviceName)) {
-					return false;
-				}
+				const effectiveCustomData = newDeviceName === requestedOutputId
+					? customData
+					: {...customData, outputId: newDeviceName};
 				await this.persistCustomConfigDefaults(
 					stateID,
-					customData,
+					effectiveCustomData,
 					newDeviceName,
 					decimalsQuantity,
 					decimalsCosts,
@@ -2964,19 +3043,20 @@ class Sourceanalytix extends utils.Adapter {
 					calcValues.valueAtDeviceReset = 0;
 					calcValues.valueAtDeviceInit = reading;
 				} else {
+					// Reset candidates are intentionally transient; losing one only postpones confirmation until another reading.
 					const resolvedReading = calculation.resolveCumulativeReading(
 						reading,
 						this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0),
 						this.getNumberOrDefault(calcValues.cumulativeValue, reading),
 						stateDetails.deviceResetLogicEnabled,
 						this.getNumberOrDefault(stateDetails.threshold, 0),
-						this.activeStates[stateID].pendingDeviceReset,
+							activeState.pendingDeviceReset,
 					);
 					if (resolvedReading.type === 'invalid') {
 						this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
 						return;
 					}
-					this.activeStates[stateID].pendingDeviceReset = resolvedReading.pendingReset;
+					activeState.pendingDeviceReset = resolvedReading.pendingReset;
 					if (resolvedReading.type === 'resetPending') {
 						this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
 						return;
@@ -3505,7 +3585,9 @@ if (require.main !== module) {
 	/**
 	 * @param {Partial<utils.AdapterOptions>} [options] - Adapter startup options
 	 */
-	module.exports = (options) => new Sourceanalytix(options);
+	const startAdapter = (options) => new Sourceanalytix(options);
+	startAdapter.Sourceanalytix = Sourceanalytix;
+	module.exports = startAdapter;
 } else {
 	// otherwise start the instance directly
 	new Sourceanalytix();

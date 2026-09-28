@@ -41,7 +41,7 @@
     "Name": "Name",
     "Name help": "Lesbarer Anzeigename des erzeugten SourceAnalytix-Geräts",
     "Output ID": "Ausgabe-ID",
-    "Output ID help": "Technische ID unter sourceanalytix.0. Beim Ändern einer bestehenden ID werden deren Werte migriert; Skripte, Visualisierungen und externe Historienverweise müssen angepasst werden.",
+    "Output ID help": "Technische ID unter dieser SourceAnalytix-Instanz. Beim Ändern einer bestehenden ID werden deren Werte migriert; Skripte, Visualisierungen und externe Historienverweise müssen angepasst werden.",
     "Output ID format error": "Die ID ist ungültig, reserviert oder bereits vergeben",
     "Price definition required error": "Bitte eine Preisdefinition auswählen",
     "Unit required error": "Keine passende Einheit erkannt. Bitte eine Einheit auswählen",
