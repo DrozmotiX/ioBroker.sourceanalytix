@@ -572,6 +572,13 @@ describe('period and cumulative calculations', () => {
 			});
 		});
 
+		it('rejects a genuine reset whose next reading exceeds half the previous value (accepted trade-off)', () => {
+			const pending = resolveCumulativeReading(0, 0, 1000, true, 1);
+			assert.deepEqual(resolveCumulativeReading(600, 0, 1000, true, 1, pending.pendingReset), {
+				type: 'resetRejected', decrease: 400, reading: 1000, resetOffset: 0, pendingReset: null,
+			});
+		});
+
 		it('still confirms a genuine reset which continues near the low candidate', () => {
 			const pending = resolveCumulativeReading(0, 0, 1000, true, 1);
 			assert.deepEqual(resolveCumulativeReading(0.5, 0, 1000, true, 1, pending.pendingReset), {

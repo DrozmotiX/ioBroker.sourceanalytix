@@ -1484,15 +1484,20 @@ class Sourceanalytix extends utils.Adapter {
 			startkey: `${this.namespace}.`,
 			endkey: `${this.namespace}.\u9999`,
 		});
-		const ownedOutputIds = [];
+		const ownedRoots = [];
 		for (const row of devices && Array.isArray(devices.rows) ? devices.rows : []) {
 			const object = await this.getForeignObjectAsync(row.id);
 			if (!object || !object.native || object.native.sourceState !== sourceId) continue;
 			// A root still marked as copying is an unfinished migration target, not the live tree
 			const migration = Reflect.get(object.native, 'outputMigration');
 			if (migration && migration.status === 'copying') continue;
-			ownedOutputIds.push(row.id.slice(`${this.namespace}.`.length));
+			ownedRoots.push({id: row.id.slice(`${this.namespace}.`.length), migration});
 		}
+		// A verified target supersedes the source tree whose cleanup is still pending
+		const supersededIds = new Set(ownedRoots
+			.filter(root => root.migration && root.migration.status === 'verified')
+			.map(root => root.migration.from));
+		const ownedOutputIds = ownedRoots.map(root => root.id).filter(id => !supersededIds.has(id));
 		if (ownedOutputIds.length > 1) {
 			throw new Error(`${sourceId} owns several output trees (${ownedOutputIds.join(', ')}); remove the stale ones before changing its output ID`);
 		}
@@ -1726,12 +1731,53 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * Persist selected SourceAnalytix custom settings without replacing settings of other adapters.
+	 * Keep a source operational on its existing output tree after a requested output ID cannot be used.
+	 * Never falls back to a fresh tree: that would hide the failure and could orphan an interrupted migration.
+	 * @param {string} sourceId - Source state ID
+	 * @param {string|null} currentOutputId - Previously active or persisted output ID
+	 * @param {string} requestedOutputId - Rejected output ID
+	 * @param {string} reason - User-facing log reason
+	 * @returns {Promise<string>} Existing output ID to keep, or an empty string when the source has none
+	 */
+	async restoreEffectiveOutputId(sourceId, currentOutputId, requestedOutputId, reason) {
+		let fallbackOutputId = currentOutputId;
+		if (!fallbackOutputId) {
+			try {
+				fallbackOutputId = await this.findCurrentOutputId(sourceId, outputId.getLegacyOutputId(sourceId));
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				this.log.error(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; cannot determine its existing output: ${message}`);
+				return '';
+			}
+		}
+		if (!fallbackOutputId) {
+			this.log.error(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; no existing output tree to keep`);
+			return '';
+		}
+
+		this.log.warn(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; keeping ${JSON.stringify(fallbackOutputId)}`);
+		return fallbackOutputId;
+	}
+
+	/**
+	 * Store defaults which were missing from the source custom configuration in a single write.
 	 * @param {string} sourceId - Source state ID
 	 * @param {object} customData - Existing SourceAnalytix custom configuration
-	 * @param {object} updates - SourceAnalytix settings to merge
+	 * @param {string} effectiveOutputId - Effective local output ID
+	 * @param {number} decimalsQuantity - Effective consumption decimals
+	 * @param {number} decimalsCosts - Effective cost decimals
+	 * @param {boolean} [outputIdRejected] - Whether the configured output ID was rejected and must be replaced
 	 */
-	async persistCustomConfigUpdates(sourceId, customData, updates) {
+	async persistCustomConfigDefaults(sourceId, customData, effectiveOutputId, decimalsQuantity, decimalsCosts, outputIdRejected = false) {
+		const updates = {};
+		if (customData.decimalsQuantity !== decimalsQuantity) updates.decimalsQuantity = decimalsQuantity;
+		if (customData.decimalsCosts !== decimalsCosts) updates.decimalsCosts = decimalsCosts;
+		// Legacy IDs may contain characters which are no longer offered for custom IDs.
+		const hasOutputId = typeof customData.outputId === 'string' && customData.outputId.trim();
+		if ((!hasOutputId || outputIdRejected) && customData.outputId !== effectiveOutputId
+			&& outputId.validateOutputId(effectiveOutputId).valid) {
+			updates.outputId = effectiveOutputId;
+		}
 		if (!Object.keys(updates).length) return;
 		const marker = {...customData, ...updates};
 		this.customConfigBackfills.set(sourceId, marker);
@@ -1744,63 +1790,6 @@ class Sourceanalytix extends utils.Adapter {
 				if (this.customConfigBackfills.get(sourceId) === marker) this.customConfigBackfills.delete(sourceId);
 			}, 5000);
 		}
-	}
-
-	/**
-	 * Keep a source operational on its previous output after a requested output ID cannot be used.
-	 * @param {string} sourceId - Source state ID
-	 * @param {object} customData - Existing SourceAnalytix custom configuration
-	 * @param {string|null} currentOutputId - Previously active or persisted output ID
-	 * @param {string} requestedOutputId - Rejected output ID
-	 * @param {string} reason - User-facing log reason
-	 * @returns {Promise<string>} Safe fallback output ID, or an empty string when none is available
-	 */
-	async restoreEffectiveOutputId(sourceId, customData, currentOutputId, requestedOutputId, reason) {
-		let fallbackOutputId = currentOutputId;
-		if (!fallbackOutputId) {
-			const legacyOutputId = outputId.getLegacyOutputId(sourceId);
-			try {
-				fallbackOutputId = await this.findCurrentOutputId(sourceId, legacyOutputId);
-			} catch (error) {
-				const message = error instanceof Error ? error.message : String(error);
-				this.log.error(`Cannot determine fallback output ID for ${sourceId}: ${message}`);
-				return '';
-			}
-			if (!fallbackOutputId) {
-				const availability = await this.validateOutputIdAvailability(sourceId, legacyOutputId, null);
-				if (availability.valid) fallbackOutputId = legacyOutputId;
-			}
-		}
-		if (!fallbackOutputId) {
-			this.log.error(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; no safe fallback is available`);
-			return '';
-		}
-
-		this.log.warn(`Cannot use output ID ${JSON.stringify(requestedOutputId)} for ${sourceId}: ${reason}; keeping ${JSON.stringify(fallbackOutputId)}`);
-		if (outputId.validateOutputId(fallbackOutputId).valid && customData.outputId !== fallbackOutputId) {
-			await this.persistCustomConfigUpdates(sourceId, customData, {outputId: fallbackOutputId});
-		}
-		return fallbackOutputId;
-	}
-
-	/**
-	 * Store defaults which were missing from the source custom configuration.
-	 * @param {string} sourceId - Source state ID
-	 * @param {object} customData - Existing SourceAnalytix custom configuration
-	 * @param {string} effectiveOutputId - Effective local output ID
-	 * @param {number} decimalsQuantity - Effective consumption decimals
-	 * @param {number} decimalsCosts - Effective cost decimals
-	 */
-	async persistCustomConfigDefaults(sourceId, customData, effectiveOutputId, decimalsQuantity, decimalsCosts) {
-		const updates = {};
-		if (customData.decimalsQuantity !== decimalsQuantity) updates.decimalsQuantity = decimalsQuantity;
-		if (customData.decimalsCosts !== decimalsCosts) updates.decimalsCosts = decimalsCosts;
-		// Legacy IDs may contain characters which are no longer offered for custom IDs.
-		const hasOutputId = typeof customData.outputId === 'string' && customData.outputId.trim();
-		if (!hasOutputId && outputId.validateOutputId(effectiveOutputId).valid) {
-			updates.outputId = effectiveOutputId;
-		}
-		await this.persistCustomConfigUpdates(sourceId, customData, updates);
 	}
 
 	/**
@@ -1866,7 +1855,7 @@ class Sourceanalytix extends utils.Adapter {
 				const idValidation = outputId.validateResolvedOutputId(customData.outputId, stateID);
 				if (!idValidation.valid) {
 					newDeviceName = await this.restoreEffectiveOutputId(
-						stateID, customData, currentOutputId, requestedOutputId, idValidation.reason || 'is invalid',
+						stateID, currentOutputId, requestedOutputId, idValidation.reason || 'is invalid',
 					);
 				} else {
 					try {
@@ -1875,18 +1864,18 @@ class Sourceanalytix extends utils.Adapter {
 						const availability = await this.validateOutputIdAvailability(stateID, newDeviceName, currentOutputId);
 						if (!availability.valid) {
 							newDeviceName = await this.restoreEffectiveOutputId(
-								stateID, customData, currentOutputId, requestedOutputId, availability.reason || 'is unavailable',
+								stateID, currentOutputId, requestedOutputId, availability.reason || 'is unavailable',
 							);
 						} else if (currentOutputId && currentOutputId !== newDeviceName
 							&& !await this.migrateOutputTree(stateID, currentOutputId, newDeviceName)) {
 							newDeviceName = await this.restoreEffectiveOutputId(
-								stateID, customData, currentOutputId, requestedOutputId, 'migration failed',
+								stateID, currentOutputId, requestedOutputId, 'migration failed',
 							);
 						}
 					} catch (error) {
 						const message = error instanceof Error ? error.message : String(error);
 						newDeviceName = await this.restoreEffectiveOutputId(
-							stateID, customData, currentOutputId, requestedOutputId, message,
+							stateID, currentOutputId, requestedOutputId, message,
 						);
 					}
 				}
@@ -1898,15 +1887,13 @@ class Sourceanalytix extends utils.Adapter {
 					}
 					return false;
 				}
-				const effectiveCustomData = newDeviceName === requestedOutputId
-					? customData
-					: {...customData, outputId: newDeviceName};
 				await this.persistCustomConfigDefaults(
 					stateID,
-					effectiveCustomData,
+					customData,
 					newDeviceName,
 					decimalsQuantity,
 					decimalsCosts,
+					newDeviceName !== requestedOutputId,
 				);
 
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
@@ -3050,19 +3037,21 @@ class Sourceanalytix extends utils.Adapter {
 						this.getNumberOrDefault(calcValues.cumulativeValue, reading),
 						stateDetails.deviceResetLogicEnabled,
 						this.getNumberOrDefault(stateDetails.threshold, 0),
-							activeState.pendingDeviceReset,
+						activeState.pendingDeviceReset,
 					);
 					if (resolvedReading.type === 'invalid') {
 						this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
 						return;
 					}
+					const rejectedReset = activeState.pendingDeviceReset;
 					activeState.pendingDeviceReset = resolvedReading.pendingReset;
 					if (resolvedReading.type === 'resetPending') {
 						this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
 						return;
 					}
 					if (resolvedReading.type === 'resetRejected') {
-						this.log.info(`[calculationHandler] Rejected a possible device reset for ${stateID} after the reading returned to its previous range`);
+						// A genuine reset whose next reading already exceeds half the previous value is indistinguishable from a glitch
+						this.log.warn(`[calculationHandler] Rejected a possible device reset for ${stateID}: raw reading ${reading} is closer to the previous ${rejectedReset && rejectedReset.previousRawReading} than to the low reading ${rejectedReset && rejectedReset.rawReading}. If the device was really reset, consumption since the reset was not counted`);
 					}
 					if (resolvedReading.type === 'jitter') {
 						this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);
