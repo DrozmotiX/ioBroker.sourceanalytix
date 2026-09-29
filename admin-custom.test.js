@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const adapterHelpers = require('iobroker-adapter-helpers');
+const {buildUnitConfig} = require('./lib/calculation');
 const customConfig = require('./admin/jsonCustom.json');
 const schema = customConfig.items;
 
@@ -34,6 +36,17 @@ describe('custom settings validation', () => {
 		assert.equal(schema.selectedPrice.manual, false);
 		assert.equal(schema.selectedUnit.type, 'selectSendTo');
 		assert.equal(schema.selectedUnit.manual, false);
+	});
+
+	it('does not block saving when the output-ID lookup instance is offline', () => {
+		assert.equal(schema._usedOutputIds.allowSaveWithError, true);
+	});
+
+	it('keeps the unit validator aligned with the helper library', () => {
+		const match = schema.selectedUnit.validator.match(/(\[[^\]]+\])\.includes/);
+		assert.ok(match);
+		const validatedUnits = Function(`"use strict"; return ${match[1]};`)();
+		assert.deepEqual(validatedUnits.sort(), Object.keys(buildUnitConfig(adapterHelpers.units)).sort());
 	});
 
 	it('pre-fills the backward-compatible output ID', () => {

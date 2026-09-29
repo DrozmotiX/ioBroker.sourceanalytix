@@ -96,7 +96,7 @@
     "Name": "Nombre",
     "Name help": "Nombre visible del dispositivo SourceAnalytix generado",
     "Output ID": "ID de salida",
-    "Output ID help": "ID técnica debajo de sourceanalytix.0. Al cambiar una ID existente se migran sus valores; deben adaptarse los scripts, las visualizaciones y las referencias de historial externas.",
+    "Output ID help": "ID técnica dentro de esta instancia de SourceAnalytix. Al cambiar una ID existente se migran sus valores; deben adaptarse los scripts, las visualizaciones y las referencias de historial externas.",
     "Output ID format error": "La ID no es válida, está reservada o ya está en uso",
     "Price definition required error": "Seleccione una definición de precio",
     "Unit required error": "No se detectó ninguna unidad compatible. Seleccione una unidad",
