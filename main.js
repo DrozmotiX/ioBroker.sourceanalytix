@@ -70,6 +70,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.migratingStates = new Set();
 		this.stateBuildQueues = new Map(); // Source state ID -> tail of its serialized configuration builds
 		this.customConfigBackfills = new Map();
+		this.sourceObjectSnapshots = new Map(); // Source state ID -> relevant SourceAnalytix object configuration
 	}
 
 	/**
@@ -1831,6 +1832,7 @@ class Sourceanalytix extends utils.Adapter {
 				initError = true;
 				return false;
 			}
+			this.rememberSourceObjectSnapshot(stateID, stateInfo);
 
 			// Check if configuration for SourceAnalytix is present, trow error in case of issue in configuration
 			if (stateInfo && stateInfo.common && stateInfo.common.custom && stateInfo.common.custom[this.namespace]) {
@@ -2133,17 +2135,60 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Keep only source-object fields which affect SourceAnalytix configuration or generated labels.
+	 * Object metadata such as `ts`, `from`, ACLs and other adapters' custom settings must not rebuild a source.
+	 * @param {ioBroker.Object | null | undefined} obj - Source object
+	 * @returns {{custom: object, name: ioBroker.StringOrTranslated, unit: string|null}|null} Relevant snapshot
+	 */
+	createSourceObjectSnapshot(obj) {
+		const common = obj && obj.common;
+		const custom = common && common.custom && common.custom[this.namespace];
+		if (!custom || typeof custom !== 'object') return null;
+		return JSON.parse(JSON.stringify({
+			custom,
+			name: common.name ?? null,
+			unit: common.unit ?? null,
+		}));
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 * @param {ioBroker.Object | null | undefined} obj - Source object
+	 * @returns {{custom: object, name: ioBroker.StringOrTranslated, unit: string|null}|null} Stored snapshot
+	 */
+	rememberSourceObjectSnapshot(stateID, obj) {
+		const snapshot = this.createSourceObjectSnapshot(obj);
+		if (snapshot) this.sourceObjectSnapshots.set(stateID, snapshot);
+		else this.sourceObjectSnapshots.delete(stateID);
+		return snapshot;
+	}
+
+	/**
+	 * Keep the snapshot aligned when SourceAnalytix persists calculation memory in its custom settings.
+	 * @param {string} stateID - Source state ID
+	 * @param {object} updates - Persisted SourceAnalytix custom settings
+	 */
+	rememberSourceCustomUpdate(stateID, updates) {
+		const snapshot = this.sourceObjectSnapshots.get(stateID);
+		if (!snapshot) return;
+		this.sourceObjectSnapshots.set(stateID, JSON.parse(JSON.stringify({
+			...snapshot,
+			custom: {...snapshot.custom, ...updates},
+		})));
+	}
+
+	/**
 	 * Is called if an object changes to ensure (de-) activation of calculation or update configuration settings
 	 * @param {string} id - ID of the changed object
 	 * @param {ioBroker.Object | null | undefined} obj - Changed object, or null when deleted
 	 */
 	async onObjectChange(id, obj) {
-	    //ToDo : Verify with test-results if debounce on object change must be implemented
 		const customConfigBackfill = this.customConfigBackfills.get(id);
 		if (customConfigBackfill) {
 			this.customConfigBackfills.delete(id);
 			const changedCustomData = obj && obj.common && obj.common.custom && obj.common.custom[this.namespace];
 			if (isDeepStrictEqual(changedCustomData, customConfigBackfill)) {
+				this.rememberSourceObjectSnapshot(id, obj);
 				this.log.debug(`Ignored SourceAnalytix custom configuration backfill for ${id}`);
 				return;
 			}
@@ -2151,6 +2196,15 @@ class Sourceanalytix extends utils.Adapter {
 		if (calcBlock) return; // cancel operation if calculation block is activate
 		try {
 			const stateID = id;
+			const previousSnapshot = this.sourceObjectSnapshots.get(stateID);
+			const sourceObjectSnapshot = this.createSourceObjectSnapshot(obj);
+			if (previousSnapshot && sourceObjectSnapshot
+				&& isDeepStrictEqual(sourceObjectSnapshot, previousSnapshot)) {
+				this.log.debug(`Ignored unchanged SourceAnalytix source object for ${stateID}`);
+				return;
+			}
+			if (sourceObjectSnapshot) this.sourceObjectSnapshots.set(stateID, sourceObjectSnapshot);
+			else if (previousSnapshot) this.sourceObjectSnapshots.delete(stateID);
 
 			// Check if object is activated for SourceAnalytix
 			if (obj && obj.common) {
@@ -2588,6 +2642,7 @@ class Sourceanalytix extends utils.Adapter {
 				},
 			},
 		});
+		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.writeCurrentPeriodValuesAfterReset(stateID, Number(reading), date);
 		await this.persistPeriodMemory(stateID, currentPeriods);
 		await this.refreshStatisticsJson(stateID);
@@ -3061,10 +3116,12 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
 						calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
 						calcValues.valueAtDeviceInit = reading;
-						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
+						const resetMemory = {
 							valueAtDeviceReset: resolvedReading.resetOffset,
 							valueAtDeviceInit: reading,
-						}}}});
+						};
+						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: resetMemory}}});
+						this.rememberSourceCustomUpdate(stateID, resetMemory);
 					} else if (resolvedReading.type === 'decrease') {
 						this.log.info(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
 					}
@@ -3086,6 +3143,11 @@ class Sourceanalytix extends utils.Adapter {
 							},
 						},
 					},
+				});
+				this.rememberSourceCustomUpdate(stateID, {
+					...initializedStarts,
+					valueAtDeviceReset: calcValues.valueAtDeviceReset,
+					valueAtDeviceInit: calcValues.valueAtDeviceInit,
 				});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
 			}

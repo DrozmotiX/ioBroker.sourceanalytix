@@ -26,6 +26,7 @@ function createAdapterHarness() {
 	adapter.activeStates = {};
 	adapter.migratingStates = new Set();
 	adapter.customConfigBackfills = new Map();
+	adapter.sourceObjectSnapshots = new Map();
 	adapter.statisticsJsonTimers = {};
 	adapter.statisticsJsonSnapshots = {};
 	adapter.statisticsJsonLastValues = {};
@@ -276,6 +277,165 @@ describe('output ID configuration recovery', () => {
 		await harness.adapter.onObjectChange(sourceId, harness.objects.get(sourceId));
 		assert.equal(builds, 0);
 		assert.equal(harness.adapter.customConfigBackfills.has(sourceId), false);
+		assert.deepEqual(harness.adapter.sourceObjectSnapshots.get(sourceId).custom, harness.objects.get(sourceId).common.custom['sourceanalytix.0']);
+	});
+});
+
+describe('source object configuration changes', () => {
+	function putConfiguredSource(harness, sourceId, sourceConfig = {}) {
+		harness.putObject(sourceId, {
+			type: 'state',
+			common: {
+				name: 'Meter', unit: 'kWh', type: 'number', role: 'value',
+				custom: {
+					'history.0': {enabled: true},
+					'sourceanalytix.0': {enabled: true, threshold: 1, ...sourceConfig},
+				},
+			},
+			native: {},
+		});
+		return harness.objects.get(sourceId);
+	}
+
+	it('ignores repeated object writes when the relevant source configuration is unchanged', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.meter';
+		const sourceObject = putConfiguredSource(harness, sourceId);
+		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
+		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
+		let builds = 0;
+		let initializations = 0;
+		harness.adapter.buildStateDetailsArray = async () => { builds++; return true; };
+		harness.adapter.initialize = async () => { initializations++; };
+
+		const rewrittenObject = clone(sourceObject);
+		rewrittenObject.from = 'system.adapter.zwave2.0';
+		rewrittenObject.ts = Date.now();
+		rewrittenObject.common.custom['history.0'].retention = 604800;
+		await harness.adapter.onObjectChange(sourceId, rewrittenObject);
+
+		assert.equal(builds, 0);
+		assert.equal(initializations, 0);
+		assert.match(harness.logs.debug.at(-1) || '', /Ignored unchanged SourceAnalytix source object/);
+	});
+
+	it('reinitializes exactly once for a real SourceAnalytix setting change', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.meter';
+		const sourceObject = putConfiguredSource(harness, sourceId);
+		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
+		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
+		let builds = 0;
+		let initializations = 0;
+		harness.adapter.buildStateDetailsArray = async () => { builds++; return true; };
+		harness.adapter.initialize = async () => { initializations++; };
+
+		const changedObject = clone(sourceObject);
+		changedObject.common.custom['sourceanalytix.0'].threshold = 2;
+		await harness.adapter.onObjectChange(sourceId, changedObject);
+		await harness.adapter.onObjectChange(sourceId, clone(changedObject));
+
+		assert.equal(builds, 1);
+		assert.equal(initializations, 1);
+	});
+
+	it('keeps snapshots aligned with calculation memory written by SourceAnalytix', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.meter';
+		const sourceObject = putConfiguredSource(harness, sourceId);
+		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
+		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
+		harness.adapter.rememberSourceCustomUpdate(sourceId, {start_day: 42, valueAtDeviceInit: 42});
+		let builds = 0;
+		harness.adapter.buildStateDetailsArray = async () => { builds++; return true; };
+
+		const persistedObject = clone(sourceObject);
+		Object.assign(persistedObject.common.custom['sourceanalytix.0'], {
+			start_day: 42,
+			valueAtDeviceInit: 42,
+		});
+		persistedObject.from = 'system.adapter.zwave2.0';
+		await harness.adapter.onObjectChange(sourceId, persistedObject);
+
+		assert.equal(builds, 0);
+	});
+
+	it('reinitializes when a source name or unit used by SourceAnalytix changes', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.meter';
+		const sourceObject = putConfiguredSource(harness, sourceId);
+		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
+		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
+		let builds = 0;
+		harness.adapter.buildStateDetailsArray = async () => { builds++; return true; };
+		harness.adapter.initialize = async () => {};
+
+		const renamedObject = clone(sourceObject);
+		renamedObject.common.name = 'Renamed meter';
+		await harness.adapter.onObjectChange(sourceId, renamedObject);
+		const changedUnitObject = clone(renamedObject);
+		changedUnitObject.common.unit = 'Wh';
+		await harness.adapter.onObjectChange(sourceId, changedUnitObject);
+
+		assert.equal(builds, 2);
+	});
+
+	it('suppresses repeated rebuild attempts for the same invalid source configuration', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.invalid';
+		const sourceObject = putConfiguredSource(harness, sourceId, {selectedUnit: ''});
+		let builds = 0;
+		harness.adapter.buildStateDetailsArray = async () => { builds++; return false; };
+		harness.adapter.initialize = async () => assert.fail('invalid source must not initialize');
+
+		await harness.adapter.onObjectChange(sourceId, sourceObject);
+		await harness.adapter.onObjectChange(sourceId, clone(sourceObject));
+
+		assert.equal(builds, 1);
+	});
+
+	it('still disables and re-enables a configured source', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.meter';
+		const sourceObject = putConfiguredSource(harness, sourceId);
+		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
+		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
+		let builds = 0;
+		let initializations = 0;
+		harness.adapter.buildStateDetailsArray = async id => {
+			builds++;
+			harness.adapter.activeStates[id] = {stateDetails: {deviceName: 'meter'}};
+			return true;
+		};
+		harness.adapter.initialize = async () => { initializations++; };
+
+		const disabledObject = clone(sourceObject);
+		disabledObject.common.custom['sourceanalytix.0'].enabled = false;
+		await harness.adapter.onObjectChange(sourceId, disabledObject);
+		assert.equal(harness.adapter.activeStates[sourceId], undefined);
+		await harness.adapter.onObjectChange(sourceId, sourceObject);
+
+		assert.equal(builds, 1);
+		assert.equal(initializations, 1);
+		assert(harness.adapter.activeStates[sourceId]);
+	});
+
+	it('still disables a source when its SourceAnalytix configuration is removed', async () => {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.meter';
+		const sourceObject = putConfiguredSource(harness, sourceId);
+		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
+		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
+		const unsubscribed = [];
+		harness.adapter.unsubscribeForeignStates = id => unsubscribed.push(id);
+
+		const unconfiguredObject = clone(sourceObject);
+		delete unconfiguredObject.common.custom['sourceanalytix.0'];
+		await harness.adapter.onObjectChange(sourceId, unconfiguredObject);
+
+		assert.equal(harness.adapter.activeStates[sourceId], undefined);
+		assert.equal(harness.adapter.sourceObjectSnapshots.has(sourceId), false);
+		assert.deepEqual(unsubscribed, [sourceId]);
 	});
 });
 
