@@ -33,6 +33,21 @@ let useCurrency = null;
 // Create variables for object arrays
 const actualDate = {}; //, currentDay = null;
 
+/**
+ * Check whether extending `current` with `extension` would leave its content unchanged.
+ * Plain objects are compared key by key, so fields the extension does not mention are ignored.
+ * @param {unknown} current - Existing object (or nested value)
+ * @param {unknown} extension - Partial object as passed to extendObject
+ * @returns {boolean} True when every value in the extension is already present
+ */
+function containsExtension(current, extension) {
+	if (extension && typeof extension === 'object' && !Array.isArray(extension)) {
+		if (!current || typeof current !== 'object' || Array.isArray(current)) return false;
+		return Object.entries(extension).every(([key, value]) => value === undefined || containsExtension(current[key], value));
+	}
+	return isDeepStrictEqual(current, extension);
+}
+
 class Sourceanalytix extends utils.Adapter {
 	/**
 	 * @param {Partial<utils.AdapterOptions>} [options] - Adapter startup options
@@ -771,7 +786,7 @@ class Sourceanalytix extends utils.Adapter {
 	async ensureDynamicCostMemoryState(stateID) {
 		if (this.activeStates[stateID].dynamicCostMemoryStateReady) return;
 		const memoryStateName = this.getDynamicCostMemoryStateName(stateID);
-		await this.extendObjectAsync(memoryStateName, {
+		await this.extendObjectIfChanged(memoryStateName, {
 			type: 'state',
 			common: {
 				name: 'Dynamic cost calculation memory',
@@ -1224,7 +1239,7 @@ class Sourceanalytix extends utils.Adapter {
 	async ensureStatisticsJsonState(stateID) {
 		const stateName = this.getStatisticsJsonStateName(stateID);
 		if (!stateName) return;
-		await this.extendObjectAsync(stateName, {
+		await this.extendObjectIfChanged(stateName, {
 			type: 'state',
 			common: {
 				name: 'Statistics JSON',
@@ -2081,7 +2096,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug('Name after alias renaming' + alias);
 
 			// Create Device Object
-			await this.extendObjectAsync(stateDetails.deviceName, {
+			await this.extendObjectIfChanged(stateDetails.deviceName, {
 				type: 'device',
 				common: {
 					name: alias
@@ -2528,7 +2543,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async ensurePeriodMemoryState(stateID) {
 		if (this.activeStates[stateID].periodMemoryStateReady) return;
-		await this.extendObjectAsync(this.getPeriodMemoryStateName(stateID), {
+		await this.extendObjectIfChanged(this.getPeriodMemoryStateName(stateID), {
 			type: 'state',
 			common: {
 				name: 'Last processed calendar periods',
@@ -2635,6 +2650,8 @@ class Sourceanalytix extends utils.Adapter {
 			await this.ensureDynamicCostMemory(stateID, Number(reading), boundaryTimestamp);
 		}
 		await this.resetDynamicCostMemory(stateID, Number(reading), previousPeriods, boundaryTimestamp);
+		// Remember before writing: the resulting objectChange may arrive before the write resolves
+		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.extendForeignObject(stateID, {
 			common: {
 				custom: {
@@ -2642,7 +2659,6 @@ class Sourceanalytix extends utils.Adapter {
 				},
 			},
 		});
-		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.writeCurrentPeriodValuesAfterReset(stateID, Number(reading), date);
 		await this.persistPeriodMemory(stateID, currentPeriods);
 		await this.refreshStatisticsJson(stateID);
@@ -2955,6 +2971,21 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Extend an own object only when the extension changes its content.
+	 * Every object write is broadcast to all object subscribers (js-controller, admin, javascript),
+	 * so re-initialising a source must not rewrite an unchanged output tree (#1233).
+	 * @param {string} id - Object ID relative to this adapter instance
+	 * @param {object} extension - Partial object as passed to extendObjectAsync
+	 * @returns {Promise<boolean>} Whether the object was written
+	 */
+	async extendObjectIfChanged(id, extension) {
+		const current = await this.getObjectAsync(id);
+		if (current && containsExtension(current, extension)) return false;
+		await this.extendObjectAsync(id, extension);
+		return true;
+	}
+
+	/**
 	 * create/extend function for objects
 	 * @param {string} stateName - RAW state ID of monitored state
 	 * @param {object} commonData - common data content
@@ -2962,7 +2993,7 @@ class Sourceanalytix extends utils.Adapter {
 	async localSetObject(stateName, commonData) {
 		this.validStates[stateName] = commonData;
 		// Ensure name and unit changes are propagated
-		await this.extendObjectAsync(stateName, {
+		await this.extendObjectIfChanged(stateName, {
 			type: 'state',
 			common: {
 				name: commonData.name,
@@ -3120,8 +3151,8 @@ class Sourceanalytix extends utils.Adapter {
 							valueAtDeviceReset: resolvedReading.resetOffset,
 							valueAtDeviceInit: reading,
 						};
-						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: resetMemory}}});
 						this.rememberSourceCustomUpdate(stateID, resetMemory);
+						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: resetMemory}}});
 					} else if (resolvedReading.type === 'decrease') {
 						this.log.info(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
 					}
@@ -3133,22 +3164,13 @@ class Sourceanalytix extends utils.Adapter {
 				const initializedStarts = calculation.initializePeriodStartValues(calcValues, reading, true);
 				Object.assign(calcValues, initializedStarts);
 				activeState.firstActivation = false;
-				await this.extendForeignObject(stateID, {
-					common: {
-						custom: {
-							[this.namespace]: {
-								...initializedStarts,
-								valueAtDeviceReset: calcValues.valueAtDeviceReset,
-								valueAtDeviceInit: calcValues.valueAtDeviceInit,
-							},
-						},
-					},
-				});
-				this.rememberSourceCustomUpdate(stateID, {
+				const startMemory = {
 					...initializedStarts,
 					valueAtDeviceReset: calcValues.valueAtDeviceReset,
 					valueAtDeviceInit: calcValues.valueAtDeviceInit,
-				});
+				};
+				this.rememberSourceCustomUpdate(stateID, startMemory);
+				await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
 			}
 

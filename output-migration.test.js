@@ -476,3 +476,64 @@ describe('calculation configuration snapshot', () => {
 		assert.deepEqual(harness.logs.error, []);
 	});
 });
+
+describe('output object writes', () => {
+	function countObjectWrites(harness) {
+		const writes = [];
+		const extendObjectAsync = harness.adapter.extendObjectAsync;
+		harness.adapter.extendObjectAsync = async (id, extension) => {
+			writes.push(id);
+			return extendObjectAsync(id, extension);
+		};
+		return writes;
+	}
+
+	it('does not rewrite an output object whose content is unchanged', async () => {
+		const harness = createAdapterHarness();
+		harness.adapter.validStates = {};
+		const writes = countObjectWrites(harness);
+		const commonData = {name: '01_currentDay', type: 'number', unit: 'kWh', def: 0};
+
+		await harness.adapter.localSetObject('meter.currentYear.consumed.01_currentDay', commonData);
+		const ts = Date.now();
+		harness.objects.get('sourceanalytix.0.meter.currentYear.consumed.01_currentDay').ts = ts;
+		await harness.adapter.localSetObject('meter.currentYear.consumed.01_currentDay', {...commonData});
+
+		assert.deepEqual(writes, ['meter.currentYear.consumed.01_currentDay']);
+		assert.equal(harness.objects.get('sourceanalytix.0.meter.currentYear.consumed.01_currentDay').ts, ts);
+	});
+
+	it('still writes an output object when its name or unit changes', async () => {
+		const harness = createAdapterHarness();
+		harness.adapter.validStates = {};
+		const writes = countObjectWrites(harness);
+		const commonData = {name: '01_currentDay', type: 'number', unit: 'kWh', def: 0};
+
+		await harness.adapter.localSetObject('meter.currentYear.consumed.01_currentDay', commonData);
+		await harness.adapter.localSetObject('meter.currentYear.consumed.01_currentDay', {...commonData, unit: 'Wh'});
+		await harness.adapter.localSetObject('meter.currentYear.consumed.01_currentDay', {...commonData, unit: 'Wh', name: 'Today'});
+
+		assert.equal(writes.length, 3);
+		assert.equal(harness.objects.get('sourceanalytix.0.meter.currentYear.consumed.01_currentDay').common.name, 'Today');
+	});
+
+	it('ignores fields an extension does not mention', async () => {
+		const harness = createAdapterHarness();
+		const writes = countObjectWrites(harness);
+		harness.objects.set('sourceanalytix.0.meter', {
+			_id: 'sourceanalytix.0.meter',
+			type: 'device',
+			common: {name: 'Meter', desc: 'kept'},
+			native: {sourceState: 'alias.0.meter', outputIdSchema: 1, extra: true},
+		});
+
+		const written = await harness.adapter.extendObjectIfChanged('meter', {
+			type: 'device',
+			common: {name: 'Meter'},
+			native: {sourceState: 'alias.0.meter', outputIdSchema: 1},
+		});
+
+		assert.equal(written, false);
+		assert.deepEqual(writes, []);
+	});
+});
