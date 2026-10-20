@@ -33,6 +33,21 @@ let useCurrency = null;
 // Create variables for object arrays
 const actualDate = {}; //, currentDay = null;
 
+/**
+ * Check whether extending `current` with `extension` would leave its content unchanged.
+ * Plain objects are compared key by key, so fields the extension does not mention are ignored.
+ * @param {unknown} current - Existing object (or nested value)
+ * @param {unknown} extension - Partial object as passed to extendObject
+ * @returns {boolean} True when every value in the extension is already present
+ */
+function containsExtension(current, extension) {
+	if (extension && typeof extension === 'object' && !Array.isArray(extension)) {
+		if (!current || typeof current !== 'object' || Array.isArray(current)) return false;
+		return Object.entries(extension).every(([key, value]) => value === undefined || containsExtension(current[key], value));
+	}
+	return isDeepStrictEqual(current, extension);
+}
+
 class Sourceanalytix extends utils.Adapter {
 	/**
 	 * @param {Partial<utils.AdapterOptions>} [options] - Adapter startup options
@@ -70,6 +85,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.migratingStates = new Set();
 		this.stateBuildQueues = new Map(); // Source state ID -> tail of its serialized configuration builds
 		this.customConfigBackfills = new Map();
+		this.sourceObjectSnapshots = new Map(); // Source state ID -> relevant SourceAnalytix object configuration
 	}
 
 	/**
@@ -770,7 +786,7 @@ class Sourceanalytix extends utils.Adapter {
 	async ensureDynamicCostMemoryState(stateID) {
 		if (this.activeStates[stateID].dynamicCostMemoryStateReady) return;
 		const memoryStateName = this.getDynamicCostMemoryStateName(stateID);
-		await this.extendObjectAsync(memoryStateName, {
+		await this.extendObjectIfChanged(memoryStateName, {
 			type: 'state',
 			common: {
 				name: 'Dynamic cost calculation memory',
@@ -1223,7 +1239,7 @@ class Sourceanalytix extends utils.Adapter {
 	async ensureStatisticsJsonState(stateID) {
 		const stateName = this.getStatisticsJsonStateName(stateID);
 		if (!stateName) return;
-		await this.extendObjectAsync(stateName, {
+		await this.extendObjectIfChanged(stateName, {
 			type: 'state',
 			common: {
 				name: 'Statistics JSON',
@@ -1831,6 +1847,7 @@ class Sourceanalytix extends utils.Adapter {
 				initError = true;
 				return false;
 			}
+			this.rememberSourceObjectSnapshot(stateID, stateInfo);
 
 			// Check if configuration for SourceAnalytix is present, trow error in case of issue in configuration
 			if (stateInfo && stateInfo.common && stateInfo.common.custom && stateInfo.common.custom[this.namespace]) {
@@ -2079,7 +2096,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug('Name after alias renaming' + alias);
 
 			// Create Device Object
-			await this.extendObjectAsync(stateDetails.deviceName, {
+			await this.extendObjectIfChanged(stateDetails.deviceName, {
 				type: 'device',
 				common: {
 					name: alias
@@ -2133,17 +2150,60 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Keep only source-object fields which affect SourceAnalytix configuration or generated labels.
+	 * Object metadata such as `ts`, `from`, ACLs and other adapters' custom settings must not rebuild a source.
+	 * @param {ioBroker.Object | null | undefined} obj - Source object
+	 * @returns {{custom: object, name: ioBroker.StringOrTranslated, unit: string|null}|null} Relevant snapshot
+	 */
+	createSourceObjectSnapshot(obj) {
+		const common = obj && obj.common;
+		const custom = common && common.custom && common.custom[this.namespace];
+		if (!custom || typeof custom !== 'object') return null;
+		return JSON.parse(JSON.stringify({
+			custom,
+			name: common.name ?? null,
+			unit: common.unit ?? null,
+		}));
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 * @param {ioBroker.Object | null | undefined} obj - Source object
+	 * @returns {{custom: object, name: ioBroker.StringOrTranslated, unit: string|null}|null} Stored snapshot
+	 */
+	rememberSourceObjectSnapshot(stateID, obj) {
+		const snapshot = this.createSourceObjectSnapshot(obj);
+		if (snapshot) this.sourceObjectSnapshots.set(stateID, snapshot);
+		else this.sourceObjectSnapshots.delete(stateID);
+		return snapshot;
+	}
+
+	/**
+	 * Keep the snapshot aligned when SourceAnalytix persists calculation memory in its custom settings.
+	 * @param {string} stateID - Source state ID
+	 * @param {object} updates - Persisted SourceAnalytix custom settings
+	 */
+	rememberSourceCustomUpdate(stateID, updates) {
+		const snapshot = this.sourceObjectSnapshots.get(stateID);
+		if (!snapshot) return;
+		this.sourceObjectSnapshots.set(stateID, JSON.parse(JSON.stringify({
+			...snapshot,
+			custom: {...snapshot.custom, ...updates},
+		})));
+	}
+
+	/**
 	 * Is called if an object changes to ensure (de-) activation of calculation or update configuration settings
 	 * @param {string} id - ID of the changed object
 	 * @param {ioBroker.Object | null | undefined} obj - Changed object, or null when deleted
 	 */
 	async onObjectChange(id, obj) {
-	    //ToDo : Verify with test-results if debounce on object change must be implemented
 		const customConfigBackfill = this.customConfigBackfills.get(id);
 		if (customConfigBackfill) {
 			this.customConfigBackfills.delete(id);
 			const changedCustomData = obj && obj.common && obj.common.custom && obj.common.custom[this.namespace];
 			if (isDeepStrictEqual(changedCustomData, customConfigBackfill)) {
+				this.rememberSourceObjectSnapshot(id, obj);
 				this.log.debug(`Ignored SourceAnalytix custom configuration backfill for ${id}`);
 				return;
 			}
@@ -2151,6 +2211,15 @@ class Sourceanalytix extends utils.Adapter {
 		if (calcBlock) return; // cancel operation if calculation block is activate
 		try {
 			const stateID = id;
+			const previousSnapshot = this.sourceObjectSnapshots.get(stateID);
+			const sourceObjectSnapshot = this.createSourceObjectSnapshot(obj);
+			if (previousSnapshot && sourceObjectSnapshot
+				&& isDeepStrictEqual(sourceObjectSnapshot, previousSnapshot)) {
+				this.log.debug(`Ignored unchanged SourceAnalytix source object for ${stateID}`);
+				return;
+			}
+			if (sourceObjectSnapshot) this.sourceObjectSnapshots.set(stateID, sourceObjectSnapshot);
+			else if (previousSnapshot) this.sourceObjectSnapshots.delete(stateID);
 
 			// Check if object is activated for SourceAnalytix
 			if (obj && obj.common) {
@@ -2474,7 +2543,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async ensurePeriodMemoryState(stateID) {
 		if (this.activeStates[stateID].periodMemoryStateReady) return;
-		await this.extendObjectAsync(this.getPeriodMemoryStateName(stateID), {
+		await this.extendObjectIfChanged(this.getPeriodMemoryStateName(stateID), {
 			type: 'state',
 			common: {
 				name: 'Last processed calendar periods',
@@ -2581,6 +2650,8 @@ class Sourceanalytix extends utils.Adapter {
 			await this.ensureDynamicCostMemory(stateID, Number(reading), boundaryTimestamp);
 		}
 		await this.resetDynamicCostMemory(stateID, Number(reading), previousPeriods, boundaryTimestamp);
+		// Remember before writing: the resulting objectChange may arrive before the write resolves
+		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.extendForeignObject(stateID, {
 			common: {
 				custom: {
@@ -2900,6 +2971,21 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Extend an own object only when the extension changes its content.
+	 * Every object write is broadcast to all object subscribers (js-controller, admin, javascript),
+	 * so re-initialising a source must not rewrite an unchanged output tree (#1233).
+	 * @param {string} id - Object ID relative to this adapter instance
+	 * @param {object} extension - Partial object as passed to extendObjectAsync
+	 * @returns {Promise<boolean>} Whether the object was written
+	 */
+	async extendObjectIfChanged(id, extension) {
+		const current = await this.getObjectAsync(id);
+		if (current && containsExtension(current, extension)) return false;
+		await this.extendObjectAsync(id, extension);
+		return true;
+	}
+
+	/**
 	 * create/extend function for objects
 	 * @param {string} stateName - RAW state ID of monitored state
 	 * @param {object} commonData - common data content
@@ -2907,7 +2993,7 @@ class Sourceanalytix extends utils.Adapter {
 	async localSetObject(stateName, commonData) {
 		this.validStates[stateName] = commonData;
 		// Ensure name and unit changes are propagated
-		await this.extendObjectAsync(stateName, {
+		await this.extendObjectIfChanged(stateName, {
 			type: 'state',
 			common: {
 				name: commonData.name,
@@ -3061,10 +3147,12 @@ class Sourceanalytix extends utils.Adapter {
 						this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
 						calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
 						calcValues.valueAtDeviceInit = reading;
-						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
+						const resetMemory = {
 							valueAtDeviceReset: resolvedReading.resetOffset,
 							valueAtDeviceInit: reading,
-						}}}});
+						};
+						this.rememberSourceCustomUpdate(stateID, resetMemory);
+						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: resetMemory}}});
 					} else if (resolvedReading.type === 'decrease') {
 						this.log.info(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
 					}
@@ -3076,17 +3164,13 @@ class Sourceanalytix extends utils.Adapter {
 				const initializedStarts = calculation.initializePeriodStartValues(calcValues, reading, true);
 				Object.assign(calcValues, initializedStarts);
 				activeState.firstActivation = false;
-				await this.extendForeignObject(stateID, {
-					common: {
-						custom: {
-							[this.namespace]: {
-								...initializedStarts,
-								valueAtDeviceReset: calcValues.valueAtDeviceReset,
-								valueAtDeviceInit: calcValues.valueAtDeviceInit,
-							},
-						},
-					},
-				});
+				const startMemory = {
+					...initializedStarts,
+					valueAtDeviceReset: calcValues.valueAtDeviceReset,
+					valueAtDeviceInit: calcValues.valueAtDeviceInit,
+				};
+				this.rememberSourceCustomUpdate(stateID, startMemory);
+				await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
 			}
 
