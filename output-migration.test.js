@@ -316,3 +316,63 @@ describe('calculation configuration snapshot', () => {
 		assert.deepEqual(harness.logs.error, []);
 	});
 });
+
+describe('dynamic costs for negative consumption deltas', () => {
+	function prepareDynamicCostHarness(stateUnit) {
+		const harness = createAdapterHarness();
+		const sourceId = 'alias.0.power';
+		const dynamicCosts = {
+			lastReading: 10,
+			lastTs: 1000,
+			totals: {priceDay: 4, priceWeek: 4, priceMonth: 4, priceQuarter: 4, priceYear: 4},
+		};
+		harness.adapter.activeStates[sourceId] = {
+			stateDetails: {stateUnit, stateType: 'Electricity'},
+			prices: {unitPrice: 0.4},
+			dynamicCosts,
+		};
+		harness.adapter.unitPriceDef = {unitConfig: {
+			W: {category: 'Watt'},
+			kWh: {category: 'Watt_hour'},
+		}};
+		harness.adapter.ensureDynamicCostMemory = async () => dynamicCosts;
+		harness.adapter.persistDynamicCostMemory = async () => {};
+		harness.adapter.roundDynamicCostTotals = totals => clone(totals.totals);
+		return {harness, sourceId, dynamicCosts};
+	}
+
+	it('prices a decrease produced by an integrated power source', async () => {
+		const {harness, sourceId, dynamicCosts} = prepareDynamicCostHarness('W');
+		const priceDeltas = [];
+		harness.adapter.calculateDynamicPriceDelta = async (_type, delta) => {
+			priceDeltas.push(delta);
+			return delta * 0.4;
+		};
+
+		const result = await harness.adapter.calculateDynamicCostsForState(sourceId, 9.5, 2000);
+
+		assert.deepEqual(priceDeltas, [-0.5]);
+		assert.deepEqual(result, {priceDay: 3.8, priceWeek: 3.8, priceMonth: 3.8, priceQuarter: 3.8, priceYear: 3.8});
+		assert.equal(dynamicCosts.lastReading, 9.5);
+		assert.equal(dynamicCosts.lastTs, 2000);
+		assert.deepEqual(harness.logs.warn, []);
+	});
+
+	it('continues to treat a decreasing cumulative meter as a reset', async () => {
+		const {harness, sourceId, dynamicCosts} = prepareDynamicCostHarness('kWh');
+		let priceCalculations = 0;
+		harness.adapter.calculateDynamicPriceDelta = async () => {
+			priceCalculations++;
+			return 0;
+		};
+
+		const result = await harness.adapter.calculateDynamicCostsForState(sourceId, 9.5, 2000);
+
+		assert.equal(priceCalculations, 0);
+		assert.deepEqual(result, {priceDay: 4, priceWeek: 4, priceMonth: 4, priceQuarter: 4, priceYear: 4});
+		assert.equal(dynamicCosts.lastReading, 9.5);
+		assert.equal(dynamicCosts.lastTs, 2000);
+		assert.equal(harness.logs.warn.length, 1);
+		assert.match(harness.logs.warn[0], /Cumulative reading .* decreased/);
+	});
+});
