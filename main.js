@@ -962,7 +962,11 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		const delta = readingNumber - lastReading;
-		if (delta < 0) {
+		const sourceUnit = activeState && activeState.stateDetails
+			? this.unitPriceDef.unitConfig[activeState.stateDetails.stateUnit]
+			: null;
+		const isIntegratedPower = sourceUnit && sourceUnit.category === 'Watt';
+		if (delta < 0 && !isIntegratedPower) {
 			this.log.warn(`[calculateDynamicCostsForState] Cumulative reading for ${stateID} decreased from ${lastReading} to ${readingNumber}, resetting dynamic cost tracker`);
 			dynamicCosts.lastReading = readingNumber;
 			dynamicCosts.lastTs = readingTimestamp;
@@ -970,7 +974,7 @@ class Sourceanalytix extends utils.Adapter {
 			return this.roundDynamicCostTotals(dynamicCosts, stateID);
 		}
 
-		if (delta > 0) {
+		if (delta !== 0) {
 			const priceDelta = await this.calculateDynamicPriceDelta(activeState.stateDetails.stateType, delta, dynamicCosts.lastTs, readingTimestamp, activeState.prices.unitPrice);
 			if (priceDelta === null) {
 				this.log.warn(`[calculateDynamicCostsForState] Cannot calculate dynamic costs for ${stateID}, no valid price found for ${new Date(readingTimestamp).toISOString()}`);

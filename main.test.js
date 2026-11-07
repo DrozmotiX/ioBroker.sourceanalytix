@@ -201,6 +201,17 @@ describe('dynamic pricing', () => {
 			assert.equal(calculatePriceDelta(quarterHourlyHistory, 4, at(10), at(11)), 1.4);
 		});
 
+		it('splits a negative energy delta over the same price intervals', () => {
+			const quarterHourlyHistory = [
+				{ts: at(10), price: 0.2},
+				{ts: at(10, 15), price: 0.3},
+				{ts: at(10, 30), price: 0.4},
+				{ts: at(10, 45), price: 0.5},
+			];
+
+			assert.equal(calculatePriceDelta(quarterHourlyHistory, -4, at(10), at(11)), -1.4);
+		});
+
 		it('does not change previously accumulated costs when a later price is added', () => {
 			const initialHistory = history.slice(0, 2);
 			const costAt1030 = calculatePriceDelta(initialHistory, 1, at(10), at(10, 30));
