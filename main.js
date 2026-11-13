@@ -1903,13 +1903,10 @@ class Sourceanalytix extends utils.Adapter {
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
 				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
 
-				// Always set init value to null at first start, will take init value at first calculation from state
-				const valueAtDeviceInit = null;
-
 				// Read current known total value to memory (if present)
 				let cumulativeValue = await this.getCumulatedValue(stateID, newDeviceName);
 				cumulativeValue = cumulativeValue ? cumulativeValue : 0;
-				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)} | valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)} | valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
+				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)} | valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)}`);
 
 				// Check and load unit definition
 				let useUnit = '';
@@ -1993,7 +1990,6 @@ class Sourceanalytix extends utils.Adapter {
 						start_week: customData.start_week,
 						start_year: customData.start_year,
 						valueAtDeviceReset: valueAtDeviceReset,
-						valueAtDeviceInit: valueAtDeviceInit,
 					},
 					prices: {
 						basicPrice: selectedPriceConfig.uPpM,
@@ -3032,7 +3028,6 @@ class Sourceanalytix extends utils.Adapter {
 				if (calcValues.valueAtDeviceReset == null) {
 					this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 					calcValues.valueAtDeviceReset = 0;
-					calcValues.valueAtDeviceInit = reading;
 				} else {
 					// Reset candidates are intentionally transient; losing one only postpones confirmation until another reading.
 					const resolvedReading = calculation.resolveCumulativeReading(
@@ -3064,10 +3059,8 @@ class Sourceanalytix extends utils.Adapter {
 					if (resolvedReading.type === 'reset') {
 						this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
 						calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
-						calcValues.valueAtDeviceInit = reading;
 						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
 							valueAtDeviceReset: resolvedReading.resetOffset,
-							valueAtDeviceInit: reading,
 						}}}});
 					} else if (resolvedReading.type === 'decrease') {
 						this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
@@ -3086,7 +3079,6 @@ class Sourceanalytix extends utils.Adapter {
 							[this.namespace]: {
 								...initializedStarts,
 								valueAtDeviceReset: calcValues.valueAtDeviceReset,
-								valueAtDeviceInit: calcValues.valueAtDeviceInit,
 							},
 						},
 					},
