@@ -1959,12 +1959,16 @@ class Sourceanalytix extends utils.Adapter {
 					initError = true;
 				}
 
+				// The offset can be larger than the known total after a manual correction of
+				// cumulativeReading or a meter swap. Keep the source running and realign the
+				// offset with the next reading so the known total is continued (#1257).
+				let realignDeviceOffset = false;
 				if (valueAtDeviceReset > cumulativeValue){
 					// Ignore issue if categories = Watt, init value not used
 					if (useUnit !== 'W') {
-						this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceReset}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
-						initError = true;
+						this.log.warn(`Known valueAtDeviceReset (${valueAtDeviceReset}) of ${stateID} is larger than the known cumulative value (${cumulativeValue}); the offset will be realigned with the next reading so the total continues from ${cumulativeValue}`);
+						this.log.debug(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+						realignDeviceOffset = true;
 					}
 				}
 
@@ -1984,6 +1988,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Load state settings to memory
 				this.activeStates[stateID] = {
 					firstActivation: useUnit !== 'W' && valueAtDeviceReset === null,
+					realignDeviceOffset,
 					stateDetails: {
 						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
 						averagePowerValues: customData.averagePowerValues === true,
@@ -3091,6 +3096,17 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 
 			if (currentCath !== 'Watt') {
+				if (activeState.realignDeviceOffset) {
+					activeState.realignDeviceOffset = false;
+					const knownTotal = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
+					const realignedOffset = knownTotal - reading;
+					this.log.warn(`Realigned valueAtDeviceReset of ${stateID} from ${calcValues.valueAtDeviceReset} to ${realignedOffset}: device value ${reading}, total continues from ${knownTotal}`);
+					calcValues.valueAtDeviceReset = realignedOffset;
+					activeState.pendingDeviceReset = null;
+					await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
+						valueAtDeviceReset: realignedOffset,
+					}}}});
+				}
 				if (calcValues.valueAtDeviceReset == null) {
 					this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 					calcValues.valueAtDeviceReset = 0;
