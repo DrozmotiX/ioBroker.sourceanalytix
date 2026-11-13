@@ -3159,43 +3159,74 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 					calcValues.valueAtDeviceReset = 0;
 				} else {
-					// Reset candidates are intentionally transient; losing one only postpones confirmation until another reading.
-					const resolvedReading = calculation.resolveCumulativeReading(
-						reading,
-						this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0),
-						this.getNumberOrDefault(calcValues.cumulativeValue, reading),
-						stateDetails.deviceResetLogicEnabled,
-						this.getNumberOrDefault(stateDetails.threshold, 0),
-						activeState.pendingDeviceReset,
-					);
-					if (resolvedReading.type === 'invalid') {
-						this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
-						return;
+					let rolledBack = false;
+					if (activeState.confirmedDeviceReset && stateDetails.deviceResetLogicEnabled) {
+						const rollback = calculation.checkConfirmedResetRollback(
+							reading,
+							activeState.confirmedDeviceReset,
+							this.getNumberOrDefault(stateDetails.threshold, 0),
+						);
+						activeState.confirmedDeviceReset = rollback.confirmedReset;
+						if (rollback.action === 'rollback' && rollback.resetOffset !== null) {
+							const previousTotal = this.getNumberOrDefault(calcValues.cumulativeValue, reading + rollback.resetOffset);
+							this.log.warn(`Rolled back the device reset of ${stateID}: raw reading ${reading} returned to the level before the reset, restoring offset ${rollback.resetOffset} instead of ${calcValues.valueAtDeviceReset}`);
+							calcValues.valueAtDeviceReset = rollback.resetOffset;
+							activeState.pendingDeviceReset = null;
+							await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
+								valueAtDeviceReset: rollback.resetOffset,
+							}}}});
+							// Never lower the total: consumption counted since the reset stays counted
+							reading = Math.max(reading + rollback.resetOffset, previousTotal);
+							rolledBack = true;
+						}
 					}
-					const rejectedReset = activeState.pendingDeviceReset;
-					activeState.pendingDeviceReset = resolvedReading.pendingReset;
-					if (resolvedReading.type === 'resetPending') {
-						this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
-						return;
+					if (!rolledBack) {
+						// Reset candidates are intentionally transient; losing one only postpones confirmation until another reading.
+						const resolvedReading = calculation.resolveCumulativeReading(
+							reading,
+							this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0),
+							this.getNumberOrDefault(calcValues.cumulativeValue, reading),
+							stateDetails.deviceResetLogicEnabled,
+							this.getNumberOrDefault(stateDetails.threshold, 0),
+							activeState.pendingDeviceReset,
+						);
+						if (resolvedReading.type === 'invalid') {
+							this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
+							return;
+						}
+						const rejectedReset = activeState.pendingDeviceReset;
+						activeState.pendingDeviceReset = resolvedReading.pendingReset;
+						if (resolvedReading.type === 'resetPending') {
+							this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
+							return;
+						}
+						if (resolvedReading.type === 'resetRejected') {
+							// A genuine reset whose next reading already exceeds half the previous value is indistinguishable from a glitch
+							this.log.warn(`[calculationHandler] Rejected a possible device reset for ${stateID}: raw reading ${reading} is closer to the previous ${rejectedReset && rejectedReset.previousRawReading} than to the low reading ${rejectedReset && rejectedReset.rawReading}. If the device was really reset, consumption since the reset was not counted`);
+						}
+						if (resolvedReading.type === 'jitter') {
+							this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);
+							return;
+						}
+						if (resolvedReading.type === 'reset') {
+							const previousOffset = this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0);
+							this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
+							calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
+							await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
+								valueAtDeviceReset: resolvedReading.resetOffset,
+							}}}});
+							// Remember the reset so it can be rolled back if the previous level returns (#1258)
+							activeState.confirmedDeviceReset = rejectedReset ? {
+								rawReading: rejectedReset.rawReading,
+								previousRawReading: rejectedReset.previousRawReading,
+								previousOffset: previousOffset,
+								lastRawReading: reading,
+							} : null;
+						} else if (resolvedReading.type === 'decrease') {
+							this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
+						}
+						reading = resolvedReading.reading;
 					}
-					if (resolvedReading.type === 'resetRejected') {
-						// A genuine reset whose next reading already exceeds half the previous value is indistinguishable from a glitch
-						this.log.warn(`[calculationHandler] Rejected a possible device reset for ${stateID}: raw reading ${reading} is closer to the previous ${rejectedReset && rejectedReset.previousRawReading} than to the low reading ${rejectedReset && rejectedReset.rawReading}. If the device was really reset, consumption since the reset was not counted`);
-					}
-					if (resolvedReading.type === 'jitter') {
-						this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);
-						return;
-					}
-					if (resolvedReading.type === 'reset') {
-						this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
-						calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
-						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
-							valueAtDeviceReset: resolvedReading.resetOffset,
-						}}}});
-					} else if (resolvedReading.type === 'decrease') {
-						this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
-					}
-					reading = resolvedReading.reading;
 				}
 			}
 
