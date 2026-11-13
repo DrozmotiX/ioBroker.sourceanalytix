@@ -2714,6 +2714,7 @@ class Sourceanalytix extends utils.Adapter {
 		try {
 			const date = new Date();
 			await this.refreshDates();
+			await this.refreshScheduledPrices(date.getTime());
 			for (const stateID in this.activeStates) {
 				try {
 					if (await this.processPeriodRollover(stateID, date)) recovered = recovered + 1;
@@ -2735,6 +2736,28 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[runPeriodRollovers] No rollover needed, triggered by ${trigger}`);
 		}
 		return recovered;
+	}
+
+	/**
+	 * Switch the current price of static price definitions when a price entry with a
+	 * "valid from" date in the past has become active since the last check.
+	 * Costs already use the price history by timestamp; this keeps currentPrice in line.
+	 * @param {number} timestamp - Current timestamp
+	 */
+	async refreshScheduledPrices(timestamp) {
+		for (const priceDefinition in this.unitPriceDef.pricesConfig) {
+			try {
+				const priceConfig = this.unitPriceDef.pricesConfig[priceDefinition];
+				if (!priceConfig || priceConfig.priceSource !== 'static' || priceConfig.basePrice === null) continue;
+				const unitPrice = await this.getDynamicPriceForTimestamp(priceDefinition, timestamp, priceConfig.basePrice);
+				if (unitPrice === null || unitPrice === priceConfig.uPpU) continue;
+				const previousPrice = priceConfig.uPpU;
+				await this.applyCurrentPrice(priceDefinition, unitPrice);
+				this.log.info(`Unit price for ${priceDefinition} changed from ${previousPrice} to ${unitPrice} (valid from date reached)`);
+			} catch (error) {
+				this.errorHandling(`[refreshScheduledPrices] ${priceDefinition}`, error);
+			}
+		}
 	}
 
 	/**
