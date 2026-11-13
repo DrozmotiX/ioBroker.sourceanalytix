@@ -3141,8 +3141,8 @@ class Sourceanalytix extends utils.Adapter {
 				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.meterReadings`;
 				const readingRounded = await this.roundDigits(reading, stateID);
 
-				// Store meter reading to related period
-				if (readingRounded) {
+				// Store meter reading to related period (0 is a valid reading)
+				if (typeof readingRounded === 'number' && Number.isFinite(readingRounded)) {
 					if (this.config.currentYearDays) {
 						await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
 							val: readingRounded,
