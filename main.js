@@ -2667,6 +2667,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.info(`Processing calendar rollover for ${stateID}: ${JSON.stringify(changes)}`);
 		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
 		const previousPeriodTimestamp = calculation.getPreviousPeriodTimestamp(date);
+		await this.rememberReadingGap(stateID, changes, previousPeriods, Number(reading), previousPeriodTimestamp);
 		if (changes.year) await this.initializeYearStatisticsStates(stateID);
 		else if (changes.week) await this.ensureWeekArchiveState(stateID);
 		await this.copyPreviousPeriodStates(stateDetails, changes, previousPeriodTimestamp);
@@ -2706,6 +2707,152 @@ class Sourceanalytix extends utils.Adapter {
 		await this.persistPeriodMemory(stateID, currentPeriods);
 		await this.refreshStatisticsJson(stateID);
 		return true;
+	}
+
+	/**
+	 * Remember the last reading before a day rollover of a cumulative source, so the first
+	 * reading after it can be split between the ending day and the new one (#1260).
+	 * A second rollover without a reading in between drops the memory: the previous-day
+	 * states then describe another day and the gap is booked to the new period as before.
+	 * @param {string} stateID - Source state ID
+	 * @param {{day: boolean, week: boolean, month: boolean, quarter: boolean, year: boolean}} changes - Changed periods
+	 * @param {object} previousPeriods - Calendar identifiers of the ending period
+	 * @param {number} lastTotal - Cumulative value at the rollover
+	 * @param {number} previousPeriodTimestamp - Timestamp the ending period is stamped with
+	 */
+	async rememberReadingGap(stateID, changes, previousPeriods, lastTotal, previousPeriodTimestamp) {
+		const activeState = this.activeStates[stateID];
+		if (!activeState || !activeState.stateDetails || activeState.stateDetails.stateUnit === 'W') return;
+		if (activeState.readingGap || !changes.day) {
+			activeState.readingGap = null;
+			return;
+		}
+		const dateMatch = typeof previousPeriods.date === 'string' && /^(\d{4})-(\d{2})-(\d{2})$/.exec(previousPeriods.date);
+		if (!dateMatch || !Number.isFinite(lastTotal)) return;
+		const oldDayStart = new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3])).getTime();
+		const oldDayEnd = new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]) + 1).getTime();
+
+		let lastTs = Number(activeState.lastReadingTs);
+		if (!Number.isFinite(lastTs)) {
+			// After a restart the last change of cumulativeReading is the best known reading time
+			const lastState = await this.getStateAsync(`${activeState.stateDetails.deviceName}.cumulativeReading`);
+			lastTs = lastState ? Number(lastState.ts) : NaN;
+		}
+		if (!Number.isFinite(lastTs) || lastTs >= oldDayEnd) return;
+
+		activeState.readingGap = {
+			changes: {...changes},
+			oldPeriods: {...this.getPeriodSnapshot(new Date(oldDayEnd - 1))},
+			oldDayStart,
+			oldDayEnd,
+			lastTs,
+			lastTotal,
+			previousPeriodTimestamp,
+		};
+	}
+
+	/**
+	 * Book the share of a reading gap that belongs to the ending day to that day (#1260):
+	 * add it to the previous-period values and archives of all periods that ended at the
+	 * rollover and move the start values of the new periods by the same amount.
+	 * Meter readings keep the last measured value.
+	 * @param {string} stateID - Source state ID
+	 * @param {number} reading - First cumulative reading after the rollover
+	 * @param {number} timestamp - Timestamp of that reading
+	 */
+	async splitReadingGap(stateID, reading, timestamp) {
+		const activeState = this.activeStates[stateID];
+		const gap = activeState.readingGap;
+		activeState.readingGap = null;
+		if (!gap) return;
+		const oldPart = await this.roundDigits(calculation.getGapShareOfEndingDay(gap, reading, timestamp), stateID);
+		if (!(typeof oldPart === 'number' && oldPart > 0)) return;
+
+		const stateDetails = activeState.stateDetails;
+		const calcValues = activeState.calcValues;
+		this.log.info(`Reading gap of ${stateID} from ${new Date(gap.lastTs).toISOString()} to ${new Date(timestamp).toISOString()}: booking ${oldPart} of ${reading - gap.lastTotal} to ${gap.oldPeriods.date}`);
+
+		// The new periods only count what was consumed after the boundary
+		const startMemory = {};
+		for (const period of ['day', 'week', 'month', 'quarter', 'year']) {
+			if (!gap.changes[period]) continue;
+			const field = `start_${period}`;
+			startMemory[field] = this.getNumberOrDefault(calcValues[field], gap.lastTotal) + oldPart;
+		}
+		Object.assign(calcValues, startMemory);
+		this.rememberSourceCustomUpdate(stateID, startMemory);
+		await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
+
+		if (stateDetails.consumption) {
+			await this.addToEndedPeriodStates(stateID, stateDetails.headCategory, gap, oldPart, value => this.roundDigits(value, stateID));
+		}
+		if (stateDetails.costs) {
+			const price = await this.getDynamicPriceForTimestamp(stateDetails.stateType, gap.oldDayEnd - 1, activeState.prices.unitPrice);
+			const oldCost = oldPart * (price === null ? 0 : price);
+			if (this.usesHistoricalCostCalculation(stateID) && activeState.dynamicCosts) {
+				const lastReading = this.parsePriceValue(activeState.dynamicCosts.lastReading);
+				if (lastReading !== null) {
+					activeState.dynamicCosts.lastReading = lastReading + oldPart;
+					await this.persistDynamicCostMemory(stateID, activeState.dynamicCosts);
+				}
+			}
+			if (oldCost !== 0) {
+				await this.addToEndedPeriodStates(stateID, stateDetails.financialCategory, gap, oldCost, value => this.roundCosts(value, stateID));
+			}
+		}
+		await this.refreshStatisticsJson(stateID);
+	}
+
+	/**
+	 * State IDs that hold values of the periods which ended at a rollover.
+	 * @param {object} stateDetails - Active state details
+	 * @param {string} root - consumed, delivered, costs or earnings
+	 * @param {{changes: object, oldPeriods: {day: string, week: string, weekYear: number, month: string, quarter: number, year: number}}} gap - Reading gap memory
+	 * @returns {string[]} Local state IDs
+	 */
+	getEndedPeriodStateIds(stateDetails, root, gap) {
+		const {changes, oldPeriods} = gap;
+		const device = stateDetails.deviceName;
+		const current = `${device}.currentYear.${root}`;
+		const ids = [];
+		const previousStates = {day: '01_previousDay', week: '02_previousWeek', month: '03_previousMonth', quarter: '04_previousQuarter', year: '05_previousYear'};
+		if (this.config.currentYearPrevious) {
+			for (const [period, state] of Object.entries(previousStates)) {
+				if (changes[period]) ids.push(`${current}.${state}`);
+			}
+		}
+		if (this.config.currentYearDays) {
+			if (!changes.week) ids.push(`${current}.currentWeek.${oldPeriods.day}`);
+			else if (this.config.currentYearPrevious) ids.push(`${current}.previousWeek.${oldPeriods.day}`);
+		}
+		if (!changes.year) {
+			if (changes.week && this.config.currentYearWeek && oldPeriods.weekYear === oldPeriods.year) ids.push(`${current}.weeks.${oldPeriods.week}`);
+			if (changes.month && this.config.currentYearMonth) ids.push(`${current}.months.${oldPeriods.month}`);
+			if (changes.quarter && this.config.currentYearQuarter) ids.push(`${current}.quarters.Q${oldPeriods.quarter}`);
+		}
+		if (changes.week && this.config.store_weeks) ids.push(`${device}.${oldPeriods.weekYear}.${root}.weeks.${oldPeriods.week}`);
+		if (changes.month && this.config.store_months) ids.push(`${device}.${oldPeriods.year}.${root}.months.${oldPeriods.month}`);
+		if (changes.quarter && this.config.store_quarters) ids.push(`${device}.${oldPeriods.year}.${root}.quarters.Q${oldPeriods.quarter}`);
+		if (changes.year) ids.push(`${device}.${oldPeriods.year}.${root}Cumulative`);
+		return ids;
+	}
+
+	/**
+	 * Add an amount to all existing states of the periods which ended at a rollover.
+	 * @param {string} stateID - Source state ID
+	 * @param {string} root - consumed, delivered, costs or earnings
+	 * @param {object} gap - Reading gap memory
+	 * @param {number} amount - Amount to add
+	 * @param {(value: number) => Promise<unknown>} round - Rounding for the category
+	 */
+	async addToEndedPeriodStates(stateID, root, gap, amount, round) {
+		const stateDetails = this.activeStates[stateID].stateDetails;
+		for (const id of this.getEndedPeriodStateIds(stateDetails, root, gap)) {
+			const state = await this.getStateAsync(id);
+			const value = state ? this.parsePriceValue(state.val) : null;
+			if (value === null) continue;
+			await this.setStateAsync(id, {val: Number(await round(value + amount)), ack: true, ts: gap.previousPeriodTimestamp});
+		}
 	}
 
 	/**
@@ -3327,6 +3474,11 @@ class Sourceanalytix extends utils.Adapter {
 				this.rememberSourceCustomUpdate(stateID, startMemory);
 				await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
+			}
+
+			if (currentCath !== 'Watt') {
+				if (activeState.readingGap) await this.splitReadingGap(stateID, reading, readingTimestamp);
+				activeState.lastReadingTs = readingTimestamp;
 			}
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
