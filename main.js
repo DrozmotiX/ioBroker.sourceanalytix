@@ -1100,7 +1100,7 @@ class Sourceanalytix extends utils.Adapter {
 			});
 			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.currentWeek.${weekdays[date.getDay()]}`, calculationRounded.priceDay);
 		}
-		if (this.config.currentYearWeek) {
+		if (this.config.currentYearWeek && this.isWeekInCurrentYear()) {
 			await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 				val: calculationRounded.priceWeek,
 				ack: true
@@ -1123,7 +1123,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}`;
-		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${this.getWeekArchiveRoot(stateDetails.deviceName, stateDetails.financialCategory)}.weeks.${actualDate.week}`, {
 			val: calculationRounded.priceWeek,
 			ack: true
 		});
@@ -1172,7 +1172,7 @@ class Sourceanalytix extends utils.Adapter {
 			});
 			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.currentWeek.${weekdays[date.getDay()]}`, calculationRounded.consumedDay);
 		}
-		if (this.config.currentYearWeek) {
+		if (this.config.currentYearWeek && this.isWeekInCurrentYear()) {
 			await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 				val: calculationRounded.consumedWeek,
 				ack: true
@@ -1195,7 +1195,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}`;
-		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {val: calculationRounded.consumedWeek, ack: true});
+		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${this.getWeekArchiveRoot(stateDetails.deviceName, stateDetails.headCategory)}.weeks.${actualDate.week}`, {val: calculationRounded.consumedWeek, ack: true});
 		if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {val: calculationRounded.consumedMonth, ack: true});
 		if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {val: calculationRounded.consumedQuarter, ack: true});
 	}
@@ -2046,6 +2046,7 @@ class Sourceanalytix extends utils.Adapter {
 			const weekNumber = yearWeek < 10 ? `0${yearWeek}` : yearWeek.toString();
 			await this.doLocalStateCreate(stateID, `weeks.${weekNumber}`, weekNumber, false, !this.config.store_weeks);
 		}
+		await this.ensureWeekArchiveState(stateID);
 		for (const month of months) {
 			await this.doLocalStateCreate(stateID, `months.${month}`, month, false, !this.config.store_months);
 		}
@@ -2057,6 +2058,16 @@ class Sourceanalytix extends utils.Adapter {
 		await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.headCategory}Cumulative`, `${stateDetails.headCategory}Cumulative`, true, !storeYearStatistics || !stateDetails.consumption);
 		await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.financialCategory}Cumulative`, `${stateDetails.financialCategory}Cumulative`, true, !storeYearStatistics || !stateDetails.costs, false, useCurrency);
 		await this.doLocalStateCreate(stateID, `${actualDate.year}.readingCumulative`, 'Cumulative Reading of Year total', true, !storeYearStatistics);
+	}
+
+	/**
+	 * Create the archive state of the running week when it belongs to the neighbouring
+	 * ISO week-numbering year (for example 29–31 December in week 01 of the next year).
+	 * @param {string} stateID - Source state ID
+	 */
+	async ensureWeekArchiveState(stateID) {
+		if (!this.config.store_weeks || this.isWeekInCurrentYear() || !actualDate.week) return;
+		await this.doLocalStateCreate(stateID, `weeks.${actualDate.week}`, actualDate.week, false, false, false, undefined, actualDate.weekYear);
 	}
 
 	/**
@@ -2467,16 +2478,18 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * @param {Date} [date] - Date to represent
-	 * @returns {{date: string, day: string, week: string, month: string, quarter: number, year: number}} Calendar identifiers
+	 * @returns {{date: string, day: string, week: string, weekYear: number, month: string, quarter: number, year: number}} Calendar identifiers
 	 */
 	getPeriodSnapshot(date = new Date()) {
 		const year = date.getFullYear();
 		const monthNumber = date.getMonth() + 1;
 		const dayNumber = date.getDate();
+		const isoWeek = calculation.getIsoWeek(date);
 		return {
 			date: `${year}-${monthNumber.toString().padStart(2, '0')}-${dayNumber.toString().padStart(2, '0')}`,
 			day: weekdays[date.getDay()],
-			week: this.getWeekNumber(date),
+			week: isoWeek.week,
+			weekYear: isoWeek.weekYear,
 			month: months[date.getMonth()],
 			quarter: Math.floor((date.getMonth() + 3) / 3),
 			year,
@@ -2581,6 +2594,7 @@ class Sourceanalytix extends utils.Adapter {
 		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
 		const previousPeriodTimestamp = calculation.getPreviousPeriodTimestamp(date);
 		if (changes.year) await this.initializeYearStatisticsStates(stateID);
+		else if (changes.week) await this.ensureWeekArchiveState(stateID);
 		await this.copyPreviousPeriodStates(stateDetails, changes, previousPeriodTimestamp);
 		await this.resetCurrentWeekdayStates(stateDetails, changes.week, previousPeriodTimestamp);
 		await this.resetCurrentYearCollectionStates(stateDetails, changes.year);
@@ -2826,8 +2840,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {boolean} [deleteState] - Set to true will delete the state
 	 * @param {boolean} [isCurrent] - Store value in current Year
 	 * @param {string} [forceUnit] - Force unit to be set on state
+	 * @param {number} [yearRoot] - Year folder to use instead of the running calendar year
 	 */
-	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit) {
+	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit, yearRoot) {
 		this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
 
 		// Check if stateDetails are preset in memory, other wise abort
@@ -2836,7 +2851,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
-			const dateRoot = isCurrent ? `currentYear` : actualDate.year;
+			const dateRoot = isCurrent ? `currentYear` : (yearRoot === undefined ? actualDate.year : yearRoot);
 			let stateName = null;
 
 			// Common object content
@@ -3193,7 +3208,7 @@ class Sourceanalytix extends utils.Adapter {
 						});
 						this.recordStatisticsValue(stateID, `currentYear.meterReadings.currentWeek.${weekdays[date.getDay()]}`, readingRounded);
 					}
-					if (this.config.currentYearWeek) {
+					if (this.config.currentYearWeek && this.isWeekInCurrentYear()) {
 						await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 							val: readingRounded,
 							ack: true
@@ -3215,7 +3230,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.recordStatisticsValue(stateID, `currentYear.meterReadings.quarters.Q${actualDate.quarter}`, readingRounded);
 					}
 					stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
-					if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+					if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${this.getWeekArchiveRoot(stateDetails.deviceName, 'meterReadings')}.weeks.${actualDate.week}`, {
 						val: readingRounded,
 						ack: true
 					});
@@ -3492,6 +3507,7 @@ class Sourceanalytix extends utils.Adapter {
 			date: actualDate.date,
 			day: actualDate.day,
 			week: actualDate.week,
+			weekYear: actualDate.weekYear,
 			month: actualDate.month,
 			quarter: actualDate.quarter,
 			year: actualDate.year
@@ -3504,25 +3520,33 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * define proper week-number, add 0 in case of < 10
-	 * @param {object} d - Current date (like initiated with new Date())
+	 * ISO week number with leading zero (01–53).
+	 * @param {Date} d - Current date (like initiated with new Date())
+	 * @returns {string} Two-digit ISO week number
 	 */
 	getWeekNumber(d) {
-		// Copy date so don't modify original
-		d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-		// Set to nearest Thursday: current date + 4 - current day number
-		// Make Sunday's day number 7
-		d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-		// Get first day of year
-		const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-		// Calculate full weeks to nearest Thursday
-		let weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7).toString();
+		return calculation.getIsoWeek(d).week;
+	}
 
-		if (weekNo.length === 1) {
-			weekNo = '0' + weekNo;
-		}
-		// Return week number
-		return weekNo;
+	/**
+	 * Whether the running ISO week belongs to the running calendar year. At the turn of the
+	 * year (29–31 December or 1–3 January) it can belong to the neighbouring year; the
+	 * currentYear folder then does not show it, so week 01 of January is not overwritten.
+	 * @returns {boolean} True if week and calendar year match
+	 */
+	isWeekInCurrentYear() {
+		return actualDate.weekYear === undefined || actualDate.weekYear === actualDate.year;
+	}
+
+	/**
+	 * Folder of the weekly archive for the running week, in the ISO week-numbering year.
+	 * @param {string} deviceName - Output device of the source
+	 * @param {string} category - consumed, delivered, costs, earnings or meterReadings
+	 * @returns {string} Full state ID prefix without ".weeks.<week>"
+	 */
+	getWeekArchiveRoot(deviceName, category) {
+		const weekYear = actualDate.weekYear === undefined ? actualDate.year : actualDate.weekYear;
+		return `${this.namespace}.${deviceName}.${weekYear}.${category}`;
 	}
 
 	/**

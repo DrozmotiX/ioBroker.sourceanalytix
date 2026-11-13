@@ -10,6 +10,7 @@ const {
 	classifyCumulativeReading,
 	convertUnitValue,
 	getCurrentYearPeriodStateDefinitions,
+	getIsoWeek,
 	getPeriodBoundaryTimestamp,
 	getPeriodChanges,
 	getPreviousPeriodTimestamp,
@@ -835,5 +836,25 @@ describe('period and cumulative calculations', () => {
 				priceDay: 0, priceWeek: 0, priceMonth: 0, priceQuarter: 0, priceYear: 0,
 			});
 		});
+	});
+});
+
+describe('ISO week', () => {
+	it('places 29-31 December in week 01 of the next year when that week starts in December', () => {
+		assert.deepEqual(getIsoWeek(new Date(2025, 11, 28)), {week: '52', weekYear: 2025});
+		assert.deepEqual(getIsoWeek(new Date(2025, 11, 29)), {week: '01', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2025, 11, 31)), {week: '01', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2026, 0, 1)), {week: '01', weekYear: 2026});
+	});
+
+	it('places early January in week 53 of the previous year when that year has 53 weeks', () => {
+		assert.deepEqual(getIsoWeek(new Date(2026, 11, 31)), {week: '53', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2027, 0, 3)), {week: '53', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2027, 0, 4)), {week: '01', weekYear: 2027});
+	});
+
+	it('pads week numbers to two digits', () => {
+		assert.deepEqual(getIsoWeek(new Date(2026, 1, 2)), {week: '06', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2026, 5, 15)), {week: '25', weekYear: 2026});
 	});
 });
