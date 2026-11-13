@@ -2612,7 +2612,9 @@ class Sourceanalytix extends utils.Adapter {
 			start_week: changes.week ? reading : stateValues.start_week,
 			start_year: changes.year ? reading : stateValues.start_year,
 		};
-		if (stateDetails.stateUnit === 'W') {
+		// A power interval closed at the boundary (closePowerIntervals) continues into the new
+		// period; any older interval cannot be assigned and starts over with the next reading.
+		if (stateDetails.stateUnit === 'W' && !(Number(stateValues.previousReadingWattTs) >= boundaryTimestamp - 1)) {
 			newCalcValues.previousReadingWatt = null;
 			newCalcValues.previousReadingWattTs = null;
 		}
@@ -2732,6 +2734,7 @@ class Sourceanalytix extends utils.Adapter {
 		let recovered = 0;
 		try {
 			const date = new Date();
+			await this.closePowerIntervals(date);
 			await this.refreshDates();
 			await this.refreshScheduledPrices(date.getTime());
 			for (const stateID in this.activeStates) {
@@ -2755,6 +2758,50 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[runPeriodRollovers] No rollover needed, triggered by ${trigger}`);
 		}
 		return recovered;
+	}
+
+	/**
+	 * Before a day rollover, book the energy of the running interval of every power source (W)
+	 * to the ending day: the last power value is integrated up to the boundary and calculated
+	 * with the old period, so nothing is lost at midnight (#1254). The new period continues
+	 * with the same power value from the boundary.
+	 * Only intervals that started on the ending day are closed; longer gaps are not extrapolated.
+	 * @param {Date} date - Current local date
+	 */
+	async closePowerIntervals(date) {
+		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
+		const closingTimestamp = boundaryTimestamp - 1;
+		const previousDayStart = calculation.getPeriodBoundaryTimestamp(new Date(closingTimestamp));
+		for (const stateID in this.activeStates) {
+			try {
+				const activeState = this.activeStates[stateID];
+				if (!activeState || !activeState.calcValues || !activeState.stateDetails) continue;
+				if (activeState.stateDetails.stateUnit !== 'W') continue;
+				const calcValues = activeState.calcValues;
+				if (calcValues.previousReadingWatt == null || calcValues.previousReadingWattTs == null) continue;
+				const previousPower = Number(calcValues.previousReadingWatt);
+				const previousTimestamp = Number(calcValues.previousReadingWattTs);
+				if (!Number.isFinite(previousPower) || !Number.isFinite(previousTimestamp)) continue;
+				if (previousTimestamp >= closingTimestamp || previousTimestamp < previousDayStart) continue;
+
+				const previousPeriods = await this.loadPeriodMemory(stateID);
+				if (!previousPeriods) continue;
+				const changes = calculation.getPeriodChanges(previousPeriods, this.getPeriodSnapshot(date));
+				// Only close when a day rollover follows and the in-memory dates still describe the ending day
+				if (!changes.day || actualDate.date !== previousPeriods.date) continue;
+
+				this.log.debug(`[closePowerIntervals] Booking ${previousPower} W from ${new Date(previousTimestamp).toISOString()} up to the period boundary for ${stateID}`);
+				await this.calculationHandler(stateID, {
+					val: previousPower,
+					ack: true,
+					ts: closingTimestamp,
+					lc: closingTimestamp,
+					from: `system.adapter.${this.namespace}`,
+				}, new Date(closingTimestamp));
+			} catch (error) {
+				this.errorHandling(`[closePowerIntervals] ${stateID}`, error);
+			}
+		}
 	}
 
 	/**
@@ -3005,8 +3052,9 @@ class Sourceanalytix extends utils.Adapter {
 	 *Logic to handle all calculations
 	 *  @param {string} [stateID] - state id of source value
 	 *  @param {object} [stateVal] - object with current value (val) and timestamp (ts)
+	 *  @param {Date} [calculationDate] - Date of the period to calculate in, default now
 	 */
-	async calculationHandler(stateID, stateVal) {
+	async calculationHandler(stateID, stateVal, calculationDate) {
 		let activeState;
 		try {
 			this.log.debug(`[calculationHandler] Calculation for ${stateID} with values : ${JSON.stringify(stateVal)}`);
@@ -3037,7 +3085,7 @@ class Sourceanalytix extends utils.Adapter {
 			const statePrices = activeState.prices;
 			const currentCath = this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
-			const date = new Date();
+			const date = calculationDate instanceof Date ? calculationDate : new Date();
 			const readingTimestamp = this.getStateChangeTimestamp(stateVal);
 
 			this.log.debug(`[calculationHandler] calcValues : ${JSON.stringify(calcValues)}`);
