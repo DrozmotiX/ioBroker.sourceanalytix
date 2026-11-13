@@ -219,6 +219,23 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Parse a configured period start value. Accepts numbers and numeric strings with comma or dot.
+	 * @param {string} stateID - Source state ID, used for the warning
+	 * @param {string} field - Name of the start value
+	 * @param {unknown} value - Configured value
+	 * @returns {number | undefined} Parsed value, or undefined if empty or not numeric
+	 */
+	parseStartValue(stateID, field, value) {
+		if (value === null || value === undefined || value === '') return undefined;
+		const parsedValue = dynamicPricing.parsePriceValue(value);
+		if (parsedValue === null) {
+			this.log.warn(`Start value ${field} ${JSON.stringify(value)} of ${stateID} is not a number and is ignored`);
+			return undefined;
+		}
+		return parsedValue;
+	}
+
+	/**
 	 * Add the configured monthly basic price to current period totals.
 	 * @param {string} stateID - Source state ID
 	 * @param {object} totals - Variable cost totals
@@ -1989,11 +2006,11 @@ class Sourceanalytix extends utils.Adapter {
 					},
 					calcValues: {
 						cumulativeValue: cumulativeValue,
-						start_day: customData.start_day,
-						start_month: customData.start_month,
-						start_quarter: customData.start_quarter,
-						start_week: customData.start_week,
-						start_year: customData.start_year,
+						start_day: this.parseStartValue(stateID, 'start_day', customData.start_day),
+						start_month: this.parseStartValue(stateID, 'start_month', customData.start_month),
+						start_quarter: this.parseStartValue(stateID, 'start_quarter', customData.start_quarter),
+						start_week: this.parseStartValue(stateID, 'start_week', customData.start_week),
+						start_year: this.parseStartValue(stateID, 'start_year', customData.start_year),
 						valueAtDeviceReset: valueAtDeviceReset,
 					},
 					prices: {
@@ -2996,8 +3013,14 @@ class Sourceanalytix extends utils.Adapter {
 				reading = await this.wattToWattHour(stateID, stateVal);
 				if (reading === null || reading === undefined) return;
 			} else {
+				// Accept numeric strings like "12,5" or ".14" from the source state
+				const sourceValue = this.parsePriceValue(stateVal.val);
+				if (sourceValue === null) {
+					this.log.warn(`Value ${JSON.stringify(stateVal.val)} of ${stateID} is not a number, reading ignored`);
+					return;
+				}
 				reading = calculation.convertUnitValue(
-					stateVal.val,
+					sourceValue,
 					this.unitPriceDef.unitConfig[stateDetails.stateUnit],
 					this.unitPriceDef.unitConfig[stateDetails.useUnit],
 				);
@@ -3187,17 +3210,24 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Handle calculations
+			const startValues = {
+				day: this.getNumberOrDefault(calcValues.start_day, reading),
+				week: this.getNumberOrDefault(calcValues.start_week, reading),
+				month: this.getNumberOrDefault(calcValues.start_month, reading),
+				quarter: this.getNumberOrDefault(calcValues.start_quarter, reading),
+				year: this.getNumberOrDefault(calcValues.start_year, reading),
+			};
 			const calculations = {
-				consumedDay: ((reading - calcValues.start_day) - reading_start),
-				consumedWeek: ((reading - calcValues.start_week) - reading_start),
-				consumedMonth: ((reading - calcValues.start_month) - reading_start),
-				consumedQuarter: ((reading - calcValues.start_quarter) - reading_start),
-				consumedYear: ((reading - calcValues.start_year) - reading_start),
-				priceDay: unitPrice * ((reading - calcValues.start_day) - reading_start),
-				priceWeek: unitPrice * ((reading - calcValues.start_week) - reading_start),
-				priceMonth: unitPrice * ((reading - calcValues.start_month) - reading_start),
-				priceQuarter: unitPrice * ((reading - calcValues.start_quarter) - reading_start),
-				priceYear: unitPrice * ((reading - calcValues.start_year) - reading_start),
+				consumedDay: ((reading - startValues.day) - reading_start),
+				consumedWeek: ((reading - startValues.week) - reading_start),
+				consumedMonth: ((reading - startValues.month) - reading_start),
+				consumedQuarter: ((reading - startValues.quarter) - reading_start),
+				consumedYear: ((reading - startValues.year) - reading_start),
+				priceDay: unitPrice * ((reading - startValues.day) - reading_start),
+				priceWeek: unitPrice * ((reading - startValues.week) - reading_start),
+				priceMonth: unitPrice * ((reading - startValues.month) - reading_start),
+				priceQuarter: unitPrice * ((reading - startValues.quarter) - reading_start),
+				priceYear: unitPrice * ((reading - startValues.year) - reading_start),
 			};
 
 			this.log.debug(`[calculationHandler] Result of calculation: ${JSON.stringify(calculations)}`);
