@@ -3483,17 +3483,19 @@ class Sourceanalytix extends utils.Adapter {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		const errorStack = error instanceof Error ? error.stack : undefined;
 		const msg = `[${codePart}] error: ${errorMessage}, stack: ${errorStack || 'not available'}`;
-		if (!disableSentry) {
+		// Always make the error visible in the ioBroker log, Sentry is only an additional channel.
+		this.log.error(msg);
+		if (disableSentry) return;
+		try {
 			if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
 				const sentryInstance = this.getPluginInstance('sentry');
 				if (sentryInstance) {
-					this.log.info(`[Error caught and sent to Sentry, thank you for collaborating!] error: ${msg}`);
 					sentryInstance.getSentryObject().captureException(msg);
+					this.log.info('Error sent to Sentry, thank you for collaborating!');
 				}
 			}
-		} else {
-			this.log.error(`Sentry disabled, error caught : ${msg}`);
-			console.error(`Sentry disabled, error caught : ${msg}`);
+		} catch (sentryError) {
+			this.log.debug(`[errorHandling] Could not send error to Sentry: ${sentryError instanceof Error ? sentryError.message : String(sentryError)}`);
 		}
 	}
 
