@@ -345,14 +345,14 @@ describe('source object configuration changes', () => {
 		const sourceObject = putConfiguredSource(harness, sourceId);
 		harness.adapter.activeStates[sourceId] = {stateDetails: {deviceName: 'meter'}};
 		harness.adapter.rememberSourceObjectSnapshot(sourceId, sourceObject);
-		harness.adapter.rememberSourceCustomUpdate(sourceId, {start_day: 42, valueAtDeviceInit: 42});
+		harness.adapter.rememberSourceCustomUpdate(sourceId, {start_day: 42, valueAtDeviceReset: 42});
 		let builds = 0;
 		harness.adapter.buildStateDetailsArray = async () => { builds++; return true; };
 
 		const persistedObject = clone(sourceObject);
 		Object.assign(persistedObject.common.custom['sourceanalytix.0'], {
 			start_day: 42,
-			valueAtDeviceInit: 42,
+			valueAtDeviceReset: 42,
 		});
 		persistedObject.from = 'system.adapter.zwave2.0';
 		await harness.adapter.onObjectChange(sourceId, persistedObject);

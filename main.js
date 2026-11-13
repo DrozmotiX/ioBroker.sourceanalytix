@@ -3237,9 +3237,9 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.warn(`Realigned valueAtDeviceReset of ${stateID} from ${calcValues.valueAtDeviceReset} to ${realignedOffset}: device value ${reading}, total continues from ${knownTotal}`);
 					calcValues.valueAtDeviceReset = realignedOffset;
 					activeState.pendingDeviceReset = null;
-					await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
-						valueAtDeviceReset: realignedOffset,
-					}}}});
+					const realignMemory = {valueAtDeviceReset: realignedOffset};
+					this.rememberSourceCustomUpdate(stateID, realignMemory);
+					await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: realignMemory}}});
 				}
 				if (calcValues.valueAtDeviceReset == null) {
 					this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
@@ -3258,9 +3258,9 @@ class Sourceanalytix extends utils.Adapter {
 							this.log.warn(`Rolled back the device reset of ${stateID}: raw reading ${reading} returned to the level before the reset, restoring offset ${rollback.resetOffset} instead of ${calcValues.valueAtDeviceReset}`);
 							calcValues.valueAtDeviceReset = rollback.resetOffset;
 							activeState.pendingDeviceReset = null;
-							await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
-								valueAtDeviceReset: rollback.resetOffset,
-							}}}});
+							const rollbackMemory = {valueAtDeviceReset: rollback.resetOffset};
+							this.rememberSourceCustomUpdate(stateID, rollbackMemory);
+							await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: rollbackMemory}}});
 							// Never lower the total: consumption counted since the reset stays counted
 							reading = Math.max(reading + rollback.resetOffset, previousTotal);
 							rolledBack = true;
