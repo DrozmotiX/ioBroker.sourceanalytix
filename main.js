@@ -3070,7 +3070,7 @@ class Sourceanalytix extends utils.Adapter {
 							valueAtDeviceInit: reading,
 						}}}});
 					} else if (resolvedReading.type === 'decrease') {
-						this.log.info(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
+						this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
 					}
 					reading = resolvedReading.reading;
 				}
