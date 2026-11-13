@@ -29,7 +29,8 @@ Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 
 <!-- bild: was der Screenshot zeigen soll (entsteht in Phase 5) -->
 
-> **Achtung:** Was schiefgehen kann und wie man es vermeidet.
+> [!WARNING]
+> Was schiefgehen kann und wie man es vermeidet.
 <!-- quelle: … -->
 
 **Ab v0.6.2:** Was sich mit der Fehlerbehebung ändert ([#1253](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1253)).
@@ -40,7 +41,7 @@ Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 
 ## Prüfliste vor dem Commit
 
-- [Schreibregeln](schreibregeln.md) Abschnitt 6 eingehalten: kein Frontmatter, kein `:::`, kein `> [!NOTE]`, keine Fußnoten.
+- [Schreibregeln](schreibregeln.md) Abschnitt 6 eingehalten: kein Frontmatter, kein `:::`, keine Fußnoten; Hinweise nur als `> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` oder `[!CAUTION]`.
 - Jeder Absatz, jede Liste und jede Tabelle mit Aussage hat einen `quelle:`-Kommentar.
 - Jede Versionsangabe nennt die Nummer (`v0.6.2`, `v0.7.0`).
 - Alles aus `muss beantworten:` ist beantwortet.

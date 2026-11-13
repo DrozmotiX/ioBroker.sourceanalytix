@@ -72,17 +72,29 @@ Erlaubt ist nur, was auf GitHub und in VuePress gleich aussieht.
 |---|---|---|
 | Überschriften `#`, `##`, `###` | Frontmatter (`---` am Dateianfang) | GitHub zeigt es als Tabelle |
 | Absätze, **fett**, *kursiv*, `Code` | `::: tip`, `::: warning` und andere Container | GitHub zeigt sie als Rohtext |
-| Nummerierte und einfache Listen | GitHub-Hinweise `> [!NOTE]` | VuePress zeigt sie als Rohtext |
+| Nummerierte und einfache Listen | Hinweise als `> **Achtung:**` | dafür gibt es Hinweisblöcke (siehe unten) |
 | Tabellen | Aufgabenlisten `- [ ]` | VuePress zeigt keine Kästchen |
 | Codeblöcke mit Sprache (` ```json `) | Fußnoten `[^1]` | VuePress kennt sie nicht |
-| Zitatblock `>` für Hinweise | Emoji-Kürzel `:warning:` | unterschiedlich dargestellt |
+| Hinweisblöcke `> [!NOTE]` usw. | Emoji-Kürzel `:warning:` | unterschiedlich dargestellt |
 | Relative Links auf `.md`-Dateien | `[[toc]]`, Vue-Komponenten | nur VuePress |
 | Bilder mit relativem Pfad | `{{ … }}` außerhalb von Code | VuePress wertet es als Vorlage aus |
 | `<a id="…"></a>` und `<!-- … -->` | anderes HTML (`<details>`, `<br>`, `<div>`) | uneinheitlich |
 
 Weitere Punkte:
 
-- **Hinweise** sind Zitatblöcke mit fettem Anfang: `> **Achtung:** …` oder `> **Tipp:** …`.
+- **Hinweise** sind Hinweisblöcke im Format von GitHub („Alerts“). Es gibt fünf Arten, jede mit fester Bedeutung:
+
+  | Block | Wofür |
+  |---|---|
+  | `> [!NOTE]` | Zusatzwissen, das man beim Überfliegen auslassen kann |
+  | `> [!TIP]` | Abkürzung oder bessere Vorgehensweise |
+  | `> [!IMPORTANT]` | Muss man wissen, damit es klappt (z. B. Einheit der Startwerte) |
+  | `> [!WARNING]` | Hier gehen Werte verloren oder werden falsch, wenn man es übersieht |
+  | `> [!CAUTION]` | Nicht rückgängig zu machen (z. B. States löschen) |
+
+  Schreibweise: Die erste Zeile enthält nur `> [!WARNING]`, der Text folgt in den nächsten Zeilen, jede mit `> ` am Anfang. Kein eigener Titel, keine Verschachtelung, kein Codeblock im Hinweis. Höchstens ein bis zwei Hinweise pro Abschnitt.
+
+  GitHub stellt diese Blöcke farbig dar. VuePress 2 zeigt sie genauso mit dem Plugin `@vuepress/plugin-markdown-hint` und der Option `alert: true`. Die DrozmotiX-Seite läuft heute (Stand 2021) noch auf VuePress 1, das sie nur als Zitat mit `[!NOTE]` im Text zeigt. Vor der Veröffentlichung dort muss die Seite also auf VuePress 2 mit diesem Plugin umgestellt sein.
 - **Links** sind relativ und enden auf `.md`, z. B. `[Startwerte](../01.erste-schritte/02.erster-zaehler.md#start-values-unit)`. Auf die Inhaltsseite eines Teils wird mit `README.md` verlinkt.
 - **In Kommentaren** nie zwei Bindestriche hintereinander schreiben (`--`), sonst endet der Kommentar zu früh.
 - **Bilder** liegen im Ordner des Teils unter `img/`, z. B. `02.anleitungen/img/zaehlertausch-01.png`, und haben einen Alternativtext. Screenshots entstehen in Phase 5. Bis dahin steht an der Stelle ein Kommentar `<!-- bild: was das Bild zeigen soll -->`.
