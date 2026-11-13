@@ -1910,15 +1910,20 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Check and load unit definition
 				let useUnit = '';
+				const selectedUnit = calculation.resolveUnit(customData.selectedUnit, this.unitPriceDef.unitConfig);
+				const detectedUnit = calculation.resolveUnit(commonData.unit, this.unitPriceDef.unitConfig);
 				// Check if a unit is manually selected, if yes use that one
-				if (this.unitPriceDef.unitConfig[customData.selectedUnit]) {
-					useUnit = customData.selectedUnit;
+				if (selectedUnit) {
+					useUnit = selectedUnit;
 					this.log.debug(`[buildStateDetailsArray] unit manually chosen ${JSON.stringify(useUnit)}`);
 
-				// If not, try to automatically get unit from state object
-				} else if (commonData.unit && commonData.unit !== '' && this.unitPriceDef.unitConfig[commonData.unit]) {
+				// If not, try to automatically get unit from state object (accepts spellings like m3 or kwh)
+				} else if (detectedUnit) {
 
-					useUnit = commonData.unit;
+					useUnit = detectedUnit;
+					if (detectedUnit !== commonData.unit) {
+						this.log.info(`Unit ${JSON.stringify(commonData.unit)} of ${stateID} is used as ${detectedUnit}`);
+					}
 					this.log.debug(`[buildStateDetailsArray] unit automatically detected ${JSON.stringify(useUnit)}`);
 				} else {
 					this.log.error(`No unit defined for ${stateID}, cannot execute calculations !`);

@@ -19,6 +19,7 @@ const {
 	normalizePeriodSnapshot,
 	resolveDecimals,
 	resolveCumulativeReading,
+	resolveUnit,
 	roundValue,
 } = require('./lib/calculation');
 const {
@@ -45,6 +46,26 @@ describe('unit conversion', () => {
 		assert.deepEqual(units.g, {exponent: 0, category: 'Kilogram'});
 		assert.deepEqual(units.km, {exponent: 3, category: 'Meter'});
 		assert.deepEqual(units.m, {exponent: 0, category: 'Meter'});
+	});
+
+	it('resolves common unit spellings to supported units', () => {
+		assert.equal(resolveUnit('m³', units), 'm³');
+		assert.equal(resolveUnit('m3', units), 'm³');
+		assert.equal(resolveUnit('m^3', units), 'm³');
+		assert.equal(resolveUnit(' kWh ', units), 'kWh');
+		assert.equal(resolveUnit('kwh', units), 'kWh');
+		assert.equal(resolveUnit('KWH', units), 'kWh');
+		assert.equal(resolveUnit('w', units), 'W');
+		assert.equal(resolveUnit('L', units), 'l');
+		assert.equal(resolveUnit('KG', units), 'kg');
+	});
+
+	it('does not resolve ambiguous or unknown units', () => {
+		assert.equal(resolveUnit('mwh', units), null);
+		assert.equal(resolveUnit('mw', units), null);
+		assert.equal(resolveUnit('°C', units), null);
+		assert.equal(resolveUnit('', units), null);
+		assert.equal(resolveUnit(undefined, units), null);
 	});
 
 	it('converts mass values between tonnes, kilograms and grams', () => {
