@@ -126,6 +126,8 @@
     "Decimals for cost values": "Miejsca dziesiętne dla wartości kosztów",
     "Rounding decimals help": "Wartość początkowa kopiowana do nowo konfigurowanych źródeł. Istniejące źródła zachowują własną wartość. Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
     "Individual rounding decimals help": "Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
+    "Overview": "Przegląd",
+    "Problems": "Problemy",
     "Start values header": "Wartości początkowe bieżących okresów",
     "Start values help": "Stan łączny na początku bieżącego dnia, tygodnia, miesiąca, kwartału i roku, w jednostce definicji ceny (na przykład kWh, nie Wh). Dotyczą tylko bieżących okresów; przy następnej zmianie okresu SourceAnalytix ustawia je sam. Pozostaw pole puste, aby liczyć od teraz. Przecinek lub kropka jako separator dziesiętny, bez separatora tysięcy.",
     "Current total": "Bieżący stan łączny",

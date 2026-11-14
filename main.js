@@ -12,6 +12,8 @@ const {isDeepStrictEqual} = require('node:util');
 const calculation = require('./lib/calculation');
 const dynamicPricing = require('./lib/dynamic-pricing');
 const outputId = require('./lib/output-id');
+const sourceActions = require('./lib/source-actions');
+const sourceOverview = require('./lib/source-overview');
 const statisticsJson = require('./lib/statistics-json');
 const sourceChecks = require('./lib/source-checks');
 const defaultUnitConfig = calculation.buildUnitConfig();
@@ -26,6 +28,7 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const stateDeletion = true, previousCalculationRounded = {};
 const recoverPeriodsState = 'info.recoverPeriods';
+const costRecalculationState = 'info.costRecalculation';
 const storeSettings = {};
 let calcBlock = null; // Global variable to block all calculations
 let delay = null; // Global array for all running timers
@@ -2146,6 +2149,9 @@ class Sourceanalytix extends utils.Adapter {
 					// Sources with their own total (power, pulse rate, increments) start at 0 and need no start values (#1267)
 					firstActivation: !ownTotal && valueAtDeviceReset === null,
 					realignDeviceOffset,
+					pendingMeterSwap: !ownTotal && customData.pendingMeterSwap && typeof customData.pendingMeterSwap === 'object'
+						? customData.pendingMeterSwap
+						: null,
 					stateDetails: {
 						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
 						averagePowerValues: customData.averagePowerValues === true,
@@ -2511,58 +2517,6 @@ class Sourceanalytix extends utils.Adapter {
 		await this.storeDynamicPriceHistory(priceDefinition, unitPrice, this.getStateChangeTimestamp(state));
 		await this.applyCurrentPrice(priceDefinition, unitPrice);
 		this.log.info(`Unit price for ${priceDefinition} was set to ${unitPrice} through ${id}`);
-	}
-
-	/**
-	 * Recalculate only financial states from the stored cumulative reading.
-	 * @param {string} stateID - Source state ID
-	 * @param {string} reason - Log context
-	 */
-	async recalculateCostsForState(stateID, reason) {
-		try {
-			if (!this.activeStates[stateID] || !this.activeStates[stateID].stateDetails || !this.activeStates[stateID].calcValues) return;
-
-			const calcValues = this.activeStates[stateID].calcValues;
-			const stateDetails = this.activeStates[stateID].stateDetails;
-			const statePrices = this.activeStates[stateID].prices;
-			const reading = calcValues.cumulativeValue;
-
-			if (!stateDetails.costs) return;
-			if (this.usesHistoricalCostCalculation(stateID)) {
-				this.log.debug(`[recalculateCostsForState] Skipped cost recalculation for ${stateID} because unit prices are historical`);
-				return;
-			}
-			if (reading === null || reading === undefined) {
-				this.log.warn(`[recalculateCostsForState] Cannot recalculate costs for ${stateID}, cumulative reading is not available`);
-				return;
-			}
-
-			const unitPrice = this.parsePriceValue(statePrices.unitPrice);
-			if (unitPrice === null) {
-				this.log.warn(`[recalculateCostsForState] Cannot recalculate costs for ${stateID}, unit price ${JSON.stringify(statePrices.unitPrice)} is not numeric`);
-				return;
-			}
-
-			const date = new Date();
-			const calculationRounded = await this.addBasicPriceTotals(stateID, {
-				priceDay: unitPrice * (reading - calcValues.start_day),
-				priceWeek: unitPrice * (reading - calcValues.start_week),
-				priceMonth: unitPrice * (reading - calcValues.start_month),
-				priceQuarter: unitPrice * (reading - calcValues.start_quarter),
-				priceYear: unitPrice * (reading - calcValues.start_year),
-			}, date);
-
-			await this.writeFinancialStates(stateID, calculationRounded, date);
-
-			previousCalculationRounded[stateID] = {
-				...previousCalculationRounded[stateID],
-				...calculationRounded
-			};
-
-			this.log.debug(`[recalculateCostsForState] Costs recalculated for ${stateID} because of ${reason}: ${JSON.stringify(calculationRounded)}`);
-		} catch (error) {
-			this.errorHandling(`[recalculateCostsForState] ${stateID}`, error);
-		}
 	}
 
 	/**
@@ -3553,6 +3507,16 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 
 			if (!ownTotal) {
+				if (activeState.pendingMeterSwap) {
+					// After "meter swapped" the device may still report the old meter until it is replaced
+					if (sourceActions.isOldMeterReading(reading, activeState.pendingMeterSwap)) {
+						this.log.debug(`[calculationHandler] Ignoring reading ${reading} of ${stateID}: still from the old meter`);
+						return;
+					}
+					this.log.info(`First reading ${reading} of the new meter received for ${stateID}`);
+					activeState.pendingMeterSwap = null;
+					await this.persistSourceMemory(stateID, {pendingMeterSwap: null});
+				}
 				if (activeState.realignDeviceOffset) {
 					activeState.realignDeviceOffset = false;
 					const knownTotal = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
@@ -3632,6 +3596,8 @@ class Sourceanalytix extends utils.Adapter {
 								lastRawReading: reading,
 							} : null;
 						} else if (resolvedReading.type === 'decrease') {
+							// Shown as a problem on the settings page (#1269)
+							activeState.decreasesWhileResetOff = (activeState.decreasesWhileResetOff || 0) + 1;
 							this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
 						}
 						reading = resolvedReading.reading;
@@ -4087,6 +4053,655 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * Persist calculation memory in the SourceAnalytix settings of the source without rebuilding it.
+	 * @param {string} stateID - Source state ID
+	 * @param {object} updates - Custom settings to write
+	 */
+	async persistSourceMemory(stateID, updates) {
+		// Remember before writing: the resulting objectChange may arrive before the write resolves
+		this.rememberSourceCustomUpdate(stateID, updates);
+		await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: updates}}});
+	}
+
+	/**
+	 * Current device value of a cumulative source in the calculation unit, without offset.
+	 * @param {string} stateID - Source state ID
+	 * @returns {Promise<number | null>} Device value, or null if unknown or a power source
+	 */
+	async getDeviceReadingInCalculationUnit(stateID) {
+		const activeState = this.activeStates[stateID];
+		if (!activeState || this.usesOwnTotal(activeState.stateDetails)) return null;
+		const state = await this.getForeignStateAsync(stateID);
+		const value = state ? this.parsePriceValue(state.val) : null;
+		if (value === null) return null;
+		const converted = calculation.convertUnitValue(
+			value,
+			this.unitPriceDef.unitConfig[activeState.stateDetails.stateUnit],
+			this.unitPriceDef.unitConfig[activeState.stateDetails.useUnit],
+		);
+		return Number.isFinite(converted) ? converted : null;
+	}
+
+	/**
+	 * Parse a number entered in the settings page (comma or dot).
+	 * @param {unknown} value - Value from the message
+	 * @returns {number | null} Number, or null if not numeric
+	 */
+	parseActionNumber(value) {
+		if (typeof value !== 'number' && typeof value !== 'string') return null;
+		return this.parsePriceValue(value);
+	}
+
+	/**
+	 * Look up an active source for an instant action.
+	 * @param {unknown} source - Source state ID from the message
+	 * @returns {{stateID: string} | {error: string, message: string}} Source or error
+	 */
+	resolveActionSource(source) {
+		if (typeof source !== 'string' || !source) return {error: 'missingSource', message: 'No source given'};
+		const activeState = this.activeStates[source];
+		if (!activeState || !activeState.stateDetails || !activeState.calcValues) {
+			return {error: 'sourceNotActive', message: `${source} is not an active SourceAnalytix source`};
+		}
+		return {stateID: source};
+	}
+
+	/**
+	 * Action "Align meter reading" (#640): set the total to the value shown by the meter.
+	 * The offset follows, and the start values move with the total so the consumption of
+	 * the running periods and the closed periods stay unchanged.
+	 * @param {string} stateID - Source state ID
+	 * @param {unknown} value - Meter reading in the calculation unit
+	 * @param {boolean} dryRun - Only return the preview
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async alignMeterReading(stateID, value, dryRun) {
+		const activeState = this.activeStates[stateID];
+		const calcValues = activeState.calcValues;
+		const isPower = this.usesOwnTotal(activeState.stateDetails);
+		const plan = sourceActions.planAlignMeterReading({
+			target: this.parseActionNumber(value),
+			cumulative: this.getNumberOrDefault(calcValues.cumulativeValue, 0),
+			offset: isPower ? null : calcValues.valueAtDeviceReset,
+			rawReading: isPower ? null : await this.getDeviceReadingInCalculationUnit(stateID),
+			startValues: calcValues,
+		});
+		if (!plan.valid) return {error: plan.error, message: `Meter reading ${JSON.stringify(value)} is not valid`};
+		const result = {
+			ok: true,
+			unit: activeState.stateDetails.useUnit,
+			previousCumulative: this.getNumberOrDefault(calcValues.cumulativeValue, 0),
+			cumulative: plan.cumulative,
+			delta: plan.delta,
+			valueAtDeviceReset: isPower ? null : plan.offset,
+			startValues: plan.startValues,
+		};
+		if (dryRun) return result;
+
+		const delta = plan.delta || 0;
+		Object.assign(calcValues, plan.startValues);
+		calcValues.cumulativeValue = plan.cumulative;
+		activeState.pendingDeviceReset = null;
+		activeState.confirmedDeviceReset = null;
+		activeState.realignDeviceOffset = false;
+		activeState.pendingMeterSwap = null;
+		if (activeState.readingGap && Number.isFinite(activeState.readingGap.lastTotal)) activeState.readingGap.lastTotal += delta;
+		const memory = {...plan.startValues};
+		if (!isPower) {
+			calcValues.valueAtDeviceReset = plan.offset;
+			memory.valueAtDeviceReset = plan.offset;
+			memory.pendingMeterSwap = null;
+		}
+		// The jump of the total is no consumption: move the cost tracker with it
+		if (this.usesHistoricalCostCalculation(stateID)) {
+			const dynamicCosts = activeState.dynamicCosts || await this.loadDynamicCostMemory(stateID);
+			if (dynamicCosts && dynamicCosts.totals) {
+				activeState.dynamicCosts = dynamicCosts;
+				const lastReading = this.parsePriceValue(dynamicCosts.lastReading);
+				dynamicCosts.lastReading = lastReading === null ? plan.cumulative : lastReading + delta;
+				await this.persistDynamicCostMemory(stateID, dynamicCosts);
+			}
+		}
+		await this.persistSourceMemory(stateID, memory);
+		await this.setStateAsync(`${activeState.stateDetails.deviceName}.cumulativeReading`, {val: plan.cumulative, ack: true});
+		this.recordStatisticsValue(stateID, 'cumulativeReading', plan.cumulative);
+		this.log.info(`Meter reading of ${stateID} aligned from ${result.previousCumulative} to ${plan.cumulative} ${result.unit}${isPower ? '' : `, valueAtDeviceReset ${plan.offset}`}`);
+		if (!isPower) {
+			const current = await this.getForeignStateAsync(stateID);
+			if (current) await this.calculationHandler(stateID, current);
+		}
+		return result;
+	}
+
+	/**
+	 * Action "Meter swapped": the total continues from the end reading of the old meter and
+	 * counts on with the new meter from its start reading.
+	 * @param {string} stateID - Source state ID
+	 * @param {unknown} oldEnd - Total at the removal of the old meter (calculation unit)
+	 * @param {unknown} newStart - Reading of the new meter at installation (calculation unit)
+	 * @param {unknown} date - Date of the swap (informational)
+	 * @param {boolean} dryRun - Only return the preview
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async applyMeterSwap(stateID, oldEnd, newStart, date, dryRun) {
+		const activeState = this.activeStates[stateID];
+		if (this.usesOwnTotal(activeState.stateDetails)) {
+			return {error: 'powerSource', message: `${stateID} measures power, a meter swap does not apply`};
+		}
+		const calcValues = activeState.calcValues;
+		const previousCumulative = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
+		const plan = sourceActions.planMeterSwap({
+			oldEnd: this.parseActionNumber(oldEnd),
+			newStart: newStart === undefined || newStart === null || newStart === '' ? 0 : this.parseActionNumber(newStart),
+			cumulative: previousCumulative,
+		});
+		if (!plan.valid) return {error: plan.error, message: `Meter swap values are not valid (${plan.error})`, cumulative: previousCumulative};
+		const result = {
+			ok: true,
+			unit: activeState.stateDetails.useUnit,
+			previousCumulative,
+			cumulative: plan.cumulative,
+			addedConsumption: plan.addedConsumption,
+			valueAtDeviceReset: plan.offset,
+		};
+		if (dryRun) return result;
+
+		const rawReading = await this.getDeviceReadingInCalculationUnit(stateID);
+		const newMeterStart = (plan.cumulative || 0) - (plan.offset || 0);
+		// Last value of the old meter as the device reported it
+		const lastOldMeterReading = previousCumulative - this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0);
+		const pendingMeterSwap = {
+			rawAtSwap: lastOldMeterReading,
+			newStart: newMeterStart,
+			date: typeof date === 'string' || typeof date === 'number' ? date : Date.now(),
+		};
+		const deviceShowsNewMeter = rawReading !== null && !sourceActions.isOldMeterReading(rawReading, pendingMeterSwap);
+		calcValues.valueAtDeviceReset = plan.offset;
+		calcValues.cumulativeValue = plan.cumulative;
+		activeState.pendingDeviceReset = null;
+		activeState.confirmedDeviceReset = null;
+		activeState.realignDeviceOffset = false;
+		activeState.pendingMeterSwap = deviceShowsNewMeter ? null : pendingMeterSwap;
+		await this.persistSourceMemory(stateID, {
+			valueAtDeviceReset: plan.offset,
+			pendingMeterSwap: activeState.pendingMeterSwap,
+		});
+		await this.setStateAsync(`${activeState.stateDetails.deviceName}.cumulativeReading`, {val: plan.cumulative, ack: true});
+		this.recordStatisticsValue(stateID, 'cumulativeReading', plan.cumulative);
+		this.log.info(`Meter swap for ${stateID} applied: old meter ended at ${plan.cumulative} ${result.unit}, new meter starts at ${newMeterStart}, valueAtDeviceReset ${plan.offset}`);
+		if (deviceShowsNewMeter) {
+			const current = await this.getForeignStateAsync(stateID);
+			if (current) await this.calculationHandler(stateID, current);
+		}
+		return result;
+	}
+
+	/**
+	 * Create the state that shows the progress of a running cost recalculation.
+	 */
+	async ensureCostRecalculationState() {
+		await this.extendObjectIfChanged(costRecalculationState, {
+			type: 'state',
+			common: {
+				name: 'Progress of the cost recalculation',
+				type: 'string',
+				role: 'json',
+				read: true,
+				write: false,
+				def: '',
+			},
+			native: {},
+		});
+	}
+
+	/**
+	 * Action "Recalculate costs from date" (#947): consumption stays as it is; the costs or
+	 * earnings of all periods ending after the date are calculated again from the stored
+	 * consumption with the price history (plus the basic fee if the source books it).
+	 * Progress is written to info.costRecalculation.
+	 * @param {string[]} stateIDs - Active sources
+	 * @param {number} from - Start timestamp
+	 * @param {boolean} dryRun - Only list the affected periods
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async recalculateCosts(stateIDs, from, dryRun) {
+		const now = Date.now();
+		const jobs = [];
+		for (const stateID of stateIDs) {
+			const activeState = this.activeStates[stateID];
+			if (!activeState.stateDetails.costs) continue;
+			const deviceName = activeState.stateDetails.deviceName;
+			const root = `${this.namespace}.${deviceName}`;
+			const existing = await this.getForeignStatesAsync(`${root}.*`) || {};
+			const periods = sourceActions.listRecalcPeriods({from, now, config: this.config, weekdays, months})
+				.map(period => ({
+					...period,
+					quantityId: `${root}.${period.path.replace('{cat}', activeState.stateDetails.headCategory)}`,
+					costId: `${root}.${period.path.replace('{cat}', activeState.stateDetails.financialCategory)}`,
+				}))
+				.filter(period => existing[period.quantityId] && existing[period.costId]
+					&& this.parsePriceValue(existing[period.quantityId].val) !== null);
+			jobs.push({stateID, periods, existing});
+		}
+		const total = jobs.reduce((sum, job) => sum + job.periods.length, 0);
+		const summary = {};
+		for (const job of jobs) {
+			for (const period of job.periods) summary[period.kind] = (summary[period.kind] || 0) + 1;
+		}
+		const result = {ok: true, from, sources: jobs.map(job => job.stateID), total, periods: summary};
+		if (dryRun || total === 0) return result;
+
+		await this.ensureCostRecalculationState();
+		let done = 0;
+		const writeProgress = async (running) => {
+			await this.setStateAsync(costRecalculationState, {
+				val: JSON.stringify({running, done, total, from, sources: result.sources, ts: Date.now()}),
+				ack: true,
+			});
+		};
+		await writeProgress(true);
+		for (const job of jobs) {
+			const activeState = this.activeStates[job.stateID];
+			if (!activeState) continue;
+			const priceDefinition = activeState.stateDetails.stateType;
+			const priceHistory = await this.loadPriceHistory(priceDefinition);
+			const basicHistory = activeState.stateDetails.basicRate ? await this.loadBasicPriceHistory(priceDefinition) : [];
+			const basicCharges = sourceActions.getBasicPriceCharges(basicHistory, now);
+			const currentVariable = {};
+			for (const period of job.periods) {
+				const consumption = this.getNumberOrDefault(job.existing[period.quantityId].val, 0);
+				const costs = sourceActions.calculatePeriodCosts({
+					consumption,
+					start: period.start,
+					end: period.end,
+					priceHistory,
+					fallbackPrice: activeState.prices.unitPrice,
+					basicCharges,
+				});
+				done++;
+				if (!costs) continue;
+				await this.setForeignStateAsync(period.costId, {val: await this.roundCosts(costs.total, job.stateID), ack: true});
+				const currentKey = {
+					'currentYear.{cat}.01_currentDay': 'priceDay',
+					'currentYear.{cat}.02_currentWeek': 'priceWeek',
+					'currentYear.{cat}.03_currentMonth': 'priceMonth',
+					'currentYear.{cat}.04_currentQuarter': 'priceQuarter',
+					'currentYear.{cat}.05_currentYear': 'priceYear',
+				}[period.path];
+				if (currentKey) currentVariable[currentKey] = costs.variable;
+				if (done % 25 === 0) await writeProgress(true);
+			}
+			// Continue the running periods from the recalculated costs
+			if (this.usesHistoricalCostCalculation(job.stateID) && Object.keys(currentVariable).length) {
+				const dynamicCosts = activeState.dynamicCosts || await this.loadDynamicCostMemory(job.stateID);
+				const totals = {...(dynamicCosts && dynamicCosts.totals ? dynamicCosts.totals : {}), ...currentVariable};
+				activeState.dynamicCosts = {
+					version: 2,
+					lastReading: this.getNumberOrDefault(activeState.calcValues.cumulativeValue, 0),
+					lastTs: now,
+					totals: {
+						priceDay: this.getNumberOrDefault(totals.priceDay, 0),
+						priceWeek: this.getNumberOrDefault(totals.priceWeek, 0),
+						priceMonth: this.getNumberOrDefault(totals.priceMonth, 0),
+						priceQuarter: this.getNumberOrDefault(totals.priceQuarter, 0),
+						priceYear: this.getNumberOrDefault(totals.priceYear, 0),
+					},
+				};
+				await this.persistDynamicCostMemory(job.stateID, activeState.dynamicCosts);
+			}
+			await this.refreshStatisticsJson(job.stateID);
+			this.log.info(`Costs of ${job.stateID} recalculated from ${new Date(from).toISOString()} for ${job.periods.length} periods`);
+		}
+		await writeProgress(false);
+		return result;
+	}
+
+	/**
+	 * Action "Delete data" (#1265): deactivate the source and remove its output folder.
+	 * Works for active sources and for folders left behind by removed or deactivated ones.
+	 * @param {unknown} source - Source state ID
+	 * @param {unknown} requestedOutputId - Output folder, if no source is given
+	 * @param {boolean} dryRun - Only return what would be deleted
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async deleteSourceData(source, requestedOutputId, dryRun) {
+		let deviceName = null;
+		const sourceId = typeof source === 'string' && source ? source : null;
+		if (sourceId && this.activeStates[sourceId] && this.activeStates[sourceId].stateDetails) {
+			deviceName = this.activeStates[sourceId].stateDetails.deviceName;
+		} else if (sourceId) {
+			const sourceObject = await this.getForeignObjectAsync(sourceId);
+			const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
+			deviceName = custom && custom.outputId ? outputId.resolveOutputId(custom.outputId, sourceId) : null;
+			if (!deviceName) {
+				const devices = await this.getDevicesAsync();
+				const device = devices.find(entry => entry.native && entry.native.sourceState === sourceId);
+				deviceName = device ? device._id.split('.').pop() || null : null;
+			}
+		} else if (typeof requestedOutputId === 'string' && requestedOutputId) {
+			deviceName = requestedOutputId;
+		}
+		if (!deviceName || !/^[^.*\s]+$/.test(deviceName)) {
+			return {error: 'outputNotFound', message: 'No output folder found for this source'};
+		}
+
+		const root = this.getFullOutputRoot(deviceName);
+		const states = await this.getOutputTreeStates(deviceName);
+		const deviceObject = await this.getObjectAsync(deviceName);
+		const sourceState = sourceId || (deviceObject && deviceObject.native && deviceObject.native.sourceState) || null;
+		const summary = sourceActions.summarizeOutputTree(root, Object.keys(states));
+		const cumulative = states[`${root}.cumulativeReading`] ? states[`${root}.cumulativeReading`].val : null;
+		const result = {ok: true, outputId: deviceName, source: sourceState, states: summary.states, years: summary.years, cumulative};
+		if (!deviceObject && summary.states === 0) return {error: 'outputNotFound', message: `Output folder ${deviceName} does not exist`};
+		if (dryRun) return result;
+
+		if (sourceState) {
+			if (this.activeStates[sourceState]) {
+				this.stopStatisticsJsonUpdates(sourceState);
+				delete this.activeStates[sourceState];
+				delete previousCalculationRounded[sourceState];
+				this.unsubscribeForeignStates(sourceState);
+			}
+			const sourceObject = await this.getForeignObjectAsync(sourceState);
+			if (sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace]) {
+				// Remove the SourceAnalytix settings, so the folder is not created again
+				await this.extendForeignObjectAsync(sourceState, {common: {custom: {[this.namespace]: null}}});
+			}
+		}
+		await this.deleteOutputTree(deviceName);
+		this.log.info(`Deleted the data of ${sourceState || deviceName}: ${summary.states} states in ${root}`);
+		return result;
+	}
+
+	/**
+	 * Collect all sources (configured datapoints and folders without a datapoint) for the settings page.
+	 * @returns {Promise<SaSourceSummary[]>} Source summaries
+	 */
+	async buildSourceSummaries() {
+		const summaries = sourceOverview.createSummaryList();
+		const knownOutputs = new Set();
+		const customView = await this.getObjectViewAsync('system', 'custom', {});
+		const today = this.getPeriodSnapshot(new Date()).date;
+		for (const row of customView && Array.isArray(customView.rows) ? customView.rows : []) {
+			const custom = row.value && row.value[this.namespace];
+			if (!custom) continue;
+			const sourceObject = await this.getForeignObjectAsync(row.id);
+			const activeState = this.activeStates[row.id];
+			const details = activeState && activeState.stateDetails;
+			const outputIdValue = details ? details.deviceName : outputId.resolveOutputId(custom.outputId, row.id);
+			knownOutputs.add(outputIdValue);
+			const sourceState = sourceObject ? await this.getForeignStateAsync(row.id) : null;
+			const common = sourceObject && sourceObject.type === 'state' ? sourceObject.common : null;
+			const priceDefinition = details ? details.stateType : custom.selectedPrice;
+			const priceConfig = priceDefinition ? this.unitPriceDef.pricesConfig[priceDefinition] : undefined;
+			const settings = {...custom};
+			for (const key of ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit']) delete settings[key];
+			const sourceValues = details ? await this.readSourceValues(details) : {values: {}, lastUpdate: null};
+			const periods = details ? await this.loadPeriodMemory(row.id) : null;
+			const summary = {
+				id: row.id,
+				name: (custom.alias && String(custom.alias).trim()) || (common && (typeof common.name === 'object' ? common.name.de || common.name.en : common.name)) || row.id,
+				enabled: !!custom.enabled,
+				active: !!details,
+				sourceExists: !!sourceObject,
+				sourceUnit: common && common.unit ? common.unit : null,
+				unit: details ? details.stateUnit : calculation.resolveUnit(custom.selectedUnit, this.unitPriceDef.unitConfig) || calculation.resolveUnit(common && common.unit, this.unitPriceDef.unitConfig) || null,
+				calcUnit: details ? details.useUnit : priceConfig ? priceConfig.unitType : null,
+				kind: details && this.usesOwnTotal(details) ? 'power' : 'meter',
+				priceDefinition: priceDefinition || null,
+				costType: priceConfig ? priceConfig.costType : null,
+				basicRate: custom.basicRate === true,
+				resetDetection: custom.deviceResetLogicEnabled ?? true,
+				outputId: outputIdValue,
+				cumulative: details ? this.getNumberOrDefault(activeState.calcValues.cumulativeValue, 0) : null,
+				valueAtDeviceReset: details ? activeState.calcValues.valueAtDeviceReset : custom.valueAtDeviceReset ?? null,
+				pendingRealign: !!(activeState && activeState.realignDeviceOffset),
+				pendingMeterSwap: !!(activeState && activeState.pendingMeterSwap),
+				decreasesWhileResetOff: activeState && activeState.decreasesWhileResetOff || 0,
+				valueType: sourceState ? typeof sourceState.val : null,
+				lastValue: sourceState ? sourceState.val : null,
+				lastValueTs: sourceState ? sourceState.ts : null,
+				lastUpdate: sourceValues.lastUpdate,
+				periodDate: details ? (periods && typeof periods.date === 'string' ? periods.date : today) : null,
+				values: sourceValues.values,
+				settings,
+				diagnostics: sourceObject ? sourceOverview.diagnoseSourceConfig({
+					custom,
+					unit: common && common.unit,
+					pricesConfig: this.unitPriceDef.pricesConfig,
+					unitConfig: this.unitPriceDef.unitConfig,
+				}) : [],
+			};
+			summaries.push(summary);
+		}
+		// Output folders whose source is gone or not configured anymore
+		const usedOutputIds = await this.getUsedOutputIds();
+		for (const [localId, sourceState] of Object.entries(usedOutputIds)) {
+			if (knownOutputs.has(localId)) continue;
+			const sourceObject = sourceState ? await this.getForeignObjectAsync(sourceState) : null;
+			summaries.push({
+				id: sourceState || localId,
+				name: localId,
+				orphan: true,
+				enabled: false,
+				active: false,
+				sourceExists: !!sourceObject,
+				outputId: localId,
+				values: {},
+				settings: {},
+				diagnostics: [],
+			});
+		}
+		return summaries;
+	}
+
+	/**
+	 * Current and previous period values of an active source.
+	 * @param {{deviceName: string, headCategory: string, financialCategory: string, costs: boolean}} details - stateDetails of the source
+	 * @returns {Promise<{values: Record<string, {quantity: number | null, money: number | null}>, lastUpdate: number | null}>} Values
+	 */
+	async readSourceValues(details) {
+		const root = `${this.namespace}.${details.deviceName}`;
+		const states = await this.getForeignStatesAsync(`${root}.currentYear.*`) || {};
+		const cumulativeState = await this.getForeignStateAsync(`${root}.cumulativeReading`);
+		const values = Object.fromEntries([]);
+		const read = id => {
+			const state = states[id];
+			return state ? this.parsePriceValue(state.val) : null;
+		};
+		for (const period of [...basicStates, ...basicPreviousStates]) {
+			values[period] = {
+				quantity: read(`${root}.currentYear.${details.headCategory}.${period}`),
+				money: details.costs ? read(`${root}.currentYear.${details.financialCategory}.${period}`) : null,
+			};
+		}
+		return {values, lastUpdate: cumulativeState ? cumulativeState.ts : null};
+	}
+
+	/**
+	 * Price definitions for the settings page.
+	 * @returns {Array<{cat: string, costType: string, unitType: string, unitPrice: number, basicPrice: number, priceSource: string}>} Loaded price definitions
+	 */
+	getPriceDefinitionList() {
+		return Object.values(this.unitPriceDef.pricesConfig).map(price => ({
+			cat: price.cat,
+			costType: price.costType,
+			unitType: price.unitType,
+			unitPrice: price.uPpU,
+			basicPrice: price.uPpM,
+			priceSource: price.priceSource,
+		}));
+	}
+
+	/**
+	 * Create or change the SourceAnalytix settings of a datapoint (#1269). The adapter applies them
+	 * through onObjectChange without a restart.
+	 * @param {unknown} source - Datapoint ID
+	 * @param {unknown} settings - Settings to write
+	 * @param {boolean} dryRun - Only validate
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async saveSource(source, settings, dryRun) {
+		if (typeof source !== 'string' || !source) return {error: 'missingSource', message: 'No source given'};
+		if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return {error: 'missingSettings', message: 'No settings given'};
+		const sourceObject = await this.getForeignObjectAsync(source);
+		if (!sourceObject || sourceObject.type !== 'state') return {error: 'sourceNotFound', message: `${source} is not a state`};
+		const current = sourceObject.common.custom && sourceObject.common.custom[this.namespace] || null;
+		const update = {...settings};
+		// Calculation memory is only changed by the adapter and its actions
+		for (const key of ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit']) delete update[key];
+		const merged = {...(current || {}), ...update};
+		const errors = Object.fromEntries([]);
+		if (!merged.selectedPrice || !this.unitPriceDef.pricesConfig[merged.selectedPrice]) errors.selectedPrice = 'priceMissing';
+		const findings = sourceOverview.diagnoseSourceConfig({
+			custom: merged,
+			unit: sourceObject.common.unit,
+			pricesConfig: this.unitPriceDef.pricesConfig,
+			unitConfig: this.unitPriceDef.unitConfig,
+		});
+		for (const finding of findings) {
+			if (finding.code.startsWith('unit')) errors.selectedUnit = finding.code;
+		}
+		if (update.outputId !== undefined && update.outputId !== '') {
+			const validation = outputId.validateResolvedOutputId(update.outputId, source);
+			if (!validation.valid) {
+				errors.outputId = 'invalid';
+			} else {
+				const requested = outputId.resolveOutputId(update.outputId, source);
+				const used = await this.getUsedOutputIds();
+				if (used[requested] && used[requested] !== source) errors.outputId = 'used';
+			}
+		}
+		const activeState = this.activeStates[source];
+		const cumulative = activeState ? this.getNumberOrDefault(activeState.calcValues.cumulativeValue, 0) : null;
+		const startErrors = sourceOverview.checkStartValues(merged, cumulative, new Date());
+		for (const [field, error] of Object.entries(startErrors)) {
+			// Only block start values that are changed now
+			if (update[field] !== undefined) errors[field] = error;
+		}
+		if (Object.keys(errors).length) return {error: 'invalidSettings', message: 'Settings are not valid', errors};
+		if (dryRun) return {ok: true, settings: merged};
+
+		const defaults = current ? {} : {
+			enabled: true,
+			consumption: true,
+			costs: true,
+			meter_values: true,
+			deviceResetLogicEnabled: true,
+		};
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {...defaults, ...update, enabled: update.enabled ?? (current ? current.enabled : true)}}}});
+		this.log.info(`${current ? 'Changed' : 'Created'} SourceAnalytix settings of ${source} from the settings page`);
+		return {ok: true, created: !current};
+	}
+
+	/**
+	 * Activate or deactivate a source; the collected data stays.
+	 * @param {unknown} source - Datapoint ID
+	 * @param {unknown} enabled - New state
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async setSourceEnabled(source, enabled) {
+		if (typeof source !== 'string' || !source) return {error: 'missingSource', message: 'No source given'};
+		const sourceObject = await this.getForeignObjectAsync(source);
+		const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
+		if (!custom) return {error: 'notConfigured', message: `${source} has no SourceAnalytix settings`};
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {enabled: enabled === true}}}});
+		this.log.info(`${enabled === true ? 'Activated' : 'Deactivated'} ${source} from the settings page`);
+		return {ok: true, enabled: enabled === true};
+	}
+
+	/**
+	 * Datapoints that can become a source, for the "add source" wizard.
+	 * @param {unknown} query - Search text (ID or name)
+	 * @returns {Promise<object>} Matching datapoints with unit and value
+	 */
+	async findSourceCandidates(query) {
+		const search = typeof query === 'string' ? query.trim().toLowerCase() : '';
+		const view = await this.getObjectViewAsync('system', 'state', {});
+		const used = Object.fromEntries([]);
+		const customView = await this.getObjectViewAsync('system', 'custom', {});
+		for (const row of customView && Array.isArray(customView.rows) ? customView.rows : []) {
+			const custom = row.value && row.value[this.namespace];
+			if (custom && custom.enabled) used[row.id] = custom.alias || row.id;
+		}
+		const candidates = [];
+		for (const row of view && Array.isArray(view.rows) ? view.rows : []) {
+			const object = row.value;
+			if (!object || !object.common || row.id.startsWith(`${this.namespace}.`) || row.id.startsWith('system.')) continue;
+			const unit = calculation.resolveUnit(object.common.unit, this.unitPriceDef.unitConfig);
+			if (!unit) continue;
+			const name = typeof object.common.name === 'object' ? object.common.name.de || object.common.name.en || '' : object.common.name || '';
+			if (search && !row.id.toLowerCase().includes(search) && !String(name).toLowerCase().includes(search)) continue;
+			candidates.push({id: row.id, name, unit, role: object.common.role || '', usedBy: used[row.id] || null});
+			if (candidates.length >= 50) break;
+		}
+		for (const candidate of candidates) {
+			const state = await this.getForeignStateAsync(candidate.id);
+			Object.assign(candidate, {
+				value: state ? state.val : null,
+				// Daily counters reset every night and are no good total
+				dailyCounter: /(today|heute|daily|day)/i.test(`${candidate.id} ${candidate.name}`),
+			});
+		}
+		return {ok: true, candidates};
+	}
+
+	/**
+	 * Everything the overview and problems tabs need in one call.
+	 * @returns {Promise<object>} Sources, problems, prices and units
+	 */
+	async getSourcesOverview() {
+		const sources = await this.buildSourceSummaries();
+		const {problems, passed} = sourceOverview.buildProblems(sources, Date.now());
+		for (const source of sources) source.status = sourceOverview.getSourceStatus(source, problems);
+		return {
+			ok: true,
+			sources,
+			problems,
+			passed,
+			checkedAt: Date.now(),
+			priceDefinitions: this.getPriceDefinitionList(),
+			units: Object.keys(this.unitPriceDef.unitConfig),
+			currency: useCurrency,
+		};
+	}
+
+	/**
+	 * Run an instant action requested through sendTo (settings page, scripts).
+	 * @param {string} command - Message command
+	 * @param {Record<string, unknown>} message - Message payload
+	 * @returns {Promise<object>} Response for the callback
+	 */
+	async handleActionMessage(command, message) {
+		const dryRun = message.dryRun === true;
+		if (command === 'getSources' || command === 'checkProblems') return this.getSourcesOverview();
+		if (command === 'saveSource') return this.saveSource(message.source, message.settings, dryRun);
+		if (command === 'setSourceEnabled') return this.setSourceEnabled(message.source, message.enabled);
+		if (command === 'findCandidates') return this.findSourceCandidates(message.query);
+		if (command === 'deleteSourceData') {
+			return this.deleteSourceData(message.source, message.outputId, dryRun);
+		}
+		if (command === 'recalcCosts') {
+			const from = typeof message.from === 'number' ? message.from : Date.parse(String(message.from));
+			if (!Number.isFinite(from) || from > Date.now()) return {error: 'invalidDate', message: `Date ${JSON.stringify(message.from)} is not valid`};
+			let stateIDs;
+			if (message.priceDefinition) {
+				stateIDs = Object.keys(this.activeStates).filter(id => this.activeStates[id].stateDetails
+					&& this.activeStates[id].stateDetails.stateType === message.priceDefinition);
+			} else {
+				const resolved = this.resolveActionSource(message.source);
+				if ('error' in resolved) return resolved;
+				stateIDs = [resolved.stateID];
+			}
+			return this.recalculateCosts(stateIDs, from, dryRun);
+		}
+		const resolved = this.resolveActionSource(message.source);
+		if ('error' in resolved) return resolved;
+		if (command === 'setCumulative') return this.alignMeterReading(resolved.stateID, message.value, dryRun);
+		return this.applyMeterSwap(resolved.stateID, message.oldEnd, message.newStart, message.date, dryRun);
+	}
+
 	//Function to handle messages from State settings and provide Unit and Price definitions
 	async onMessage(obj) {
 
@@ -4139,6 +4754,26 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.info(`Period rollover requested by ${obj.from}`);
 					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`);
 					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+					break;
+				}
+
+				case 'getSources':
+				case 'checkProblems':
+				case 'saveSource':
+				case 'setSourceEnabled':
+				case 'findCandidates':
+				case 'setCumulative':
+				case 'meterSwap':
+				case 'recalcCosts':
+				case 'deleteSourceData': {
+					let response;
+					try {
+						response = await this.handleActionMessage(obj.command, obj.message || {});
+					} catch (error) {
+						this.errorHandling(`[onMessage] ${obj.command}`, error);
+						response = {error: 'failed', message: error instanceof Error ? error.message : String(error)};
+					}
+					if (obj.callback) this.sendTo(obj.from, obj.command, response, obj.callback);
 					break;
 				}
 			}

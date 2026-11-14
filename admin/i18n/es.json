@@ -126,6 +126,8 @@
     "Decimals for cost values": "Decimales para los valores de coste",
     "Rounding decimals help": "Valor inicial que se copia en las fuentes recién configuradas. Las fuentes existentes conservan su propio valor. Use -1 para guardar el valor exacto sin redondeo.",
     "Individual rounding decimals help": "Use -1 para guardar el valor exacto sin redondeo.",
+    "Overview": "Resumen",
+    "Problems": "Problemas",
     "Start values header": "Valores iniciales de los periodos en curso",
     "Start values help": "Total al inicio del día, la semana, el mes, el trimestre y el año en curso, en la unidad de la definición de precio (por ejemplo kWh, no Wh). Solo se aplican a los periodos en curso; en el próximo cambio de periodo SourceAnalytix los establece por sí mismo. Deja un campo vacío para contar desde ahora. Coma o punto como separador decimal, sin separador de miles.",
     "Current total": "Total actual",

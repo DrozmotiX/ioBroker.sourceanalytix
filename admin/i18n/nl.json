@@ -126,6 +126,8 @@
     "Decimals for cost values": "Decimalen voor kostenwaarden",
     "Rounding decimals help": "Beginwaarde die naar nieuw geconfigureerde bronnen wordt gekopieerd. Bestaande bronnen behouden hun eigen waarde. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
     "Individual rounding decimals help": "Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
+    "Overview": "Overzicht",
+    "Problems": "Problemen",
     "Start values header": "Startwaarden van de lopende perioden",
     "Start values help": "Totaal aan het begin van de lopende dag, week, maand, kwartaal en jaar, in de eenheid van de prijsdefinitie (bijvoorbeeld kWh, niet Wh). Ze gelden alleen voor de lopende perioden; bij de volgende periodewissel stelt SourceAnalytix ze zelf in. Laat een veld leeg om vanaf nu te tellen. Komma of punt als decimaalteken, zonder scheidingsteken voor duizendtallen.",
     "Current total": "Huidig totaal",

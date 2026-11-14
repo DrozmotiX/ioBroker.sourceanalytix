@@ -10,6 +10,8 @@ export default [
 			"*.test.js",
 			"test/**/*.js",
 			"admin/admin.d.ts",
+			"admin/custom/",
+			"src-admin/",
 			"**/adapter-config.d.ts",
 		],
 	},

@@ -14,3 +14,8 @@ launch.json
 # i18n intermediate files
 admin/i18n/flat.txt
 admin/i18n/*/flat.txt
+
+# Settings page sources (src-admin) build output; the built bundle lives in admin/custom
+src-admin/node_modules
+src-admin/build
+src-admin/.__mf__temp

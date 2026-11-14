@@ -126,6 +126,8 @@
     "Decimals for cost values": "费用值的小数位数",
     "Rounding decimals help": "复制到新配置数据源的初始值。现有数据源保留各自的值。设为 -1 则保存精确值，不进行舍入。",
     "Individual rounding decimals help": "设为 -1 则保存精确值，不进行舍入。",
+    "Overview": "概览",
+    "Problems": "问题",
     "Start values header": "当前周期的起始值",
     "Start values help": "当前日、周、月、季度和年开始时的总值，单位为价格定义的单位（例如 kWh，而不是 Wh）。这些值只适用于当前周期；下一次周期切换时 SourceAnalytix 会自行设置。字段留空表示从现在开始计数。小数点可用逗号或点，不要使用千位分隔符。",
     "Current total": "当前总值",

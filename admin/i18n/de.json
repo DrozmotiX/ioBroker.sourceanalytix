@@ -126,6 +126,8 @@
     "Decimals for cost values": "Nachkommastellen für Kostenwerte",
     "Rounding decimals help": "Startwert, der in neu konfigurierte Quellen übernommen wird. Bestehende Quellen behalten ihren eigenen Wert. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
     "Individual rounding decimals help": "Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
+    "Overview": "Übersicht",
+    "Problems": "Probleme",
     "Start values header": "Startwerte der laufenden Zeiträume",
     "Start values help": "Gesamtstand zu Beginn des laufenden Tages, der Woche, des Monats, Quartals und Jahres, in der Einheit der Preisdefinition (zum Beispiel kWh, nicht Wh). Die Werte gelten nur für die laufenden Zeiträume; beim nächsten Periodenwechsel setzt SourceAnalytix sie selbst. Ein leeres Feld zählt ab jetzt. Komma oder Punkt als Dezimalzeichen, ohne Tausenderpunkt.",
     "Current total": "Aktueller Gesamtstand",

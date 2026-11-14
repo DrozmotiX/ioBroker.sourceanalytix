@@ -30,7 +30,9 @@
     "lib/calculation.js",
     "lib/dynamic-pricing.js",
     "lib/output-id.js",
+    "lib/source-actions.js",
     "lib/source-checks.js",
+    "lib/source-overview.js",
     "lib/statistics-json.js",
     "main.js"
   ],
@@ -62,7 +64,7 @@
   },
   "main": "main.js",
   "scripts": {
-    "test:js": "mocha \"{!(node_modules|test)/**/*.test.js,*.test.js,test/**/test!(PackageFiles|Startup).js}\"",
+    "test:js": "mocha \"{!(node_modules|test|src-admin)/**/*.test.js,*.test.js,test/**/test!(PackageFiles|Startup).js}\"",
     "test:package": "mocha test/package --exit",
     "test:integration": "mocha test/integration --exit",
     "check": "tsc --project tsconfig.check.json",
@@ -71,6 +73,7 @@
     "lint:js": "eslint",
     "translate": "translate-adapter",
     "build": "echo 'No compilation needed for JavaScript adapter'",
+    "build:admin": "npm --prefix src-admin ci && npm --prefix src-admin run build",
     "release": "release-script --all --branchPattern '*'",
     "release-dry": "release-script --all --dry"
   },

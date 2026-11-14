@@ -9,6 +9,8 @@
 	"exclude": [
 		"**/build",
 		"node_modules/",
+		"src-admin/",
+		"admin/custom/",
 		"widgets/",
 		"gulpfile.js"
 	]
