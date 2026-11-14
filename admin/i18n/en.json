@@ -134,5 +134,10 @@
     "Maximum gap between power values": "Maximum gap between power values (minutes)",
     "Maximum gap help": "Only affects power values (W/kW). If no new value arrives for longer, the last value is not extended over the pause: the interval counts as 0 and is logged. Empty or 0 = off, for devices that only send on change.",
     "Basic rate shared hint": "Another source with this price definition already includes the basic fee. Every source books the full basic fee, so it is counted several times. If the sources belong to one connection, enable \"Including basic rate\" on one source only.",
-    "Basic rate also included by": "Basic fee also included by"
+    "Basic rate also included by": "Basic fee also included by",
+    "Pulse counters": "Pulse counters",
+    "Pulses per unit": "Pulses per unit of the price definition",
+    "Pulses per unit help": "Only for the units piece and piece/min (pulses). Example: 1000 for a meter with 1000 imp/kWh and a price definition in kWh. Empty: the price definition must use the unit piece.",
+    "Each update adds its value": "Each update adds its value",
+    "Each update adds its value help": "For data points that send one update per pulse or a consumption increment instead of a meter reading, for example 1 or true per pulse, or 0.001 kWh per pulse. Every update is added, also an unchanged value. Negative values are ignored."
 }

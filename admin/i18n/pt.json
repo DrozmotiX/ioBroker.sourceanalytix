@@ -134,5 +134,10 @@
     "Maximum gap between power values": "Intervalo máximo entre valores de potência (minutos)",
     "Maximum gap help": "Afeta apenas valores de potência (W/kW). Se não chegar um valor novo durante mais tempo, o último valor não é prolongado pela pausa: o intervalo conta como 0 e é registado. Vazio ou 0 = desligado, para dispositivos que só enviam quando há alteração.",
     "Basic rate shared hint": "Outra fonte com esta definição de preço já inclui a taxa fixa. Cada fonte regista a taxa fixa completa, por isso ela é contada várias vezes. Se as fontes pertencerem a uma única ligação, ative \"Incluindo taxa básica\" apenas numa fonte.",
-    "Basic rate also included by": "Taxa fixa também incluída por"
+    "Basic rate also included by": "Taxa fixa também incluída por",
+    "Pulse counters": "Contadores de impulsos",
+    "Pulses per unit": "Impulsos por unidade da definição de preço",
+    "Pulses per unit help": "Apenas para as unidades piece e piece/min (impulsos). Exemplo: 1000 para um contador com 1000 imp/kWh e uma definição de preço em kWh. Vazio: a definição de preço tem de usar a unidade piece.",
+    "Each update adds its value": "Cada atualização soma o seu valor",
+    "Each update adds its value help": "Para pontos de dados que enviam uma atualização por impulso ou um incremento de consumo em vez de uma leitura do contador, por exemplo 1 ou true por impulso, ou 0,001 kWh por impulso. Cada atualização é somada, também um valor inalterado. Valores negativos são ignorados."
 }

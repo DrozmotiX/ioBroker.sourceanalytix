@@ -134,5 +134,10 @@
     "Maximum gap between power values": "Maksymalna przerwa między wartościami mocy (minuty)",
     "Maximum gap help": "Dotyczy tylko wartości mocy (W/kW). Jeśli dłużej nie przychodzi nowa wartość, ostatnia wartość nie jest przedłużana na przerwę: odcinek liczy się jako 0 i jest zapisywany w logu. Puste lub 0 = wyłączone, dla urządzeń wysyłających tylko przy zmianie.",
     "Basic rate shared hint": "Inne źródło z tą definicją ceny zawiera już opłatę stałą. Każde źródło księguje pełną opłatę stałą, więc jest ona liczona wielokrotnie. Jeśli źródła należą do jednego przyłącza, włącz „W tym stawka podstawowa” tylko w jednym źródle.",
-    "Basic rate also included by": "Opłata stała zawarta także w"
+    "Basic rate also included by": "Opłata stała zawarta także w",
+    "Pulse counters": "Liczniki impulsów",
+    "Pulses per unit": "Impulsy na jednostkę definicji ceny",
+    "Pulses per unit help": "Tylko dla jednostek piece i piece/min (impulsy). Przykład: 1000 dla licznika 1000 imp/kWh i definicji ceny w kWh. Puste: definicja ceny musi używać jednostki piece.",
+    "Each update adds its value": "Każda aktualizacja dodaje swoją wartość",
+    "Each update adds its value help": "Dla punktów danych, które zamiast stanu licznika wysyłają jedną aktualizację na impuls lub przyrost zużycia, na przykład 1 lub true na impuls albo 0,001 kWh na impuls. Każda aktualizacja jest dodawana, także niezmieniona wartość. Wartości ujemne są ignorowane."
 }

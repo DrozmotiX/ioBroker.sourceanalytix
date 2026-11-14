@@ -134,5 +134,10 @@
     "Maximum gap between power values": "Intervallo massimo tra valori di potenza (minuti)",
     "Maximum gap help": "Vale solo per valori di potenza (W/kW). Se non arriva un nuovo valore per più tempo, l'ultimo valore non viene esteso sulla pausa: l'intervallo conta come 0 e viene registrato. Vuoto o 0 = disattivato, per dispositivi che inviano solo in caso di modifica.",
     "Basic rate shared hint": "Un'altra sorgente con questa definizione di prezzo include già la quota fissa. Ogni sorgente registra l'intera quota fissa, quindi viene conteggiata più volte. Se le sorgenti appartengono a un unico allacciamento, attiva \"Inclusa tariffa base\" solo su una sorgente.",
-    "Basic rate also included by": "Quota fissa inclusa anche da"
+    "Basic rate also included by": "Quota fissa inclusa anche da",
+    "Pulse counters": "Contatori di impulsi",
+    "Pulses per unit": "Impulsi per unità della definizione di prezzo",
+    "Pulses per unit help": "Solo per le unità piece e piece/min (impulsi). Esempio: 1000 per un contatore con 1000 imp/kWh e una definizione di prezzo in kWh. Vuoto: la definizione di prezzo deve usare l'unità piece.",
+    "Each update adds its value": "Ogni aggiornamento somma il suo valore",
+    "Each update adds its value help": "Per punti dati che inviano un aggiornamento per impulso o un incremento di consumo invece di una lettura del contatore, ad esempio 1 o true per impulso, o 0,001 kWh per impulso. Ogni aggiornamento viene sommato, anche un valore invariato. I valori negativi vengono ignorati."
 }

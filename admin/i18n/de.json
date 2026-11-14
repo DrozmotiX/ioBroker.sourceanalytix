@@ -134,5 +134,10 @@
     "Maximum gap between power values": "Maximale Lücke zwischen Leistungswerten (Minuten)",
     "Maximum gap help": "Wirkt nur bei Leistungswerten (W/kW). Kommt länger kein neuer Wert, wird der letzte Wert nicht über die Pause fortgeschrieben: Der Abschnitt zählt als 0 und wird im Log gemeldet. Leer oder 0 = aus, für Geräte, die nur bei Änderung senden.",
     "Basic rate shared hint": "Eine andere Quelle mit dieser Preisdefinition enthält den Grundpreis bereits. Jede Quelle bucht den vollen Grundpreis, er wird also mehrfach gezählt. Gehören die Quellen zu einem Anschluss, aktiviere „Inklusive Grundpreis“ nur bei einer Quelle.",
-    "Basic rate also included by": "Grundpreis auch enthalten in"
+    "Basic rate also included by": "Grundpreis auch enthalten in",
+    "Pulse counters": "Impulszähler",
+    "Pulses per unit": "Impulse pro Einheit der Preisdefinition",
+    "Pulses per unit help": "Nur für die Einheiten piece und piece/min (Impulse). Beispiel: 1000 für einen Zähler mit 1000 imp/kWh und eine Preisdefinition in kWh. Leer: Die Preisdefinition muss die Einheit piece haben.",
+    "Each update adds its value": "Jede Aktualisierung addiert ihren Wert",
+    "Each update adds its value help": "Für Datenpunkte, die je Impuls eine Aktualisierung oder einen Verbrauchszuwachs statt eines Zählerstands senden, zum Beispiel 1 oder true je Impuls oder 0,001 kWh je Impuls. Jede Aktualisierung wird addiert, auch ein unveränderter Wert. Negative Werte werden ignoriert."
 }

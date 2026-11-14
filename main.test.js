@@ -80,10 +80,10 @@ describe('unit conversion', () => {
 		assert.equal(areUnitsCompatible(undefined, units.kWh), false);
 	});
 
-	it('supports exactly the 31 documented units', () => {
+	it('supports exactly the 32 documented units', () => {
 		assert.deepEqual(Object.keys(units).sort(), [
 			'GW', 'GWh', 'MW', 'MWh', 'W', 'Wh', 'cl', 'cm', 'cm³', 'dl', 'dm', 'dm³', 'g', 'hl', 'kW', 'kWh',
-			'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 'piece', 't', 'µm',
+			'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 'piece', 'piece/min', 't', 'µm',
 		].sort());
 	});
 

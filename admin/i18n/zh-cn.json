@@ -134,5 +134,10 @@
     "Maximum gap between power values": "功率值之间的最大间隔（分钟）",
     "Maximum gap help": "仅对功率值（W/kW）有效。如果超过此时间没有新值，最后一个值不会延续到中断期间：该区间计为 0 并记录到日志。留空或 0 = 关闭，适用于仅在变化时发送的设备。",
     "Basic rate shared hint": "另一个使用此价格定义的数据源已包含基本费用。每个数据源都会计入完整的基本费用，因此会被重复计算。如果这些数据源属于同一个接入点，请只在一个数据源上启用“含基本费率”。",
-    "Basic rate also included by": "基本费用也包含在"
+    "Basic rate also included by": "基本费用也包含在",
+    "Pulse counters": "脉冲计数器",
+    "Pulses per unit": "每价格定义单位的脉冲数",
+    "Pulses per unit help": "仅适用于单位 piece 和 piece/min（脉冲）。示例：电表为 1000 imp/kWh、价格定义单位为 kWh 时填 1000。留空：价格定义必须使用单位 piece。",
+    "Each update adds its value": "每次更新累加其数值",
+    "Each update adds its value help": "适用于不发送电表读数、而是每个脉冲发送一次更新或一个消耗增量的数据点，例如每个脉冲 1 或 true，或每个脉冲 0.001 kWh。每次更新都会累加，即使数值未变。负值将被忽略。"
 }

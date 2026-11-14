@@ -238,14 +238,25 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * Whether a source is integrated over time (power) instead of reporting a meter reading.
-	 * All power units are handled alike, not only W (#1267).
+	 * Whether a source is integrated over time (power, pulse rate) instead of reporting a meter reading.
+	 * All power units are handled alike, not only W (#1267); pulse rates per minute too (#74).
 	 * @param {{stateUnit?: string} | undefined} stateDetails - Active state details
 	 * @returns {boolean} True for integrated sources
 	 */
 	isIntegratedSource(stateDetails) {
 		const unitConfig = this.unitPriceDef && this.unitPriceDef.unitConfig ? this.unitPriceDef.unitConfig : defaultUnitConfig;
 		return !!stateDetails && calculation.isIntegratedUnit(stateDetails.stateUnit || '', unitConfig);
+	}
+
+	/**
+	 * Whether SourceAnalytix keeps the total of a source itself instead of reading a meter:
+	 * integrated sources (power, pulse rate) and sources whose updates are increments (#479).
+	 * Such sources start at 0 and need no reset detection, start value initialisation or gap split.
+	 * @param {{stateUnit?: string, incrementValues?: boolean} | undefined} stateDetails - Active state details
+	 * @returns {boolean} True if the total is kept by SourceAnalytix
+	 */
+	usesOwnTotal(stateDetails) {
+		return this.isIntegratedSource(stateDetails) || !!(stateDetails && stateDetails.incrementValues === true);
 	}
 
 	/**
@@ -1629,6 +1640,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		let total = null;
 		let totalUnit = null;
+		let pulsesPerUnit;
 		const activeState = this.activeStates[sourceId];
 		if (activeState && activeState.stateDetails && activeState.calcValues && !activeState.firstActivation) {
 			total = Number(activeState.calcValues.cumulativeValue);
@@ -1639,9 +1651,11 @@ class Sourceanalytix extends utils.Adapter {
 			const sourceUnit = calculation.resolveUnit(custom && custom.selectedUnit, unitConfig)
 				|| calculation.resolveUnit(object && object.common ? object.common.unit : undefined, unitConfig);
 			if (!sourceUnit) return context;
-			if (calculation.isIntegratedUnit(sourceUnit, unitConfig)) {
+			pulsesPerUnit = custom ? custom.pulsesPerUnit : undefined;
+			if (calculation.isIntegratedUnit(sourceUnit, unitConfig) || (custom && custom.incrementValues === true)) {
+				// Power, pulse rates and increments start their own total at 0 (#74, #479)
 				for (const [priceDefinition, priceConfig] of Object.entries(pricesConfig)) {
-					if (calculation.areUnitsCompatible(unitConfig[sourceUnit], unitConfig[priceConfig.unitType])) context.readings[priceDefinition] = 0;
+					if (calculation.areUnitsCompatible(unitConfig[sourceUnit], unitConfig[priceConfig.unitType], pulsesPerUnit)) context.readings[priceDefinition] = 0;
 				}
 				return context;
 			}
@@ -1651,7 +1665,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 		if (!Number.isFinite(total) || !totalUnit) return context;
 		for (const [priceDefinition, priceConfig] of Object.entries(pricesConfig)) {
-			const converted = calculation.convertUnitValue(Number(total), unitConfig[totalUnit], unitConfig[priceConfig.unitType]);
+			const converted = calculation.convertUnitValue(Number(total), unitConfig[totalUnit], unitConfig[priceConfig.unitType], pulsesPerUnit);
 			if (converted !== null && Number.isFinite(converted)) context.readings[priceDefinition] = Number(converted.toFixed(6));
 		}
 		return context;
@@ -2072,6 +2086,12 @@ class Sourceanalytix extends utils.Adapter {
 					initError = true;
 				}
 
+				// Pulse counters: pulses per unit of the price definition, and sources whose updates are increments (#74, #479)
+				const pulsesPerUnit = calculation.normalizePulsesPerUnit(customData.pulsesPerUnit);
+				const integratedSource = calculation.isIntegratedUnit(useUnit, this.unitPriceDef.unitConfig);
+				const incrementValues = !integratedSource && customData.incrementValues === true;
+				const ownTotal = integratedSource || incrementValues;
+
 				// Load state price definition
 				if (!customData.selectedPrice || customData.selectedPrice === '' || customData.selectedPrice === 'Choose') {
 					this.log.error(`No cost type defined for ${stateID}, please Select Type of calculation at state setting`);
@@ -2084,9 +2104,13 @@ class Sourceanalytix extends utils.Adapter {
 				} else if (useUnit) {
 					// Reject unit combinations that cannot be converted (#1278)
 					const targetUnit = this.unitPriceDef.pricesConfig[customData.selectedPrice].unitType;
-					if (!calculation.areUnitsCompatible(this.unitPriceDef.unitConfig[useUnit], this.unitPriceDef.unitConfig[targetUnit])) {
+					if (!calculation.areUnitsCompatible(this.unitPriceDef.unitConfig[useUnit], this.unitPriceDef.unitConfig[targetUnit], pulsesPerUnit)) {
 						this.log.error(`Unit ${useUnit} of ${stateID} cannot be converted to unit ${targetUnit} of price definition ${customData.selectedPrice}`);
-						this.log.error(`Please choose a price definition with a matching unit (power sources need an energy unit such as kWh)`);
+						if (['piece', 'piece/min'].includes(useUnit)) {
+							this.log.error(`Please enter "Pulses per unit" (for example 1000 for 1000 imp/kWh) or choose a price definition with unit piece`);
+						} else {
+							this.log.error(`Please choose a price definition with a matching unit (power sources need an energy unit such as kWh)`);
+						}
 						initError = true;
 					}
 				}
@@ -2096,8 +2120,8 @@ class Sourceanalytix extends utils.Adapter {
 				// offset with the next reading so the known total is continued (#1257).
 				let realignDeviceOffset = false;
 				if (valueAtDeviceReset > cumulativeValue){
-					// Ignore issue if categories = Watt, init value not used
-					if (!calculation.isIntegratedUnit(useUnit, this.unitPriceDef.unitConfig)) {
+					// Ignore issue for sources with their own total (power, pulse rate, increments), offset not used
+					if (!ownTotal) {
 						this.log.warn(`Known valueAtDeviceReset (${valueAtDeviceReset}) of ${stateID} is larger than the known cumulative value (${cumulativeValue}); the offset will be realigned with the next reading so the total continues from ${cumulativeValue}`);
 						this.log.debug(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
 						realignDeviceOffset = true;
@@ -2119,8 +2143,8 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Load state settings to memory
 				this.activeStates[stateID] = {
-					// Integrated sources (power) start their total at 0 and need no start values (#1267)
-					firstActivation: !calculation.isIntegratedUnit(useUnit, this.unitPriceDef.unitConfig) && valueAtDeviceReset === null,
+					// Sources with their own total (power, pulse rate, increments) start at 0 and need no start values (#1267)
+					firstActivation: !ownTotal && valueAtDeviceReset === null,
 					realignDeviceOffset,
 					stateDetails: {
 						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
@@ -2135,11 +2159,13 @@ class Sourceanalytix extends utils.Adapter {
 						headCategory: stateType === 'earnings' ? 'delivered' : 'consumed',
 						meter_values: customData.meter_values,
 						name: commonData.name || 'No name known, please provide alias',
+						pulsesPerUnit,
 						stateType: customData.selectedPrice,
 						stateUnit: useUnit,
 						useUnit: selectedPriceConfig.unitType,
 						deviceResetLogicEnabled: customData.deviceResetLogicEnabled ?? true,
 						ignoreNegativeValues: customData.ignoreNegativeValues === true,
+						incrementValues,
 						maxPowerGap: calculation.normalizeMaxPowerGap(customData.maxPowerGap),
 						threshold: customData.threshold ?? 1,
 					},
@@ -2295,7 +2321,10 @@ class Sourceanalytix extends utils.Adapter {
 			// Handle calculation
 			const value = await this.getForeignStateAsync(stateID);
 			this.log.debug(`First time calc result after initialising ${stateID}  with value ${JSON.stringify(value)}`);
-			if (value) {
+			if (value && stateDetails.incrementValues) {
+				// The current value of an increment source was already counted when it arrived (#479)
+				this.activeStates[stateID].lastIncrementTs = this.getTimestampOrNow(value.ts);
+			} else if (value) {
 				// await this.buildVisWidgetJson(stateID);
 				await this.calculationHandler(stateID, value);
 			}
@@ -2843,7 +2872,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async rememberReadingGap(stateID, changes, previousPeriods, lastTotal, previousPeriodTimestamp) {
 		const activeState = this.activeStates[stateID];
-		if (!activeState || !activeState.stateDetails || this.isIntegratedSource(activeState.stateDetails)) return;
+		if (!activeState || !activeState.stateDetails || this.usesOwnTotal(activeState.stateDetails)) return;
 		if (activeState.readingGap || !changes.day) {
 			activeState.readingGap = null;
 			return;
@@ -3438,6 +3467,9 @@ class Sourceanalytix extends utils.Adapter {
 			const stateDetails = activeState.stateDetails;
 			const statePrices = activeState.prices;
 			const currentCath = this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
+			// Power and pulse rates are integrated over time, increments are added up: both keep their own total (#74, #479)
+			const integrated = this.isIntegratedSource(stateDetails);
+			const ownTotal = this.usesOwnTotal(stateDetails);
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
 			const date = calculationDate instanceof Date ? calculationDate : new Date();
 			const readingTimestamp = this.getStateChangeTimestamp(stateVal);
@@ -3453,21 +3485,35 @@ class Sourceanalytix extends utils.Adapter {
 			// Define proper calculation value
 			let reading;
 
-			if (currentCath === 'Watt') {
-				// Convert watt to watt-hours
+			if (integrated) {
+				// Integrate power (or a pulse rate) over the interval since the last value
 				reading = await this.wattToWattHour(stateID, stateVal);
 				if (reading === null || reading === undefined) return;
 			} else {
-				// Accept numeric strings like "12,5" or ".14" from the source state
-				const sourceValue = this.parsePriceValue(stateVal.val);
+				// Accept numeric strings like "12,5" or ".14" from the source state; a pulse may arrive as true (#479)
+				const sourceValue = stateDetails.incrementValues && typeof stateVal.val === 'boolean'
+					? Number(stateVal.val)
+					: this.parsePriceValue(stateVal.val);
 				if (sourceValue === null) {
 					this.log.warn(`Value ${JSON.stringify(stateVal.val)} of ${stateID} is not a number, reading ignored`);
 					return;
+				}
+				if (stateDetails.incrementValues) {
+					// Every update adds its value, also an unchanged one, so compare the update time (ts), not
+					// the last change (lc); the same update must not be counted twice (#479)
+					const updateTimestamp = this.getTimestampOrNow(stateVal.ts);
+					if (updateTimestamp === activeState.lastIncrementTs) return;
+					if (sourceValue < 0) {
+						this.log.debug(`[calculationHandler] Ignoring negative increment ${sourceValue} of ${stateID}`);
+						return;
+					}
+					activeState.lastIncrementTs = updateTimestamp;
 				}
 				reading = calculation.convertUnitValue(
 					sourceValue,
 					this.unitPriceDef.unitConfig[stateDetails.stateUnit],
 					this.unitPriceDef.unitConfig[stateDetails.useUnit],
+					stateDetails.pulsesPerUnit,
 				);
 			}
 
@@ -3485,9 +3531,18 @@ class Sourceanalytix extends utils.Adapter {
 				return;
 			}
 
-			if (currentCath === 'Watt') {
-				// Add calculated watt reading to stored totals
-				reading = (reading * Math.pow(10, (currentExponent - targetExponent))) + calcValues.cumulativeValue;
+			if (integrated) {
+				// Add the integrated energy (or pulses converted with the pulse factor) to the stored total
+				const integratedValue = calculation.convertIntegratedValue(
+					reading,
+					this.unitPriceDef.unitConfig[stateDetails.stateUnit],
+					this.unitPriceDef.unitConfig[stateDetails.useUnit],
+					stateDetails.pulsesPerUnit,
+				);
+				reading = integratedValue === null ? NaN : integratedValue + calcValues.cumulativeValue;
+			} else if (stateDetails.incrementValues) {
+				// The value is an increment, not a meter reading (#479)
+				reading = reading + this.getNumberOrDefault(calcValues.cumulativeValue, 0);
 			}
 
 			if (!Number.isFinite(reading)) {
@@ -3497,7 +3552,7 @@ class Sourceanalytix extends utils.Adapter {
 
 			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 
-			if (currentCath !== 'Watt') {
+			if (!ownTotal) {
 				if (activeState.realignDeviceOffset) {
 					activeState.realignDeviceOffset = false;
 					const knownTotal = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
@@ -3597,7 +3652,7 @@ class Sourceanalytix extends utils.Adapter {
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
 			}
 
-			if (currentCath !== 'Watt') {
+			if (!ownTotal) {
 				if (activeState.readingGap) await this.splitReadingGap(stateID, reading, readingTimestamp);
 				activeState.lastReadingTs = readingTimestamp;
 			}
