@@ -181,6 +181,7 @@ SourceAnalytix automatically converts values only between compatible quantities:
 | Liquid volume | `hl`, `l`, `dl`, `cl`, `ml` |
 | Mass | `t`, `kg`, `g` |
 | Metric length | `km`, `m`, `dm`, `cm`, `mm`, `µm`, `nm` |
+| Count (no physical unit, e.g. burner starts) | `piece` (also recognised as `pcs`, `pc`, `Stk`, `Stück`) |
 
 Liter and cubic-meter units can be converted into each other. Incompatible conversions, such as kilograms to kWh or meters to liters, are rejected instead of producing misleading results.
 
@@ -341,6 +342,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * All power units (`W`, `kW`, `MW`, …) are handled alike: no start value initialisation from the first reading, and running `kW` intervals are closed at midnight like `W` intervals ([#1267](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1267)).
 * New source setting "Maximum gap between power values" for power sources: an interval without a new value that is longer than the setting is not extrapolated with the last power value but counted as 0 and logged, so a device or network outage no longer produces huge consumption and costs. Empty (default) keeps the previous behaviour for devices that only send on change ([#1266](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1266)).
 * The state settings show a hint when another source with the same price definition already includes the basic fee, because every such source books the full basic fee; the adapter logs the same hint at start. The calculation is unchanged ([#1268](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1268)).
+* New unit `piece` with factor 1 for counters without a physical unit, such as burner starts; the spellings `pcs`, `pc`, `pieces`, `Stk` and `Stück` are recognised, and price definitions can use `piece` ([#304](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/304)).
 
 ### 0.6.1 (2026-11-07)
 * (softwarecrash) Apply negative energy deltas from integrated power sources to historical costs instead of mistaking them for cumulative meter resets ([#1242](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1242)).
