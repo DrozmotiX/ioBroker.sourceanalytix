@@ -7,35 +7,77 @@
 [![Translation status](https://weblate.iobroker.net/widgets/adapters/-/sourceanalytix/svg-badge.svg)](https://weblate.iobroker.net/engage/adapters/?utm_source=widget)
 [![Test and Release](https://github.com/DrozmotiX/ioBroker.sourceanalytix/actions/workflows/test-and-release.yml/badge.svg)](https://github.com/DrozmotiX/ioBroker.sourceanalytix/actions/workflows/test-and-release.yml)
 
-**SourceAnalytix shows you what your home consumes and what it costs** – per day, week, month, quarter and year, for electricity, gas, water, heat or anything else you can measure in ioBroker.
+**SourceAnalytix shows you what your home consumes, produces and costs** – per day, week, month, quarter and year, for electricity, gas, water, heat or anything else you can measure in ioBroker.
+
+![Overview of all sources](admin/readmeDocu/overview.png)
 
 ## What does the adapter do?
 
-You probably already have a datapoint in ioBroker that shows a meter reading (for example `12475 kWh` from a smart meter or a Shelly) or the current power (for example `850 W`). On its own, that number does not tell you how much you used today or what last month cost.
+Most devices only tell you a meter reading (for example `48213 kWh` from a smart meter or a Shelly) or the current power (for example `850 W`). That number alone does not answer the questions you actually have: *How much did I use today? What did last month cost? Is this year better than last year? How much did my PV system earn?*
 
-SourceAnalytix takes such a datapoint and calculates for you:
+SourceAnalytix answers them. You pick a datapoint and a price, and the adapter keeps a complete statistic for it, automatically and without scripts:
 
-- **Consumption** (or delivery, e.g. from a PV system) for today, this week, this month, this quarter and this year, plus the previous period (yesterday, last week, …).
-- **Costs** (or earnings) with your own prices: a fixed price, a price that changes from a certain date, a dynamic price from another datapoint (e.g. Tibber) or a day/night tariff, optionally with a monthly basic fee.
-- **History**: values per weekday, week, month and quarter and an archive for every year, ready for VIS, Grafana or your own scripts.
-- **Its own meter reading**, which keeps counting when your device restarts at 0, the meter is replaced or ioBroker was off at midnight.
+| You have | SourceAnalytix gives you |
+| --- | --- |
+| a meter reading in kWh, m³, l, kg, … | consumption and costs for today, this week, month, quarter and year, plus yesterday, last week, last month, … |
+| a power value in W or kW | the energy calculated from it, as if you had a meter |
+| a pulse counter (S0, ESPHome `pulses/min`) | consumption in the unit of your price, e.g. 1000 pulses = 1 kWh |
+| a PV or feed-in meter | delivery and earnings instead of consumption and costs |
+| any number of these | one folder per source below `sourceanalytix.0`, ready for VIS, Grafana, InfluxDB or scripts |
 
-**Example:** You add the datapoint `shelly.0.house.energy` with the price definition "Electricity" (0.32 €/kWh). SourceAnalytix creates a folder `sourceanalytix.0.house` with states such as "consumed today: 7.8 kWh" and "costs today: 2.50 €", and keeps them up to date.
+**Example:** You add `shelly.0.em3.total` as "House" with your electricity price of 0.32 €/kWh. From now on `sourceanalytix.0.house` shows, among others, "today 7.8 kWh · 2.50 €", "this month 164.2 kWh · 52.54 €" and later "last month" and "last year" – updated with every new value and closed off at midnight.
 
-## How do I start?
+## Features
 
-1. **Check the requirements:** Admin 8.0.0 or newer, js-controller 6.0.11 or newer and Node.js 22 or newer.
-2. **Install:** The current version is published in the **latest** (beta) repository. Select the repository "Beta (latest)" in the ioBroker system settings and install SourceAnalytix from the Adapters tab. It moves to the stable repository after a test phase. Details: [Installation](docs/de/01.erste-schritte/01.installation.md).
-3. **Create your prices:** In the instance settings, add a price definition for each tariff on the "Price definitions" tab.
-4. **Add your first meter:** On the "Overview" tab, click "Add source". The wizard guides you through choosing the datapoint, unit, price and start values. Details: [Your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
+**Statistics**
+- Current and previous day, week, month, quarter and year for consumption, delivery, costs and earnings.
+- Optional values per weekday, calendar week, month and quarter, and an archive for every year.
+- All values of a source additionally in one JSON state, handy for tables in VIS.
 
-Everything is set up on the instance settings page. In the object browser, the SourceAnalytix settings of a datapoint only switch it on or off, so you can still see there which datapoints are used.
+**Prices**
+- Fixed price, a new price from a chosen date (older costs stay as they were), a dynamic price from another datapoint (e.g. Tibber, Awattar) or a day/night tariff switched by a datapoint.
+- Optional monthly basic fee.
+- "Recalculate costs from date" when a price was entered too late.
 
-## Something looks wrong?
+**Reliable counting**
+- SourceAnalytix keeps its own meter reading. It continues correctly when a device restarts at 0, a meter is replaced or a single value briefly drops.
+- Power sources: long outages are not extrapolated if you set a "maximum gap".
+- If ioBroker was off at midnight, the missed day, week or month change is caught up automatically.
 
-- The **"Problems"** tab lists every source that needs attention and offers a fix where possible.
-- Open a source to correct it without scripts: "Align meter reading", "Meter swapped", "Recalculate costs from date", "Recover periods", "Deactivate" and "Delete data". Every action shows a preview before anything changes. Details: [Correcting meter readings](docs/de/02.anleitungen/02.zaehlerstaende-korrigieren.md).
-- Still stuck? See the [troubleshooting pages](docs/de/04.fehlerbehebung/README.md) or open a [GitHub issue](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues) with a debug log of the affected source.
+## The settings page
+
+Everything is set up in the instance settings of SourceAnalytix – no object editing, no JSON, no restart.
+
+**Overview** – all sources with their current values and status at a glance (screenshot above).
+
+**Add source** – a wizard guides you in seven steps: datapoint, type, unit, price, calculation, start values and name. It warns you, for example, when you pick a daily counter instead of the total counter.
+
+![Wizard to add a source](admin/readmeDocu/wizard.png)
+
+**Source detail** – values of all periods, all settings of the source and the actions to correct it.
+
+![Source detail with values, settings and actions](admin/readmeDocu/detail.png)
+
+**Actions** – correct a source without scripts. Every action shows what will change before you confirm it:
+- "Align meter reading" – set the total to what your meter shows
+- "Meter swapped" – enter the end reading of the old and the start reading of the new meter
+- "Recalculate costs from date", "Recover periods", "Deactivate" and "Delete data"
+
+![Align meter reading with preview](admin/readmeDocu/align.png)
+
+**Problems** – SourceAnalytix checks all sources and lists what needs attention, such as a missing unit, a source that stopped reporting or a meter that drops to 0. Most problems can be fixed with one click.
+
+![Problems tab](admin/readmeDocu/problems.png)
+
+In the object browser, the SourceAnalytix settings of a datapoint only switch it on or off, so you can still see there which datapoints are used.
+
+## Requirements and installation
+
+- Admin 8.0.0 or newer, js-controller 6.0.11 or newer and Node.js 22 or newer.
+- The current version is published in the **latest** (beta) repository: select the repository "Beta (latest)" in the ioBroker system settings and install SourceAnalytix from the Adapters tab. It moves to the stable repository after a test phase.
+- Then create your prices on the "Price definitions" tab and add your first source with "Add source" on the "Overview" tab.
+
+Step by step: [Installation](docs/de/01.erste-schritte/01.installation.md) and [your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
 
 ## Documentation
 
@@ -46,6 +88,8 @@ The full documentation answers the questions users have asked in the forum and i
 - [Reference](docs/de/03.referenz/README.md): all settings, states and messages
 - [Troubleshooting](docs/de/04.fehlerbehebung/README.md): log messages and wrong values
 - [Background](docs/de/05.hintergrund/README.md): how the adapter calculates
+
+Found a bug or missing a feature? Open a [GitHub issue](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues) with a debug log of the affected source.
 
 ## What is Sentry.io and what is reported to the servers of that company?
 
