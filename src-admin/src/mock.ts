@@ -160,6 +160,18 @@ const problems = [
         fix: { command: 'saveSource', message: { settings: { deviceResetLogicEnabled: true } } },
     },
 ];
+// Only with ?rollover=true, for the screenshot of the "Problems" tab
+const rolloverProblems = [
+    {
+        id: 'rolloverMissed:house',
+        source: 'shelly.0.em3.total',
+        name: 'Hausstrom',
+        code: 'rolloverMissed',
+        severity: 'error',
+        since: '2026-11-12',
+        fix: { command: 'recoverPeriods' },
+    },
+];
 const prices = [
     {
         cat: 'Strom Bezug',
@@ -180,12 +192,16 @@ const prices = [
     { cat: 'Gas', costType: 'costs', unitType: 'm³', unitPrice: 1.21, basicPrice: 9.9, priceSource: 'static' },
 ];
 
-export function createMockSocket(options: { alive: boolean; empty: boolean }): Record<string, unknown> {
+export function createMockSocket(options: {
+    alive: boolean;
+    empty: boolean;
+    rollover?: boolean;
+}): Record<string, unknown> {
     const answers: Record<string, (message: any) => unknown> = {
         getSources: () => ({
             ok: true,
             sources: options.empty ? [] : sources,
-            problems: options.empty ? [] : problems,
+            problems: options.empty ? [] : options.rollover ? [...problems, ...rolloverProblems] : problems,
             passed: [
                 'noPrice',
                 'stringValue',
@@ -193,7 +209,7 @@ export function createMockSocket(options: { alive: boolean; empty: boolean }): R
                 'startValue',
                 'basicFeeTwice',
                 'sourceDeleted',
-                'rolloverMissed',
+                ...(options.empty ? ['rolloverMissed'] : []),
             ],
             checkedAt: now - 120_000,
             priceDefinitions: prices,
