@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "news": {
       "0.7.1": {
         "en": "Fixed: the settings page did not start in current Admin versions (\"Custom component ... was not started\").",
@@ -93,19 +93,6 @@
         "pl": "Każde aktywne źródło automatycznie udostępnia kompaktowy datapoint statisticsJson ze statystykami ilości, kosztów oraz opcjonalnie odczytów licznika za bieżący rok\nMiesięczne opłaty stałe nie są już przenoszone do akumulatora kosztów zmiennych ani dodawane po raz drugi po ponownym uruchomieniu",
         "zh-cn": "每个启用的数据源都会自动生成一个精简的 statisticsJson 状态，包含本年度的用量、费用以及可选的表计读数统计\n每月基本费用不再被导入可变费用累加器，重启后也不会被重复计入",
         "uk": "Кожне активне джерело автоматично надає компактний датапоінт statisticsJson зі статистикою кількості, витрат і, за потреби, показань лічильника за поточний рік\nМісячні базові ціни більше не переносяться до накопичувача змінних витрат і не додаються вдруге після перезапуску"
-      },
-      "0.5.3": {
-        "en": "Power states can optionally ignore negative readings, so inverters which report a negative power while switched off no longer reduce the accumulated yield",
-        "de": "Leistungs-Datenpunkte können negative Messwerte optional ignorieren, damit Wechselrichter, die im abgeschalteten Zustand eine negative Leistung melden, den aufsummierten Ertrag nicht mehr verringern",
-        "ru": "Состояния мощности могут при желании игнорировать отрицательные показания, чтобы инверторы, сообщающие отрицательную мощность в выключенном состоянии, больше не уменьшали накопленную выработку",
-        "pt": "Os estados de potência podem opcionalmente ignorar leituras negativas, para que os inversores que indicam potência negativa quando desligados deixem de reduzir a produção acumulada",
-        "nl": "Vermogensdatapunten kunnen negatieve metingen optioneel negeren, zodat omvormers die in uitgeschakelde toestand een negatief vermogen melden de opgetelde opbrengst niet langer verlagen",
-        "fr": "Les états de puissance peuvent ignorer en option les relevés négatifs, afin que les onduleurs indiquant une puissance négative à l’arrêt ne réduisent plus la production cumulée",
-        "it": "Gli stati di potenza possono facoltativamente ignorare le letture negative, così gli inverter che segnalano una potenza negativa da spenti non riducono più la produzione accumulata",
-        "es": "Los estados de potencia pueden ignorar opcionalmente las lecturas negativas, de modo que los inversores que indican una potencia negativa cuando están apagados ya no reducen la producción acumulada",
-        "pl": "Stany mocy mogą opcjonalnie ignorować ujemne odczyty, dzięki czemu falowniki zgłaszające ujemną moc w stanie wyłączonym nie zmniejszają już zsumowanego uzysku",
-        "zh-cn": "功率状态可选择忽略负读数，使关机时报告负功率的逆变器不再减少累计发电量",
-        "uk": "Стани потужності можуть за бажанням ігнорувати від’ємні покази, щоб інвертори, які у вимкненому стані повідомляють від’ємну потужність, більше не зменшували накопичений виробіток"
       }
     },
     "titleLang": {
