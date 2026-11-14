@@ -1,8 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const adapterHelpers = require('iobroker-adapter-helpers');
-const {buildUnitConfig} = require('./lib/calculation');
+const {buildUnitConfig, resolveUnit} = require('./lib/calculation');
 const customConfig = require('./admin/jsonCustom.json');
 const schema = customConfig.items;
 
@@ -42,11 +41,25 @@ describe('custom settings validation', () => {
 		assert.equal(schema._usedOutputIds.allowSaveWithError, true);
 	});
 
-	it('keeps the unit validator aligned with the helper library', () => {
-		const match = schema.selectedUnit.validator.match(/(\[[^\]]+\])\.includes/);
+	it('keeps the unit validator aligned with the supported units', () => {
+		const match = schema.selectedUnit.validator.match(/(\['GW'[^\]]+\])\)$/);
 		assert.ok(match);
 		const validatedUnits = Function(`"use strict"; return ${match[1]};`)();
-		assert.deepEqual(validatedUnits.sort(), Object.keys(buildUnitConfig(adapterHelpers.units)).sort());
+		assert.deepEqual(validatedUnits.sort(), Object.keys(buildUnitConfig()).sort());
+	});
+
+	it('accepts the same unit spellings as the adapter (#1278)', () => {
+		const units = buildUnitConfig();
+		const spellings = ['kWh', 'm³', 'm3', 'M3', 'm^3', ' kWh ', 'kwh', 'KWH', 'w', 'L', 'KG', 'µm',
+			'mwh', 'mw', 'Watt', 'Liter', 'm³/h', '°C', '%', '', '   '];
+		for (const unit of spellings) {
+			const expected = resolveUnit(unit, units) !== null;
+			const auto = executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, {...source, common: {unit}});
+			assert.equal(auto, expected, `object unit ${JSON.stringify(unit)}`);
+		}
+		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'Detect automatically'}, {...source, common: {}}), false);
+		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: true, selectedUnit: 'm³'}, {...source, common: {unit: 'Liter'}}), true);
+		assert.equal(executeCustom(schema.selectedUnit.validator, {enabled: false, selectedUnit: 'Detect automatically'}, {...source, common: {}}), true);
 	});
 
 	it('pre-fills the backward-compatible output ID', () => {

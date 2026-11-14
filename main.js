@@ -7,7 +7,6 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require('@iobroker/adapter-core');
-const adapterHelpers = require('iobroker-adapter-helpers'); // Lib used for Unit calculations
 const schedule = require('cron').CronJob; // Cron Scheduler
 const {isDeepStrictEqual} = require('node:util');
 const calculation = require('./lib/calculation');
@@ -107,7 +106,7 @@ class Sourceanalytix extends utils.Adapter {
 				useCurrency = '€';
 			}
 
-			// Load Unit definitions from helper library & prices from admin to workable memory array
+			// Load Unit definitions & prices from admin to workable memory array
 			await this.definitionLoader();
 
 			// Store current data/time information to memory
@@ -1369,11 +1368,11 @@ class Sourceanalytix extends utils.Adapter {
 	// }
 
 	/**
-	 * Load calculation factors from helper library and store to memory
+	 * Load unit definitions and price definitions and store them to memory
 	 */
 	async definitionLoader() {
 		try {
-			this.unitPriceDef.unitConfig = calculation.buildUnitConfig(adapterHelpers.units);
+			this.unitPriceDef.unitConfig = calculation.buildUnitConfig();
 
 			// Load price definition from admin configuration
 			const pricesConfig = this.config.pricesDefinition || [];
@@ -1974,6 +1973,14 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
 					initError = true;
+				} else if (useUnit) {
+					// Reject unit combinations that cannot be converted (#1278)
+					const targetUnit = this.unitPriceDef.pricesConfig[customData.selectedPrice].unitType;
+					if (!calculation.areUnitsCompatible(this.unitPriceDef.unitConfig[useUnit], this.unitPriceDef.unitConfig[targetUnit])) {
+						this.log.error(`Unit ${useUnit} of ${stateID} cannot be converted to unit ${targetUnit} of price definition ${customData.selectedPrice}`);
+						this.log.error(`Please choose a price definition with a matching unit (power sources need an energy unit such as kWh)`);
+						initError = true;
+					}
 				}
 
 				// The offset can be larger than the known total after a manual correction of

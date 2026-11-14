@@ -1,8 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const adapterHelpers = require('iobroker-adapter-helpers');
 const {
+	areUnitsCompatible,
 	buildUnitConfig,
 	calculateBasicPriceTotals,
 	calculateHistoricalBasicPriceTotals,
@@ -40,7 +40,7 @@ const minute = 60_000;
 const at = (hour, minutes = 0) => Date.UTC(2026, 0, 1, hour, minutes);
 
 describe('unit conversion', () => {
-	const units = buildUnitConfig(adapterHelpers.units);
+	const units = buildUnitConfig();
 
 	it('provides mass and length units for automatic detection and price definitions', () => {
 		assert.deepEqual(units.t, {exponent: 6, category: 'Kilogram'});
@@ -48,6 +48,43 @@ describe('unit conversion', () => {
 		assert.deepEqual(units.g, {exponent: 0, category: 'Kilogram'});
 		assert.deepEqual(units.km, {exponent: 3, category: 'Meter'});
 		assert.deepEqual(units.m, {exponent: 0, category: 'Meter'});
+	});
+
+	it('converts cubic and small length units with correct factors (#1278)', () => {
+		const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9 * Math.max(1, Math.abs(expected)), `${actual} != ${expected}`);
+		close(convertUnitValue(1000, units['dm³'], units['m³']), 1);
+		close(convertUnitValue(1_000_000, units['cm³'], units['m³']), 1);
+		close(convertUnitValue(1_000_000_000, units['mm³'], units['m³']), 1);
+		close(convertUnitValue(1, units['km³'], units['m³']), 1_000_000_000);
+		close(convertUnitValue(1, units['dm³'], units.l), 1);
+		close(convertUnitValue(1, units['cm³'], units.ml), 1);
+		close(convertUnitValue(1000, units['µm'], units.mm), 1);
+		close(convertUnitValue(1000, units.nm, units['µm']), 1);
+		close(convertUnitValue(1000, units.l, units['m³']), 1);
+		close(convertUnitValue(1, units.t, units.kg), 1000);
+		close(convertUnitValue(1, units.kWh, units.Wh), 1000);
+	});
+
+	it('accepts only unit combinations that can be calculated (#1278)', () => {
+		assert.equal(areUnitsCompatible(units.W, units.kWh), true);
+		assert.equal(areUnitsCompatible(units.kW, units.Wh), true);
+		assert.equal(areUnitsCompatible(units.W, units.W), false);
+		assert.equal(areUnitsCompatible(units.W, units['m³']), false);
+		assert.equal(areUnitsCompatible(units.Wh, units.kWh), true);
+		assert.equal(areUnitsCompatible(units.kWh, units.W), false);
+		assert.equal(areUnitsCompatible(units.l, units['m³']), true);
+		assert.equal(areUnitsCompatible(units['m³'], units.hl), true);
+		assert.equal(areUnitsCompatible(units.kg, units.kWh), false);
+		assert.equal(areUnitsCompatible(units.m, units.l), false);
+		assert.equal(areUnitsCompatible(units.t, units.g), true);
+		assert.equal(areUnitsCompatible(undefined, units.kWh), false);
+	});
+
+	it('supports exactly the 30 documented units', () => {
+		assert.deepEqual(Object.keys(units).sort(), [
+			'GW', 'GWh', 'MW', 'MWh', 'W', 'Wh', 'cl', 'cm', 'cm³', 'dl', 'dm', 'dm³', 'g', 'hl', 'kW', 'kWh',
+			'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 't', 'µm',
+		].sort());
 	});
 
 	it('resolves common unit spellings to supported units', () => {
