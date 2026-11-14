@@ -11,7 +11,6 @@ const {
 	normalizePulsesPerUnit,
 	resolveUnit,
 } = require('./lib/calculation');
-const customConfig = require('./admin/jsonCustom.json');
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -176,12 +175,5 @@ describe('pulse counters (#74, #479)', () => {
 			assert.equal(calls.length, 0);
 			assert.equal(activeState.lastIncrementTs, 5000);
 		});
-	});
-
-	it('offers the pulse settings in the state settings', () => {
-		assert.equal(customConfig.items.pulsesPerUnit.type, 'number');
-		assert.equal(customConfig.items.pulsesPerUnit.min, 0);
-		assert.equal(customConfig.items.incrementValues.type, 'checkbox');
-		assert.equal(customConfig.items.incrementValues.default, false);
 	});
 });

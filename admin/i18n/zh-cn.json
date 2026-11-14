@@ -142,5 +142,7 @@
     "Pulses per unit help": "仅适用于单位 piece 和 piece/min（脉冲）。示例：电表为 1000 imp/kWh、价格定义单位为 kWh 时填 1000。留空：价格定义必须使用单位 piece。",
     "Each update adds its value": "每次更新累加其数值",
     "Each update adds its value help": "适用于不发送电表读数、而是每个脉冲发送一次更新或一个消耗增量的数据点，例如每个脉冲 1 或 true，或每个脉冲 0.001 kWh。每次更新都会累加，即使数值未变。负值将被忽略。",
-    "Start value scale hint": "某个起始值大于当前总值，但除以 1000 后就合适。是否用 Wh 代替了 kWh，或用 l 代替了 m³ 输入？起始值使用价格定义的单位。"
+    "Start value scale hint": "某个起始值大于当前总值，但除以 1000 后就合适。是否用 Wh 代替了 kWh，或用 l 代替了 m³ 输入？起始值使用价格定义的单位。",
+    "Custom settings moved hint": "Here you only switch SourceAnalytix on or off for this datapoint. Price definition, unit, start values and all other settings are set up in the SourceAnalytix instance settings. An enabled source without a price definition appears there on the \"Problems\" tab.",
+    "Open SourceAnalytix settings": "Open SourceAnalytix settings"
 }

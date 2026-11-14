@@ -142,5 +142,7 @@
     "Pulses per unit help": "Uniquement pour les unités piece et piece/min (impulsions). Exemple : 1000 pour un compteur à 1000 imp/kWh et une définition de prix en kWh. Vide : la définition de prix doit utiliser l'unité piece.",
     "Each update adds its value": "Chaque mise à jour ajoute sa valeur",
     "Each update adds its value help": "Pour les points de données qui envoient une mise à jour par impulsion ou un incrément de consommation au lieu d'un relevé de compteur, par exemple 1 ou true par impulsion, ou 0,001 kWh par impulsion. Chaque mise à jour est ajoutée, même une valeur inchangée. Les valeurs négatives sont ignorées.",
-    "Start value scale hint": "Une valeur de départ est supérieure au total actuel mais conviendrait une fois divisée par 1000. A-t-elle été saisie en Wh au lieu de kWh, ou en l au lieu de m³ ? Les valeurs de départ sont dans l'unité de la définition de prix."
+    "Start value scale hint": "Une valeur de départ est supérieure au total actuel mais conviendrait une fois divisée par 1000. A-t-elle été saisie en Wh au lieu de kWh, ou en l au lieu de m³ ? Les valeurs de départ sont dans l'unité de la définition de prix.",
+    "Custom settings moved hint": "Here you only switch SourceAnalytix on or off for this datapoint. Price definition, unit, start values and all other settings are set up in the SourceAnalytix instance settings. An enabled source without a price definition appears there on the \"Problems\" tab.",
+    "Open SourceAnalytix settings": "Open SourceAnalytix settings"
 }
