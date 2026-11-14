@@ -393,6 +393,22 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Warn when a price changed but "valid from" stayed on the date of the old price (#1293):
+	 * the new price then replaces the old one in the history from that date on.
+	 * @param {string} priceDefinition - Price definition category
+	 * @param {string} kind - 'price' or 'basic price', used for logging
+	 * @param {number | null} storedPrice - Price stored before
+	 * @param {number} configuredPrice - Price from adapter settings
+	 * @param {number | null} storedValidityTimestamp - Valid-from of the stored price
+	 * @param {number | null} requestedValidityTimestamp - Valid-from from adapter settings
+	 */
+	warnPriceChangedWithoutNewDate(priceDefinition, kind, storedPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp) {
+		if (storedPrice === null || storedPrice === configuredPrice) return;
+		if (requestedValidityTimestamp === null || requestedValidityTimestamp !== storedValidityTimestamp) return;
+		this.log.warn(`The ${kind} of "${priceDefinition}" changed from ${storedPrice} to ${configuredPrice}, but "Valid from" is still ${new Date(requestedValidityTimestamp).toLocaleDateString()}. The new ${kind} replaces the old one from that date on. If the new ${kind} only applies from a later date, enter the old ${kind} again and save, then enter the new ${kind} together with its own "Valid from" date.`);
+	}
+
+	/**
 	 * Store a fixed price only when the admin setting actually changed.
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Price from adapter settings
@@ -438,6 +454,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (latestMatchingEntry) effectiveTimestamp = latestMatchingEntry.ts;
 		}
 		if (storedConfigPrice !== configuredPrice) {
+			this.warnPriceChangedWithoutNewDate(priceDefinition, 'price', storedConfigPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp);
 			effectiveTimestamp = requestedValidityTimestamp === null ? Date.now() : requestedValidityTimestamp;
 			await this.storeDynamicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
 		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
@@ -687,6 +704,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (latestMatchingEntry) effectiveTimestamp = latestMatchingEntry.ts;
 		}
 		if (history.length === 0 || storedConfigPrice !== configuredPrice) {
+			this.warnPriceChangedWithoutNewDate(priceDefinition, 'basic price', storedConfigPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp);
 			const defaultTimestamp = history.length === 0
 				? new Date(new Date().getFullYear(), 0, 1).getTime()
 				: Date.now();
@@ -3044,9 +3062,10 @@ class Sourceanalytix extends utils.Adapter {
 	 * Process a calendar rollover for all active sources, from the scheduler,
 	 * the safety check, the button state or a sendTo message.
 	 * @param {string} trigger - What asked for the rollover, used for logging
+	 * @param {string} [onlySource] - Only process this source; all active sources when omitted
 	 * @returns {Promise<number>} Number of sources with a processed rollover
 	 */
-	async runPeriodRollovers(trigger) {
+	async runPeriodRollovers(trigger, onlySource) {
 		if (this.rolloverRunning) {
 			this.log.debug(`[runPeriodRollovers] Rollover already running, ignoring ${trigger}`);
 			return 0;
@@ -3056,10 +3075,12 @@ class Sourceanalytix extends utils.Adapter {
 		let recovered = 0;
 		try {
 			const date = new Date();
-			await this.closePowerIntervals(date);
+			await this.closePowerIntervals(date, onlySource);
 			await this.refreshDates();
 			await this.refreshScheduledPrices(date.getTime());
 			for (const stateID in this.activeStates) {
+				// The settings page recovers one source at a time (#1292)
+				if (onlySource && stateID !== onlySource) continue;
 				try {
 					if (await this.processPeriodRollover(stateID, date)) recovered = recovered + 1;
 				} catch (error) {
@@ -3089,12 +3110,14 @@ class Sourceanalytix extends utils.Adapter {
 	 * with the same power value from the boundary.
 	 * Only intervals that started on the ending day are closed; longer gaps are not extrapolated.
 	 * @param {Date} date - Current local date
+	 * @param {string} [onlySource] - Only close the interval of this source
 	 */
-	async closePowerIntervals(date) {
+	async closePowerIntervals(date, onlySource) {
 		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
 		const closingTimestamp = boundaryTimestamp - 1;
 		const previousDayStart = calculation.getPeriodBoundaryTimestamp(new Date(closingTimestamp));
 		for (const stateID in this.activeStates) {
+			if (onlySource && stateID !== onlySource) continue;
 			try {
 				const activeState = this.activeStates[stateID];
 				if (!activeState || !activeState.calcValues || !activeState.stateDetails) continue;
@@ -4756,8 +4779,14 @@ class Sourceanalytix extends utils.Adapter {
 					break;
 
 				case 'recoverPeriods': {
-					this.log.info(`Period rollover requested by ${obj.from}`);
-					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`);
+					// Optional source: only this source, otherwise all sources (#1292)
+					const source = obj.message && typeof obj.message === 'object' && typeof obj.message.source === 'string' ? obj.message.source : undefined;
+					if (source && !this.activeStates[source]) {
+						if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'sourceNotActive', message: `${source} is not active`}, obj.callback);
+						break;
+					}
+					this.log.info(`Period rollover${source ? ` of ${source}` : ''} requested by ${obj.from}`);
+					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`, source);
 					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
 					break;
 				}

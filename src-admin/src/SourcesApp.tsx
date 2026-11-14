@@ -461,8 +461,8 @@ export default function SourcesApp(props: SourcesAppProps): React.JSX.Element {
                 changed(t('sa_deactivated', source.name));
                 return;
             case 'recoverPeriods':
-                await send(api, 'recoverPeriods', {});
-                changed(t('sa_recovered', 1));
+                await send(api, 'recoverPeriods', { source: source.id });
+                changed(t('sa_recovered', source.name));
                 return;
             default:
                 await send(api, problem.fix.command, { source: source.id, ...(problem.fix.message || {}) });

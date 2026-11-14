@@ -220,8 +220,10 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
     };
 
     const recoverPeriods = async (): Promise<void> => {
-        const result = await send<{ recovered?: number }>(api, 'recoverPeriods', {});
-        props.onChanged(t('sa_recovered', result.recovered ?? 0));
+        const result = await send(api, 'recoverPeriods', { source: source.id });
+        if (!result.error) {
+            props.onChanged(t('sa_recovered', source.name));
+        }
     };
 
     return (

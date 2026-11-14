@@ -144,5 +144,6 @@
     "Each update adds its value help": "Для точок даних, які замість показів лічильника надсилають одне оновлення на імпульс або приріст споживання, наприклад 1 або true на імпульс чи 0,001 кВт·год на імпульс. Кожне оновлення додається, навіть незмінене значення. Від'ємні значення ігноруються.",
     "Start value scale hint": "Початкове значення більше за поточне загальне значення, але підійшло б після ділення на 1000. Можливо, його ввели у Вт·год замість кВт·год або в л замість м³? Початкові значення задаються в одиниці визначення ціни.",
     "Custom settings moved hint": "Here you only switch SourceAnalytix on or off for this datapoint. Price definition, unit, start values and all other settings are set up in the SourceAnalytix instance settings. An enabled source without a price definition appears there on the \"Problems\" tab.",
-    "Open SourceAnalytix settings": "Open SourceAnalytix settings"
+    "Open SourceAnalytix settings": "Open SourceAnalytix settings",
+    "Price changed without new valid from": "Price changed but \"Valid from\" did not: the new price replaces the old one retroactively. Set a new date?"
 }

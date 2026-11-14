@@ -78,3 +78,32 @@ describe('power sources at the period rollover', () => {
 		assert.equal(calls.length, 0);
 	});
 });
+
+describe('period recovery for a single source (#1292)', () => {
+	it('closes and rolls over only the requested source', async () => {
+		const {adapter, calls, boundary} = await createAdapter(boundaryTs => ({
+			previousReadingWatt: 500,
+			previousReadingWattTs: boundaryTs - hour,
+		}));
+		adapter.activeStates['meter.1.power'] = {
+			stateDetails: {stateUnit: 'W'},
+			calcValues: {cumulativeValue: 10, previousReadingWatt: 300, previousReadingWattTs: boundary - hour},
+		};
+		await adapter.closePowerIntervals(new Date(boundary + 1000), 'meter.1.power');
+		assert.deepEqual(calls.map(call => call.stateID), ['meter.1.power']);
+
+		const rolled = [];
+		adapter.closePowerIntervals = async () => undefined;
+		adapter.refreshDates = async () => undefined;
+		adapter.refreshScheduledPrices = async () => undefined;
+		adapter.processPeriodRollover = async stateID => (rolled.push(stateID), true);
+		adapter.setTimeout = () => undefined;
+		adapter.clearTimeout = () => undefined;
+		assert.equal(await adapter.runPeriodRollovers('test', 'meter.1.power'), 1);
+		assert.deepEqual(rolled, ['meter.1.power']);
+
+		rolled.length = 0;
+		assert.equal(await adapter.runPeriodRollovers('test'), 2);
+		assert.deepEqual(rolled.sort(), ['meter.0.power', 'meter.1.power']);
+	});
+});

@@ -117,7 +117,9 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.7.0-beta.0 (2026-11-14)
+* Price definitions: changing a price without a new "Valid from" date marks the fields with a hint, and the adapter logs a warning with the repair steps, because the new price then replaces the old one retroactively ([#1293](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1293)).
+* "Recover periods" on the settings page and in the "Problems" tab only processes the selected source; `sendTo('recoverPeriods', {source})` does the same for scripts, without `source` (and the `info.recoverPeriods` button) all sources are processed as before ([#1292](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1292)).
 * The SourceAnalytix custom settings at the datapoint only switch a source on or off and link to the instance settings, where it is configured; enabling there uses the same defaults as the settings page. Existing settings stay unchanged ([#1286](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1286)).
 * The source detail of the settings page now contains all source settings: start values (checked like in the wizard), maximum gap and averaging for power sources, pulses per unit, "Each update adds its value" and the technical ID ([#1285](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1285)).
 * Power values sent as text with a comma, such as `"1,5"`, are read like meter readings; a value that is not a number is ignored with a warning instead of logging an invalid interval for every value ([#1288](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1288)).
@@ -180,10 +182,6 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 * The number of decimals for consumption and cost values is configurable globally and per source, including an option to store the exact value without rounding ([#934](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/934)).
 * A missed calendar rollover can be processed without restarting the instance, through the new `info.recoverPeriods` button or a `recoverPeriods` message, and an hourly check recovers a rollover the scheduler missed while the adapter kept running ([#905](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/905)).
 * The midnight scheduler can no longer raise an unhandled rejection, and its cron job and timers are stopped when the instance shuts down ([#904](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/904)).
-
-### 0.5.4 (2026-08-01)
-* Each active source automatically exposes a compact `statisticsJson` state containing its current-year quantity, financial and optional meter-reading statistics ([#361](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/361), [#967](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/967)).
-* Monthly basic prices are no longer imported into the variable-cost accumulator and added a second time after a restart ([#1188](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1188)).
 
 [Older changelog entries](CHANGELOG_OLD.md)
 
