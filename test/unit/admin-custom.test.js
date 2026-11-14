@@ -30,3 +30,32 @@ describe('custom settings at the datapoint (#1269)', () => {
 		}
 	});
 });
+
+describe('custom components of the settings page', () => {
+	/** @type {Record<string, any>} */
+	const jsonConfig = require('../../admin/jsonConfig.json');
+	const manifest = require('../../admin/custom/mf-manifest.json');
+
+	/** @param {any} node */
+	const findCustom = node => {
+		if (!node || typeof node !== 'object') {
+			return [];
+		}
+		const own = node.type === 'custom' ? [node] : [];
+		return own.concat(Object.values(node).flatMap(findCustom));
+	};
+
+	it('declares GUI API generation 2, otherwise admin 8 does not start them', () => {
+		const customs = findCustom(jsonConfig);
+		assert.ok(customs.length > 0);
+		for (const item of customs) {
+			assert.equal(item.guiApi, 2, item.name);
+		}
+	});
+
+	it('ships the module federation manifest built with @iobroker/gui-components', () => {
+		const shared = manifest.shared.map(/** @param {{name: string}} s */ s => s.name);
+		assert.ok(shared.includes('@iobroker/gui-components'));
+		assert.ok(!shared.includes('@iobroker/adapter-react-v5'));
+	});
+});
