@@ -7,28 +7,51 @@
 [![Translation status](https://weblate.iobroker.net/widgets/adapters/-/sourceanalytix/svg-badge.svg)](https://weblate.iobroker.net/engage/adapters/?utm_source=widget)
 [![Test and Release](https://github.com/DrozmotiX/ioBroker.sourceanalytix/actions/workflows/test-and-release.yml/badge.svg)](https://github.com/DrozmotiX/ioBroker.sourceanalytix/actions/workflows/test-and-release.yml)
 
-SourceAnalytix turns meter readings or power values from any ioBroker state into consumption, delivery, costs and earnings per day, week, month, quarter and year.
+**SourceAnalytix shows you what your home consumes and what it costs** – per day, week, month, quarter and year, for electricity, gas, water, heat or anything else you can measure in ioBroker.
 
-1. **What it does.** Every source state (energy, gas, water, heat, pulses, …) gets its own device below `sourceanalytix.<instance>` with totals for the current and previous periods, optional weekday, week, month and quarter collections and yearly archives. Meter resets, meter replacements and missed midnight rollovers are handled automatically. Costs follow fixed, scheduled, dynamic (state) or day/night prices, optionally with a monthly basic fee.
+## What does the adapter do?
 
-2. **Requirements.** Admin 8.0.0 or newer, js-controller 6.0.11 or newer and Node.js 22 or newer.
+You probably already have a datapoint in ioBroker that shows a meter reading (for example `12475 kWh` from a smart meter or a Shelly) or the current power (for example `850 W`). On its own, that number does not tell you how much you used today or what last month cost.
 
-3. **Installation.** The current version is published in the **latest** (beta) repository. Select the repository "Beta (latest)" in the ioBroker system settings and install SourceAnalytix from the Adapters tab. It moves to the stable repository after a test phase. See [Installation](docs/de/01.erste-schritte/01.installation.md).
+SourceAnalytix takes such a datapoint and calculates for you:
 
-4. **Setup in three steps.** Open the instance settings: create a price definition for each tariff, then add a source with "Add source" on the "Overview" tab and check its start values. All source settings live in the wizard and the source detail page. The SourceAnalytix custom settings of a state in the object browser only switch the source on or off and link to the instance settings. See [Your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
+- **Consumption** (or delivery, e.g. from a PV system) for today, this week, this month, this quarter and this year, plus the previous period (yesterday, last week, …).
+- **Costs** (or earnings) with your own prices: a fixed price, a price that changes from a certain date, a dynamic price from another datapoint (e.g. Tibber) or a day/night tariff, optionally with a monthly basic fee.
+- **History**: values per weekday, week, month and quarter and an archive for every year, ready for VIS, Grafana or your own scripts.
+- **Its own meter reading**, which keeps counting when your device restarts at 0, the meter is replaced or ioBroker was off at midnight.
 
-5. **Corrections without scripts.** The source detail page offers "Align meter reading", "Meter swapped", "Recalculate costs from date", "Recover periods", "Deactivate" and "Delete data", each with a preview before anything is changed. The "Problems" tab lists sources that need attention. See [Correcting meter readings](docs/de/02.anleitungen/02.zaehlerstaende-korrigieren.md).
+**Example:** You add the datapoint `shelly.0.house.energy` with the price definition "Electricity" (0.32 €/kWh). SourceAnalytix creates a folder `sourceanalytix.0.house` with states such as "consumed today: 7.8 kWh" and "costs today: 2.50 €", and keeps them up to date.
 
-6. **Documentation.** The full documentation is organised by the questions users ask in the forum and in issues. It is currently available in German; the English version follows.
-   - [Getting started](docs/de/01.erste-schritte/README.md)
-   - [How-to guides](docs/de/02.anleitungen/README.md): sources and units, corrections, prices, evaluation, maintenance
-   - [Reference](docs/de/03.referenz/README.md): settings, states and messages
-   - [Troubleshooting](docs/de/04.fehlerbehebung/README.md): log messages and wrong values
-   - [Background](docs/de/05.hintergrund/README.md): how the adapter calculates
+## How do I start?
 
-7. **Help and bug reports.** Check the "Problems" tab and the [troubleshooting pages](docs/de/04.fehlerbehebung/README.md) first. Report bugs and feature requests in the [GitHub issues](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues) with a debug log of the affected source.
+1. **Check the requirements:** Admin 8.0.0 or newer, js-controller 6.0.11 or newer and Node.js 22 or newer.
+2. **Install:** The current version is published in the **latest** (beta) repository. Select the repository "Beta (latest)" in the ioBroker system settings and install SourceAnalytix from the Adapters tab. It moves to the stable repository after a test phase. Details: [Installation](docs/de/01.erste-schritte/01.installation.md).
+3. **Create your prices:** In the instance settings, add a price definition for each tariff on the "Price definitions" tab.
+4. **Add your first meter:** On the "Overview" tab, click "Add source". The wizard guides you through choosing the datapoint, unit, price and start values. Details: [Your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
 
-8. **Error reporting with Sentry.** This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers. When the adapter crashes or another code error occurs, the error message that also appears in the ioBroker log is submitted to Sentry. If you allowed ioBroker GmbH to collect diagnostic data, your anonymous installation ID is included. For details and how to disable error reporting, see the [Sentry plugin documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry). Sentry reporting is used starting with js-controller 3.0.
+Everything is set up on the instance settings page. In the object browser, the SourceAnalytix settings of a datapoint only switch it on or off, so you can still see there which datapoints are used.
+
+## Something looks wrong?
+
+- The **"Problems"** tab lists every source that needs attention and offers a fix where possible.
+- Open a source to correct it without scripts: "Align meter reading", "Meter swapped", "Recalculate costs from date", "Recover periods", "Deactivate" and "Delete data". Every action shows a preview before anything changes. Details: [Correcting meter readings](docs/de/02.anleitungen/02.zaehlerstaende-korrigieren.md).
+- Still stuck? See the [troubleshooting pages](docs/de/04.fehlerbehebung/README.md) or open a [GitHub issue](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues) with a debug log of the affected source.
+
+## Documentation
+
+The full documentation answers the questions users have asked in the forum and in issues. It is currently available in German; the English version follows.
+
+- [Getting started](docs/de/01.erste-schritte/README.md): installation and your first meter
+- [How-to guides](docs/de/02.anleitungen/README.md): sources and units, corrections, prices, evaluation, maintenance
+- [Reference](docs/de/03.referenz/README.md): all settings, states and messages
+- [Troubleshooting](docs/de/04.fehlerbehebung/README.md): log messages and wrong values
+- [Background](docs/de/05.hintergrund/README.md): how the adapter calculates
+
+## What is Sentry.io and what is reported to the servers of that company?
+
+This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers. For more details and for information how to disable the error reporting see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)! Sentry reporting is used starting with js-controller 3.0.
+
+When the adapter crashes or another code error occurs, the error message which also appears in the ioBroker log is submitted to Sentry. If you allowed ioBroker GmbH to collect diagnostic data, your installation ID is included. This is an anonymous identifier without personal information such as your name or email address. It allows errors to be grouped and shows how many installations are affected.
 
 ## Credits
 
