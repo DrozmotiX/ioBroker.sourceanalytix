@@ -144,5 +144,6 @@
     "Each update adds its value help": "Dla punktów danych, które zamiast stanu licznika wysyłają jedną aktualizację na impuls lub przyrost zużycia, na przykład 1 lub true na impuls albo 0,001 kWh na impuls. Każda aktualizacja jest dodawana, także niezmieniona wartość. Wartości ujemne są ignorowane.",
     "Start value scale hint": "Wartość początkowa jest większa niż bieżący stan łączny, ale pasowałaby po podzieleniu przez 1000. Czy wpisano ją w Wh zamiast kWh albo w l zamiast m³? Wartości początkowe podaje się w jednostce definicji ceny.",
     "Custom settings moved hint": "Here you only switch SourceAnalytix on or off for this datapoint. Price definition, unit, start values and all other settings are set up in the SourceAnalytix instance settings. An enabled source without a price definition appears there on the \"Problems\" tab.",
-    "Open SourceAnalytix settings": "Open SourceAnalytix settings"
+    "Open SourceAnalytix settings": "Open SourceAnalytix settings",
+    "Price changed without new valid from": "Price changed but \"Valid from\" did not: the new price replaces the old one retroactively. Set a new date?"
 }

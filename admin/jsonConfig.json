@@ -147,6 +147,8 @@
               "attr": "uPpU",
               "title": "Price p/unit",
               "width": "13%",
+              "validator": "const o = ((originalData && originalData.pricesDefinition) || []).find(r => r && r.cat === data.cat); return !o || !o.validFrom || o.validFrom !== data.validFrom || (Number(o.uPpU) === Number(data.uPpU) && Number(o.uPpM) === Number(data.uPpM))",
+              "validatorErrorText": "Price changed without new valid from",
               "default": 0,
               "step": 0.0001,
               "hidden": "data.priceSource === 'state'"
@@ -180,13 +182,17 @@
               "type": "datePicker",
               "attr": "validFrom",
               "title": "Valid from",
-              "width": "13%"
+              "width": "13%",
+              "validator": "const o = ((originalData && originalData.pricesDefinition) || []).find(r => r && r.cat === data.cat); return !o || !o.validFrom || o.validFrom !== data.validFrom || (Number(o.uPpU) === Number(data.uPpU) && Number(o.uPpM) === Number(data.uPpM))",
+              "validatorErrorText": "Price changed without new valid from"
             },
             {
               "type": "number",
               "attr": "uPpM",
               "title": "Price p/m",
               "width": "8%",
+              "validator": "const o = ((originalData && originalData.pricesDefinition) || []).find(r => r && r.cat === data.cat); return !o || !o.validFrom || o.validFrom !== data.validFrom || (Number(o.uPpU) === Number(data.uPpU) && Number(o.uPpM) === Number(data.uPpM))",
+              "validatorErrorText": "Price changed without new valid from",
               "default": 0,
               "step": 0.01
             }
