@@ -22,6 +22,7 @@ function Preview(): React.JSX.Element {
         socket: createMockSocket({
             alive: params.get('alive') !== 'false',
             empty: params.get('empty') === 'true',
+            rollover: params.get('rollover') === 'true',
         }) as any,
         instance: 0,
         adapterName: 'sourceanalytix',
@@ -37,8 +38,8 @@ function Preview(): React.JSX.Element {
                     onChange={(_e, value) => setTab(value)}
                     sx={{ bgcolor: 'background.paper' }}
                 >
-                    <Tab label="Übersicht" />
-                    <Tab label="Probleme" />
+                    <Tab label={I18n.getLanguage() === 'en' ? 'Overview' : 'Übersicht'} />
+                    <Tab label={I18n.getLanguage() === 'en' ? 'Problems' : 'Probleme'} />
                 </Tabs>
                 <SourcesApp
                     key={tab}
