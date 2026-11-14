@@ -3,8 +3,6 @@
 const assert = require('node:assert/strict');
 const Module = require('node:module');
 const {findSharedBasicRates} = require('./lib/source-checks');
-const customConfig = require('./admin/jsonCustom.json');
-const schema = customConfig.items;
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -14,22 +12,6 @@ Reflect.set(Module, '_load', function loadTestDependency(request, parent, isMain
 });
 const {Sourceanalytix} = require('./main');
 Reflect.set(Module, '_load', originalModuleLoad);
-
-function executeCustom(expression, data, customObj) {
-	return new Function('data', 'originalData', '_system', 'instanceObj', 'customObj', '_socket', 'arrayIndex', 'globalData', '_changed', `return ${expression}`,
-	)(data, {}, {}, {}, customObj, {}, 0, {}, false);
-}
-
-/**
- * Evaluate a pattern like Admin does, as template literal.
- * @param {string} pattern - Pattern of a "pattern" field
- * @param {object} data - Custom settings
- * @param {object} customObj - Source object
- * @returns {string} Rendered text
- */
-function renderPattern(pattern, data, customObj) {
-	return new Function('data', 'customObj', `return \`${pattern}\``)(data, customObj);
-}
 
 const activeStates = {
 	'meter.0.house': {stateDetails: {stateType: 'Electricity', basicRate: true}},
@@ -65,31 +47,4 @@ describe('basic fee included by several sources (#1268)', () => {
 		assert.deepEqual(adapter.getBasicRateSources(), {Electricity: ['meter.0.house', 'meter.0.heatpump'], Gas: ['meter.0.gas']});
 	});
 
-	describe('custom dialog', () => {
-		const sources = {Electricity: ['meter.0.house', 'meter.0.heatpump'], Gas: ['meter.0.gas']};
-		const hintHidden = (data, customObj) => executeCustom(schema._basicRateHint.hidden, data, customObj);
-
-		it('asks the adapter for the sources with basic fee', () => {
-			assert.equal(schema._basicRateSources.defaultSendTo, 'getBasicRateSources');
-			assert.equal(schema._basicRateSources.allowSaveWithError, true);
-		});
-
-		it('shows the hint when another source already includes the basic fee', () => {
-			const data = {basicRate: true, selectedPrice: 'Electricity', _basicRateSources: sources};
-			assert.equal(hintHidden(data, {_id: 'meter.0.garage'}), false);
-			assert.equal(hintHidden(data, {_id: 'meter.0.house'}), false);
-			assert.equal(renderPattern(schema._basicRateOthers.pattern, data, {_id: 'meter.0.house'}), 'meter.0.heatpump');
-		});
-
-		it('hides the hint when this source is the only one', () => {
-			assert.equal(hintHidden({basicRate: true, selectedPrice: 'Gas', _basicRateSources: sources}, {_id: 'meter.0.gas'}), true);
-			assert.equal(hintHidden({basicRate: true, selectedPrice: 'Water', _basicRateSources: sources}, {_id: 'meter.0.water'}), true);
-		});
-
-		it('hides the hint without basic fee, without data from the adapter and in multi-edit', () => {
-			assert.equal(hintHidden({basicRate: false, selectedPrice: 'Electricity', _basicRateSources: sources}, {_id: 'meter.0.garage'}), true);
-			assert.equal(hintHidden({basicRate: true, selectedPrice: 'Electricity'}, {_id: 'meter.0.garage'}), true);
-			assert.equal(hintHidden({basicRate: true, selectedPrice: 'Electricity', _basicRateSources: sources}, {common: {custom: {}}, native: {}}), true);
-		});
-	});
 });

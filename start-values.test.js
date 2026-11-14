@@ -4,8 +4,6 @@ const assert = require('node:assert/strict');
 const Module = require('node:module');
 const {buildUnitConfig, isIntegratedUnit} = require('./lib/calculation');
 const {checkStartValues, parseStartValueInput, START_FIELDS} = require('./lib/source-checks');
-const customConfig = require('./admin/jsonCustom.json');
-const schema = customConfig.items;
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -15,22 +13,6 @@ Reflect.set(Module, '_load', function loadTestDependency(request, parent, isMain
 });
 const {Sourceanalytix} = require('./main');
 Reflect.set(Module, '_load', originalModuleLoad);
-
-function executeCustom(expression, data, customObj) {
-	return new Function('data', 'originalData', '_system', 'instanceObj', 'customObj', '_socket', 'arrayIndex', 'globalData', '_changed', `return ${expression}`,
-	)(data, {}, {}, {}, customObj, {}, 0, {}, false);
-}
-
-const source = {_id: '0_userdata.0.energy', common: {unit: 'kWh'}};
-
-/**
- * @param {Record<string, unknown>} values - Start values and settings
- * @returns {Record<string, boolean>} Validator result per start value field
- */
-function validateDialog(values) {
-	const data = {enabled: true, selectedPrice: 'Electricity', ...values};
-	return Object.fromEntries(START_FIELDS.map(field => [field, executeCustom(schema[field].validator, data, source)]));
-}
 
 describe('start values (#1267)', () => {
 	describe('parsing', () => {
@@ -90,50 +72,6 @@ describe('start values (#1267)', () => {
 		});
 	});
 
-	describe('custom dialog', () => {
-		it('uses text fields without a default, so comma and empty values are possible', () => {
-			for (const field of START_FIELDS) {
-				assert.equal(schema[field].type, 'text', field);
-				assert.equal(schema[field].default, undefined, field);
-				assert.equal(schema[field].validatorNoSaveOnError, true, field);
-			}
-		});
-
-		it('asks the adapter for the current total of the source', () => {
-			assert.equal(schema._startValueContext.defaultSendTo, 'getStartValueContext');
-			assert.equal(schema._startValueContext.allowSaveWithError, true);
-		});
-
-		it('validates like the adapter for many combinations', () => {
-			const candidates = ['', 100, 450, '480,5', 490, 500, 600, 'x', '1.000,5'];
-			const context = {readings: {Electricity: 510}, units: {Electricity: 'kWh'}};
-			let seed = 7;
-			const random = () => {
-				seed = (seed * 16807) % 2147483647;
-				return candidates[seed % candidates.length];
-			};
-			for (let run = 0; run < 400; run++) {
-				const values = Object.fromEntries(START_FIELDS.map(field => [field, random()]));
-				// The dialog marks both fields of an order problem
-				const expected = new Set(checkStartValues(values, 510, new Date()).flatMap(problem => [problem.field, problem.other].filter(Boolean)));
-				const actual = validateDialog({...values, _startValueContext: context});
-				for (const field of START_FIELDS) {
-					assert.equal(actual[field], !expected.has(field), `${field} in ${JSON.stringify(values)}`);
-				}
-			}
-		});
-
-		it('checks the total of the selected price definition only when it is known', () => {
-			assert.equal(validateDialog({start_day: 600}).start_day, true);
-			assert.equal(validateDialog({start_day: 600, _startValueContext: {readings: {Gas: 900}, units: {}}}).start_day, true);
-			assert.equal(validateDialog({start_day: 600, _startValueContext: {readings: {Electricity: 510}, units: {}}}).start_day, false);
-		});
-
-		it('does not block disabled sources or several sources edited at once', () => {
-			assert.equal(validateDialog({enabled: false, start_day: 'x'}).start_day, true);
-			assert.equal(validateDialog({start_day: ['1', '2']}).start_day, true);
-		});
-	});
 });
 
 describe('power units are handled alike (#1267)', () => {
@@ -203,21 +141,5 @@ describe('current total for the dialog (#1267)', () => {
 		adapter.warnAboutStartValues('meter.0.energy', {start_day: 600, start_year: 100}, 510);
 		assert.equal(logs.warn.length, 1);
 		assert.match(logs.warn[0], /Start value day \(600\) of meter\.0\.energy is larger than the current total 510/);
-	});
-});
-
-describe('start values in the wrong unit scale (#1267)', () => {
-	const hidden = data => executeCustom(schema._startValueScaleHint.hidden, {selectedPrice: 'Electricity', _startValueContext: {readings: {Electricity: 510.5}, units: {}}, ...data}, source);
-
-	it('hints at a start value entered in Wh instead of kWh', () => {
-		assert.equal(hidden({start_day: '510000'}), false);
-		assert.equal(hidden({start_month: 480000}), false);
-	});
-
-	it('stays hidden for fitting values, values that are far too large and without a known total', () => {
-		assert.equal(hidden({start_day: '500,5'}), true);
-		assert.equal(hidden({start_day: '600000'}), true);
-		assert.equal(hidden({start_day: ''}), true);
-		assert.equal(executeCustom(schema._startValueScaleHint.hidden, {selectedPrice: 'Electricity', start_day: '510000'}, source), true);
 	});
 });

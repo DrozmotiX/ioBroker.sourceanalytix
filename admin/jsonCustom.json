@@ -2,373 +2,54 @@
   "i18n": true,
   "type": "panel",
   "items": {
-    "_basicSettings": {
+    "_settingsHint": {
       "newLine": true,
-      "type": "header",
-      "text": "Basic configuration",
-      "size": 2,
-      "sm": 12
-    },
-    "alias": {
-      "type": "text",
-      "label": "Name",
-      "tooltip": "Name help",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "outputId": {
-      "type": "text",
-      "label": "Output ID",
-      "tooltip": "Output ID help",
-      "noMultiEdit": true,
-      "defaultFunc": "customObj && customObj._id ? customObj._id.split('.').join('__') : ''",
-      "validator": "!data.enabled || Array.isArray(data.outputId) || (!!(customObj && customObj._id) && !!data.outputId && !['info', 'priceDefinitions', 'priceHistory', 'basicPriceHistory'].includes(data.outputId) && (/^[A-Za-z0-9_-]{1,128}$/.test(data.outputId) || !!(customObj && customObj._id && data.outputId === customObj._id.split('.').join('__'))) && (!data._usedOutputIds || data._usedOutputIds[data.outputId] === undefined || !!(customObj && customObj._id && (data._usedOutputIds[data.outputId] === customObj._id || data.outputId === customObj._id.split('.').join('__')))))",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Output ID format error",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "selectedPrice": {
-      "newLine": true,
-      "command": "getPriceDefinitions",
-      "type": "selectSendTo",
-      "manual": false,
-      "label": "Select price definition",
-      "validator": "!data.enabled || (!!data.selectedPrice && data.selectedPrice !== 'Choose')",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Price definition required error",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "selectedUnit": {
-      "command": "getUnits",
-      "type": "selectSendTo",
-      "manual": false,
-      "label": "Select Unit",
-      "default": "Detect automatically",
-      "validator": "!data.enabled || Array.isArray(data.selectedUnit) || !(customObj && customObj._id) || ((unit, aliases, units) => { if (typeof unit !== 'string' || !unit.trim()) return false; const trimmed = unit.trim(); const normalized = trimmed.replace(/\\^?3$/, '³'); return units.includes(trimmed) || units.includes(normalized) || units.filter(symbol => symbol.toLowerCase() === normalized.toLowerCase()).length === 1 || aliases.includes(normalized.toLowerCase()); })(data.selectedUnit && data.selectedUnit !== 'Detect automatically' ? data.selectedUnit : customObj && customObj.common && customObj.common.unit, ['pcs', 'pc', 'pieces', 'stk', 'stk.', 'stück', 'pulse', 'pulses', 'imp', 'impulse', 'impulses', 'pcs/min', 'pulse/min', 'pulses/min', 'imp/min', 'impulses/min'], ['GW', 'GWh', 'MW', 'MWh', 'W', 'Wh', 'cl', 'cm', 'cm³', 'dl', 'dm', 'dm³', 'g', 'hl', 'kW', 'kWh', 'kg', 'km', 'km³', 'l', 'm', 'mW', 'mWh', 'ml', 'mm', 'mm³', 'm³', 'nm', 'piece', 'piece/min', 't', 'µm'])",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Unit required error",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "_usedOutputIds": {
-      "type": "text",
-      "hidden": true,
-      "defaultSendTo": "getUsedOutputIds",
-      "allowSaveWithError": true
-    },
-    "_calcSettings": {
-      "newLine": true,
-      "type": "header",
-      "text": "Calculation settings",
-      "size": 2,
-      "sm": 12
-    },
-    "costs": {
-      "type": "checkbox",
-      "label": "Calculate costs",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "basicRate": {
-      "type": "checkbox",
-      "label": "Including basic rate",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "_basicRateSources": {
-      "type": "text",
-      "hidden": true,
-      "defaultSendTo": "getBasicRateSources",
-      "allowSaveWithError": true
-    },
-    "_basicRateHint": {
       "type": "staticText",
-      "text": "Basic rate shared hint",
-      "style": {
-        "color": "#ed6c02"
-      },
-      "hidden": "!data.basicRate || Array.isArray(data.selectedPrice) || !(customObj && customObj._id) || !data._basicRateSources || typeof data._basicRateSources !== 'object' || !Array.isArray(data._basicRateSources[data.selectedPrice]) || (data._basicRateSources[data.selectedPrice] || []).filter(id => id !== customObj._id).length === 0",
-      "newLine": true,
+      "text": "Custom settings moved hint",
       "xs": 12,
       "sm": 12,
       "md": 12,
       "lg": 12,
       "xl": 12
     },
-    "_basicRateOthers": {
-      "type": "pattern",
-      "label": "Basic rate also included by",
-      "pattern": "${data._basicRateSources && Array.isArray(data._basicRateSources[data.selectedPrice]) && customObj ? (data._basicRateSources[data.selectedPrice] || []).filter(id => id !== customObj._id).join(', ') : ''}",
-      "hidden": "!data.basicRate || Array.isArray(data.selectedPrice) || !(customObj && customObj._id) || !data._basicRateSources || typeof data._basicRateSources !== 'object' || !Array.isArray(data._basicRateSources[data.selectedPrice]) || (data._basicRateSources[data.selectedPrice] || []).filter(id => id !== customObj._id).length === 0",
+    "_openSettings": {
+      "newLine": true,
+      "type": "staticText",
+      "text": "Open SourceAnalytix settings",
+      "href": "_overview",
+      "button": true,
+      "variant": "contained",
+      "color": "primary",
       "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
+      "sm": 6,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
     },
     "consumption": {
       "type": "checkbox",
-      "label": "Calculate consumption",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
+      "default": true,
+      "hidden": "true"
     },
-    "averagePowerValues": {
+    "costs": {
       "type": "checkbox",
-      "label": "Average power values between updates",
-      "tooltip": "Average power values help",
-      "default": false,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "ignoreNegativeValues": {
-      "type": "checkbox",
-      "label": "Ignore negative power values",
-      "tooltip": "Ignore negative power values help",
-      "default": false,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "maxPowerGap": {
-      "type": "number",
-      "label": "Maximum gap between power values",
-      "help": "Maximum gap help",
-      "min": 0,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
+      "default": true,
+      "hidden": "true"
     },
     "meter_values": {
       "type": "checkbox",
-      "label": "Store Meter Values",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
+      "default": true,
+      "hidden": "true"
     },
     "deviceResetLogicEnabled": {
       "type": "checkbox",
-      "label": "Enable device value reset detection",
       "default": true,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
+      "hidden": "true"
     },
     "threshold": {
       "type": "number",
-      "label": "threshold",
-      "help": "Threshold value of device reset detection",
       "default": 1,
-      "min": 0,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "decimalsQuantity": {
-      "type": "number",
-      "label": "Decimals for consumption values",
-      "help": "Individual rounding decimals help",
-      "defaultFunc": "(() => { const value = instanceObj && instanceObj.native ? instanceObj.native.decimalsQuantity : undefined; if (value === '' || value === null || value === undefined || !Number.isFinite(Number(value))) return 3; return Math.max(-1, Math.min(15, Math.trunc(Number(value)))); })()",
-      "min": -1,
-      "max": 15,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "decimalsCosts": {
-      "type": "number",
-      "label": "Decimals for cost values",
-      "help": "Individual rounding decimals help",
-      "defaultFunc": "(() => { const value = instanceObj && instanceObj.native ? instanceObj.native.decimalsCosts : undefined; if (value === '' || value === null || value === undefined || !Number.isFinite(Number(value))) return 2; return Math.max(-1, Math.min(15, Math.trunc(Number(value)))); })()",
-      "min": -1,
-      "max": 15,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "_pulseSettings": {
-      "newLine": true,
-      "type": "header",
-      "text": "Pulse counters",
-      "size": 2,
-      "sm": 12
-    },
-    "pulsesPerUnit": {
-      "type": "number",
-      "label": "Pulses per unit",
-      "help": "Pulses per unit help",
-      "min": 0,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "incrementValues": {
-      "type": "checkbox",
-      "label": "Each update adds its value",
-      "help": "Each update adds its value help",
-      "default": false,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "_startValues": {
-      "newLine": true,
-      "type": "header",
-      "text": "Start values header",
-      "size": 2,
-      "sm": 12
-    },
-    "_startValuesHelp": {
-      "type": "staticText",
-      "text": "Start values help",
-      "newLine": true,
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "_startValueContext": {
-      "type": "text",
-      "hidden": true,
-      "defaultSendTo": "getStartValueContext",
-      "jsonData": "{\"id\": \"${customObj && customObj._id ? customObj._id : ''}\"}",
-      "allowSaveWithError": true
-    },
-    "_currentTotal": {
-      "type": "pattern",
-      "label": "Current total",
-      "help": "Current total help",
-      "pattern": "${data._startValueContext && data._startValueContext.readings && typeof data._startValueContext.readings[data.selectedPrice] === 'number' ? data._startValueContext.readings[data.selectedPrice] + ' ' + (data._startValueContext.units[data.selectedPrice] || '') : '-'}",
-      "hidden": "Array.isArray(data.selectedPrice) || !(customObj && customObj._id)",
-      "newLine": true,
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "_startValueScaleHint": {
-      "type": "staticText",
-      "text": "Start value scale hint",
-      "style": {
-        "color": "#ed6c02"
-      },
-      "hidden": "Array.isArray(data.selectedPrice) || ((reading) => typeof reading !== 'number' || !['start_day', 'start_week', 'start_month', 'start_quarter', 'start_year'].some(field => { const text = typeof data[field] === 'number' ? String(data[field]) : typeof data[field] === 'string' ? data[field].trim() : ''; if (!/^\\d+([.,]\\d+)?$/.test(text)) return false; const value = Number(text.replace(',', '.')); return value > reading + 1e-9 * Math.max(1, reading) && value / 1000 <= reading + 1e-9 * Math.max(1, reading); }))(data._startValueContext && data._startValueContext.readings ? data._startValueContext.readings[data.selectedPrice] : undefined)",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "start_day": {
-      "type": "text",
-      "label": "Day",
-      "help": "Meter reading at the beginning of the day",
-      "validator": "!data.enabled || Array.isArray(data.start_day) || ((field) => { const parse = value => { if (value === null || value === undefined) return null; if (typeof value === 'number') return Number.isFinite(value) ? value : NaN; if (typeof value !== 'string') return NaN; const text = value.trim(); if (text === '') return null; return /^\\d+([.,]\\d+)?$/.test(text) ? Number(text.replace(',', '.')) : NaN; }; const near = (a, b) => a <= b + 1e-9 * Math.max(1, Math.abs(b)); const value = parse(data[field]); if (value === null) return true; if (!Number.isFinite(value) || value < 0) return false; const context = data._startValueContext; const reading = context && context.readings ? context.readings[data.selectedPrice] : undefined; if (typeof reading === 'number' && !near(value, reading)) return false; const now = new Date(); const y = now.getFullYear(); const m = now.getMonth(); const d = now.getDate(); const starts = {start_day: new Date(y, m, d).getTime(), start_week: new Date(y, m, d - ((now.getDay() || 7) - 1)).getTime(), start_month: new Date(y, m, 1).getTime(), start_quarter: new Date(y, m - (m % 3), 1).getTime(), start_year: new Date(y, 0, 1).getTime()}; return Object.keys(starts).every(other => { const otherValue = parse(data[other]); if (other === field || otherValue === null || !Number.isFinite(otherValue) || otherValue < 0) return true; if (starts[other] === starts[field]) return near(value, otherValue) && near(otherValue, value); return starts[other] < starts[field] ? near(otherValue, value) : near(value, otherValue); }); })('start_day')",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Start value error",
-      "newLine": true,
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "start_week": {
-      "type": "text",
-      "label": "Week",
-      "help": "Meter reading at the beginning of the week",
-      "validator": "!data.enabled || Array.isArray(data.start_week) || ((field) => { const parse = value => { if (value === null || value === undefined) return null; if (typeof value === 'number') return Number.isFinite(value) ? value : NaN; if (typeof value !== 'string') return NaN; const text = value.trim(); if (text === '') return null; return /^\\d+([.,]\\d+)?$/.test(text) ? Number(text.replace(',', '.')) : NaN; }; const near = (a, b) => a <= b + 1e-9 * Math.max(1, Math.abs(b)); const value = parse(data[field]); if (value === null) return true; if (!Number.isFinite(value) || value < 0) return false; const context = data._startValueContext; const reading = context && context.readings ? context.readings[data.selectedPrice] : undefined; if (typeof reading === 'number' && !near(value, reading)) return false; const now = new Date(); const y = now.getFullYear(); const m = now.getMonth(); const d = now.getDate(); const starts = {start_day: new Date(y, m, d).getTime(), start_week: new Date(y, m, d - ((now.getDay() || 7) - 1)).getTime(), start_month: new Date(y, m, 1).getTime(), start_quarter: new Date(y, m - (m % 3), 1).getTime(), start_year: new Date(y, 0, 1).getTime()}; return Object.keys(starts).every(other => { const otherValue = parse(data[other]); if (other === field || otherValue === null || !Number.isFinite(otherValue) || otherValue < 0) return true; if (starts[other] === starts[field]) return near(value, otherValue) && near(otherValue, value); return starts[other] < starts[field] ? near(otherValue, value) : near(value, otherValue); }); })('start_week')",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Start value error",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "start_month": {
-      "type": "text",
-      "label": "Month",
-      "help": "Meter reading at the beginning of the month",
-      "validator": "!data.enabled || Array.isArray(data.start_month) || ((field) => { const parse = value => { if (value === null || value === undefined) return null; if (typeof value === 'number') return Number.isFinite(value) ? value : NaN; if (typeof value !== 'string') return NaN; const text = value.trim(); if (text === '') return null; return /^\\d+([.,]\\d+)?$/.test(text) ? Number(text.replace(',', '.')) : NaN; }; const near = (a, b) => a <= b + 1e-9 * Math.max(1, Math.abs(b)); const value = parse(data[field]); if (value === null) return true; if (!Number.isFinite(value) || value < 0) return false; const context = data._startValueContext; const reading = context && context.readings ? context.readings[data.selectedPrice] : undefined; if (typeof reading === 'number' && !near(value, reading)) return false; const now = new Date(); const y = now.getFullYear(); const m = now.getMonth(); const d = now.getDate(); const starts = {start_day: new Date(y, m, d).getTime(), start_week: new Date(y, m, d - ((now.getDay() || 7) - 1)).getTime(), start_month: new Date(y, m, 1).getTime(), start_quarter: new Date(y, m - (m % 3), 1).getTime(), start_year: new Date(y, 0, 1).getTime()}; return Object.keys(starts).every(other => { const otherValue = parse(data[other]); if (other === field || otherValue === null || !Number.isFinite(otherValue) || otherValue < 0) return true; if (starts[other] === starts[field]) return near(value, otherValue) && near(otherValue, value); return starts[other] < starts[field] ? near(otherValue, value) : near(value, otherValue); }); })('start_month')",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Start value error",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "start_quarter": {
-      "type": "text",
-      "label": "Quarter",
-      "help": "Meter reading at the beginning of the quarter",
-      "validator": "!data.enabled || Array.isArray(data.start_quarter) || ((field) => { const parse = value => { if (value === null || value === undefined) return null; if (typeof value === 'number') return Number.isFinite(value) ? value : NaN; if (typeof value !== 'string') return NaN; const text = value.trim(); if (text === '') return null; return /^\\d+([.,]\\d+)?$/.test(text) ? Number(text.replace(',', '.')) : NaN; }; const near = (a, b) => a <= b + 1e-9 * Math.max(1, Math.abs(b)); const value = parse(data[field]); if (value === null) return true; if (!Number.isFinite(value) || value < 0) return false; const context = data._startValueContext; const reading = context && context.readings ? context.readings[data.selectedPrice] : undefined; if (typeof reading === 'number' && !near(value, reading)) return false; const now = new Date(); const y = now.getFullYear(); const m = now.getMonth(); const d = now.getDate(); const starts = {start_day: new Date(y, m, d).getTime(), start_week: new Date(y, m, d - ((now.getDay() || 7) - 1)).getTime(), start_month: new Date(y, m, 1).getTime(), start_quarter: new Date(y, m - (m % 3), 1).getTime(), start_year: new Date(y, 0, 1).getTime()}; return Object.keys(starts).every(other => { const otherValue = parse(data[other]); if (other === field || otherValue === null || !Number.isFinite(otherValue) || otherValue < 0) return true; if (starts[other] === starts[field]) return near(value, otherValue) && near(otherValue, value); return starts[other] < starts[field] ? near(otherValue, value) : near(value, otherValue); }); })('start_quarter')",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Start value error",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
-    },
-    "start_year": {
-      "type": "text",
-      "label": "Year",
-      "help": "Meter reading at the beginning of the year",
-      "validator": "!data.enabled || Array.isArray(data.start_year) || ((field) => { const parse = value => { if (value === null || value === undefined) return null; if (typeof value === 'number') return Number.isFinite(value) ? value : NaN; if (typeof value !== 'string') return NaN; const text = value.trim(); if (text === '') return null; return /^\\d+([.,]\\d+)?$/.test(text) ? Number(text.replace(',', '.')) : NaN; }; const near = (a, b) => a <= b + 1e-9 * Math.max(1, Math.abs(b)); const value = parse(data[field]); if (value === null) return true; if (!Number.isFinite(value) || value < 0) return false; const context = data._startValueContext; const reading = context && context.readings ? context.readings[data.selectedPrice] : undefined; if (typeof reading === 'number' && !near(value, reading)) return false; const now = new Date(); const y = now.getFullYear(); const m = now.getMonth(); const d = now.getDate(); const starts = {start_day: new Date(y, m, d).getTime(), start_week: new Date(y, m, d - ((now.getDay() || 7) - 1)).getTime(), start_month: new Date(y, m, 1).getTime(), start_quarter: new Date(y, m - (m % 3), 1).getTime(), start_year: new Date(y, 0, 1).getTime()}; return Object.keys(starts).every(other => { const otherValue = parse(data[other]); if (other === field || otherValue === null || !Number.isFinite(otherValue) || otherValue < 0) return true; if (starts[other] === starts[field]) return near(value, otherValue) && near(otherValue, value); return starts[other] < starts[field] ? near(otherValue, value) : near(value, otherValue); }); })('start_year')",
-      "validatorNoSaveOnError": true,
-      "validatorErrorText": "Start value error",
-      "xs": 12,
-      "sm": 6,
-      "md": 6,
-      "lg": 6,
-      "xl": 6
+      "hidden": "true"
     }
   }
 }

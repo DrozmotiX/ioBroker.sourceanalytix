@@ -34,9 +34,12 @@ import {
     ago,
     money,
     nf,
+    parseNum,
     send,
     sourceIcon,
     statusText,
+    startFields,
+    startValueErrors,
     t,
     type Api,
     type Overview,
@@ -66,6 +69,16 @@ const periods: [string, boolean][] = [
     ['04_previousQuarter', true],
     ['05_currentYear', false],
     ['05_previousYear', true],
+];
+
+// Settings that are entered as text and stored as numbers
+const numericSettings = [
+    'threshold',
+    'decimalsQuantity',
+    'decimalsCosts',
+    'maxPowerGap',
+    'pulsesPerUnit',
+    ...startFields,
 ];
 
 const settingFlags = [
@@ -156,12 +169,36 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
     const ownProblems: Problem[] = overview.problems.filter(problem => problem.source === source.id);
     const prices = overview.priceDefinitions;
     const set = (key: string, value: unknown): void => setSettings({ ...settings, [key]: value });
+    const isChanged = (key: string): boolean => settings[key] !== source.settings[key];
+    const sourceUnit = source.sourceUnit || source.unit || '';
+    const pulseSource = ['piece', 'piece/min'].includes(sourceUnit) && unit !== 'piece';
+    const powerSource = source.kind === 'power' && !settings.incrementValues;
+    // Start values are checked like in the wizard, only changed fields block saving
+    const startErrors = useMemo(() => {
+        const values: Record<string, string> = {};
+        for (const field of startFields) {
+            values[field] = settings[field] === undefined || settings[field] === null ? '' : String(settings[field]);
+        }
+        const all = startValueErrors(values, typeof source.cumulative === 'number' ? source.cumulative : null, unit);
+        return Object.fromEntries(Object.entries(all).filter(([field]) => isChanged(field)));
+    }, [settings, source.cumulative, unit]);
+    const numberError = (key: string): boolean =>
+        isChanged(key) && settings[key] !== '' && settings[key] !== null && settings[key] !== undefined
+            ? Number.isNaN(parseNum(settings[key]))
+            : false;
 
     const apply = async (): Promise<void> => {
         const update: Record<string, any> = {};
         for (const key of Object.keys(settings)) {
             if (settings[key] !== source.settings[key]) {
-                update[key] = settings[key];
+                const value = settings[key];
+                if (numericSettings.includes(key) && typeof value === 'string') {
+                    // Numbers are stored as numbers, an empty field removes the value
+                    const parsed = parseNum(value);
+                    update[key] = parsed === null ? '' : parsed;
+                } else {
+                    update[key] = value;
+                }
             }
         }
         setBusy(true);
@@ -400,6 +437,79 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                                     label={t(`sa_flag_${flag}`)}
                                 />
                             ))}
+                            {powerSource ? (
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={!!settings.averagePowerValues}
+                                            onChange={e => set('averagePowerValues', e.target.checked)}
+                                        />
+                                    }
+                                    label={t('sa_flag_averagePowerValues')}
+                                />
+                            ) : null}
+                        </Box>
+                        {powerSource || pulseSource ? (
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gap: 2,
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                                    mt: 1,
+                                }}
+                            >
+                                {powerSource ? (
+                                    <TextField
+                                        label={t('sa_maxPowerGap')}
+                                        value={settings.maxPowerGap ?? ''}
+                                        error={numberError('maxPowerGap')}
+                                        helperText={
+                                            numberError('maxPowerGap') ? t('sa_errNumber') : t('sa_maxPowerGapHelp')
+                                        }
+                                        onChange={e => set('maxPowerGap', e.target.value)}
+                                        slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                                    />
+                                ) : null}
+                                {pulseSource ? (
+                                    <TextField
+                                        label={t('sa_pulsesPerUnit', unit)}
+                                        value={settings.pulsesPerUnit ?? ''}
+                                        error={numberError('pulsesPerUnit')}
+                                        helperText={
+                                            numberError('pulsesPerUnit') ? t('sa_errNumber') : t('sa_pulsesPerUnitHelp')
+                                        }
+                                        onChange={e => set('pulsesPerUnit', e.target.value)}
+                                        slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                                    />
+                                ) : null}
+                            </Box>
+                        ) : null}
+                        <SectionTitle>{t('sa_startValues')}</SectionTitle>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 1 }}
+                        >
+                            {t('sa_startValuesDetail', unit)}
+                        </Typography>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gap: 2,
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                            }}
+                        >
+                            {startFields.map(field => (
+                                <TextField
+                                    key={field}
+                                    label={t(`sa_period_${field}`)}
+                                    value={settings[field] ?? ''}
+                                    error={!!startErrors[field] || !!errors[field]}
+                                    helperText={startErrors[field] || (errors[field] ? t('sa_settingsInvalid') : '')}
+                                    onChange={e => set(field, e.target.value)}
+                                    slotProps={{ htmlInput: { inputMode: 'decimal' }, input: { endAdornment: unit } }}
+                                />
+                            ))}
                         </Box>
                         <Button
                             size="small"
@@ -431,7 +541,33 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                                     value={settings.decimalsCosts ?? ''}
                                     onChange={e => set('decimalsCosts', e.target.value)}
                                 />
+                                <TextField
+                                    label={t('sa_outputId')}
+                                    value={settings.outputId ?? source.outputId}
+                                    error={!!errors.outputId}
+                                    helperText={
+                                        errors.outputId === 'used'
+                                            ? t('sa_errOutputIdUsed')
+                                            : errors.outputId
+                                              ? t('sa_errOutputId')
+                                              : isChanged('outputId')
+                                                ? t('sa_outputIdChangeHint')
+                                                : ''
+                                    }
+                                    onChange={e => set('outputId', e.target.value.trim())}
+                                />
                             </Box>
+                            {source.kind !== 'power' || settings.incrementValues ? (
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={!!settings.incrementValues}
+                                            onChange={e => set('incrementValues', e.target.checked)}
+                                        />
+                                    }
+                                    label={t('sa_flag_incrementValues')}
+                                />
+                            ) : null}
                         </Collapse>
                         {Object.keys(errors).length ? (
                             <Alert
@@ -453,7 +589,7 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                             <Button
                                 variant="contained"
                                 startIcon={<Bolt />}
-                                disabled={!alive || !changed || busy}
+                                disabled={!alive || !changed || busy || Object.keys(startErrors).length > 0}
                                 onClick={() => void apply()}
                             >
                                 {t('sa_apply')}

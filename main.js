@@ -3868,7 +3868,12 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[wattToWattHour] Watt to kWh, current reading : ${value.val} previousReading : ${JSON.stringify(calcValues)}`);
 
 			// Prepare needed data to handle calculations
-			const rawReadingWatt = Number(value.val);
+			// Accept numeric strings like "1,5" like meter readings (#1255)
+			const rawReadingWatt = this.parsePriceValue(value.val);
+			if (rawReadingWatt === null) {
+				this.log.warn(`Value ${JSON.stringify(value.val)} of ${stateID} is not a number, reading ignored`);
+				return null;
+			}
 			const currentReadingWatt = calculation.normalizePowerReading(rawReadingWatt, stateDetails.ignoreNegativeValues);
 			if (currentReadingWatt !== rawReadingWatt) {
 				this.log.debug(`[wattToWattHour] ${stateID} negative power reading ${rawReadingWatt} treated as 0 W`);

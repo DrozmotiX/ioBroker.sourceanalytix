@@ -3,7 +3,6 @@
 const assert = require('node:assert/strict');
 const Module = require('node:module');
 const {isPowerGapExceeded, normalizeMaxPowerGap} = require('./lib/calculation');
-const customConfig = require('./admin/jsonCustom.json');
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -71,12 +70,5 @@ describe('maximum gap for power sources (#1266)', () => {
 		const energy = await adapter.wattToWattHour('meter.0.power', {val: 500, ts: start + 6 * minute});
 		assert.equal(energy, 100);
 		assert.equal(logs.info.length, 0);
-	});
-
-	it('offers the setting in the source settings, empty by default', () => {
-		const field = customConfig.items.maxPowerGap;
-		assert.equal(field.type, 'number');
-		assert.equal(field.min, 0);
-		assert.equal(Object.hasOwn(field, 'default'), false);
 	});
 });
