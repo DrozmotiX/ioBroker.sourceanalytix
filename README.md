@@ -77,17 +77,17 @@ In the object browser, the SourceAnalytix settings of a datapoint only switch it
 - The current version is published in the **latest** (beta) repository: select the repository "Beta (latest)" in the ioBroker system settings and install SourceAnalytix from the Adapters tab. It moves to the stable repository after a test phase.
 - Then create your prices on the "Price definitions" tab and add your first source with "Add source" on the "Overview" tab.
 
-Step by step: [Installation](docs/de/01.erste-schritte/01.installation.md) and [your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
+Step by step: [Installation](docs/en/01.erste-schritte/01.installation.md) and [your first meter](docs/en/01.erste-schritte/02.erster-zaehler.md).
 
 ## Documentation
 
-The full documentation answers the questions users have asked in the forum and in issues. It is currently available in German; the English version follows.
+The full documentation answers the questions users have asked in the forum and in issues. It is available in English and [German (Deutsch)](docs/de/README.md).
 
-- [Getting started](docs/de/01.erste-schritte/README.md): installation and your first meter
-- [How-to guides](docs/de/02.anleitungen/README.md): sources and units, corrections, prices, evaluation, maintenance
-- [Reference](docs/de/03.referenz/README.md): all settings, states and messages
-- [Troubleshooting](docs/de/04.fehlerbehebung/README.md): log messages and wrong values
-- [Background](docs/de/05.hintergrund/README.md): how the adapter calculates
+- [Getting started](docs/en/01.erste-schritte/README.md): installation and your first meter
+- [How-to guides](docs/en/02.anleitungen/README.md): sources and units, corrections, prices, evaluation, maintenance
+- [Reference](docs/en/03.referenz/README.md): all settings, states and messages
+- [Troubleshooting](docs/en/04.fehlerbehebung/README.md): log messages and wrong values
+- [Background](docs/en/05.hintergrund/README.md): how the adapter calculates
 
 Found a bug or missing a feature? Open a [GitHub issue](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues) with a debug log of the affected source.
 
