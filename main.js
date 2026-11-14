@@ -2110,6 +2110,7 @@ class Sourceanalytix extends utils.Adapter {
 						useUnit: selectedPriceConfig.unitType,
 						deviceResetLogicEnabled: customData.deviceResetLogicEnabled ?? true,
 						ignoreNegativeValues: customData.ignoreNegativeValues === true,
+						maxPowerGap: calculation.normalizeMaxPowerGap(customData.maxPowerGap),
 						threshold: customData.threshold ?? 1,
 					},
 					calcValues: {
@@ -3839,7 +3840,16 @@ class Sourceanalytix extends utils.Adapter {
 			if (hasPreviousReading) {
 
 				// Calculation logic W to kWh
-				calckWh = calculation.calculatePowerEnergy(
+				const gapExceeded = calculation.isPowerGapExceeded(
+					readingData.previousReadingWattTs,
+					readingData.currentReadingWattTs,
+					stateDetails.maxPowerGap,
+				);
+				if (gapExceeded) {
+					const gapMinutes = Math.round((readingData.currentReadingWattTs - readingData.previousReadingWattTs) / 60000);
+					this.log.info(`No new power value from ${stateID} for ${gapMinutes} min, longer than the maximum gap of ${stateDetails.maxPowerGap} min; this interval is not counted`);
+				}
+				calckWh = gapExceeded ? 0 : calculation.calculatePowerEnergy(
 					readingData.previousReadingWatt,
 					readingData.currentReadingWatt,
 					readingData.previousReadingWattTs,

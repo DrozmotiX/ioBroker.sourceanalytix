@@ -130,5 +130,7 @@
     "Start values help": "Totale all'inizio del giorno, della settimana, del mese, del trimestre e dell'anno in corso, nell'unità della definizione di prezzo (ad esempio kWh, non Wh). Valgono solo per i periodi in corso; al prossimo cambio di periodo SourceAnalytix li imposta da solo. Lascia un campo vuoto per contare da adesso. Virgola o punto come separatore decimale, senza separatore delle migliaia.",
     "Current total": "Totale attuale",
     "Current total help": "Totale di questa sorgente nell'unità della definizione di prezzo scelta all'apertura della finestra. Nessun valore iniziale può essere maggiore.",
-    "Start value error": "Valore iniziale non valido: usa un numero senza separatore delle migliaia. Non può essere maggiore del totale attuale, e un periodo iniziato prima (ad esempio l'anno) non può avere un valore iniziale maggiore di uno iniziato dopo (ad esempio il mese)."
+    "Start value error": "Valore iniziale non valido: usa un numero senza separatore delle migliaia. Non può essere maggiore del totale attuale, e un periodo iniziato prima (ad esempio l'anno) non può avere un valore iniziale maggiore di uno iniziato dopo (ad esempio il mese).",
+    "Maximum gap between power values": "Intervallo massimo tra valori di potenza (minuti)",
+    "Maximum gap help": "Vale solo per valori di potenza (W/kW). Se non arriva un nuovo valore per più tempo, l'ultimo valore non viene esteso sulla pausa: l'intervallo conta come 0 e viene registrato. Vuoto o 0 = disattivato, per dispositivi che inviano solo in caso di modifica."
 }

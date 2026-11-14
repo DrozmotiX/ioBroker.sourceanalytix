@@ -126,6 +126,17 @@
       "lg": 6,
       "xl": 6
     },
+    "maxPowerGap": {
+      "type": "number",
+      "label": "Maximum gap between power values",
+      "help": "Maximum gap help",
+      "min": 0,
+      "xs": 12,
+      "sm": 6,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
     "meter_values": {
       "type": "checkbox",
       "label": "Store Meter Values",

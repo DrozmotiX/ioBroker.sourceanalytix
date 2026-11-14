@@ -130,5 +130,7 @@
     "Start values help": "Stan łączny na początku bieżącego dnia, tygodnia, miesiąca, kwartału i roku, w jednostce definicji ceny (na przykład kWh, nie Wh). Dotyczą tylko bieżących okresów; przy następnej zmianie okresu SourceAnalytix ustawia je sam. Pozostaw pole puste, aby liczyć od teraz. Przecinek lub kropka jako separator dziesiętny, bez separatora tysięcy.",
     "Current total": "Bieżący stan łączny",
     "Current total help": "Stan łączny tego źródła w jednostce wybranej definicji ceny w chwili otwarcia okna. Żadna wartość początkowa nie może być większa.",
-    "Start value error": "Nieprawidłowa wartość początkowa: użyj liczby bez separatora tysięcy. Nie może być większa niż bieżący stan łączny, a okres, który zaczął się wcześniej (na przykład rok), nie może mieć większej wartości początkowej niż późniejszy (na przykład miesiąc)."
+    "Start value error": "Nieprawidłowa wartość początkowa: użyj liczby bez separatora tysięcy. Nie może być większa niż bieżący stan łączny, a okres, który zaczął się wcześniej (na przykład rok), nie może mieć większej wartości początkowej niż późniejszy (na przykład miesiąc).",
+    "Maximum gap between power values": "Maksymalna przerwa między wartościami mocy (minuty)",
+    "Maximum gap help": "Dotyczy tylko wartości mocy (W/kW). Jeśli dłużej nie przychodzi nowa wartość, ostatnia wartość nie jest przedłużana na przerwę: odcinek liczy się jako 0 i jest zapisywany w logu. Puste lub 0 = wyłączone, dla urządzeń wysyłających tylko przy zmianie."
 }

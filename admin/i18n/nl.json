@@ -130,5 +130,7 @@
     "Start values help": "Totaal aan het begin van de lopende dag, week, maand, kwartaal en jaar, in de eenheid van de prijsdefinitie (bijvoorbeeld kWh, niet Wh). Ze gelden alleen voor de lopende perioden; bij de volgende periodewissel stelt SourceAnalytix ze zelf in. Laat een veld leeg om vanaf nu te tellen. Komma of punt als decimaalteken, zonder scheidingsteken voor duizendtallen.",
     "Current total": "Huidig totaal",
     "Current total help": "Totaal van deze bron in de eenheid van de gekozen prijsdefinitie bij het openen van het dialoogvenster. Geen enkele startwaarde mag groter zijn.",
-    "Start value error": "Ongeldige startwaarde: gebruik een getal zonder scheidingsteken voor duizendtallen. Hij mag niet groter zijn dan het huidige totaal, en een periode die eerder begon (bijvoorbeeld het jaar) mag geen grotere startwaarde hebben dan een latere (bijvoorbeeld de maand)."
+    "Start value error": "Ongeldige startwaarde: gebruik een getal zonder scheidingsteken voor duizendtallen. Hij mag niet groter zijn dan het huidige totaal, en een periode die eerder begon (bijvoorbeeld het jaar) mag geen grotere startwaarde hebben dan een latere (bijvoorbeeld de maand).",
+    "Maximum gap between power values": "Maximale onderbreking tussen vermogenswaarden (minuten)",
+    "Maximum gap help": "Werkt alleen bij vermogenswaarden (W/kW). Komt er langer geen nieuwe waarde, dan wordt de laatste waarde niet over de pauze doorgetrokken: het interval telt als 0 en wordt gelogd. Leeg of 0 = uit, voor apparaten die alleen bij wijziging verzenden."
 }
