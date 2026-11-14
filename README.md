@@ -15,7 +15,7 @@ SourceAnalytix turns meter readings or power values from any ioBroker state into
 
 3. **Installation.** The current version is published in the **latest** (beta) repository. Select the repository "Beta (latest)" in the ioBroker system settings and install SourceAnalytix from the Adapters tab. It moves to the stable repository after a test phase. See [Installation](docs/de/01.erste-schritte/01.installation.md).
 
-4. **Setup in three steps.** Open the instance settings: create a price definition for each tariff, then add a source with "Add source" on the "Overview" tab and check its start values. The wizard and the source detail page cover the everyday settings. Start values of a running source and special options such as pulse counters are still set in the custom settings of the state in the object browser. See [Your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
+4. **Setup in three steps.** Open the instance settings: create a price definition for each tariff, then add a source with "Add source" on the "Overview" tab and check its start values. All source settings live in the wizard and the source detail page. The SourceAnalytix custom settings of a state in the object browser only switch the source on or off and link to the instance settings. See [Your first meter](docs/de/01.erste-schritte/02.erster-zaehler.md).
 
 5. **Corrections without scripts.** The source detail page offers "Align meter reading", "Meter swapped", "Recalculate costs from date", "Recover periods", "Deactivate" and "Delete data", each with a preview before anything is changed. The "Problems" tab lists sources that need attention. See [Correcting meter readings](docs/de/02.anleitungen/02.zaehlerstaende-korrigieren.md).
 
