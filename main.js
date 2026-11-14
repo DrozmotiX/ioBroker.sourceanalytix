@@ -393,6 +393,22 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Warn when a price changed but "valid from" stayed on the date of the old price (#1293):
+	 * the new price then replaces the old one in the history from that date on.
+	 * @param {string} priceDefinition - Price definition category
+	 * @param {string} kind - 'price' or 'basic price', used for logging
+	 * @param {number | null} storedPrice - Price stored before
+	 * @param {number} configuredPrice - Price from adapter settings
+	 * @param {number | null} storedValidityTimestamp - Valid-from of the stored price
+	 * @param {number | null} requestedValidityTimestamp - Valid-from from adapter settings
+	 */
+	warnPriceChangedWithoutNewDate(priceDefinition, kind, storedPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp) {
+		if (storedPrice === null || storedPrice === configuredPrice) return;
+		if (requestedValidityTimestamp === null || requestedValidityTimestamp !== storedValidityTimestamp) return;
+		this.log.warn(`The ${kind} of "${priceDefinition}" changed from ${storedPrice} to ${configuredPrice}, but "Valid from" is still ${new Date(requestedValidityTimestamp).toLocaleDateString()}. The new ${kind} replaces the old one from that date on. If the new ${kind} only applies from a later date, enter the old ${kind} again and save, then enter the new ${kind} together with its own "Valid from" date.`);
+	}
+
+	/**
 	 * Store a fixed price only when the admin setting actually changed.
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Price from adapter settings
@@ -438,6 +454,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (latestMatchingEntry) effectiveTimestamp = latestMatchingEntry.ts;
 		}
 		if (storedConfigPrice !== configuredPrice) {
+			this.warnPriceChangedWithoutNewDate(priceDefinition, 'price', storedConfigPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp);
 			effectiveTimestamp = requestedValidityTimestamp === null ? Date.now() : requestedValidityTimestamp;
 			await this.storeDynamicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
 		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
@@ -687,6 +704,7 @@ class Sourceanalytix extends utils.Adapter {
 			if (latestMatchingEntry) effectiveTimestamp = latestMatchingEntry.ts;
 		}
 		if (history.length === 0 || storedConfigPrice !== configuredPrice) {
+			this.warnPriceChangedWithoutNewDate(priceDefinition, 'basic price', storedConfigPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp);
 			const defaultTimestamp = history.length === 0
 				? new Date(new Date().getFullYear(), 0, 1).getTime()
 				: Date.now();

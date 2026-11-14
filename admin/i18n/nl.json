@@ -144,5 +144,6 @@
     "Each update adds its value help": "Voor datapunten die per puls een update of een verbruikstoename sturen in plaats van een meterstand, bijvoorbeeld 1 of true per puls, of 0,001 kWh per puls. Elke update wordt opgeteld, ook een ongewijzigde waarde. Negatieve waarden worden genegeerd.",
     "Start value scale hint": "Een startwaarde is groter dan het huidige totaal, maar zou gedeeld door 1000 passen. Is hij in Wh in plaats van kWh, of in l in plaats van m³ ingevoerd? Startwaarden gelden in de eenheid van de prijsdefinitie.",
     "Custom settings moved hint": "Here you only switch SourceAnalytix on or off for this datapoint. Price definition, unit, start values and all other settings are set up in the SourceAnalytix instance settings. An enabled source without a price definition appears there on the \"Problems\" tab.",
-    "Open SourceAnalytix settings": "Open SourceAnalytix settings"
+    "Open SourceAnalytix settings": "Open SourceAnalytix settings",
+    "Price changed without new valid from": "Price changed but \"Valid from\" did not: the new price replaces the old one retroactively. Set a new date?"
 }

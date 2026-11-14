@@ -144,5 +144,6 @@
     "Each update adds its value help": "Für Datenpunkte, die je Impuls eine Aktualisierung oder einen Verbrauchszuwachs statt eines Zählerstands senden, zum Beispiel 1 oder true je Impuls oder 0,001 kWh je Impuls. Jede Aktualisierung wird addiert, auch ein unveränderter Wert. Negative Werte werden ignoriert.",
     "Start value scale hint": "Ein Startwert ist größer als der aktuelle Gesamtstand, würde aber geteilt durch 1000 passen. Wurde er in Wh statt kWh oder in l statt m³ eingegeben? Startwerte gelten in der Einheit der Preisdefinition.",
     "Custom settings moved hint": "Hier schaltest du SourceAnalytix für diesen Datenpunkt nur ein oder aus. Preisdefinition, Einheit, Startwerte und alle weiteren Einstellungen richtest du in den Instanz-Einstellungen von SourceAnalytix ein. Eine eingeschaltete Quelle ohne Preisdefinition erscheint dort im Tab „Probleme“.",
-    "Open SourceAnalytix settings": "SourceAnalytix-Einstellungen öffnen"
+    "Open SourceAnalytix settings": "SourceAnalytix-Einstellungen öffnen",
+    "Price changed without new valid from": "Preis geändert, „Gültig ab“ nicht: der neue Preis ersetzt den alten rückwirkend. Neues Datum setzen?"
 }
