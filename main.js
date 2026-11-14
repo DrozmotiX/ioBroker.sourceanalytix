@@ -4177,6 +4177,63 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Action "Delete data" (#1265): deactivate the source and remove its output folder.
+	 * Works for active sources and for folders left behind by removed or deactivated ones.
+	 * @param {unknown} source - Source state ID
+	 * @param {unknown} requestedOutputId - Output folder, if no source is given
+	 * @param {boolean} dryRun - Only return what would be deleted
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async deleteSourceData(source, requestedOutputId, dryRun) {
+		let deviceName = null;
+		const sourceId = typeof source === 'string' && source ? source : null;
+		if (sourceId && this.activeStates[sourceId] && this.activeStates[sourceId].stateDetails) {
+			deviceName = this.activeStates[sourceId].stateDetails.deviceName;
+		} else if (sourceId) {
+			const sourceObject = await this.getForeignObjectAsync(sourceId);
+			const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
+			deviceName = custom && custom.outputId ? outputId.resolveOutputId(custom.outputId, sourceId) : null;
+			if (!deviceName) {
+				const devices = await this.getDevicesAsync();
+				const device = devices.find(entry => entry.native && entry.native.sourceState === sourceId);
+				deviceName = device ? device._id.split('.').pop() || null : null;
+			}
+		} else if (typeof requestedOutputId === 'string' && requestedOutputId) {
+			deviceName = requestedOutputId;
+		}
+		if (!deviceName || !/^[^.*\s]+$/.test(deviceName)) {
+			return {error: 'outputNotFound', message: 'No output folder found for this source'};
+		}
+
+		const root = this.getFullOutputRoot(deviceName);
+		const states = await this.getOutputTreeStates(deviceName);
+		const deviceObject = await this.getObjectAsync(deviceName);
+		const sourceState = sourceId || (deviceObject && deviceObject.native && deviceObject.native.sourceState) || null;
+		const summary = sourceActions.summarizeOutputTree(root, Object.keys(states));
+		const cumulative = states[`${root}.cumulativeReading`] ? states[`${root}.cumulativeReading`].val : null;
+		const result = {ok: true, outputId: deviceName, source: sourceState, states: summary.states, years: summary.years, cumulative};
+		if (!deviceObject && summary.states === 0) return {error: 'outputNotFound', message: `Output folder ${deviceName} does not exist`};
+		if (dryRun) return result;
+
+		if (sourceState) {
+			if (this.activeStates[sourceState]) {
+				this.stopStatisticsJsonUpdates(sourceState);
+				delete this.activeStates[sourceState];
+				delete previousCalculationRounded[sourceState];
+				this.unsubscribeForeignStates(sourceState);
+			}
+			const sourceObject = await this.getForeignObjectAsync(sourceState);
+			if (sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace]) {
+				// Remove the SourceAnalytix settings, so the folder is not created again
+				await this.extendForeignObjectAsync(sourceState, {common: {custom: {[this.namespace]: null}}});
+			}
+		}
+		await this.deleteOutputTree(deviceName);
+		this.log.info(`Deleted the data of ${sourceState || deviceName}: ${summary.states} states in ${root}`);
+		return result;
+	}
+
+	/**
 	 * Run an instant action requested through sendTo (settings page, scripts).
 	 * @param {string} command - Message command
 	 * @param {Record<string, unknown>} message - Message payload
@@ -4184,6 +4241,9 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async handleActionMessage(command, message) {
 		const dryRun = message.dryRun === true;
+		if (command === 'deleteSourceData') {
+			return this.deleteSourceData(message.source, message.outputId, dryRun);
+		}
 		if (command === 'recalcCosts') {
 			const from = typeof message.from === 'number' ? message.from : Date.parse(String(message.from));
 			if (!Number.isFinite(from) || from > Date.now()) return {error: 'invalidDate', message: `Date ${JSON.stringify(message.from)} is not valid`};
@@ -4248,7 +4308,8 @@ class Sourceanalytix extends utils.Adapter {
 
 				case 'setCumulative':
 				case 'meterSwap':
-				case 'recalcCosts': {
+				case 'recalcCosts':
+				case 'deleteSourceData': {
 					let response;
 					try {
 						response = await this.handleActionMessage(obj.command, obj.message || {});

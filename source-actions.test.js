@@ -10,6 +10,7 @@ const {
 	listRecalcPeriods,
 	planAlignMeterReading,
 	planMeterSwap,
+	summarizeOutputTree,
 } = require('./lib/source-actions');
 const {calculateHistoricalBasicPriceTotals} = require('./lib/calculation');
 
@@ -171,6 +172,20 @@ describe('recalculate costs (#947)', () => {
 	});
 });
 
+describe('delete data (#1265)', () => {
+	it('counts states and archive years', () => {
+		const root = 'sourceanalytix.0.house';
+		const summary = summarizeOutputTree(root, [
+			`${root}.cumulativeReading`,
+			`${root}.2025.consumedCumulative`,
+			`${root}.2026.consumed.months.01_January`,
+			`${root}.currentYear.consumed.01_currentDay`,
+			'sourceanalytix.0.house2.cumulativeReading',
+		]);
+		assert.deepEqual(summary, {states: 4, years: [2025, 2026]});
+	});
+});
+
 function createHarness() {
 	const adapter = Object.create(Sourceanalytix.prototype);
 	const states = new Map();
@@ -314,5 +329,31 @@ describe('instant actions on the adapter', () => {
 		addSource(adapter, stateID);
 		const result = await adapter.handleActionMessage('recalcCosts', {source: stateID, from: Date.now() + 86_400_000});
 		assert.equal(result.error, 'invalidDate');
+	});
+
+	it('deletes the output folder and the settings of a source', async () => {
+		const {adapter, states, objects} = createHarness();
+		addSource(adapter, stateID);
+		objects.set(stateID, {common: {custom: {'sourceanalytix.0': {enabled: true, outputId: 'house'}}}});
+		states.set('sourceanalytix.0.house.cumulativeReading', {val: 1000});
+		states.set('sourceanalytix.0.house.2026.consumedCumulative', {val: 1});
+		adapter.getOutputTreeStates = async () => Object.fromEntries([...states.entries()].filter(([id]) => id.startsWith('sourceanalytix.0.house.')));
+		adapter.getObjectAsync = async () => ({type: 'device', native: {sourceState: stateID}});
+		adapter.getForeignObjectAsync = async id => objects.get(id) || null;
+		adapter.stopStatisticsJsonUpdates = () => {};
+		adapter.unsubscribeForeignStates = () => {};
+		let customRemoved = false;
+		adapter.extendForeignObjectAsync = async (_id, extension) => { customRemoved = extension.common.custom['sourceanalytix.0'] === null; };
+		let deleted = null;
+		adapter.deleteOutputTree = async deviceName => { deleted = deviceName; };
+
+		const preview = await adapter.handleActionMessage('deleteSourceData', {source: stateID, dryRun: true});
+		assert.deepEqual({states: preview.states, years: preview.years, cumulative: preview.cumulative}, {states: 2, years: [2026], cumulative: 1000});
+		assert.equal(deleted, null);
+
+		await adapter.handleActionMessage('deleteSourceData', {source: stateID});
+		assert.equal(deleted, 'house');
+		assert.equal(customRemoved, true);
+		assert.equal(adapter.activeStates[stateID], undefined);
 	});
 });
