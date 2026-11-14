@@ -51,6 +51,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 -->
 ## Changelog
 ### __WORK IN PROGRESS__
+* The source detail of the settings page now contains all source settings: start values (checked like in the wizard), maximum gap and averaging for power sources, pulses per unit, "Each update adds its value" and the technical ID ([#1285](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1285)).
 * Power values sent as text with a comma, such as `"1,5"`, are read like meter readings; a value that is not a number is ignored with a warning instead of logging an invalid interval for every value ([#1288](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1288)).
 * Settings page: hints name the tab "Price definitions" like the tab itself, "Quarters" is translated as "Quartale", a single comma or dot is always the decimal mark (`1.283` is 1.283 like in the adapter), and the technical ID in the wizard accepts the same characters as the adapter ([#1287](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1287)).
 * New instance settings page (requires admin 8): tabs "Overview" and "Problems" with all sources, a wizard to add a source, a detail page per source and actions that work immediately without restart ([#1269](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1269)).
