@@ -3044,9 +3044,10 @@ class Sourceanalytix extends utils.Adapter {
 	 * Process a calendar rollover for all active sources, from the scheduler,
 	 * the safety check, the button state or a sendTo message.
 	 * @param {string} trigger - What asked for the rollover, used for logging
+	 * @param {string} [onlySource] - Only process this source; all active sources when omitted
 	 * @returns {Promise<number>} Number of sources with a processed rollover
 	 */
-	async runPeriodRollovers(trigger) {
+	async runPeriodRollovers(trigger, onlySource) {
 		if (this.rolloverRunning) {
 			this.log.debug(`[runPeriodRollovers] Rollover already running, ignoring ${trigger}`);
 			return 0;
@@ -3056,10 +3057,12 @@ class Sourceanalytix extends utils.Adapter {
 		let recovered = 0;
 		try {
 			const date = new Date();
-			await this.closePowerIntervals(date);
+			await this.closePowerIntervals(date, onlySource);
 			await this.refreshDates();
 			await this.refreshScheduledPrices(date.getTime());
 			for (const stateID in this.activeStates) {
+				// The settings page recovers one source at a time (#1292)
+				if (onlySource && stateID !== onlySource) continue;
 				try {
 					if (await this.processPeriodRollover(stateID, date)) recovered = recovered + 1;
 				} catch (error) {
@@ -3089,12 +3092,14 @@ class Sourceanalytix extends utils.Adapter {
 	 * with the same power value from the boundary.
 	 * Only intervals that started on the ending day are closed; longer gaps are not extrapolated.
 	 * @param {Date} date - Current local date
+	 * @param {string} [onlySource] - Only close the interval of this source
 	 */
-	async closePowerIntervals(date) {
+	async closePowerIntervals(date, onlySource) {
 		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
 		const closingTimestamp = boundaryTimestamp - 1;
 		const previousDayStart = calculation.getPeriodBoundaryTimestamp(new Date(closingTimestamp));
 		for (const stateID in this.activeStates) {
+			if (onlySource && stateID !== onlySource) continue;
 			try {
 				const activeState = this.activeStates[stateID];
 				if (!activeState || !activeState.calcValues || !activeState.stateDetails) continue;
@@ -4756,8 +4761,14 @@ class Sourceanalytix extends utils.Adapter {
 					break;
 
 				case 'recoverPeriods': {
-					this.log.info(`Period rollover requested by ${obj.from}`);
-					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`);
+					// Optional source: only this source, otherwise all sources (#1292)
+					const source = obj.message && typeof obj.message === 'object' && typeof obj.message.source === 'string' ? obj.message.source : undefined;
+					if (source && !this.activeStates[source]) {
+						if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'sourceNotActive', message: `${source} is not active`}, obj.callback);
+						break;
+					}
+					this.log.info(`Period rollover${source ? ` of ${source}` : ''} requested by ${obj.from}`);
+					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`, source);
 					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
 					break;
 				}
