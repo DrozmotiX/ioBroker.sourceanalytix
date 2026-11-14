@@ -7,7 +7,7 @@ Diese Regeln gelten für alle Seiten unter `docs/de` und später `docs/en`. Sie 
 1. **Der Titel ist die Frage der Nutzer.** Jede Abschnittsüberschrift (`##`) ist eine Frage, so wie Nutzer sie im Forum oder in Issues stellen. Die Fragen stehen schon im Gerüst. Ändere den Wortlaut nur, wenn er missverständlich ist, und schreibe den Grund in die Commit-Nachricht.
 2. **Jede Aussage hat eine Quelle.** Belegt wird mit einer Code-Stelle, einem Issue oder einem Forenbeitrag (Format in Abschnitt 4). Eine Aussage ohne Quelle wird nicht geschrieben, sondern als offene Frage im Projekt-Thread gestellt.
 3. **Versionen stehen ausdrücklich da.** Was erst ab einer bestimmten Version gilt, bekommt einen sichtbaren Hinweis (Abschnitt 5).
-4. **Deutsch ist maßgeblich.** Deutsch wird zuerst geschrieben und abgenommen. Englisch folgt inhaltsgleich, bewusst geschrieben und nicht maschinell übersetzt.
+4. **Deutsch ist maßgeblich.** Deutsch wird zuerst geschrieben und abgenommen. Englisch folgt inhaltsgleich: aus der abgenommenen deutschen Fassung übersetzt, in natürlichem Englisch statt Wort für Wort, Oberflächenbegriffe genau wie in den englischen Sprachdateien des Adapters (`admin/i18n/en.json`, `src-admin/src/i18n/en.json`).
 5. **Nur Markdown, das auf GitHub und in VuePress gleich aussieht** (Abschnitt 6).
 
 ## 2. Woher die Inhalte kommen
@@ -119,4 +119,4 @@ Keine Benutzernamen, Geräte-IDs, IP- oder MAC-Adressen, auch nicht aus Forenbei
 3. **Ein Commit je Abschnitt**, Nachricht im Format `docs(de): <Seite> – <Frage gekürzt>`.
 4. Fertige Abschnitte ersetzen die Zeile *Dieser Abschnitt wird noch geschrieben.* Unfertige behalten sie.
 5. Offene Fragen und Entscheidungen an den Entwickler stehen im Projekt-Thread, nie im Pull Request und nicht in der Doku. Was sich aus dem Code klären lässt, entscheidet der Schreib-Thread selbst.
-6. Englisch wird erst geschrieben, wenn der Entwickler die deutsche Fassung abgenommen hat. Es entsteht unter `docs/en` mit denselben Datei- und Ankernamen.
+6. Englisch wird erst geschrieben, wenn der Entwickler die deutsche Fassung abgenommen hat. Es entsteht unter `docs/en` mit denselben Datei- und Ankernamen; Anker und alle Kommentare (`abschnitt:`, `quelle:` usw.) bleiben byte-gleich. Ändert sich ein deutscher Abschnitt, wird der englische im selben Pull Request nachgezogen.
