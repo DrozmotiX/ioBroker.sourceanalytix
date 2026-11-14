@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "sourceanalytix",
-    "version": "0.7.0-beta.0",
+    "version": "0.7.0",
     "news": {
       "0.7.0": {
         "en": "New settings page (requires Admin 8) with overview, problem check, wizard and a detail page for every source.\nNew actions without restart: align meter reading, meter swapped, recalculate costs from a date, delete data.\nPulse counters, unit \"piece\", maximum gap for power sources and checked start values.\n\"Recover periods\" per source; hint when a price changes without a new \"Valid from\" date.\nMany calculation fixes: day change for power sources, reading gaps at midnight, calendar weeks at the turn of the year, meter resets, prices with a future \"Valid from\" date.\nNew documentation in German and English.",
