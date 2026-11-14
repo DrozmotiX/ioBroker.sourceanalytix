@@ -139,5 +139,6 @@
     "Pulses per unit": "Impulsy na jednostkę definicji ceny",
     "Pulses per unit help": "Tylko dla jednostek piece i piece/min (impulsy). Przykład: 1000 dla licznika 1000 imp/kWh i definicji ceny w kWh. Puste: definicja ceny musi używać jednostki piece.",
     "Each update adds its value": "Każda aktualizacja dodaje swoją wartość",
-    "Each update adds its value help": "Dla punktów danych, które zamiast stanu licznika wysyłają jedną aktualizację na impuls lub przyrost zużycia, na przykład 1 lub true na impuls albo 0,001 kWh na impuls. Każda aktualizacja jest dodawana, także niezmieniona wartość. Wartości ujemne są ignorowane."
+    "Each update adds its value help": "Dla punktów danych, które zamiast stanu licznika wysyłają jedną aktualizację na impuls lub przyrost zużycia, na przykład 1 lub true na impuls albo 0,001 kWh na impuls. Każda aktualizacja jest dodawana, także niezmieniona wartość. Wartości ujemne są ignorowane.",
+    "Start value scale hint": "Wartość początkowa jest większa niż bieżący stan łączny, ale pasowałaby po podzieleniu przez 1000. Czy wpisano ją w Wh zamiast kWh albo w l zamiast m³? Wartości początkowe podaje się w jednostce definicji ceny."
 }

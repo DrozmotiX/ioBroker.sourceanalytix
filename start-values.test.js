@@ -205,3 +205,19 @@ describe('current total for the dialog (#1267)', () => {
 		assert.match(logs.warn[0], /Start value day \(600\) of meter\.0\.energy is larger than the current total 510/);
 	});
 });
+
+describe('start values in the wrong unit scale (#1267)', () => {
+	const hidden = data => executeCustom(schema._startValueScaleHint.hidden, {selectedPrice: 'Electricity', _startValueContext: {readings: {Electricity: 510.5}, units: {}}, ...data}, source);
+
+	it('hints at a start value entered in Wh instead of kWh', () => {
+		assert.equal(hidden({start_day: '510000'}), false);
+		assert.equal(hidden({start_month: 480000}), false);
+	});
+
+	it('stays hidden for fitting values, values that are far too large and without a known total', () => {
+		assert.equal(hidden({start_day: '500,5'}), true);
+		assert.equal(hidden({start_day: '600000'}), true);
+		assert.equal(hidden({start_day: ''}), true);
+		assert.equal(executeCustom(schema._startValueScaleHint.hidden, {selectedPrice: 'Electricity', start_day: '510000'}, source), true);
+	});
+});

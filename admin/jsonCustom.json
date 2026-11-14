@@ -291,6 +291,19 @@
       "lg": 6,
       "xl": 6
     },
+    "_startValueScaleHint": {
+      "type": "staticText",
+      "text": "Start value scale hint",
+      "style": {
+        "color": "#ed6c02"
+      },
+      "hidden": "Array.isArray(data.selectedPrice) || ((reading) => typeof reading !== 'number' || !['start_day', 'start_week', 'start_month', 'start_quarter', 'start_year'].some(field => { const text = typeof data[field] === 'number' ? String(data[field]) : typeof data[field] === 'string' ? data[field].trim() : ''; if (!/^\\d+([.,]\\d+)?$/.test(text)) return false; const value = Number(text.replace(',', '.')); return value > reading + 1e-9 * Math.max(1, reading) && value / 1000 <= reading + 1e-9 * Math.max(1, reading); }))(data._startValueContext && data._startValueContext.readings ? data._startValueContext.readings[data.selectedPrice] : undefined)",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 6,
+      "xl": 6
+    },
     "start_day": {
       "type": "text",
       "label": "Day",
