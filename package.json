@@ -30,6 +30,7 @@
     "lib/calculation.js",
     "lib/dynamic-pricing.js",
     "lib/output-id.js",
+    "lib/source-actions.js",
     "lib/statistics-json.js",
     "main.js"
   ],
