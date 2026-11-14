@@ -12,6 +12,9 @@ on:
     paths: ['docs/**']
   workflow_dispatch:
 
+# Der Job braucht keine Rechte am eigenen Repo; der Dispatch läuft über DOCS_DISPATCH_TOKEN.
+permissions: {}
+
 jobs:
   dispatch:
     runs-on: ubuntu-latest
