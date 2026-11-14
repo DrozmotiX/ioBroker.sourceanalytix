@@ -2014,6 +2014,9 @@ class Sourceanalytix extends utils.Adapter {
 				this.activeStates[stateID] = {
 					firstActivation: useUnit !== 'W' && valueAtDeviceReset === null,
 					realignDeviceOffset,
+					pendingMeterSwap: useUnit !== 'W' && customData.pendingMeterSwap && typeof customData.pendingMeterSwap === 'object'
+						? customData.pendingMeterSwap
+						: null,
 					stateDetails: {
 						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
 						averagePowerValues: customData.averagePowerValues === true,
@@ -3385,6 +3388,16 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 
 			if (currentCath !== 'Watt') {
+				if (activeState.pendingMeterSwap) {
+					// After "meter swapped" the device may still report the old meter until it is replaced
+					if (sourceActions.isOldMeterReading(reading, activeState.pendingMeterSwap)) {
+						this.log.debug(`[calculationHandler] Ignoring reading ${reading} of ${stateID}: still from the old meter`);
+						return;
+					}
+					this.log.info(`First reading ${reading} of the new meter received for ${stateID}`);
+					activeState.pendingMeterSwap = null;
+					await this.persistSourceMemory(stateID, {pendingMeterSwap: null});
+				}
 				if (activeState.realignDeviceOffset) {
 					activeState.realignDeviceOffset = false;
 					const knownTotal = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
@@ -4002,11 +4015,13 @@ class Sourceanalytix extends utils.Adapter {
 		activeState.pendingDeviceReset = null;
 		activeState.confirmedDeviceReset = null;
 		activeState.realignDeviceOffset = false;
+		activeState.pendingMeterSwap = null;
 		if (activeState.readingGap && Number.isFinite(activeState.readingGap.lastTotal)) activeState.readingGap.lastTotal += delta;
 		const memory = {...plan.startValues};
 		if (!isPower) {
 			calcValues.valueAtDeviceReset = plan.offset;
 			memory.valueAtDeviceReset = plan.offset;
+			memory.pendingMeterSwap = null;
 		}
 		// The jump of the total is no consumption: move the cost tracker with it
 		if (this.usesHistoricalCostCalculation(stateID)) {
@@ -4030,6 +4045,69 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Action "Meter swapped": the total continues from the end reading of the old meter and
+	 * counts on with the new meter from its start reading.
+	 * @param {string} stateID - Source state ID
+	 * @param {unknown} oldEnd - Total at the removal of the old meter (calculation unit)
+	 * @param {unknown} newStart - Reading of the new meter at installation (calculation unit)
+	 * @param {unknown} date - Date of the swap (informational)
+	 * @param {boolean} dryRun - Only return the preview
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async applyMeterSwap(stateID, oldEnd, newStart, date, dryRun) {
+		const activeState = this.activeStates[stateID];
+		if (activeState.stateDetails.stateUnit === 'W') {
+			return {error: 'powerSource', message: `${stateID} measures power, a meter swap does not apply`};
+		}
+		const calcValues = activeState.calcValues;
+		const previousCumulative = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
+		const plan = sourceActions.planMeterSwap({
+			oldEnd: this.parseActionNumber(oldEnd),
+			newStart: newStart === undefined || newStart === null || newStart === '' ? 0 : this.parseActionNumber(newStart),
+			cumulative: previousCumulative,
+		});
+		if (!plan.valid) return {error: plan.error, message: `Meter swap values are not valid (${plan.error})`, cumulative: previousCumulative};
+		const result = {
+			ok: true,
+			unit: activeState.stateDetails.useUnit,
+			previousCumulative,
+			cumulative: plan.cumulative,
+			addedConsumption: plan.addedConsumption,
+			valueAtDeviceReset: plan.offset,
+		};
+		if (dryRun) return result;
+
+		const rawReading = await this.getDeviceReadingInCalculationUnit(stateID);
+		const newMeterStart = (plan.cumulative || 0) - (plan.offset || 0);
+		// Last value of the old meter as the device reported it
+		const lastOldMeterReading = previousCumulative - this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0);
+		const pendingMeterSwap = {
+			rawAtSwap: lastOldMeterReading,
+			newStart: newMeterStart,
+			date: typeof date === 'string' || typeof date === 'number' ? date : Date.now(),
+		};
+		const deviceShowsNewMeter = rawReading !== null && !sourceActions.isOldMeterReading(rawReading, pendingMeterSwap);
+		calcValues.valueAtDeviceReset = plan.offset;
+		calcValues.cumulativeValue = plan.cumulative;
+		activeState.pendingDeviceReset = null;
+		activeState.confirmedDeviceReset = null;
+		activeState.realignDeviceOffset = false;
+		activeState.pendingMeterSwap = deviceShowsNewMeter ? null : pendingMeterSwap;
+		await this.persistSourceMemory(stateID, {
+			valueAtDeviceReset: plan.offset,
+			pendingMeterSwap: activeState.pendingMeterSwap,
+		});
+		await this.setStateAsync(`${activeState.stateDetails.deviceName}.cumulativeReading`, {val: plan.cumulative, ack: true});
+		this.recordStatisticsValue(stateID, 'cumulativeReading', plan.cumulative);
+		this.log.info(`Meter swap for ${stateID} applied: old meter ended at ${plan.cumulative} ${result.unit}, new meter starts at ${newMeterStart}, valueAtDeviceReset ${plan.offset}`);
+		if (deviceShowsNewMeter) {
+			const current = await this.getForeignStateAsync(stateID);
+			if (current) await this.calculationHandler(stateID, current);
+		}
+		return result;
+	}
+
+	/**
 	 * Run an instant action requested through sendTo (settings page, scripts).
 	 * @param {string} command - Message command
 	 * @param {Record<string, unknown>} message - Message payload
@@ -4039,7 +4117,8 @@ class Sourceanalytix extends utils.Adapter {
 		const dryRun = message.dryRun === true;
 		const resolved = this.resolveActionSource(message.source);
 		if ('error' in resolved) return resolved;
-		return this.alignMeterReading(resolved.stateID, message.value, dryRun);
+		if (command === 'setCumulative') return this.alignMeterReading(resolved.stateID, message.value, dryRun);
+		return this.applyMeterSwap(resolved.stateID, message.oldEnd, message.newStart, message.date, dryRun);
 	}
 
 	//Function to handle messages from State settings and provide Unit and Price definitions
@@ -4084,7 +4163,8 @@ class Sourceanalytix extends utils.Adapter {
 					break;
 				}
 
-				case 'setCumulative': {
+				case 'setCumulative':
+				case 'meterSwap': {
 					let response;
 					try {
 						response = await this.handleActionMessage(obj.command, obj.message || {});

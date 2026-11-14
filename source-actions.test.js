@@ -3,7 +3,9 @@
 const assert = require('node:assert/strict');
 const Module = require('node:module');
 const {
+	isOldMeterReading,
 	planAlignMeterReading,
+	planMeterSwap,
 } = require('./lib/source-actions');
 
 /** @type {(...args: any[]) => any} */
@@ -49,6 +51,33 @@ describe('align meter reading (#640)', () => {
 	it('rejects invalid values', () => {
 		assert.equal(planAlignMeterReading({target: null, cumulative: 1, offset: 0, rawReading: 1, startValues: {}}).valid, false);
 		assert.equal(planAlignMeterReading({target: -1, cumulative: 1, offset: 0, rawReading: 1, startValues: {}}).error, 'negativeValue');
+	});
+});
+
+describe('meter swap', () => {
+	it('continues the total from the end reading of the old meter', () => {
+		const plan = planMeterSwap({oldEnd: 5002.6, newStart: 0, cumulative: 5000});
+		assert.equal(plan.valid, true);
+		assert.equal(plan.cumulative, 5002.6);
+		assert.equal(plan.offset, 5002.6);
+		assert.ok(Math.abs(/** @type {number} */ (plan.addedConsumption) - 2.6) < 1e-9);
+	});
+
+	it('allows a new meter that starts higher (negative offset)', () => {
+		assert.equal(planMeterSwap({oldEnd: 5000, newStart: 6000, cumulative: 5000}).offset, -1000);
+	});
+
+	it('rejects an end reading below the known total', () => {
+		assert.equal(planMeterSwap({oldEnd: 4999, newStart: 0, cumulative: 5000}).error, 'oldEndBelowTotal');
+		assert.equal(planMeterSwap({oldEnd: 5000, newStart: -1, cumulative: 5000}).error, 'invalidNewStart');
+	});
+
+	it('ignores values of the old meter until the new meter reports', () => {
+		const pending = {rawAtSwap: 5000, newStart: 0};
+		assert.equal(isOldMeterReading(5000, pending), true);
+		assert.equal(isOldMeterReading(5001.5, pending), true);
+		assert.equal(isOldMeterReading(0.2, pending), false);
+		assert.equal(isOldMeterReading(5000, {rawAtSwap: null, newStart: 0}), false);
 	});
 });
 
@@ -122,5 +151,37 @@ describe('instant actions on the adapter', () => {
 		const {adapter} = createHarness();
 		const result = await adapter.handleActionMessage('setCumulative', {source: 'x.0.y', value: 1});
 		assert.equal(result.error, 'sourceNotActive');
+	});
+
+	it('swaps the meter and waits for the first value of the new meter', async () => {
+		const {adapter, states, objects} = createHarness();
+		addSource(adapter, stateID);
+		states.set(stateID, {val: 1000000, ts: 1});
+		const result = await adapter.handleActionMessage('meterSwap', {source: stateID, oldEnd: 1002, newStart: 0, date: '2026-11-13'});
+		assert.equal(result.ok, true);
+		assert.equal(result.addedConsumption, 2);
+		const activeState = adapter.activeStates[stateID];
+		assert.equal(activeState.calcValues.valueAtDeviceReset, 1002);
+		assert.deepEqual(activeState.pendingMeterSwap, {rawAtSwap: 1000, newStart: 0, date: '2026-11-13'});
+		assert.equal(objects.get(stateID).common.custom['sourceanalytix.0'].pendingMeterSwap.rawAtSwap, 1000);
+		assert.equal(activeState.calcValues.start_day, 990, 'start values stay, the added consumption belongs to today');
+	});
+
+	it('applies the swap at once if the device already shows the new meter', async () => {
+		const {adapter, states} = createHarness();
+		addSource(adapter, stateID);
+		states.set(stateID, {val: 300, ts: 1});
+		let calculated = false;
+		adapter.calculationHandler = async () => { calculated = true; };
+		await adapter.handleActionMessage('meterSwap', {source: stateID, oldEnd: 1000, newStart: 0});
+		assert.equal(adapter.activeStates[stateID].pendingMeterSwap, null);
+		assert.equal(calculated, true);
+	});
+
+	it('refuses a meter swap for power sources', async () => {
+		const {adapter} = createHarness();
+		addSource(adapter, stateID, {stateUnit: 'W'});
+		const result = await adapter.handleActionMessage('meterSwap', {source: stateID, oldEnd: 1000});
+		assert.equal(result.error, 'powerSource');
 	});
 });
