@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const {getGapShareOfEndingDay} = require('./lib/calculation');
+const {getGapShareOfEndingDay} = require('../../lib/calculation');
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -10,7 +10,7 @@ Reflect.set(Module, '_load', function loadTestDependency(request, parent, isMain
 	if (request === '@iobroker/adapter-core') return {Adapter: class {}};
 	return originalModuleLoad.call(Module, request, parent, isMain);
 });
-const {Sourceanalytix} = require('./main');
+const {Sourceanalytix} = require('../../main');
 Reflect.set(Module, '_load', originalModuleLoad);
 
 const hour = 3_600_000;

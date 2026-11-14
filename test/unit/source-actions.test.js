@@ -11,8 +11,8 @@ const {
 	planAlignMeterReading,
 	planMeterSwap,
 	summarizeOutputTree,
-} = require('./lib/source-actions');
-const {calculateHistoricalBasicPriceTotals} = require('./lib/calculation');
+} = require('../../lib/source-actions');
+const {calculateHistoricalBasicPriceTotals} = require('../../lib/calculation');
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -20,7 +20,7 @@ Reflect.set(Module, '_load', function loadTestDependency(request, parent, isMain
 	if (request === '@iobroker/adapter-core') return {Adapter: class {}};
 	return originalModuleLoad.call(Module, request, parent, isMain);
 });
-const {Sourceanalytix} = require('./main');
+const {Sourceanalytix} = require('../../main');
 Reflect.set(Module, '_load', originalModuleLoad);
 
 const weekdays = ['07_Sunday', '01_Monday', '02_Tuesday', '03_Wednesday', '04_Thursday', '05_Friday', '06_Saturday'];
