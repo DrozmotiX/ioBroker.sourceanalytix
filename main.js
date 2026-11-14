@@ -13,6 +13,7 @@ const calculation = require('./lib/calculation');
 const dynamicPricing = require('./lib/dynamic-pricing');
 const outputId = require('./lib/output-id');
 const sourceActions = require('./lib/source-actions');
+const sourceOverview = require('./lib/source-overview');
 const statisticsJson = require('./lib/statistics-json');
 
 // Sentry error reporting, disable when testing alpha source code locally!
@@ -3426,6 +3427,8 @@ class Sourceanalytix extends utils.Adapter {
 								lastRawReading: reading,
 							} : null;
 						} else if (resolvedReading.type === 'decrease') {
+							// Shown as a problem on the settings page (#1269)
+							activeState.decreasesWhileResetOff = (activeState.decreasesWhileResetOff || 0) + 1;
 							this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
 						}
 						reading = resolvedReading.reading;
@@ -4234,6 +4237,259 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Collect all sources (configured datapoints and folders without a datapoint) for the settings page.
+	 * @returns {Promise<SaSourceSummary[]>} Source summaries
+	 */
+	async buildSourceSummaries() {
+		const summaries = sourceOverview.createSummaryList();
+		const knownOutputs = new Set();
+		const customView = await this.getObjectViewAsync('system', 'custom', {});
+		const today = this.getPeriodSnapshot(new Date()).date;
+		for (const row of customView && Array.isArray(customView.rows) ? customView.rows : []) {
+			const custom = row.value && row.value[this.namespace];
+			if (!custom) continue;
+			const sourceObject = await this.getForeignObjectAsync(row.id);
+			const activeState = this.activeStates[row.id];
+			const details = activeState && activeState.stateDetails;
+			const outputIdValue = details ? details.deviceName : outputId.resolveOutputId(custom.outputId, row.id);
+			knownOutputs.add(outputIdValue);
+			const sourceState = sourceObject ? await this.getForeignStateAsync(row.id) : null;
+			const common = sourceObject && sourceObject.type === 'state' ? sourceObject.common : null;
+			const priceDefinition = details ? details.stateType : custom.selectedPrice;
+			const priceConfig = priceDefinition ? this.unitPriceDef.pricesConfig[priceDefinition] : undefined;
+			const settings = {...custom};
+			for (const key of ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit']) delete settings[key];
+			const sourceValues = details ? await this.readSourceValues(details) : {values: {}, lastUpdate: null};
+			const periods = details ? await this.loadPeriodMemory(row.id) : null;
+			const summary = {
+				id: row.id,
+				name: (custom.alias && String(custom.alias).trim()) || (common && (typeof common.name === 'object' ? common.name.de || common.name.en : common.name)) || row.id,
+				enabled: !!custom.enabled,
+				active: !!details,
+				sourceExists: !!sourceObject,
+				sourceUnit: common && common.unit ? common.unit : null,
+				unit: details ? details.stateUnit : calculation.resolveUnit(custom.selectedUnit, this.unitPriceDef.unitConfig) || calculation.resolveUnit(common && common.unit, this.unitPriceDef.unitConfig) || null,
+				calcUnit: details ? details.useUnit : priceConfig ? priceConfig.unitType : null,
+				kind: (details ? details.stateUnit : '') === 'W' ? 'power' : 'meter',
+				priceDefinition: priceDefinition || null,
+				costType: priceConfig ? priceConfig.costType : null,
+				basicRate: custom.basicRate === true,
+				resetDetection: custom.deviceResetLogicEnabled ?? true,
+				outputId: outputIdValue,
+				cumulative: details ? this.getNumberOrDefault(activeState.calcValues.cumulativeValue, 0) : null,
+				valueAtDeviceReset: details ? activeState.calcValues.valueAtDeviceReset : custom.valueAtDeviceReset ?? null,
+				pendingRealign: !!(activeState && activeState.realignDeviceOffset),
+				pendingMeterSwap: !!(activeState && activeState.pendingMeterSwap),
+				decreasesWhileResetOff: activeState && activeState.decreasesWhileResetOff || 0,
+				valueType: sourceState ? typeof sourceState.val : null,
+				lastValue: sourceState ? sourceState.val : null,
+				lastValueTs: sourceState ? sourceState.ts : null,
+				lastUpdate: sourceValues.lastUpdate,
+				periodDate: details ? (periods && typeof periods.date === 'string' ? periods.date : today) : null,
+				values: sourceValues.values,
+				settings,
+				diagnostics: sourceObject ? sourceOverview.diagnoseSourceConfig({
+					custom,
+					unit: common && common.unit,
+					pricesConfig: this.unitPriceDef.pricesConfig,
+					unitConfig: this.unitPriceDef.unitConfig,
+				}) : [],
+			};
+			summaries.push(summary);
+		}
+		// Output folders whose source is gone or not configured anymore
+		const usedOutputIds = await this.getUsedOutputIds();
+		for (const [localId, sourceState] of Object.entries(usedOutputIds)) {
+			if (knownOutputs.has(localId)) continue;
+			const sourceObject = sourceState ? await this.getForeignObjectAsync(sourceState) : null;
+			summaries.push({
+				id: sourceState || localId,
+				name: localId,
+				orphan: true,
+				enabled: false,
+				active: false,
+				sourceExists: !!sourceObject,
+				outputId: localId,
+				values: {},
+				settings: {},
+				diagnostics: [],
+			});
+		}
+		return summaries;
+	}
+
+	/**
+	 * Current and previous period values of an active source.
+	 * @param {{deviceName: string, headCategory: string, financialCategory: string, costs: boolean}} details - stateDetails of the source
+	 * @returns {Promise<{values: Record<string, {quantity: number | null, money: number | null}>, lastUpdate: number | null}>} Values
+	 */
+	async readSourceValues(details) {
+		const root = `${this.namespace}.${details.deviceName}`;
+		const states = await this.getForeignStatesAsync(`${root}.currentYear.*`) || {};
+		const cumulativeState = await this.getForeignStateAsync(`${root}.cumulativeReading`);
+		const values = Object.fromEntries([]);
+		const read = id => {
+			const state = states[id];
+			return state ? this.parsePriceValue(state.val) : null;
+		};
+		for (const period of [...basicStates, ...basicPreviousStates]) {
+			values[period] = {
+				quantity: read(`${root}.currentYear.${details.headCategory}.${period}`),
+				money: details.costs ? read(`${root}.currentYear.${details.financialCategory}.${period}`) : null,
+			};
+		}
+		return {values, lastUpdate: cumulativeState ? cumulativeState.ts : null};
+	}
+
+	/**
+	 * Price definitions for the settings page.
+	 * @returns {Array<{cat: string, costType: string, unitType: string, unitPrice: number, basicPrice: number, priceSource: string}>} Loaded price definitions
+	 */
+	getPriceDefinitionList() {
+		return Object.values(this.unitPriceDef.pricesConfig).map(price => ({
+			cat: price.cat,
+			costType: price.costType,
+			unitType: price.unitType,
+			unitPrice: price.uPpU,
+			basicPrice: price.uPpM,
+			priceSource: price.priceSource,
+		}));
+	}
+
+	/**
+	 * Create or change the SourceAnalytix settings of a datapoint (#1269). The adapter applies them
+	 * through onObjectChange without a restart.
+	 * @param {unknown} source - Datapoint ID
+	 * @param {unknown} settings - Settings to write
+	 * @param {boolean} dryRun - Only validate
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async saveSource(source, settings, dryRun) {
+		if (typeof source !== 'string' || !source) return {error: 'missingSource', message: 'No source given'};
+		if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return {error: 'missingSettings', message: 'No settings given'};
+		const sourceObject = await this.getForeignObjectAsync(source);
+		if (!sourceObject || sourceObject.type !== 'state') return {error: 'sourceNotFound', message: `${source} is not a state`};
+		const current = sourceObject.common.custom && sourceObject.common.custom[this.namespace] || null;
+		const update = {...settings};
+		// Calculation memory is only changed by the adapter and its actions
+		for (const key of ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit']) delete update[key];
+		const merged = {...(current || {}), ...update};
+		const errors = Object.fromEntries([]);
+		if (!merged.selectedPrice || !this.unitPriceDef.pricesConfig[merged.selectedPrice]) errors.selectedPrice = 'priceMissing';
+		const findings = sourceOverview.diagnoseSourceConfig({
+			custom: merged,
+			unit: sourceObject.common.unit,
+			pricesConfig: this.unitPriceDef.pricesConfig,
+			unitConfig: this.unitPriceDef.unitConfig,
+		});
+		for (const finding of findings) {
+			if (finding.code.startsWith('unit')) errors.selectedUnit = finding.code;
+		}
+		if (update.outputId !== undefined && update.outputId !== '') {
+			const validation = outputId.validateResolvedOutputId(update.outputId, source);
+			if (!validation.valid) {
+				errors.outputId = 'invalid';
+			} else {
+				const requested = outputId.resolveOutputId(update.outputId, source);
+				const used = await this.getUsedOutputIds();
+				if (used[requested] && used[requested] !== source) errors.outputId = 'used';
+			}
+		}
+		const activeState = this.activeStates[source];
+		const cumulative = activeState ? this.getNumberOrDefault(activeState.calcValues.cumulativeValue, 0) : null;
+		const startErrors = sourceOverview.checkStartValues(merged, cumulative, new Date());
+		for (const [field, error] of Object.entries(startErrors)) {
+			// Only block start values that are changed now
+			if (update[field] !== undefined) errors[field] = error;
+		}
+		if (Object.keys(errors).length) return {error: 'invalidSettings', message: 'Settings are not valid', errors};
+		if (dryRun) return {ok: true, settings: merged};
+
+		const defaults = current ? {} : {
+			enabled: true,
+			consumption: true,
+			costs: true,
+			meter_values: true,
+			deviceResetLogicEnabled: true,
+		};
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {...defaults, ...update, enabled: update.enabled ?? (current ? current.enabled : true)}}}});
+		this.log.info(`${current ? 'Changed' : 'Created'} SourceAnalytix settings of ${source} from the settings page`);
+		return {ok: true, created: !current};
+	}
+
+	/**
+	 * Activate or deactivate a source; the collected data stays.
+	 * @param {unknown} source - Datapoint ID
+	 * @param {unknown} enabled - New state
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async setSourceEnabled(source, enabled) {
+		if (typeof source !== 'string' || !source) return {error: 'missingSource', message: 'No source given'};
+		const sourceObject = await this.getForeignObjectAsync(source);
+		const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
+		if (!custom) return {error: 'notConfigured', message: `${source} has no SourceAnalytix settings`};
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {enabled: enabled === true}}}});
+		this.log.info(`${enabled === true ? 'Activated' : 'Deactivated'} ${source} from the settings page`);
+		return {ok: true, enabled: enabled === true};
+	}
+
+	/**
+	 * Datapoints that can become a source, for the "add source" wizard.
+	 * @param {unknown} query - Search text (ID or name)
+	 * @returns {Promise<object>} Matching datapoints with unit and value
+	 */
+	async findSourceCandidates(query) {
+		const search = typeof query === 'string' ? query.trim().toLowerCase() : '';
+		const view = await this.getObjectViewAsync('system', 'state', {});
+		const used = Object.fromEntries([]);
+		const customView = await this.getObjectViewAsync('system', 'custom', {});
+		for (const row of customView && Array.isArray(customView.rows) ? customView.rows : []) {
+			const custom = row.value && row.value[this.namespace];
+			if (custom && custom.enabled) used[row.id] = custom.alias || row.id;
+		}
+		const candidates = [];
+		for (const row of view && Array.isArray(view.rows) ? view.rows : []) {
+			const object = row.value;
+			if (!object || !object.common || row.id.startsWith(`${this.namespace}.`) || row.id.startsWith('system.')) continue;
+			const unit = calculation.resolveUnit(object.common.unit, this.unitPriceDef.unitConfig);
+			if (!unit) continue;
+			const name = typeof object.common.name === 'object' ? object.common.name.de || object.common.name.en || '' : object.common.name || '';
+			if (search && !row.id.toLowerCase().includes(search) && !String(name).toLowerCase().includes(search)) continue;
+			candidates.push({id: row.id, name, unit, role: object.common.role || '', usedBy: used[row.id] || null});
+			if (candidates.length >= 50) break;
+		}
+		for (const candidate of candidates) {
+			const state = await this.getForeignStateAsync(candidate.id);
+			Object.assign(candidate, {
+				value: state ? state.val : null,
+				// Daily counters reset every night and are no good total
+				dailyCounter: /(today|heute|daily|day)/i.test(`${candidate.id} ${candidate.name}`),
+			});
+		}
+		return {ok: true, candidates};
+	}
+
+	/**
+	 * Everything the overview and problems tabs need in one call.
+	 * @returns {Promise<object>} Sources, problems, prices and units
+	 */
+	async getSourcesOverview() {
+		const sources = await this.buildSourceSummaries();
+		const {problems, passed} = sourceOverview.buildProblems(sources, Date.now());
+		for (const source of sources) source.status = sourceOverview.getSourceStatus(source, problems);
+		return {
+			ok: true,
+			sources,
+			problems,
+			passed,
+			checkedAt: Date.now(),
+			priceDefinitions: this.getPriceDefinitionList(),
+			units: Object.keys(this.unitPriceDef.unitConfig),
+			currency: useCurrency,
+		};
+	}
+
+	/**
 	 * Run an instant action requested through sendTo (settings page, scripts).
 	 * @param {string} command - Message command
 	 * @param {Record<string, unknown>} message - Message payload
@@ -4241,6 +4497,10 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async handleActionMessage(command, message) {
 		const dryRun = message.dryRun === true;
+		if (command === 'getSources' || command === 'checkProblems') return this.getSourcesOverview();
+		if (command === 'saveSource') return this.saveSource(message.source, message.settings, dryRun);
+		if (command === 'setSourceEnabled') return this.setSourceEnabled(message.source, message.enabled);
+		if (command === 'findCandidates') return this.findSourceCandidates(message.query);
 		if (command === 'deleteSourceData') {
 			return this.deleteSourceData(message.source, message.outputId, dryRun);
 		}
@@ -4306,6 +4566,11 @@ class Sourceanalytix extends utils.Adapter {
 					break;
 				}
 
+				case 'getSources':
+				case 'checkProblems':
+				case 'saveSource':
+				case 'setSourceEnabled':
+				case 'findCandidates':
 				case 'setCumulative':
 				case 'meterSwap':
 				case 'recalcCosts':
