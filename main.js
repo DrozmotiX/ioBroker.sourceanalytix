@@ -25,6 +25,7 @@ const weekdays = JSON.parse('["07_Sunday","01_Monday","02_Tuesday","03_Wednesday
 const months = JSON.parse('["01_January","02_February","03_March","04_April","05_May","06_June","07_July","08_August","09_September","10_October","11_November","12_December"]');
 const stateDeletion = true, previousCalculationRounded = {};
 const recoverPeriodsState = 'info.recoverPeriods';
+const costRecalculationState = 'info.costRecalculation';
 const storeSettings = {};
 let calcBlock = null; // Global variable to block all calculations
 let delay = null; // Global array for all running timers
@@ -2375,58 +2376,6 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * Recalculate only financial states from the stored cumulative reading.
-	 * @param {string} stateID - Source state ID
-	 * @param {string} reason - Log context
-	 */
-	async recalculateCostsForState(stateID, reason) {
-		try {
-			if (!this.activeStates[stateID] || !this.activeStates[stateID].stateDetails || !this.activeStates[stateID].calcValues) return;
-
-			const calcValues = this.activeStates[stateID].calcValues;
-			const stateDetails = this.activeStates[stateID].stateDetails;
-			const statePrices = this.activeStates[stateID].prices;
-			const reading = calcValues.cumulativeValue;
-
-			if (!stateDetails.costs) return;
-			if (this.usesHistoricalCostCalculation(stateID)) {
-				this.log.debug(`[recalculateCostsForState] Skipped cost recalculation for ${stateID} because unit prices are historical`);
-				return;
-			}
-			if (reading === null || reading === undefined) {
-				this.log.warn(`[recalculateCostsForState] Cannot recalculate costs for ${stateID}, cumulative reading is not available`);
-				return;
-			}
-
-			const unitPrice = this.parsePriceValue(statePrices.unitPrice);
-			if (unitPrice === null) {
-				this.log.warn(`[recalculateCostsForState] Cannot recalculate costs for ${stateID}, unit price ${JSON.stringify(statePrices.unitPrice)} is not numeric`);
-				return;
-			}
-
-			const date = new Date();
-			const calculationRounded = await this.addBasicPriceTotals(stateID, {
-				priceDay: unitPrice * (reading - calcValues.start_day),
-				priceWeek: unitPrice * (reading - calcValues.start_week),
-				priceMonth: unitPrice * (reading - calcValues.start_month),
-				priceQuarter: unitPrice * (reading - calcValues.start_quarter),
-				priceYear: unitPrice * (reading - calcValues.start_year),
-			}, date);
-
-			await this.writeFinancialStates(stateID, calculationRounded, date);
-
-			previousCalculationRounded[stateID] = {
-				...previousCalculationRounded[stateID],
-				...calculationRounded
-			};
-
-			this.log.debug(`[recalculateCostsForState] Costs recalculated for ${stateID} because of ${reason}: ${JSON.stringify(calculationRounded)}`);
-		} catch (error) {
-			this.errorHandling(`[recalculateCostsForState] ${stateID}`, error);
-		}
-	}
-
-	/**
 	 * Is called if a subscribed state changes
 	 * @param {string} id of state
 	 * @param {ioBroker.State | null | undefined} state - Changed state, or null when deleted
@@ -4108,6 +4057,126 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Create the state that shows the progress of a running cost recalculation.
+	 */
+	async ensureCostRecalculationState() {
+		await this.extendObjectIfChanged(costRecalculationState, {
+			type: 'state',
+			common: {
+				name: 'Progress of the cost recalculation',
+				type: 'string',
+				role: 'json',
+				read: true,
+				write: false,
+				def: '',
+			},
+			native: {},
+		});
+	}
+
+	/**
+	 * Action "Recalculate costs from date" (#947): consumption stays as it is; the costs or
+	 * earnings of all periods ending after the date are calculated again from the stored
+	 * consumption with the price history (plus the basic fee if the source books it).
+	 * Progress is written to info.costRecalculation.
+	 * @param {string[]} stateIDs - Active sources
+	 * @param {number} from - Start timestamp
+	 * @param {boolean} dryRun - Only list the affected periods
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async recalculateCosts(stateIDs, from, dryRun) {
+		const now = Date.now();
+		const jobs = [];
+		for (const stateID of stateIDs) {
+			const activeState = this.activeStates[stateID];
+			if (!activeState.stateDetails.costs) continue;
+			const deviceName = activeState.stateDetails.deviceName;
+			const root = `${this.namespace}.${deviceName}`;
+			const existing = await this.getForeignStatesAsync(`${root}.*`) || {};
+			const periods = sourceActions.listRecalcPeriods({from, now, config: this.config, weekdays, months})
+				.map(period => ({
+					...period,
+					quantityId: `${root}.${period.path.replace('{cat}', activeState.stateDetails.headCategory)}`,
+					costId: `${root}.${period.path.replace('{cat}', activeState.stateDetails.financialCategory)}`,
+				}))
+				.filter(period => existing[period.quantityId] && existing[period.costId]
+					&& this.parsePriceValue(existing[period.quantityId].val) !== null);
+			jobs.push({stateID, periods, existing});
+		}
+		const total = jobs.reduce((sum, job) => sum + job.periods.length, 0);
+		const summary = {};
+		for (const job of jobs) {
+			for (const period of job.periods) summary[period.kind] = (summary[period.kind] || 0) + 1;
+		}
+		const result = {ok: true, from, sources: jobs.map(job => job.stateID), total, periods: summary};
+		if (dryRun || total === 0) return result;
+
+		await this.ensureCostRecalculationState();
+		let done = 0;
+		const writeProgress = async (running) => {
+			await this.setStateAsync(costRecalculationState, {
+				val: JSON.stringify({running, done, total, from, sources: result.sources, ts: Date.now()}),
+				ack: true,
+			});
+		};
+		await writeProgress(true);
+		for (const job of jobs) {
+			const activeState = this.activeStates[job.stateID];
+			if (!activeState) continue;
+			const priceDefinition = activeState.stateDetails.stateType;
+			const priceHistory = await this.loadPriceHistory(priceDefinition);
+			const basicHistory = activeState.stateDetails.basicRate ? await this.loadBasicPriceHistory(priceDefinition) : [];
+			const basicCharges = sourceActions.getBasicPriceCharges(basicHistory, now);
+			const currentVariable = {};
+			for (const period of job.periods) {
+				const consumption = this.getNumberOrDefault(job.existing[period.quantityId].val, 0);
+				const costs = sourceActions.calculatePeriodCosts({
+					consumption,
+					start: period.start,
+					end: period.end,
+					priceHistory,
+					fallbackPrice: activeState.prices.unitPrice,
+					basicCharges,
+				});
+				done++;
+				if (!costs) continue;
+				await this.setForeignStateAsync(period.costId, {val: await this.roundCosts(costs.total, job.stateID), ack: true});
+				const currentKey = {
+					'currentYear.{cat}.01_currentDay': 'priceDay',
+					'currentYear.{cat}.02_currentWeek': 'priceWeek',
+					'currentYear.{cat}.03_currentMonth': 'priceMonth',
+					'currentYear.{cat}.04_currentQuarter': 'priceQuarter',
+					'currentYear.{cat}.05_currentYear': 'priceYear',
+				}[period.path];
+				if (currentKey) currentVariable[currentKey] = costs.variable;
+				if (done % 25 === 0) await writeProgress(true);
+			}
+			// Continue the running periods from the recalculated costs
+			if (this.usesHistoricalCostCalculation(job.stateID) && Object.keys(currentVariable).length) {
+				const dynamicCosts = activeState.dynamicCosts || await this.loadDynamicCostMemory(job.stateID);
+				const totals = {...(dynamicCosts && dynamicCosts.totals ? dynamicCosts.totals : {}), ...currentVariable};
+				activeState.dynamicCosts = {
+					version: 2,
+					lastReading: this.getNumberOrDefault(activeState.calcValues.cumulativeValue, 0),
+					lastTs: now,
+					totals: {
+						priceDay: this.getNumberOrDefault(totals.priceDay, 0),
+						priceWeek: this.getNumberOrDefault(totals.priceWeek, 0),
+						priceMonth: this.getNumberOrDefault(totals.priceMonth, 0),
+						priceQuarter: this.getNumberOrDefault(totals.priceQuarter, 0),
+						priceYear: this.getNumberOrDefault(totals.priceYear, 0),
+					},
+				};
+				await this.persistDynamicCostMemory(job.stateID, activeState.dynamicCosts);
+			}
+			await this.refreshStatisticsJson(job.stateID);
+			this.log.info(`Costs of ${job.stateID} recalculated from ${new Date(from).toISOString()} for ${job.periods.length} periods`);
+		}
+		await writeProgress(false);
+		return result;
+	}
+
+	/**
 	 * Run an instant action requested through sendTo (settings page, scripts).
 	 * @param {string} command - Message command
 	 * @param {Record<string, unknown>} message - Message payload
@@ -4115,6 +4184,20 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async handleActionMessage(command, message) {
 		const dryRun = message.dryRun === true;
+		if (command === 'recalcCosts') {
+			const from = typeof message.from === 'number' ? message.from : Date.parse(String(message.from));
+			if (!Number.isFinite(from) || from > Date.now()) return {error: 'invalidDate', message: `Date ${JSON.stringify(message.from)} is not valid`};
+			let stateIDs;
+			if (message.priceDefinition) {
+				stateIDs = Object.keys(this.activeStates).filter(id => this.activeStates[id].stateDetails
+					&& this.activeStates[id].stateDetails.stateType === message.priceDefinition);
+			} else {
+				const resolved = this.resolveActionSource(message.source);
+				if ('error' in resolved) return resolved;
+				stateIDs = [resolved.stateID];
+			}
+			return this.recalculateCosts(stateIDs, from, dryRun);
+		}
 		const resolved = this.resolveActionSource(message.source);
 		if ('error' in resolved) return resolved;
 		if (command === 'setCumulative') return this.alignMeterReading(resolved.stateID, message.value, dryRun);
@@ -4164,7 +4247,8 @@ class Sourceanalytix extends utils.Adapter {
 				}
 
 				case 'setCumulative':
-				case 'meterSwap': {
+				case 'meterSwap':
+				case 'recalcCosts': {
 					let response;
 					try {
 						response = await this.handleActionMessage(obj.command, obj.message || {});

@@ -3,10 +3,15 @@
 const assert = require('node:assert/strict');
 const Module = require('node:module');
 const {
+	calculatePeriodCosts,
+	getBasicPriceCharges,
+	getIsoWeekStart,
 	isOldMeterReading,
+	listRecalcPeriods,
 	planAlignMeterReading,
 	planMeterSwap,
 } = require('./lib/source-actions');
+const {calculateHistoricalBasicPriceTotals} = require('./lib/calculation');
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -16,6 +21,9 @@ Reflect.set(Module, '_load', function loadTestDependency(request, parent, isMain
 });
 const {Sourceanalytix} = require('./main');
 Reflect.set(Module, '_load', originalModuleLoad);
+
+const weekdays = ['07_Sunday', '01_Monday', '02_Tuesday', '03_Wednesday', '04_Thursday', '05_Friday', '06_Saturday'];
+const months = ['01_January', '02_February', '03_March', '04_April', '05_May', '06_June', '07_July', '08_August', '09_September', '10_October', '11_November', '12_December'];
 
 describe('align meter reading (#640)', () => {
 	it('moves total, offset and start values by the same amount', () => {
@@ -78,6 +86,88 @@ describe('meter swap', () => {
 		assert.equal(isOldMeterReading(5001.5, pending), true);
 		assert.equal(isOldMeterReading(0.2, pending), false);
 		assert.equal(isOldMeterReading(5000, {rawAtSwap: null, newStart: 0}), false);
+	});
+});
+
+describe('recalculate costs (#947)', () => {
+	const config = {
+		currentYearDays: true, currentYearWeek: true, currentYearMonth: true, currentYearQuarter: true,
+		currentYearPrevious: true, store_weeks: true, store_months: true, store_quarters: true,
+	};
+
+	it('finds the ISO week start', () => {
+		assert.equal(getIsoWeekStart(2026, 1).getTime(), new Date(2025, 11, 29).getTime());
+		assert.equal(getIsoWeekStart(2026, 46).getTime(), new Date(2026, 10, 9).getTime());
+	});
+
+	it('lists only periods that end after the date', () => {
+		const now = new Date(2026, 10, 14, 12).getTime(); // Saturday 14.11.2026
+		const from = new Date(2026, 10, 10).getTime(); // Tuesday
+		const periods = listRecalcPeriods({from, now, config, weekdays, months});
+		const paths = periods.map(period => period.path);
+		assert.ok(paths.includes('currentYear.{cat}.01_currentDay'));
+		assert.ok(paths.includes('currentYear.{cat}.01_previousDay'));
+		assert.ok(paths.includes('currentYear.{cat}.currentWeek.02_Tuesday'));
+		assert.ok(!paths.includes('currentYear.{cat}.currentWeek.07_Sunday'), 'Sunday of the running week has not started');
+		assert.ok(!paths.includes('currentYear.{cat}.previousWeek.01_Monday'));
+		assert.ok(!paths.includes('currentYear.{cat}.02_previousWeek'));
+		assert.ok(paths.includes('currentYear.{cat}.weeks.46'));
+		assert.ok(!paths.includes('currentYear.{cat}.weeks.45'));
+		assert.ok(paths.includes('2026.{cat}.months.11_November'));
+		assert.ok(!paths.includes('2026.{cat}.months.12_December'));
+		assert.ok(paths.includes('2026.{cat}Cumulative'));
+		assert.ok(!paths.includes('2025.{cat}Cumulative'));
+		for (const period of periods) assert.ok(period.end <= now && period.end > from);
+	});
+
+	it('does not list the Monday when the date is later', () => {
+		const now = new Date(2026, 10, 14, 12).getTime();
+		const from = new Date(2026, 10, 10).getTime();
+		const monday = listRecalcPeriods({from, now, config, weekdays, months}).find(period => period.path === 'currentYear.{cat}.currentWeek.01_Monday');
+		assert.equal(monday, undefined);
+	});
+
+	it('lists archive years back to the date', () => {
+		const now = new Date(2026, 1, 1, 12).getTime();
+		const from = new Date(2025, 5, 15).getTime();
+		const paths = listRecalcPeriods({from, now, config: {store_months: true}, weekdays, months}).map(period => period.path);
+		assert.ok(paths.includes('2025.{cat}.months.06_June'));
+		assert.ok(!paths.includes('2025.{cat}.months.05_May'));
+		assert.ok(paths.includes('2025.{cat}Cumulative'));
+		assert.ok(paths.includes('2026.{cat}.months.01_January'));
+	});
+
+	it('prices the consumption with the price history over the period', () => {
+		const start = new Date(2026, 10, 1).getTime();
+		const end = new Date(2026, 10, 11).getTime();
+		const change = new Date(2026, 10, 6).getTime();
+		const costs = calculatePeriodCosts({
+			consumption: 100,
+			start,
+			end,
+			priceHistory: [{ts: 1, price: 0.3}, {ts: change, price: 0.4}],
+			fallbackPrice: 0.5,
+		});
+		assert.ok(costs);
+		assert.ok(Math.abs(costs.total - 35) < 1e-9);
+	});
+
+	it('uses the current price if the history is empty', () => {
+		const costs = calculatePeriodCosts({consumption: 10, start: 1000, end: 2000, priceHistory: [], fallbackPrice: '0,32'});
+		assert.ok(costs);
+		assert.ok(Math.abs(costs.total - 3.2) < 1e-9);
+	});
+
+	it('adds basic-price charges inside the period like the running calculation', () => {
+		const history = [{ts: new Date(2026, 0, 15).getTime(), price: 10}, {ts: new Date(2026, 5, 1).getTime(), price: 12}];
+		const now = new Date(2026, 6, 20, 12);
+		const charges = getBasicPriceCharges(history, now.getTime());
+		assert.deepEqual(charges.map(charge => charge.price), [10, 10, 10, 10, 10, 12, 12]);
+		const year = calculatePeriodCosts({consumption: 0, start: new Date(2026, 0, 1).getTime(), end: now.getTime(), priceHistory: [], fallbackPrice: 0, basicCharges: charges});
+		const month = calculatePeriodCosts({consumption: 0, start: new Date(2026, 6, 1).getTime(), end: now.getTime(), priceHistory: [], fallbackPrice: 0, basicCharges: charges});
+		const expected = calculateHistoricalBasicPriceTotals(history, now);
+		assert.equal(year && year.basic, expected.priceYear);
+		assert.equal(month && month.basic, expected.priceMonth);
 	});
 });
 
@@ -183,5 +273,46 @@ describe('instant actions on the adapter', () => {
 		addSource(adapter, stateID, {stateUnit: 'W'});
 		const result = await adapter.handleActionMessage('meterSwap', {source: stateID, oldEnd: 1000});
 		assert.equal(result.error, 'powerSource');
+	});
+
+	it('recalculates costs of the running periods from the consumption', async () => {
+		const {adapter, states} = createHarness();
+		addSource(adapter, stateID);
+		const root = 'sourceanalytix.0.house.currentYear';
+		for (const [state, value] of [['01_currentDay', 10], ['02_currentWeek', 50], ['03_currentMonth', 100], ['04_currentQuarter', 200], ['05_currentYear', 500]]) {
+			states.set(`${root}.consumed.${state}`, {val: value});
+			states.set(`${root}.costs.${state}`, {val: 0});
+		}
+		adapter.getForeignStatesAsync = async pattern => Object.fromEntries([...states.entries()].filter(([id]) => id.startsWith(pattern.slice(0, -1))));
+		adapter.setForeignStateAsync = async (id, state) => states.set(id, state);
+		adapter.loadPriceHistory = async () => [];
+		adapter.loadBasicPriceHistory = async () => [];
+		adapter.roundCosts = async value => Math.round(value * 100) / 100;
+		adapter.loadDynamicCostMemory = async () => null;
+		adapter.refreshStatisticsJson = async () => {};
+		/** @type {any} */
+		let persisted = null;
+		adapter.persistDynamicCostMemory = async (_id, memory) => { persisted = memory; };
+
+		const from = new Date(new Date().getFullYear(), 0, 1).getTime();
+		const preview = await adapter.handleActionMessage('recalcCosts', {source: stateID, from, dryRun: true});
+		assert.equal(preview.total, 5);
+		assert.equal(states.get(`${root}.costs.05_currentYear`).val, 0);
+
+		const result = await adapter.handleActionMessage('recalcCosts', {priceDefinition: 'power', from});
+		assert.deepEqual(result.sources, [stateID]);
+		assert.equal(states.get(`${root}.costs.05_currentYear`).val, 150);
+		assert.equal(states.get(`${root}.costs.01_currentDay`).val, 3);
+		assert.equal(persisted && persisted.totals.priceYear, 150);
+		const progress = JSON.parse(states.get('sourceanalytix.0.info.costRecalculation').val);
+		assert.equal(progress.running, false);
+		assert.equal(progress.done, 5);
+	});
+
+	it('rejects a recalculation date in the future', async () => {
+		const {adapter} = createHarness();
+		addSource(adapter, stateID);
+		const result = await adapter.handleActionMessage('recalcCosts', {source: stateID, from: Date.now() + 86_400_000});
+		assert.equal(result.error, 'invalidDate');
 	});
 });
