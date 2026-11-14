@@ -132,5 +132,7 @@
     "Current total help": "Total of this source in the unit of the selected price definition when the dialog was opened. No start value may be larger.",
     "Start value error": "Invalid start value: use a number without thousands separator. It must not be larger than the current total, and a period that began earlier (for example the year) cannot have a larger start value than a later one (for example the month).",
     "Maximum gap between power values": "Maximum gap between power values (minutes)",
-    "Maximum gap help": "Only affects power values (W/kW). If no new value arrives for longer, the last value is not extended over the pause: the interval counts as 0 and is logged. Empty or 0 = off, for devices that only send on change."
+    "Maximum gap help": "Only affects power values (W/kW). If no new value arrives for longer, the last value is not extended over the pause: the interval counts as 0 and is logged. Empty or 0 = off, for devices that only send on change.",
+    "Basic rate shared hint": "Another source with this price definition already includes the basic fee. Every source books the full basic fee, so it is counted several times. If the sources belong to one connection, enable \"Including basic rate\" on one source only.",
+    "Basic rate also included by": "Basic fee also included by"
 }

@@ -180,6 +180,8 @@ class Sourceanalytix extends utils.Adapter {
 				count = count + 1;
 			}
 
+			this.logSharedBasicRates();
+
 			// Provide the manual rollover button before the scheduler is started
 			await this.ensureRecoverPeriodsState();
 
@@ -1671,6 +1673,34 @@ class Sourceanalytix extends utils.Adapter {
 			} else if (problem.problem === 'order' && problem.other) {
 				this.log.warn(`Start value ${name} (${value}) of ${stateID} is larger than start value ${fieldNames[problem.other]} (${JSON.stringify(startValues[problem.other])}), although the ${name} began earlier. Correct the start values in the source settings`);
 			}
+		}
+	}
+
+	/**
+	 * Running sources that include the basic fee, by price definition (#1268).
+	 * @returns {Record<string, string[]>} Source IDs by price definition
+	 */
+	getBasicRateSources() {
+		const sources = Object.fromEntries([]);
+		for (const [stateID, activeState] of Object.entries(this.activeStates || {})) {
+			const details = activeState && activeState.stateDetails;
+			if (!details || details.basicRate !== true || typeof details.stateType !== 'string') continue;
+			(sources[details.stateType] = sources[details.stateType] || []).push(stateID);
+		}
+		return sources;
+	}
+
+	/**
+	 * Log a hint for every price definition whose basic fee is included by several sources (#1268).
+	 */
+	logSharedBasicRates() {
+		const sources = Object.entries(this.activeStates || {}).map(([id, activeState]) => ({
+			id,
+			priceDefinition: activeState && activeState.stateDetails ? activeState.stateDetails.stateType : undefined,
+			basicRate: activeState && activeState.stateDetails ? activeState.stateDetails.basicRate : undefined,
+		}));
+		for (const [priceDefinition, ids] of Object.entries(sourceChecks.findSharedBasicRates(sources))) {
+			this.log.info(`The basic fee of price definition ${priceDefinition} is included by ${ids.length} sources (${ids.join(', ')}) and is counted once per source. If they belong to one connection, enable "Including basic rate" on one source only`);
 		}
 	}
 
@@ -4035,6 +4065,12 @@ class Sourceanalytix extends utils.Adapter {
 					if (obj.callback) {
 						const message = obj.message && typeof obj.message === 'object' ? obj.message : {};
 						this.sendTo(obj.from, obj.command, await this.getStartValueContext(message.id), obj.callback);
+					}
+					break;
+
+				case 'getBasicRateSources':
+					if (obj.callback) {
+						this.sendTo(obj.from, obj.command, this.getBasicRateSources(), obj.callback);
 					}
 					break;
 

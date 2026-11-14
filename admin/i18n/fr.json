@@ -132,5 +132,7 @@
     "Current total help": "Total de cette source dans l'unité de la définition de prix choisie à l'ouverture de la boîte de dialogue. Aucune valeur de départ ne peut être plus grande.",
     "Start value error": "Valeur de départ invalide : utilisez un nombre sans séparateur de milliers. Elle ne doit pas dépasser le total actuel, et une période commencée plus tôt (par exemple l'année) ne peut pas avoir une valeur de départ supérieure à une période plus récente (par exemple le mois).",
     "Maximum gap between power values": "Écart maximal entre deux valeurs de puissance (minutes)",
-    "Maximum gap help": "Ne concerne que les valeurs de puissance (W/kW). Si aucune nouvelle valeur n'arrive pendant plus longtemps, la dernière valeur n'est pas prolongée sur la pause : l'intervalle compte pour 0 et est journalisé. Vide ou 0 = désactivé, pour les appareils qui n'envoient qu'en cas de changement."
+    "Maximum gap help": "Ne concerne que les valeurs de puissance (W/kW). Si aucune nouvelle valeur n'arrive pendant plus longtemps, la dernière valeur n'est pas prolongée sur la pause : l'intervalle compte pour 0 et est journalisé. Vide ou 0 = désactivé, pour les appareils qui n'envoient qu'en cas de changement.",
+    "Basic rate shared hint": "Une autre source avec cette définition de prix inclut déjà l'abonnement. Chaque source comptabilise l'abonnement complet, il est donc compté plusieurs fois. Si les sources appartiennent à un même raccordement, n'activez « Y compris le tarif de base » que sur une seule source.",
+    "Basic rate also included by": "Abonnement également inclus par"
 }

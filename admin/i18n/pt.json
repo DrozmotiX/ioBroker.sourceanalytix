@@ -132,5 +132,7 @@
     "Current total help": "Total desta fonte na unidade da definição de preço escolhida ao abrir o diálogo. Nenhum valor inicial pode ser maior.",
     "Start value error": "Valor inicial inválido: use um número sem separador de milhares. Não pode ser maior que o total atual, e um período que começou antes (por exemplo o ano) não pode ter um valor inicial maior do que um posterior (por exemplo o mês).",
     "Maximum gap between power values": "Intervalo máximo entre valores de potência (minutos)",
-    "Maximum gap help": "Afeta apenas valores de potência (W/kW). Se não chegar um valor novo durante mais tempo, o último valor não é prolongado pela pausa: o intervalo conta como 0 e é registado. Vazio ou 0 = desligado, para dispositivos que só enviam quando há alteração."
+    "Maximum gap help": "Afeta apenas valores de potência (W/kW). Se não chegar um valor novo durante mais tempo, o último valor não é prolongado pela pausa: o intervalo conta como 0 e é registado. Vazio ou 0 = desligado, para dispositivos que só enviam quando há alteração.",
+    "Basic rate shared hint": "Outra fonte com esta definição de preço já inclui a taxa fixa. Cada fonte regista a taxa fixa completa, por isso ela é contada várias vezes. Se as fontes pertencerem a uma única ligação, ative \"Incluindo taxa básica\" apenas numa fonte.",
+    "Basic rate also included by": "Taxa fixa também incluída por"
 }

@@ -132,5 +132,7 @@
     "Current total help": "Stan łączny tego źródła w jednostce wybranej definicji ceny w chwili otwarcia okna. Żadna wartość początkowa nie może być większa.",
     "Start value error": "Nieprawidłowa wartość początkowa: użyj liczby bez separatora tysięcy. Nie może być większa niż bieżący stan łączny, a okres, który zaczął się wcześniej (na przykład rok), nie może mieć większej wartości początkowej niż późniejszy (na przykład miesiąc).",
     "Maximum gap between power values": "Maksymalna przerwa między wartościami mocy (minuty)",
-    "Maximum gap help": "Dotyczy tylko wartości mocy (W/kW). Jeśli dłużej nie przychodzi nowa wartość, ostatnia wartość nie jest przedłużana na przerwę: odcinek liczy się jako 0 i jest zapisywany w logu. Puste lub 0 = wyłączone, dla urządzeń wysyłających tylko przy zmianie."
+    "Maximum gap help": "Dotyczy tylko wartości mocy (W/kW). Jeśli dłużej nie przychodzi nowa wartość, ostatnia wartość nie jest przedłużana na przerwę: odcinek liczy się jako 0 i jest zapisywany w logu. Puste lub 0 = wyłączone, dla urządzeń wysyłających tylko przy zmianie.",
+    "Basic rate shared hint": "Inne źródło z tą definicją ceny zawiera już opłatę stałą. Każde źródło księguje pełną opłatę stałą, więc jest ona liczona wielokrotnie. Jeśli źródła należą do jednego przyłącza, włącz „W tym stawka podstawowa” tylko w jednym źródle.",
+    "Basic rate also included by": "Opłata stała zawarta także w"
 }

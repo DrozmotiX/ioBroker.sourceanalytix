@@ -95,6 +95,37 @@
       "lg": 6,
       "xl": 6
     },
+    "_basicRateSources": {
+      "type": "text",
+      "hidden": true,
+      "defaultSendTo": "getBasicRateSources",
+      "allowSaveWithError": true
+    },
+    "_basicRateHint": {
+      "type": "staticText",
+      "text": "Basic rate shared hint",
+      "style": {
+        "color": "#ed6c02"
+      },
+      "hidden": "!data.basicRate || Array.isArray(data.selectedPrice) || !(customObj && customObj._id) || !data._basicRateSources || typeof data._basicRateSources !== 'object' || !Array.isArray(data._basicRateSources[data.selectedPrice]) || (data._basicRateSources[data.selectedPrice] || []).filter(id => id !== customObj._id).length === 0",
+      "newLine": true,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "_basicRateOthers": {
+      "type": "pattern",
+      "label": "Basic rate also included by",
+      "pattern": "${data._basicRateSources && Array.isArray(data._basicRateSources[data.selectedPrice]) && customObj ? (data._basicRateSources[data.selectedPrice] || []).filter(id => id !== customObj._id).join(', ') : ''}",
+      "hidden": "!data.basicRate || Array.isArray(data.selectedPrice) || !(customObj && customObj._id) || !data._basicRateSources || typeof data._basicRateSources !== 'object' || !Array.isArray(data._basicRateSources[data.selectedPrice]) || (data._basicRateSources[data.selectedPrice] || []).filter(id => id !== customObj._id).length === 0",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "consumption": {
       "type": "checkbox",
       "label": "Calculate consumption",

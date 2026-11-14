@@ -132,5 +132,7 @@
     "Current total help": "Totaal van deze bron in de eenheid van de gekozen prijsdefinitie bij het openen van het dialoogvenster. Geen enkele startwaarde mag groter zijn.",
     "Start value error": "Ongeldige startwaarde: gebruik een getal zonder scheidingsteken voor duizendtallen. Hij mag niet groter zijn dan het huidige totaal, en een periode die eerder begon (bijvoorbeeld het jaar) mag geen grotere startwaarde hebben dan een latere (bijvoorbeeld de maand).",
     "Maximum gap between power values": "Maximale onderbreking tussen vermogenswaarden (minuten)",
-    "Maximum gap help": "Werkt alleen bij vermogenswaarden (W/kW). Komt er langer geen nieuwe waarde, dan wordt de laatste waarde niet over de pauze doorgetrokken: het interval telt als 0 en wordt gelogd. Leeg of 0 = uit, voor apparaten die alleen bij wijziging verzenden."
+    "Maximum gap help": "Werkt alleen bij vermogenswaarden (W/kW). Komt er langer geen nieuwe waarde, dan wordt de laatste waarde niet over de pauze doorgetrokken: het interval telt als 0 en wordt gelogd. Leeg of 0 = uit, voor apparaten die alleen bij wijziging verzenden.",
+    "Basic rate shared hint": "Een andere bron met deze prijsdefinitie bevat het vastrecht al. Elke bron boekt het volledige vastrecht, dus het wordt meerdere keren geteld. Horen de bronnen bij één aansluiting, schakel \"Inclusief basistarief\" dan bij één bron in.",
+    "Basic rate also included by": "Vastrecht ook opgenomen in"
 }

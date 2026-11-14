@@ -132,5 +132,7 @@
     "Current total help": "Gesamtstand dieser Quelle in der Einheit der gewählten Preisdefinition beim Öffnen des Dialogs. Kein Startwert darf größer sein.",
     "Start value error": "Ungültiger Startwert: Zahl ohne Tausenderpunkt eingeben. Er darf nicht größer als der aktuelle Gesamtstand sein, und ein früher begonnener Zeitraum (zum Beispiel das Jahr) darf keinen größeren Startwert haben als ein später begonnener (zum Beispiel der Monat).",
     "Maximum gap between power values": "Maximale Lücke zwischen Leistungswerten (Minuten)",
-    "Maximum gap help": "Wirkt nur bei Leistungswerten (W/kW). Kommt länger kein neuer Wert, wird der letzte Wert nicht über die Pause fortgeschrieben: Der Abschnitt zählt als 0 und wird im Log gemeldet. Leer oder 0 = aus, für Geräte, die nur bei Änderung senden."
+    "Maximum gap help": "Wirkt nur bei Leistungswerten (W/kW). Kommt länger kein neuer Wert, wird der letzte Wert nicht über die Pause fortgeschrieben: Der Abschnitt zählt als 0 und wird im Log gemeldet. Leer oder 0 = aus, für Geräte, die nur bei Änderung senden.",
+    "Basic rate shared hint": "Eine andere Quelle mit dieser Preisdefinition enthält den Grundpreis bereits. Jede Quelle bucht den vollen Grundpreis, er wird also mehrfach gezählt. Gehören die Quellen zu einem Anschluss, aktiviere „Inklusive Grundpreis“ nur bei einer Quelle.",
+    "Basic rate also included by": "Grundpreis auch enthalten in"
 }
