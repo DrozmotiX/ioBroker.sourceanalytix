@@ -29,7 +29,6 @@
     "Quarters": "Cuarteles",
     "Select Unit": "Seleccionar unidad",
     "Select price definition": "Seleccionar definición de precio",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Los valores iniciales para el período respectivo, la escala de unidades (por ejemplo, Wh o kWh) deben coincidir con la unidad objetivo.",
     "Status messages to log": "Mensajes de estado para registrar",
     "Store Meter Values": "Almacenar valores de medidor",
     "Threshold value of device reset detection": "Valor de umbral de detección de restablecimiento del dispositivo",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Decimales para los valores de consumo",
     "Decimals for cost values": "Decimales para los valores de coste",
     "Rounding decimals help": "Valor inicial que se copia en las fuentes recién configuradas. Las fuentes existentes conservan su propio valor. Use -1 para guardar el valor exacto sin redondeo.",
-    "Individual rounding decimals help": "Use -1 para guardar el valor exacto sin redondeo."
+    "Individual rounding decimals help": "Use -1 para guardar el valor exacto sin redondeo.",
+    "Start values header": "Valores iniciales de los periodos en curso",
+    "Start values help": "Total al inicio del día, la semana, el mes, el trimestre y el año en curso, en la unidad de la definición de precio (por ejemplo kWh, no Wh). Solo se aplican a los periodos en curso; en el próximo cambio de periodo SourceAnalytix los establece por sí mismo. Deja un campo vacío para contar desde ahora. Coma o punto como separador decimal, sin separador de miles.",
+    "Current total": "Total actual",
+    "Current total help": "Total de esta fuente en la unidad de la definición de precio elegida al abrir el diálogo. Ningún valor inicial puede ser mayor.",
+    "Start value error": "Valor inicial no válido: usa un número sin separador de miles. No puede ser mayor que el total actual, y un periodo que empezó antes (por ejemplo el año) no puede tener un valor inicial mayor que uno posterior (por ejemplo el mes)."
 }

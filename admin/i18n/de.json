@@ -67,7 +67,6 @@
     "Select ID": "ID auswählen",
     "Select all": "Alle auswählen",
     "Select price definition": "Preisdefinition auswählen",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Startwerte für den jeweiligen Zeitraum, Einheitenskala (z. B. Wh oder kWh) muss mit der Zieleinheit übereinstimmen!",
     "State value": "Datenpunkt",
     "Tariff selector": "Tarifumschaltung",
     "Valid from": "Gültig ab",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Nachkommastellen für Verbrauchswerte",
     "Decimals for cost values": "Nachkommastellen für Kostenwerte",
     "Rounding decimals help": "Startwert, der in neu konfigurierte Quellen übernommen wird. Bestehende Quellen behalten ihren eigenen Wert. Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
-    "Individual rounding decimals help": "Mit -1 wird der exakte Wert ohne Rundung gespeichert."
+    "Individual rounding decimals help": "Mit -1 wird der exakte Wert ohne Rundung gespeichert.",
+    "Start values header": "Startwerte der laufenden Zeiträume",
+    "Start values help": "Gesamtstand zu Beginn des laufenden Tages, der Woche, des Monats, Quartals und Jahres, in der Einheit der Preisdefinition (zum Beispiel kWh, nicht Wh). Die Werte gelten nur für die laufenden Zeiträume; beim nächsten Periodenwechsel setzt SourceAnalytix sie selbst. Ein leeres Feld zählt ab jetzt. Komma oder Punkt als Dezimalzeichen, ohne Tausenderpunkt.",
+    "Current total": "Aktueller Gesamtstand",
+    "Current total help": "Gesamtstand dieser Quelle in der Einheit der gewählten Preisdefinition beim Öffnen des Dialogs. Kein Startwert darf größer sein.",
+    "Start value error": "Ungültiger Startwert: Zahl ohne Tausenderpunkt eingeben. Er darf nicht größer als der aktuelle Gesamtstand sein, und ein früher begonnener Zeitraum (zum Beispiel das Jahr) darf keinen größeren Startwert haben als ein später begonnener (zum Beispiel der Monat)."
 }

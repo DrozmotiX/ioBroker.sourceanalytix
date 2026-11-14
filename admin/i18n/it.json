@@ -29,7 +29,6 @@
     "Quarters": "quarti",
     "Select Unit": "Seleziona unità",
     "Select price definition": "Seleziona la definizione del prezzo",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "I valori iniziali per il rispettivo periodo, scala di unità (ad es.Wh o kWh) devono corrispondere all'unità di destinazione!",
     "Status messages to log": "Messaggi di stato da registrare",
     "Store Meter Values": "Memorizza valori misuratore",
     "Threshold value of device reset detection": "Valore di soglia del rilevamento del ripristino del dispositivo",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Decimali per i valori di consumo",
     "Decimals for cost values": "Decimali per i valori di costo",
     "Rounding decimals help": "Valore iniziale copiato nelle nuove sorgenti configurate. Le sorgenti esistenti mantengono il proprio valore. Usare -1 per memorizzare il valore esatto senza arrotondamento.",
-    "Individual rounding decimals help": "Usare -1 per memorizzare il valore esatto senza arrotondamento."
+    "Individual rounding decimals help": "Usare -1 per memorizzare il valore esatto senza arrotondamento.",
+    "Start values header": "Valori iniziali dei periodi in corso",
+    "Start values help": "Totale all'inizio del giorno, della settimana, del mese, del trimestre e dell'anno in corso, nell'unità della definizione di prezzo (ad esempio kWh, non Wh). Valgono solo per i periodi in corso; al prossimo cambio di periodo SourceAnalytix li imposta da solo. Lascia un campo vuoto per contare da adesso. Virgola o punto come separatore decimale, senza separatore delle migliaia.",
+    "Current total": "Totale attuale",
+    "Current total help": "Totale di questa sorgente nell'unità della definizione di prezzo scelta all'apertura della finestra. Nessun valore iniziale può essere maggiore.",
+    "Start value error": "Valore iniziale non valido: usa un numero senza separatore delle migliaia. Non può essere maggiore del totale attuale, e un periodo iniziato prima (ad esempio l'anno) non può avere un valore iniziale maggiore di uno iniziato dopo (ad esempio il mese)."
 }

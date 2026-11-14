@@ -29,7 +29,6 @@
     "Quarters": "Quartos",
     "Select Unit": "Selecione a unidade",
     "Select price definition": "Selecione a definição de preço",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Os valores iniciais para o respectivo período, escala de unidade (por exemplo, Wh ou kWh) deve corresponder à unidade alvo!",
     "Status messages to log": "Mensagens de status para registrar",
     "Store Meter Values": "Armazenar valores de medidores",
     "Threshold value of device reset detection": "Valor limite de detecção de reinicialização do dispositivo",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Casas decimais para valores de consumo",
     "Decimals for cost values": "Casas decimais para valores de custo",
     "Rounding decimals help": "Valor inicial copiado para fontes recém-configuradas. As fontes existentes mantêm o seu próprio valor. Use -1 para guardar o valor exato sem arredondamento.",
-    "Individual rounding decimals help": "Use -1 para guardar o valor exato sem arredondamento."
+    "Individual rounding decimals help": "Use -1 para guardar o valor exato sem arredondamento.",
+    "Start values header": "Valores iniciais dos períodos em curso",
+    "Start values help": "Total no início do dia, da semana, do mês, do trimestre e do ano em curso, na unidade da definição de preço (por exemplo kWh, não Wh). Aplicam-se apenas aos períodos em curso; na próxima mudança de período o SourceAnalytix define-os sozinho. Deixe um campo vazio para contar a partir de agora. Vírgula ou ponto como separador decimal, sem separador de milhares.",
+    "Current total": "Total atual",
+    "Current total help": "Total desta fonte na unidade da definição de preço escolhida ao abrir o diálogo. Nenhum valor inicial pode ser maior.",
+    "Start value error": "Valor inicial inválido: use um número sem separador de milhares. Não pode ser maior que o total atual, e um período que começou antes (por exemplo o ano) não pode ter um valor inicial maior do que um posterior (por exemplo o mês)."
 }

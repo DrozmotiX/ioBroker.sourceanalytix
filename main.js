@@ -13,6 +13,8 @@ const calculation = require('./lib/calculation');
 const dynamicPricing = require('./lib/dynamic-pricing');
 const outputId = require('./lib/output-id');
 const statisticsJson = require('./lib/statistics-json');
+const sourceChecks = require('./lib/source-checks');
+const defaultUnitConfig = calculation.buildUnitConfig();
 
 // Sentry error reporting, disable when testing alpha source code locally!
 const disableSentry = false;
@@ -231,6 +233,17 @@ class Sourceanalytix extends utils.Adapter {
 	getNumberOrDefault(value, defaultValue) {
 		const parsedValue = this.parsePriceValue(value);
 		return parsedValue === null ? defaultValue : parsedValue;
+	}
+
+	/**
+	 * Whether a source is integrated over time (power) instead of reporting a meter reading.
+	 * All power units are handled alike, not only W (#1267).
+	 * @param {{stateUnit?: string} | undefined} stateDetails - Active state details
+	 * @returns {boolean} True for integrated sources
+	 */
+	isIntegratedSource(stateDetails) {
+		const unitConfig = this.unitPriceDef && this.unitPriceDef.unitConfig ? this.unitPriceDef.unitConfig : defaultUnitConfig;
+		return !!stateDetails && calculation.isIntegratedUnit(stateDetails.stateUnit || '', unitConfig);
 	}
 
 	/**
@@ -1597,6 +1610,71 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Current total of a source in the unit of every price definition, used by the custom
+	 * dialog to check start values (#1267). A source that is not running yet uses the
+	 * current device value; an integrated source (power) starts at 0.
+	 * @param {unknown} sourceId - Source state ID
+	 * @returns {Promise<{readings: Record<string, number>, units: Record<string, string>}>} Totals and units by price definition
+	 */
+	async getStartValueContext(sourceId) {
+		const unitConfig = this.unitPriceDef.unitConfig || defaultUnitConfig;
+		const pricesConfig = this.unitPriceDef.pricesConfig || {};
+		const context = {readings: Object.fromEntries([]), units: Object.fromEntries([])};
+		for (const [priceDefinition, priceConfig] of Object.entries(pricesConfig)) {
+			context.units[priceDefinition] = priceConfig.unitType;
+		}
+		if (typeof sourceId !== 'string' || !sourceId) return context;
+
+		let total = null;
+		let totalUnit = null;
+		const activeState = this.activeStates[sourceId];
+		if (activeState && activeState.stateDetails && activeState.calcValues && !activeState.firstActivation) {
+			total = Number(activeState.calcValues.cumulativeValue);
+			totalUnit = activeState.stateDetails.useUnit;
+		} else {
+			const object = await this.getForeignObjectAsync(sourceId);
+			const custom = object && object.common && object.common.custom ? object.common.custom[this.namespace] : undefined;
+			const sourceUnit = calculation.resolveUnit(custom && custom.selectedUnit, unitConfig)
+				|| calculation.resolveUnit(object && object.common ? object.common.unit : undefined, unitConfig);
+			if (!sourceUnit) return context;
+			if (calculation.isIntegratedUnit(sourceUnit, unitConfig)) {
+				for (const [priceDefinition, priceConfig] of Object.entries(pricesConfig)) {
+					if (calculation.areUnitsCompatible(unitConfig[sourceUnit], unitConfig[priceConfig.unitType])) context.readings[priceDefinition] = 0;
+				}
+				return context;
+			}
+			const state = await this.getForeignStateAsync(sourceId);
+			total = state ? this.parsePriceValue(state.val) : null;
+			totalUnit = sourceUnit;
+		}
+		if (!Number.isFinite(total) || !totalUnit) return context;
+		for (const [priceDefinition, priceConfig] of Object.entries(pricesConfig)) {
+			const converted = calculation.convertUnitValue(Number(total), unitConfig[totalUnit], unitConfig[priceConfig.unitType]);
+			if (converted !== null && Number.isFinite(converted)) context.readings[priceDefinition] = Number(converted.toFixed(6));
+		}
+		return context;
+	}
+
+	/**
+	 * Warn about start values that will produce negative or inconsistent period values (#1267).
+	 * @param {string} stateID - Source state ID
+	 * @param {Record<string, unknown>} startValues - Start values as configured
+	 * @param {number} total - Current total in the unit of the price definition
+	 */
+	warnAboutStartValues(stateID, startValues, total) {
+		const fieldNames = {start_day: 'day', start_week: 'week', start_month: 'month', start_quarter: 'quarter', start_year: 'year'};
+		for (const problem of sourceChecks.checkStartValues(startValues, total, new Date())) {
+			const name = fieldNames[problem.field];
+			const value = JSON.stringify(startValues[problem.field]);
+			if (problem.problem === 'aboveReading') {
+				this.log.warn(`Start value ${name} (${value}) of ${stateID} is larger than the current total ${total}; the ${name} values will be negative. Correct the start value in the source settings`);
+			} else if (problem.problem === 'order' && problem.other) {
+				this.log.warn(`Start value ${name} (${value}) of ${stateID} is larger than start value ${fieldNames[problem.other]} (${JSON.stringify(startValues[problem.other])}), although the ${name} began earlier. Correct the start values in the source settings`);
+			}
+		}
+	}
+
+	/**
 	 * @returns {Promise<Record<string, string|null>>} Output IDs and their owning source states
 	 */
 	async getUsedOutputIds() {
@@ -1989,7 +2067,7 @@ class Sourceanalytix extends utils.Adapter {
 				let realignDeviceOffset = false;
 				if (valueAtDeviceReset > cumulativeValue){
 					// Ignore issue if categories = Watt, init value not used
-					if (useUnit !== 'W') {
+					if (!calculation.isIntegratedUnit(useUnit, this.unitPriceDef.unitConfig)) {
 						this.log.warn(`Known valueAtDeviceReset (${valueAtDeviceReset}) of ${stateID} is larger than the known cumulative value (${cumulativeValue}); the offset will be realigned with the next reading so the total continues from ${cumulativeValue}`);
 						this.log.debug(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
 						realignDeviceOffset = true;
@@ -2011,7 +2089,8 @@ class Sourceanalytix extends utils.Adapter {
 
 				// Load state settings to memory
 				this.activeStates[stateID] = {
-					firstActivation: useUnit !== 'W' && valueAtDeviceReset === null,
+					// Integrated sources (power) start their total at 0 and need no start values (#1267)
+					firstActivation: !calculation.isIntegratedUnit(useUnit, this.unitPriceDef.unitConfig) && valueAtDeviceReset === null,
 					realignDeviceOffset,
 					stateDetails: {
 						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
@@ -2050,9 +2129,13 @@ class Sourceanalytix extends utils.Adapter {
 					},
 				};
 				// Extend memory with objects for watt to kWh calculation
-				if (useUnit === 'W') {
+				if (calculation.isIntegratedUnit(useUnit, this.unitPriceDef.unitConfig)) {
 					this.activeStates[stateID].calcValues.previousReadingWatt = null;
 					this.activeStates[stateID].calcValues.previousReadingWattTs = null;
+				}
+				// A known total is only available once SourceAnalytix has processed the source (#1267)
+				if (!this.activeStates[stateID].firstActivation) {
+					this.warnAboutStartValues(stateID, customData, Number(cumulativeValue));
 				}
 				this.log.debug(`[buildStateDetailsArray] completed for ${stateID}: with content ${JSON.stringify(this.activeStates[stateID])}`);
 				return true;
@@ -2691,7 +2774,7 @@ class Sourceanalytix extends utils.Adapter {
 		};
 		// A power interval closed at the boundary (closePowerIntervals) continues into the new
 		// period; any older interval cannot be assigned and starts over with the next reading.
-		if (stateDetails.stateUnit === 'W' && !(Number(stateValues.previousReadingWattTs) >= boundaryTimestamp - 1)) {
+		if (this.isIntegratedSource(stateDetails) && !(Number(stateValues.previousReadingWattTs) >= boundaryTimestamp - 1)) {
 			newCalcValues.previousReadingWatt = null;
 			newCalcValues.previousReadingWattTs = null;
 		}
@@ -2729,7 +2812,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async rememberReadingGap(stateID, changes, previousPeriods, lastTotal, previousPeriodTimestamp) {
 		const activeState = this.activeStates[stateID];
-		if (!activeState || !activeState.stateDetails || activeState.stateDetails.stateUnit === 'W') return;
+		if (!activeState || !activeState.stateDetails || this.isIntegratedSource(activeState.stateDetails)) return;
 		if (activeState.readingGap || !changes.day) {
 			activeState.readingGap = null;
 			return;
@@ -3001,7 +3084,7 @@ class Sourceanalytix extends utils.Adapter {
 			try {
 				const activeState = this.activeStates[stateID];
 				if (!activeState || !activeState.calcValues || !activeState.stateDetails) continue;
-				if (activeState.stateDetails.stateUnit !== 'W') continue;
+				if (!this.isIntegratedSource(activeState.stateDetails)) continue;
 				const calcValues = activeState.calcValues;
 				if (calcValues.previousReadingWatt == null || calcValues.previousReadingWattTs == null) continue;
 				const previousPower = Number(calcValues.previousReadingWatt);
@@ -3935,6 +4018,13 @@ class Sourceanalytix extends utils.Adapter {
 							unitArray.push({label: priceDefinition, value: priceDefinition});
 						}
 						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+					}
+					break;
+
+				case 'getStartValueContext':
+					if (obj.callback) {
+						const message = obj.message && typeof obj.message === 'object' ? obj.message : {};
+						this.sendTo(obj.from, obj.command, await this.getStartValueContext(message.id), obj.callback);
 					}
 					break;
 

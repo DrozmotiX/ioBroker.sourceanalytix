@@ -29,7 +29,6 @@
     "Quarters": "Quartiers",
     "Select Unit": "Sélectionnez l'unité",
     "Select price definition": "Sélectionnez la définition de prix",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Les valeurs de démarrage pour la période respective, l'échelle de l'unité (par exemple Wh ou kWh) doivent correspondre à l'unité cible !",
     "Status messages to log": "Messages d'état à enregistrer",
     "Store Meter Values": "Stocker les valeurs du compteur",
     "Threshold value of device reset detection": "Valeur seuil de détection de réinitialisation de l'appareil",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Décimales pour les valeurs de consommation",
     "Decimals for cost values": "Décimales pour les valeurs de coût",
     "Rounding decimals help": "Valeur initiale copiée dans les nouvelles sources configurées. Les sources existantes conservent leur propre valeur. Utilisez -1 pour enregistrer la valeur exacte sans arrondi.",
-    "Individual rounding decimals help": "Utilisez -1 pour enregistrer la valeur exacte sans arrondi."
+    "Individual rounding decimals help": "Utilisez -1 pour enregistrer la valeur exacte sans arrondi.",
+    "Start values header": "Valeurs de départ des périodes en cours",
+    "Start values help": "Total au début du jour, de la semaine, du mois, du trimestre et de l'année en cours, dans l'unité de la définition de prix (par exemple kWh, pas Wh). Elles ne s'appliquent qu'aux périodes en cours ; au prochain changement de période, SourceAnalytix les définit lui-même. Laissez un champ vide pour compter à partir de maintenant. Virgule ou point comme séparateur décimal, sans séparateur de milliers.",
+    "Current total": "Total actuel",
+    "Current total help": "Total de cette source dans l'unité de la définition de prix choisie à l'ouverture de la boîte de dialogue. Aucune valeur de départ ne peut être plus grande.",
+    "Start value error": "Valeur de départ invalide : utilisez un nombre sans séparateur de milliers. Elle ne doit pas dépasser le total actuel, et une période commencée plus tôt (par exemple l'année) ne peut pas avoir une valeur de départ supérieure à une période plus récente (par exemple le mois)."
 }

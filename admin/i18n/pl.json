@@ -29,7 +29,6 @@
     "Quarters": "Mieszkanie",
     "Select Unit": "Wybierz jednostkę",
     "Select price definition": "Wybierz definicję ceny",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Wartości początkowe dla danego okresu, skala jednostkowa (np. Wh lub kWh) musi odpowiadać jednostce docelowej!",
     "Status messages to log": "Komunikaty o stanie do logowania",
     "Store Meter Values": "Przechowuj wartości liczników",
     "Threshold value of device reset detection": "Wartość progowa wykrycia resetu urządzenia",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Miejsca dziesiętne dla wartości zużycia",
     "Decimals for cost values": "Miejsca dziesiętne dla wartości kosztów",
     "Rounding decimals help": "Wartość początkowa kopiowana do nowo konfigurowanych źródeł. Istniejące źródła zachowują własną wartość. Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
-    "Individual rounding decimals help": "Wartość -1 zapisuje dokładną wartość bez zaokrąglania."
+    "Individual rounding decimals help": "Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
+    "Start values header": "Wartości początkowe bieżących okresów",
+    "Start values help": "Stan łączny na początku bieżącego dnia, tygodnia, miesiąca, kwartału i roku, w jednostce definicji ceny (na przykład kWh, nie Wh). Dotyczą tylko bieżących okresów; przy następnej zmianie okresu SourceAnalytix ustawia je sam. Pozostaw pole puste, aby liczyć od teraz. Przecinek lub kropka jako separator dziesiętny, bez separatora tysięcy.",
+    "Current total": "Bieżący stan łączny",
+    "Current total help": "Stan łączny tego źródła w jednostce wybranej definicji ceny w chwili otwarcia okna. Żadna wartość początkowa nie może być większa.",
+    "Start value error": "Nieprawidłowa wartość początkowa: użyj liczby bez separatora tysięcy. Nie może być większa niż bieżący stan łączny, a okres, który zaczął się wcześniej (na przykład rok), nie może mieć większej wartości początkowej niż późniejszy (na przykład miesiąc)."
 }

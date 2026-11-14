@@ -29,7 +29,6 @@
     "Quarters": "Kwartalen",
     "Select Unit": "Selecteer Eenheid",
     "Select price definition": "Selecteer prijsdefinitie",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "Startwaarden voor de betreffende periode, eenheidsschaal (bijv. Wh of kWh) moeten overeenkomen met de doeleenheid!",
     "Status messages to log": "Statusberichten om te loggen",
     "Store Meter Values": "Meterwaarden opslaan",
     "Threshold value of device reset detection": "Drempelwaarde van detectie apparaatreset",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "Decimalen voor verbruikswaarden",
     "Decimals for cost values": "Decimalen voor kostenwaarden",
     "Rounding decimals help": "Beginwaarde die naar nieuw geconfigureerde bronnen wordt gekopieerd. Bestaande bronnen behouden hun eigen waarde. Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
-    "Individual rounding decimals help": "Gebruik -1 om de exacte waarde zonder afronding op te slaan."
+    "Individual rounding decimals help": "Gebruik -1 om de exacte waarde zonder afronding op te slaan.",
+    "Start values header": "Startwaarden van de lopende perioden",
+    "Start values help": "Totaal aan het begin van de lopende dag, week, maand, kwartaal en jaar, in de eenheid van de prijsdefinitie (bijvoorbeeld kWh, niet Wh). Ze gelden alleen voor de lopende perioden; bij de volgende periodewissel stelt SourceAnalytix ze zelf in. Laat een veld leeg om vanaf nu te tellen. Komma of punt als decimaalteken, zonder scheidingsteken voor duizendtallen.",
+    "Current total": "Huidig totaal",
+    "Current total help": "Totaal van deze bron in de eenheid van de gekozen prijsdefinitie bij het openen van het dialoogvenster. Geen enkele startwaarde mag groter zijn.",
+    "Start value error": "Ongeldige startwaarde: gebruik een getal zonder scheidingsteken voor duizendtallen. Hij mag niet groter zijn dan het huidige totaal, en een periode die eerder begon (bijvoorbeeld het jaar) mag geen grotere startwaarde hebben dan een latere (bijvoorbeeld de maand)."
 }

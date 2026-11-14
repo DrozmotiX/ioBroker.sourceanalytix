@@ -29,7 +29,6 @@
     "Quarters": "宿舍",
     "Select Unit": "选择单位",
     "Select price definition": "选择价格定义",
-    "Start values for the respective period, unit scale (e.g. Wh or kWh) must match the target unit!": "各个时段的起始值，单位刻度（例如Wh或kWh）必须与目标单位相匹配！",
     "Status messages to log": "记录状态消息",
     "Store Meter Values": "存储仪表值",
     "Threshold value of device reset detection": "设备复位检测阈值",
@@ -126,5 +125,10 @@
     "Decimals for consumption values": "用量值的小数位数",
     "Decimals for cost values": "费用值的小数位数",
     "Rounding decimals help": "复制到新配置数据源的初始值。现有数据源保留各自的值。设为 -1 则保存精确值，不进行舍入。",
-    "Individual rounding decimals help": "设为 -1 则保存精确值，不进行舍入。"
+    "Individual rounding decimals help": "设为 -1 则保存精确值，不进行舍入。",
+    "Start values header": "当前周期的起始值",
+    "Start values help": "当前日、周、月、季度和年开始时的总值，单位为价格定义的单位（例如 kWh，而不是 Wh）。这些值只适用于当前周期；下一次周期切换时 SourceAnalytix 会自行设置。字段留空表示从现在开始计数。小数点可用逗号或点，不要使用千位分隔符。",
+    "Current total": "当前总值",
+    "Current total help": "打开对话框时此数据源以所选价格定义单位表示的总值。任何起始值都不能大于该值。",
+    "Start value error": "起始值无效：请输入不带千位分隔符的数字。它不能大于当前总值，并且较早开始的周期（例如年）的起始值不能大于较晚开始的周期（例如月）。"
 }
