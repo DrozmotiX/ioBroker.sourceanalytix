@@ -206,9 +206,8 @@ export function parseNum(input: string | number | null | undefined): number | nu
                 ? text.replace(/\./g, '').replace(',', '.')
                 : text.replace(/,/g, '');
     } else if (text.includes(',')) {
+        // A single comma or dot is the decimal mark, like in the adapter: 1.283 is 1,283
         text = text.replace(',', '.');
-    } else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
-        text = text.replace(/\./g, '');
     }
     const value = Number(text);
     return Number.isFinite(value) ? value : NaN;

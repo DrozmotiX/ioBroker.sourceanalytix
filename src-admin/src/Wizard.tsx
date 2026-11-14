@@ -143,7 +143,7 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
         [starts, startMode, currentInCalcUnit, calcUnit],
     );
     const effectiveOutputId = outputIdTouched ? outputId : slug(name);
-    const outputIdError = !/^[a-z0-9_]+$/.test(effectiveOutputId)
+    const outputIdError = !/^[A-Za-z0-9_-]+$/.test(effectiveOutputId)
         ? t('sa_errOutputId')
         : usedOutputIds[effectiveOutputId] && usedOutputIds[effectiveOutputId] !== datapoint?.id
           ? t('sa_errOutputIdUsed')
