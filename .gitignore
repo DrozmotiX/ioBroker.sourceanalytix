@@ -19,3 +19,7 @@ admin/i18n/*/flat.txt
 src-admin/node_modules
 src-admin/build
 src-admin/.__mf__temp
+
+# local deploy keys
+pages_key
+pages_key.pub
