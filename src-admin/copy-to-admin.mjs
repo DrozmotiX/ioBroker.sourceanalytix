@@ -7,6 +7,8 @@ if (existsSync(target)) {
 }
 mkdirSync(`${target}/i18n`, { recursive: true });
 cpSync('build/customComponents.js', `${target}/customComponents.js`);
+// Admin >= 8.3 reads the manifest next to the entry to check the GUI API generation
+cpSync('build/mf-manifest.json', `${target}/mf-manifest.json`);
 if (existsSync('build/assets')) {
     cpSync('build/assets', `${target}/assets`, { recursive: true });
 }

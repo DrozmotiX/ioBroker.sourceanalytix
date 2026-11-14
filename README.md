@@ -117,6 +117,9 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
     ### __WORK IN PROGRESS__
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+* The settings page did not start in current Admin versions ("Custom component ... was not started"): its components now declare GUI API generation 2 and ship their module federation manifest.
+
 ### 0.7.0 (2026-11-14)
 * Price definitions: changing a price without a new "Valid from" date marks the fields with a hint, and the adapter logs a warning with the repair steps, because the new price then replaces the old one retroactively ([#1293](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1293)).
 * "Recover periods" on the settings page and in the "Problems" tab only processes the selected source; `sendTo('recoverPeriods', {source})` does the same for scripts, without `source` (and the `info.recoverPeriods` button) all sources are processed as before ([#1292](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1292)).
