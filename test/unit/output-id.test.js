@@ -9,7 +9,7 @@ const {
 	validateResolvedOutputId,
 	validateOutputId,
 	verifyMappedObjects,
-} = require('./lib/output-id');
+} = require('../../lib/output-id');
 
 describe('custom output IDs', () => {
 	it('keeps the legacy source-derived ID as the default', () => {

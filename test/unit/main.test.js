@@ -23,7 +23,7 @@ const {
 	resolveCumulativeReading,
 	resolveUnit,
 	roundValue,
-} = require('./lib/calculation');
+} = require('../../lib/calculation');
 const {
 	calculatePriceDelta,
 	getSelectorPrice,
@@ -34,7 +34,7 @@ const {
 	parsePriceValue,
 	parseTariffValidityTimestamp,
 	parseValidityTimestamp,
-} = require('./lib/dynamic-pricing');
+} = require('../../lib/dynamic-pricing');
 
 const minute = 60_000;
 const at = (hour, minutes = 0) => Date.UTC(2026, 0, 1, hour, minutes);

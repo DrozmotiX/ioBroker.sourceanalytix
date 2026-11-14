@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const {calculatePowerEnergy, normalizePowerReading} = require('./lib/calculation');
+const {calculatePowerEnergy, normalizePowerReading} = require('../../lib/calculation');
 
 describe('Power-to-energy calculation', () => {
 	const start = Date.UTC(2026, 0, 1, 10);

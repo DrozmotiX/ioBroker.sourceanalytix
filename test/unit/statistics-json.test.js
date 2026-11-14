@@ -5,7 +5,7 @@ const {
 	applyStatisticsState,
 	createStatisticsSnapshot,
 	serializeStatisticsSnapshot,
-} = require('./lib/statistics-json');
+} = require('../../lib/statistics-json');
 
 function createSnapshot(overrides = {}) {
 	return createStatisticsSnapshot({

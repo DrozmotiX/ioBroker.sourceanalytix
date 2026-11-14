@@ -2,8 +2,8 @@
 
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const {buildUnitConfig, isIntegratedUnit} = require('./lib/calculation');
-const {checkStartValues, parseStartValueInput, START_FIELDS} = require('./lib/source-checks');
+const {buildUnitConfig, isIntegratedUnit} = require('../../lib/calculation');
+const {checkStartValues, parseStartValueInput, START_FIELDS} = require('../../lib/source-checks');
 
 /** @type {(...args: any[]) => any} */
 const originalModuleLoad = Reflect.get(Module, '_load');
@@ -11,7 +11,7 @@ Reflect.set(Module, '_load', function loadTestDependency(request, parent, isMain
 	if (request === '@iobroker/adapter-core') return {Adapter: class {}};
 	return originalModuleLoad.call(Module, request, parent, isMain);
 });
-const {Sourceanalytix} = require('./main');
+const {Sourceanalytix} = require('../../main');
 Reflect.set(Module, '_load', originalModuleLoad);
 
 describe('start values (#1267)', () => {

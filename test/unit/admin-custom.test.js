@@ -2,9 +2,9 @@
 
 const assert = require('node:assert/strict');
 /** @type {{items: Record<string, Record<string, any>>}} */
-const customConfig = require('./admin/jsonCustom.json');
-const de = require('./admin/i18n/de.json');
-const en = require('./admin/i18n/en.json');
+const customConfig = require('../../admin/jsonCustom.json');
+const de = require('../../admin/i18n/de.json');
+const en = require('../../admin/i18n/en.json');
 
 describe('custom settings at the datapoint (#1269)', () => {
 	const items = customConfig.items;

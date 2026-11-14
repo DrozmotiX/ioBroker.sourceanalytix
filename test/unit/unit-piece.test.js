@@ -1,8 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const {areUnitsCompatible, buildUnitConfig, convertUnitValue, resolveUnit} = require('./lib/calculation');
-const instanceConfig = require('./admin/jsonConfig.json');
+const {areUnitsCompatible, buildUnitConfig, convertUnitValue, resolveUnit} = require('../../lib/calculation');
+const instanceConfig = require('../../admin/jsonConfig.json');
 
 /**
  * Find the unit select of the price definition table in the instance settings.
