@@ -332,6 +332,7 @@ This is a personal donation link for DutchmanNL and is not related to the ioBrok
 -->
 ## Changelog
 ### __WORK IN PROGRESS__
+* Fix wrong conversion between `km³`, `dm³`, `cm³`, `mm³` and between `µm`, `nm`; unit definitions are now part of the adapter and the unmaintained `iobroker-adapter-helpers` dependency was removed ([#1278](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1278)).
 * Ignore repeated source-object writes when the SourceAnalytix settings, source name and unit are unchanged, preventing unnecessary output reinitialization and high CPU load ([#1233](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1233)).
 * Only write output objects (device, period and memory states) when their definition actually changes, so re-initializing a source updates state values without rewriting the whole object tree ([#1233](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1233)).
 

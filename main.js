@@ -7,7 +7,6 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require('@iobroker/adapter-core');
-const adapterHelpers = require('iobroker-adapter-helpers'); // Lib used for Unit calculations
 const schedule = require('cron').CronJob; // Cron Scheduler
 const {isDeepStrictEqual} = require('node:util');
 const calculation = require('./lib/calculation');
@@ -107,7 +106,7 @@ class Sourceanalytix extends utils.Adapter {
 				useCurrency = '€';
 			}
 
-			// Load Unit definitions from helper library & prices from admin to workable memory array
+			// Load Unit definitions & prices from admin to workable memory array
 			await this.definitionLoader();
 
 			// Store current data/time information to memory
@@ -1369,11 +1368,11 @@ class Sourceanalytix extends utils.Adapter {
 	// }
 
 	/**
-	 * Load calculation factors from helper library and store to memory
+	 * Load unit definitions and price definitions and store them to memory
 	 */
 	async definitionLoader() {
 		try {
-			this.unitPriceDef.unitConfig = calculation.buildUnitConfig(adapterHelpers.units);
+			this.unitPriceDef.unitConfig = calculation.buildUnitConfig();
 
 			// Load price definition from admin configuration
 			const pricesConfig = this.config.pricesDefinition || [];
