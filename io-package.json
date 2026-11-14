@@ -3,6 +3,19 @@
     "name": "sourceanalytix",
     "version": "0.7.0",
     "news": {
+      "0.7.1": {
+        "en": "Fixed: the settings page did not start in current Admin versions (\"Custom component ... was not started\").",
+        "de": "Behoben: Die Einstellungsseite startete in aktuellen Admin-Versionen nicht („Custom component ... was not started“).",
+        "ru": "Исправлено: страница настроек не запускалась в актуальных версиях Admin («Custom component ... was not started»).",
+        "pt": "Corrigido: a página de configurações não iniciava nas versões atuais do Admin (\"Custom component ... was not started\").",
+        "nl": "Opgelost: de instellingenpagina startte niet in actuele Admin-versies (\"Custom component ... was not started\").",
+        "fr": "Corrigé : la page des paramètres ne démarrait pas dans les versions actuelles d'Admin (« Custom component ... was not started »).",
+        "it": "Corretto: la pagina delle impostazioni non si avviava nelle versioni attuali di Admin (\"Custom component ... was not started\").",
+        "es": "Corregido: la página de configuración no se iniciaba en las versiones actuales de Admin (\"Custom component ... was not started\").",
+        "pl": "Naprawiono: strona ustawień nie uruchamiała się w aktualnych wersjach Admina („Custom component ... was not started”).",
+        "uk": "Виправлено: сторінка налаштувань не запускалася в актуальних версіях Admin («Custom component ... was not started»).",
+        "zh-cn": "已修复：设置页面在当前 Admin 版本中无法启动（“Custom component ... was not started”）。"
+      },
       "0.7.0": {
         "en": "New settings page (requires Admin 8) with overview, problem check, wizard and a detail page for every source.\nNew actions without restart: align meter reading, meter swapped, recalculate costs from a date, delete data.\nPulse counters, unit \"piece\", maximum gap for power sources and checked start values.\n\"Recover periods\" per source; hint when a price changes without a new \"Valid from\" date.\nMany calculation fixes: day change for power sources, reading gaps at midnight, calendar weeks at the turn of the year, meter resets, prices with a future \"Valid from\" date.\nNew documentation in German and English.",
         "de": "Neue Einstellungsseite (benötigt Admin 8) mit Übersicht, Problemprüfung, Assistent und Detailseite für jede Quelle.\nNeue Aktionen ohne Neustart: Zählerstand angleichen, Zähler getauscht, Kosten ab Datum neu rechnen, Daten löschen.\nImpulszähler, Einheit „Stück“, maximale Lücke für Leistungsquellen und geprüfte Startwerte.\n„Perioden nachholen“ pro Quelle; Hinweis, wenn sich ein Preis ohne neues „Gültig ab“ ändert.\nViele Korrekturen der Berechnung: Tageswechsel bei Leistungsquellen, Lücken um Mitternacht, Kalenderwochen zum Jahreswechsel, Zählerresets, Preise mit künftigem „Gültig ab“.\nNeue Dokumentation auf Deutsch und Englisch.",
