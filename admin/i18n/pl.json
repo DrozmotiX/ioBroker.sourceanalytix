@@ -126,5 +126,7 @@
     "Decimals for consumption values": "Miejsca dziesiętne dla wartości zużycia",
     "Decimals for cost values": "Miejsca dziesiętne dla wartości kosztów",
     "Rounding decimals help": "Wartość początkowa kopiowana do nowo konfigurowanych źródeł. Istniejące źródła zachowują własną wartość. Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
-    "Individual rounding decimals help": "Wartość -1 zapisuje dokładną wartość bez zaokrąglania."
+    "Individual rounding decimals help": "Wartość -1 zapisuje dokładną wartość bez zaokrąglania.",
+    "Overview": "Przegląd",
+    "Problems": "Problemy"
 }

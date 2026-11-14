@@ -126,5 +126,7 @@
     "Decimals for consumption values": "用量值的小数位数",
     "Decimals for cost values": "费用值的小数位数",
     "Rounding decimals help": "复制到新配置数据源的初始值。现有数据源保留各自的值。设为 -1 则保存精确值，不进行舍入。",
-    "Individual rounding decimals help": "设为 -1 则保存精确值，不进行舍入。"
+    "Individual rounding decimals help": "设为 -1 则保存精确值，不进行舍入。",
+    "Overview": "概览",
+    "Problems": "问题"
 }

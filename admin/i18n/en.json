@@ -126,5 +126,7 @@
     "Decimals for consumption values": "Decimals for consumption values",
     "Decimals for cost values": "Decimals for cost values",
     "Rounding decimals help": "Initial value copied into newly configured sources. Existing sources keep their own value. Use -1 to store the exact value without rounding.",
-    "Individual rounding decimals help": "Use -1 to store the exact value without rounding."
+    "Individual rounding decimals help": "Use -1 to store the exact value without rounding.",
+    "Overview": "Overview",
+    "Problems": "Problems"
 }

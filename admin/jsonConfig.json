@@ -2,139 +2,37 @@
   "type": "tabs",
   "i18n": true,
   "items": {
-    "_main": {
+    "_overview": {
       "type": "panel",
-      "label": "Main settings",
+      "label": "Overview",
       "items": {
-        "_yearStatistics": {
-          "type": "header",
-          "text": "Year statistics",
-          "size": 2,
+        "_sourcesOverview": {
+          "type": "custom",
+          "url": "custom/customComponents.js",
+          "name": "ConfigCustomSourceAnalytixSet/Components/SourcesOverview",
+          "i18n": true,
           "xs": 12,
           "sm": 12,
           "md": 12,
           "lg": 12,
           "xl": 12
-        },
-        "store_weeks": {
-          "type": "checkbox",
-          "label": "Weeks",
-          "xs": 12,
-          "sm": 4,
-          "md": 4,
-          "lg": 4,
-          "xl": 4
-        },
-        "store_months": {
-          "type": "checkbox",
-          "label": "Months",
-          "xs": 12,
-          "sm": 4,
-          "md": 4,
-          "lg": 4,
-          "xl": 4
-        },
-        "store_quarters": {
-          "type": "checkbox",
-          "label": "Quarters",
-          "xs": 12,
-          "sm": 4,
-          "md": 4,
-          "lg": 4,
-          "xl": 4
-        },
-        "_currentYear": {
-          "type": "header",
-          "text": "Current year",
-          "size": 2,
-          "newLine": true,
+        }
+      }
+    },
+    "_problems": {
+      "type": "panel",
+      "label": "Problems",
+      "items": {
+        "_sourcesProblems": {
+          "type": "custom",
+          "url": "custom/customComponents.js",
+          "name": "ConfigCustomSourceAnalytixSet/Components/SourcesProblems",
+          "i18n": true,
           "xs": 12,
           "sm": 12,
           "md": 12,
           "lg": 12,
           "xl": 12
-        },
-        "currentYearDays": {
-          "type": "checkbox",
-          "label": "Weekday",
-          "xs": 12,
-          "sm": 6,
-          "md": 4,
-          "lg": 2,
-          "xl": 2
-        },
-        "currentYearWeek": {
-          "type": "checkbox",
-          "label": "Weeks",
-          "xs": 12,
-          "sm": 6,
-          "md": 4,
-          "lg": 2,
-          "xl": 2
-        },
-        "currentYearMonth": {
-          "type": "checkbox",
-          "label": "Months",
-          "xs": 12,
-          "sm": 6,
-          "md": 4,
-          "lg": 2,
-          "xl": 2
-        },
-        "currentYearQuarter": {
-          "type": "checkbox",
-          "label": "Quarters",
-          "xs": 12,
-          "sm": 6,
-          "md": 4,
-          "lg": 2,
-          "xl": 2
-        },
-        "currentYearPrevious": {
-          "type": "checkbox",
-          "label": "Previous period",
-          "xs": 12,
-          "sm": 6,
-          "md": 4,
-          "lg": 4,
-          "xl": 4
-        },
-        "_rounding": {
-          "type": "header",
-          "text": "Rounding",
-          "size": 2,
-          "newLine": true,
-          "xs": 12,
-          "sm": 12,
-          "md": 12,
-          "lg": 12,
-          "xl": 12
-        },
-        "decimalsQuantity": {
-          "type": "number",
-          "label": "Decimals for consumption values",
-          "help": "Rounding decimals help",
-          "default": 3,
-          "min": -1,
-          "max": 15,
-          "xs": 12,
-          "sm": 6,
-          "md": 6,
-          "lg": 6,
-          "xl": 6
-        },
-        "decimalsCosts": {
-          "type": "number",
-          "label": "Decimals for cost values",
-          "help": "Rounding decimals help",
-          "default": 2,
-          "min": -1,
-          "max": 15,
-          "xs": 12,
-          "sm": 6,
-          "md": 6,
-          "lg": 6,
-          "xl": 6
         }
       }
     },
@@ -292,6 +190,142 @@
               "step": 0.01
             }
           ]
+        }
+      }
+    },
+    "_main": {
+      "type": "panel",
+      "label": "Main settings",
+      "items": {
+        "_yearStatistics": {
+          "type": "header",
+          "text": "Year statistics",
+          "size": 2,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12
+        },
+        "store_weeks": {
+          "type": "checkbox",
+          "label": "Weeks",
+          "xs": 12,
+          "sm": 4,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "store_months": {
+          "type": "checkbox",
+          "label": "Months",
+          "xs": 12,
+          "sm": 4,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "store_quarters": {
+          "type": "checkbox",
+          "label": "Quarters",
+          "xs": 12,
+          "sm": 4,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "_currentYear": {
+          "type": "header",
+          "text": "Current year",
+          "size": 2,
+          "newLine": true,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12
+        },
+        "currentYearDays": {
+          "type": "checkbox",
+          "label": "Weekday",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearWeek": {
+          "type": "checkbox",
+          "label": "Weeks",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearMonth": {
+          "type": "checkbox",
+          "label": "Months",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearQuarter": {
+          "type": "checkbox",
+          "label": "Quarters",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 2,
+          "xl": 2
+        },
+        "currentYearPrevious": {
+          "type": "checkbox",
+          "label": "Previous period",
+          "xs": 12,
+          "sm": 6,
+          "md": 4,
+          "lg": 4,
+          "xl": 4
+        },
+        "_rounding": {
+          "type": "header",
+          "text": "Rounding",
+          "size": 2,
+          "newLine": true,
+          "xs": 12,
+          "sm": 12,
+          "md": 12,
+          "lg": 12,
+          "xl": 12
+        },
+        "decimalsQuantity": {
+          "type": "number",
+          "label": "Decimals for consumption values",
+          "help": "Rounding decimals help",
+          "default": 3,
+          "min": -1,
+          "max": 15,
+          "xs": 12,
+          "sm": 6,
+          "md": 6,
+          "lg": 6,
+          "xl": 6
+        },
+        "decimalsCosts": {
+          "type": "number",
+          "label": "Decimals for cost values",
+          "help": "Rounding decimals help",
+          "default": 2,
+          "min": -1,
+          "max": 15,
+          "xs": 12,
+          "sm": 6,
+          "md": 6,
+          "lg": 6,
+          "xl": 6
         }
       }
     }
