@@ -1973,6 +1973,14 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.error(`Please choose proper type for state ${stateID}`);
 					this.log.error(`Or add price definition ${customData.selectedPrice} in adapter settings`);
 					initError = true;
+				} else if (useUnit) {
+					// Reject unit combinations that cannot be converted (#1278)
+					const targetUnit = this.unitPriceDef.pricesConfig[customData.selectedPrice].unitType;
+					if (!calculation.areUnitsCompatible(this.unitPriceDef.unitConfig[useUnit], this.unitPriceDef.unitConfig[targetUnit])) {
+						this.log.error(`Unit ${useUnit} of ${stateID} cannot be converted to unit ${targetUnit} of price definition ${customData.selectedPrice}`);
+						this.log.error(`Please choose a price definition with a matching unit (power sources need an energy unit such as kWh)`);
+						initError = true;
+					}
 				}
 
 				// The offset can be larger than the known total after a manual correction of

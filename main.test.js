@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const {
+	areUnitsCompatible,
 	buildUnitConfig,
 	calculateBasicPriceTotals,
 	calculateHistoricalBasicPriceTotals,
@@ -62,6 +63,21 @@ describe('unit conversion', () => {
 		close(convertUnitValue(1000, units.l, units['m³']), 1);
 		close(convertUnitValue(1, units.t, units.kg), 1000);
 		close(convertUnitValue(1, units.kWh, units.Wh), 1000);
+	});
+
+	it('accepts only unit combinations that can be calculated (#1278)', () => {
+		assert.equal(areUnitsCompatible(units.W, units.kWh), true);
+		assert.equal(areUnitsCompatible(units.kW, units.Wh), true);
+		assert.equal(areUnitsCompatible(units.W, units.W), false);
+		assert.equal(areUnitsCompatible(units.W, units['m³']), false);
+		assert.equal(areUnitsCompatible(units.Wh, units.kWh), true);
+		assert.equal(areUnitsCompatible(units.kWh, units.W), false);
+		assert.equal(areUnitsCompatible(units.l, units['m³']), true);
+		assert.equal(areUnitsCompatible(units['m³'], units.hl), true);
+		assert.equal(areUnitsCompatible(units.kg, units.kWh), false);
+		assert.equal(areUnitsCompatible(units.m, units.l), false);
+		assert.equal(areUnitsCompatible(units.t, units.g), true);
+		assert.equal(areUnitsCompatible(undefined, units.kWh), false);
 	});
 
 	it('supports exactly the 30 documented units', () => {
