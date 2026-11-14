@@ -12,6 +12,7 @@ const {isDeepStrictEqual} = require('node:util');
 const calculation = require('./lib/calculation');
 const dynamicPricing = require('./lib/dynamic-pricing');
 const outputId = require('./lib/output-id');
+const sourceActions = require('./lib/source-actions');
 const statisticsJson = require('./lib/statistics-json');
 
 // Sentry error reporting, disable when testing alpha source code locally!
@@ -3909,6 +3910,138 @@ class Sourceanalytix extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * Persist calculation memory in the SourceAnalytix settings of the source without rebuilding it.
+	 * @param {string} stateID - Source state ID
+	 * @param {object} updates - Custom settings to write
+	 */
+	async persistSourceMemory(stateID, updates) {
+		// Remember before writing: the resulting objectChange may arrive before the write resolves
+		this.rememberSourceCustomUpdate(stateID, updates);
+		await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: updates}}});
+	}
+
+	/**
+	 * Current device value of a cumulative source in the calculation unit, without offset.
+	 * @param {string} stateID - Source state ID
+	 * @returns {Promise<number | null>} Device value, or null if unknown or a power source
+	 */
+	async getDeviceReadingInCalculationUnit(stateID) {
+		const activeState = this.activeStates[stateID];
+		if (!activeState || activeState.stateDetails.stateUnit === 'W') return null;
+		const state = await this.getForeignStateAsync(stateID);
+		const value = state ? this.parsePriceValue(state.val) : null;
+		if (value === null) return null;
+		const converted = calculation.convertUnitValue(
+			value,
+			this.unitPriceDef.unitConfig[activeState.stateDetails.stateUnit],
+			this.unitPriceDef.unitConfig[activeState.stateDetails.useUnit],
+		);
+		return Number.isFinite(converted) ? converted : null;
+	}
+
+	/**
+	 * Parse a number entered in the settings page (comma or dot).
+	 * @param {unknown} value - Value from the message
+	 * @returns {number | null} Number, or null if not numeric
+	 */
+	parseActionNumber(value) {
+		if (typeof value !== 'number' && typeof value !== 'string') return null;
+		return this.parsePriceValue(value);
+	}
+
+	/**
+	 * Look up an active source for an instant action.
+	 * @param {unknown} source - Source state ID from the message
+	 * @returns {{stateID: string} | {error: string, message: string}} Source or error
+	 */
+	resolveActionSource(source) {
+		if (typeof source !== 'string' || !source) return {error: 'missingSource', message: 'No source given'};
+		const activeState = this.activeStates[source];
+		if (!activeState || !activeState.stateDetails || !activeState.calcValues) {
+			return {error: 'sourceNotActive', message: `${source} is not an active SourceAnalytix source`};
+		}
+		return {stateID: source};
+	}
+
+	/**
+	 * Action "Align meter reading" (#640): set the total to the value shown by the meter.
+	 * The offset follows, and the start values move with the total so the consumption of
+	 * the running periods and the closed periods stay unchanged.
+	 * @param {string} stateID - Source state ID
+	 * @param {unknown} value - Meter reading in the calculation unit
+	 * @param {boolean} dryRun - Only return the preview
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async alignMeterReading(stateID, value, dryRun) {
+		const activeState = this.activeStates[stateID];
+		const calcValues = activeState.calcValues;
+		const isPower = activeState.stateDetails.stateUnit === 'W';
+		const plan = sourceActions.planAlignMeterReading({
+			target: this.parseActionNumber(value),
+			cumulative: this.getNumberOrDefault(calcValues.cumulativeValue, 0),
+			offset: isPower ? null : calcValues.valueAtDeviceReset,
+			rawReading: isPower ? null : await this.getDeviceReadingInCalculationUnit(stateID),
+			startValues: calcValues,
+		});
+		if (!plan.valid) return {error: plan.error, message: `Meter reading ${JSON.stringify(value)} is not valid`};
+		const result = {
+			ok: true,
+			unit: activeState.stateDetails.useUnit,
+			previousCumulative: this.getNumberOrDefault(calcValues.cumulativeValue, 0),
+			cumulative: plan.cumulative,
+			delta: plan.delta,
+			valueAtDeviceReset: isPower ? null : plan.offset,
+			startValues: plan.startValues,
+		};
+		if (dryRun) return result;
+
+		const delta = plan.delta || 0;
+		Object.assign(calcValues, plan.startValues);
+		calcValues.cumulativeValue = plan.cumulative;
+		activeState.pendingDeviceReset = null;
+		activeState.confirmedDeviceReset = null;
+		activeState.realignDeviceOffset = false;
+		if (activeState.readingGap && Number.isFinite(activeState.readingGap.lastTotal)) activeState.readingGap.lastTotal += delta;
+		const memory = {...plan.startValues};
+		if (!isPower) {
+			calcValues.valueAtDeviceReset = plan.offset;
+			memory.valueAtDeviceReset = plan.offset;
+		}
+		// The jump of the total is no consumption: move the cost tracker with it
+		if (this.usesHistoricalCostCalculation(stateID)) {
+			const dynamicCosts = activeState.dynamicCosts || await this.loadDynamicCostMemory(stateID);
+			if (dynamicCosts && dynamicCosts.totals) {
+				activeState.dynamicCosts = dynamicCosts;
+				const lastReading = this.parsePriceValue(dynamicCosts.lastReading);
+				dynamicCosts.lastReading = lastReading === null ? plan.cumulative : lastReading + delta;
+				await this.persistDynamicCostMemory(stateID, dynamicCosts);
+			}
+		}
+		await this.persistSourceMemory(stateID, memory);
+		await this.setStateAsync(`${activeState.stateDetails.deviceName}.cumulativeReading`, {val: plan.cumulative, ack: true});
+		this.recordStatisticsValue(stateID, 'cumulativeReading', plan.cumulative);
+		this.log.info(`Meter reading of ${stateID} aligned from ${result.previousCumulative} to ${plan.cumulative} ${result.unit}${isPower ? '' : `, valueAtDeviceReset ${plan.offset}`}`);
+		if (!isPower) {
+			const current = await this.getForeignStateAsync(stateID);
+			if (current) await this.calculationHandler(stateID, current);
+		}
+		return result;
+	}
+
+	/**
+	 * Run an instant action requested through sendTo (settings page, scripts).
+	 * @param {string} command - Message command
+	 * @param {Record<string, unknown>} message - Message payload
+	 * @returns {Promise<object>} Response for the callback
+	 */
+	async handleActionMessage(command, message) {
+		const dryRun = message.dryRun === true;
+		const resolved = this.resolveActionSource(message.source);
+		if ('error' in resolved) return resolved;
+		return this.alignMeterReading(resolved.stateID, message.value, dryRun);
+	}
+
 	//Function to handle messages from State settings and provide Unit and Price definitions
 	async onMessage(obj) {
 
@@ -3948,6 +4081,18 @@ class Sourceanalytix extends utils.Adapter {
 					this.log.info(`Period rollover requested by ${obj.from}`);
 					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`);
 					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+					break;
+				}
+
+				case 'setCumulative': {
+					let response;
+					try {
+						response = await this.handleActionMessage(obj.command, obj.message || {});
+					} catch (error) {
+						this.errorHandling(`[onMessage] ${obj.command}`, error);
+						response = {error: 'failed', message: error instanceof Error ? error.message : String(error)};
+					}
+					if (obj.callback) this.sendTo(obj.from, obj.command, response, obj.callback);
 					break;
 				}
 			}
