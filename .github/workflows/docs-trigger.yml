@@ -1,0 +1,27 @@
+# Stößt nach einer Änderung in docs/ einen neuen Build der Doku-Seite an
+# (https://drozmotix.github.io, Repo DrozmotiX/documentation).
+# Ohne diesen Workflow erscheint die Änderung spätestens nach dem nächtlichen Build.
+#
+# Braucht das Secret DOCS_DISPATCH_TOKEN: fine-grained Token mit
+# "Contents: Read and write" auf DrozmotiX/documentation.
+name: Doku-Seite aktualisieren
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+  workflow_dispatch:
+
+# Der Job braucht keine Rechte am eigenen Repo; der Dispatch läuft über DOCS_DISPATCH_TOKEN.
+permissions: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DOCS_DISPATCH_TOKEN }}
+          repository: DrozmotiX/documentation
+          event-type: adapter-docs-updated
+          client-payload: '{"adapter": "${{ github.repository }}", "sha": "${{ github.sha }}"}'
