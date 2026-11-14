@@ -33,6 +33,21 @@ let useCurrency = null;
 // Create variables for object arrays
 const actualDate = {}; //, currentDay = null;
 
+/**
+ * Check whether extending `current` with `extension` would leave its content unchanged.
+ * Plain objects are compared key by key, so fields the extension does not mention are ignored.
+ * @param {unknown} current - Existing object (or nested value)
+ * @param {unknown} extension - Partial object as passed to extendObject
+ * @returns {boolean} True when every value in the extension is already present
+ */
+function containsExtension(current, extension) {
+	if (extension && typeof extension === 'object' && !Array.isArray(extension)) {
+		if (!current || typeof current !== 'object' || Array.isArray(current)) return false;
+		return Object.entries(extension).every(([key, value]) => value === undefined || containsExtension(current[key], value));
+	}
+	return isDeepStrictEqual(current, extension);
+}
+
 class Sourceanalytix extends utils.Adapter {
 	/**
 	 * @param {Partial<utils.AdapterOptions>} [options] - Adapter startup options
@@ -70,6 +85,7 @@ class Sourceanalytix extends utils.Adapter {
 		this.migratingStates = new Set();
 		this.stateBuildQueues = new Map(); // Source state ID -> tail of its serialized configuration builds
 		this.customConfigBackfills = new Map();
+		this.sourceObjectSnapshots = new Map(); // Source state ID -> relevant SourceAnalytix object configuration
 	}
 
 	/**
@@ -216,6 +232,23 @@ class Sourceanalytix extends utils.Adapter {
 	getNumberOrDefault(value, defaultValue) {
 		const parsedValue = this.parsePriceValue(value);
 		return parsedValue === null ? defaultValue : parsedValue;
+	}
+
+	/**
+	 * Parse a configured period start value. Accepts numbers and numeric strings with comma or dot.
+	 * @param {string} stateID - Source state ID, used for the warning
+	 * @param {string} field - Name of the start value
+	 * @param {unknown} value - Configured value
+	 * @returns {number | undefined} Parsed value, or undefined if empty or not numeric
+	 */
+	parseStartValue(stateID, field, value) {
+		if (value === null || value === undefined || value === '') return undefined;
+		const parsedValue = dynamicPricing.parsePriceValue(value);
+		if (parsedValue === null) {
+			this.log.warn(`Start value ${field} ${JSON.stringify(value)} of ${stateID} is not a number and is ignored`);
+			return undefined;
+		}
+		return parsedValue;
 	}
 
 	/**
@@ -770,7 +803,7 @@ class Sourceanalytix extends utils.Adapter {
 	async ensureDynamicCostMemoryState(stateID) {
 		if (this.activeStates[stateID].dynamicCostMemoryStateReady) return;
 		const memoryStateName = this.getDynamicCostMemoryStateName(stateID);
-		await this.extendObjectAsync(memoryStateName, {
+		await this.extendObjectIfChanged(memoryStateName, {
 			type: 'state',
 			common: {
 				name: 'Dynamic cost calculation memory',
@@ -1083,7 +1116,7 @@ class Sourceanalytix extends utils.Adapter {
 			});
 			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.financialCategory}.currentWeek.${weekdays[date.getDay()]}`, calculationRounded.priceDay);
 		}
-		if (this.config.currentYearWeek) {
+		if (this.config.currentYearWeek && this.isWeekInCurrentYear()) {
 			await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 				val: calculationRounded.priceWeek,
 				ack: true
@@ -1106,7 +1139,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.financialCategory}`;
-		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${this.getWeekArchiveRoot(stateDetails.deviceName, stateDetails.financialCategory)}.weeks.${actualDate.week}`, {
 			val: calculationRounded.priceWeek,
 			ack: true
 		});
@@ -1155,7 +1188,7 @@ class Sourceanalytix extends utils.Adapter {
 			});
 			this.recordStatisticsValue(stateID, `currentYear.${stateDetails.headCategory}.currentWeek.${weekdays[date.getDay()]}`, calculationRounded.consumedDay);
 		}
-		if (this.config.currentYearWeek) {
+		if (this.config.currentYearWeek && this.isWeekInCurrentYear()) {
 			await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 				val: calculationRounded.consumedWeek,
 				ack: true
@@ -1178,7 +1211,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 
 		stateName = `${this.namespace}.${stateDetails.deviceName}.${actualDate.year}.${stateDetails.headCategory}`;
-		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {val: calculationRounded.consumedWeek, ack: true});
+		if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${this.getWeekArchiveRoot(stateDetails.deviceName, stateDetails.headCategory)}.weeks.${actualDate.week}`, {val: calculationRounded.consumedWeek, ack: true});
 		if (storeSettings.storeMonths) await this.setStateChangedAsync(`${stateName}.months.${actualDate.month}`, {val: calculationRounded.consumedMonth, ack: true});
 		if (storeSettings.storeQuarters) await this.setStateChangedAsync(`${stateName}.quarters.Q${actualDate.quarter}`, {val: calculationRounded.consumedQuarter, ack: true});
 	}
@@ -1227,7 +1260,7 @@ class Sourceanalytix extends utils.Adapter {
 	async ensureStatisticsJsonState(stateID) {
 		const stateName = this.getStatisticsJsonStateName(stateID);
 		if (!stateName) return;
-		await this.extendObjectAsync(stateName, {
+		await this.extendObjectIfChanged(stateName, {
 			type: 'state',
 			common: {
 				name: 'Statistics JSON',
@@ -1835,6 +1868,7 @@ class Sourceanalytix extends utils.Adapter {
 				initError = true;
 				return false;
 			}
+			this.rememberSourceObjectSnapshot(stateID, stateInfo);
 
 			// Check if configuration for SourceAnalytix is present, trow error in case of issue in configuration
 			if (stateInfo && stateInfo.common && stateInfo.common.custom && stateInfo.common.custom[this.namespace]) {
@@ -1903,25 +1937,27 @@ class Sourceanalytix extends utils.Adapter {
 				// Load start value from config to memory (avoid wrong calculations at meter reset, set to 0 if empty)
 				const valueAtDeviceReset = (customData.valueAtDeviceReset || customData.valueAtDeviceReset === 0) ? customData.valueAtDeviceReset : null;
 
-				// Always set init value to null at first start, will take init value at first calculation from state
-				const valueAtDeviceInit = null;
-
 				// Read current known total value to memory (if present)
 				let cumulativeValue = await this.getCumulatedValue(stateID, newDeviceName);
 				cumulativeValue = cumulativeValue ? cumulativeValue : 0;
-				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)} | valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)} | valueAtDeviceInit ${JSON.stringify(valueAtDeviceInit)}`);
+				this.log.debug(`[buildStateDetailsArray] cumulativeValue ${JSON.stringify(cumulativeValue)} | valueAtDeviceReset ${JSON.stringify(valueAtDeviceReset)}`);
 
 				// Check and load unit definition
 				let useUnit = '';
+				const selectedUnit = calculation.resolveUnit(customData.selectedUnit, this.unitPriceDef.unitConfig);
+				const detectedUnit = calculation.resolveUnit(commonData.unit, this.unitPriceDef.unitConfig);
 				// Check if a unit is manually selected, if yes use that one
-				if (this.unitPriceDef.unitConfig[customData.selectedUnit]) {
-					useUnit = customData.selectedUnit;
+				if (selectedUnit) {
+					useUnit = selectedUnit;
 					this.log.debug(`[buildStateDetailsArray] unit manually chosen ${JSON.stringify(useUnit)}`);
 
-				// If not, try to automatically get unit from state object
-				} else if (commonData.unit && commonData.unit !== '' && this.unitPriceDef.unitConfig[commonData.unit]) {
+				// If not, try to automatically get unit from state object (accepts spellings like m3 or kwh)
+				} else if (detectedUnit) {
 
-					useUnit = commonData.unit;
+					useUnit = detectedUnit;
+					if (detectedUnit !== commonData.unit) {
+						this.log.info(`Unit ${JSON.stringify(commonData.unit)} of ${stateID} is used as ${detectedUnit}`);
+					}
 					this.log.debug(`[buildStateDetailsArray] unit automatically detected ${JSON.stringify(useUnit)}`);
 				} else {
 					this.log.error(`No unit defined for ${stateID}, cannot execute calculations !`);
@@ -1940,12 +1976,16 @@ class Sourceanalytix extends utils.Adapter {
 					initError = true;
 				}
 
+				// The offset can be larger than the known total after a manual correction of
+				// cumulativeReading or a meter swap. Keep the source running and realign the
+				// offset with the next reading so the known total is continued (#1257).
+				let realignDeviceOffset = false;
 				if (valueAtDeviceReset > cumulativeValue){
 					// Ignore issue if categories = Watt, init value not used
 					if (useUnit !== 'W') {
-						this.log.error(`Check settings for ${stateID} ! Known valueAtDeviceReset : (${valueAtDeviceReset}) > known cumulative value (${cumulativeValue}) cannot proceed`);
-						this.log.error(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
-						initError = true;
+						this.log.warn(`Known valueAtDeviceReset (${valueAtDeviceReset}) of ${stateID} is larger than the known cumulative value (${cumulativeValue}); the offset will be realigned with the next reading so the total continues from ${cumulativeValue}`);
+						this.log.debug(`Troubleshoot Data ${stateID} custom Data : ${JSON.stringify(stateInfo)} `);
+						realignDeviceOffset = true;
 					}
 				}
 
@@ -1965,6 +2005,7 @@ class Sourceanalytix extends utils.Adapter {
 				// Load state settings to memory
 				this.activeStates[stateID] = {
 					firstActivation: useUnit !== 'W' && valueAtDeviceReset === null,
+					realignDeviceOffset,
 					stateDetails: {
 						alias: typeof customData.alias === 'string' ? customData.alias.trim() : '',
 						averagePowerValues: customData.averagePowerValues === true,
@@ -1987,13 +2028,12 @@ class Sourceanalytix extends utils.Adapter {
 					},
 					calcValues: {
 						cumulativeValue: cumulativeValue,
-						start_day: customData.start_day,
-						start_month: customData.start_month,
-						start_quarter: customData.start_quarter,
-						start_week: customData.start_week,
-						start_year: customData.start_year,
+						start_day: this.parseStartValue(stateID, 'start_day', customData.start_day),
+						start_month: this.parseStartValue(stateID, 'start_month', customData.start_month),
+						start_quarter: this.parseStartValue(stateID, 'start_quarter', customData.start_quarter),
+						start_week: this.parseStartValue(stateID, 'start_week', customData.start_week),
+						start_year: this.parseStartValue(stateID, 'start_year', customData.start_year),
 						valueAtDeviceReset: valueAtDeviceReset,
-						valueAtDeviceInit: valueAtDeviceInit,
 					},
 					prices: {
 						basicPrice: selectedPriceConfig.uPpM,
@@ -2028,6 +2068,7 @@ class Sourceanalytix extends utils.Adapter {
 			const weekNumber = yearWeek < 10 ? `0${yearWeek}` : yearWeek.toString();
 			await this.doLocalStateCreate(stateID, `weeks.${weekNumber}`, weekNumber, false, !this.config.store_weeks);
 		}
+		await this.ensureWeekArchiveState(stateID);
 		for (const month of months) {
 			await this.doLocalStateCreate(stateID, `months.${month}`, month, false, !this.config.store_months);
 		}
@@ -2039,6 +2080,16 @@ class Sourceanalytix extends utils.Adapter {
 		await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.headCategory}Cumulative`, `${stateDetails.headCategory}Cumulative`, true, !storeYearStatistics || !stateDetails.consumption);
 		await this.doLocalStateCreate(stateID, `${actualDate.year}.${stateDetails.financialCategory}Cumulative`, `${stateDetails.financialCategory}Cumulative`, true, !storeYearStatistics || !stateDetails.costs, false, useCurrency);
 		await this.doLocalStateCreate(stateID, `${actualDate.year}.readingCumulative`, 'Cumulative Reading of Year total', true, !storeYearStatistics);
+	}
+
+	/**
+	 * Create the archive state of the running week when it belongs to the neighbouring
+	 * ISO week-numbering year (for example 29–31 December in week 01 of the next year).
+	 * @param {string} stateID - Source state ID
+	 */
+	async ensureWeekArchiveState(stateID) {
+		if (!this.config.store_weeks || this.isWeekInCurrentYear() || !actualDate.week) return;
+		await this.doLocalStateCreate(stateID, `weeks.${actualDate.week}`, actualDate.week, false, false, false, undefined, actualDate.weekYear);
 	}
 
 	/**
@@ -2083,7 +2134,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug('Name after alias renaming' + alias);
 
 			// Create Device Object
-			await this.extendObjectAsync(stateDetails.deviceName, {
+			await this.extendObjectIfChanged(stateDetails.deviceName, {
 				type: 'device',
 				common: {
 					name: alias
@@ -2137,17 +2188,60 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Keep only source-object fields which affect SourceAnalytix configuration or generated labels.
+	 * Object metadata such as `ts`, `from`, ACLs and other adapters' custom settings must not rebuild a source.
+	 * @param {ioBroker.Object | null | undefined} obj - Source object
+	 * @returns {{custom: object, name: ioBroker.StringOrTranslated, unit: string|null}|null} Relevant snapshot
+	 */
+	createSourceObjectSnapshot(obj) {
+		const common = obj && obj.common;
+		const custom = common && common.custom && common.custom[this.namespace];
+		if (!custom || typeof custom !== 'object') return null;
+		return JSON.parse(JSON.stringify({
+			custom,
+			name: common.name ?? null,
+			unit: common.unit ?? null,
+		}));
+	}
+
+	/**
+	 * @param {string} stateID - Source state ID
+	 * @param {ioBroker.Object | null | undefined} obj - Source object
+	 * @returns {{custom: object, name: ioBroker.StringOrTranslated, unit: string|null}|null} Stored snapshot
+	 */
+	rememberSourceObjectSnapshot(stateID, obj) {
+		const snapshot = this.createSourceObjectSnapshot(obj);
+		if (snapshot) this.sourceObjectSnapshots.set(stateID, snapshot);
+		else this.sourceObjectSnapshots.delete(stateID);
+		return snapshot;
+	}
+
+	/**
+	 * Keep the snapshot aligned when SourceAnalytix persists calculation memory in its custom settings.
+	 * @param {string} stateID - Source state ID
+	 * @param {object} updates - Persisted SourceAnalytix custom settings
+	 */
+	rememberSourceCustomUpdate(stateID, updates) {
+		const snapshot = this.sourceObjectSnapshots.get(stateID);
+		if (!snapshot) return;
+		this.sourceObjectSnapshots.set(stateID, JSON.parse(JSON.stringify({
+			...snapshot,
+			custom: {...snapshot.custom, ...updates},
+		})));
+	}
+
+	/**
 	 * Is called if an object changes to ensure (de-) activation of calculation or update configuration settings
 	 * @param {string} id - ID of the changed object
 	 * @param {ioBroker.Object | null | undefined} obj - Changed object, or null when deleted
 	 */
 	async onObjectChange(id, obj) {
-	    //ToDo : Verify with test-results if debounce on object change must be implemented
 		const customConfigBackfill = this.customConfigBackfills.get(id);
 		if (customConfigBackfill) {
 			this.customConfigBackfills.delete(id);
 			const changedCustomData = obj && obj.common && obj.common.custom && obj.common.custom[this.namespace];
 			if (isDeepStrictEqual(changedCustomData, customConfigBackfill)) {
+				this.rememberSourceObjectSnapshot(id, obj);
 				this.log.debug(`Ignored SourceAnalytix custom configuration backfill for ${id}`);
 				return;
 			}
@@ -2155,6 +2249,15 @@ class Sourceanalytix extends utils.Adapter {
 		if (calcBlock) return; // cancel operation if calculation block is activate
 		try {
 			const stateID = id;
+			const previousSnapshot = this.sourceObjectSnapshots.get(stateID);
+			const sourceObjectSnapshot = this.createSourceObjectSnapshot(obj);
+			if (previousSnapshot && sourceObjectSnapshot
+				&& isDeepStrictEqual(sourceObjectSnapshot, previousSnapshot)) {
+				this.log.debug(`Ignored unchanged SourceAnalytix source object for ${stateID}`);
+				return;
+			}
+			if (sourceObjectSnapshot) this.sourceObjectSnapshots.set(stateID, sourceObjectSnapshot);
+			else if (previousSnapshot) this.sourceObjectSnapshots.delete(stateID);
 
 			// Check if object is activated for SourceAnalytix
 			if (obj && obj.common) {
@@ -2449,16 +2552,18 @@ class Sourceanalytix extends utils.Adapter {
 
 	/**
 	 * @param {Date} [date] - Date to represent
-	 * @returns {{date: string, day: string, week: string, month: string, quarter: number, year: number}} Calendar identifiers
+	 * @returns {{date: string, day: string, week: string, weekYear: number, month: string, quarter: number, year: number}} Calendar identifiers
 	 */
 	getPeriodSnapshot(date = new Date()) {
 		const year = date.getFullYear();
 		const monthNumber = date.getMonth() + 1;
 		const dayNumber = date.getDate();
+		const isoWeek = calculation.getIsoWeek(date);
 		return {
 			date: `${year}-${monthNumber.toString().padStart(2, '0')}-${dayNumber.toString().padStart(2, '0')}`,
 			day: weekdays[date.getDay()],
-			week: this.getWeekNumber(date),
+			week: isoWeek.week,
+			weekYear: isoWeek.weekYear,
 			month: months[date.getMonth()],
 			quarter: Math.floor((date.getMonth() + 3) / 3),
 			year,
@@ -2478,7 +2583,7 @@ class Sourceanalytix extends utils.Adapter {
 	 */
 	async ensurePeriodMemoryState(stateID) {
 		if (this.activeStates[stateID].periodMemoryStateReady) return;
-		await this.extendObjectAsync(this.getPeriodMemoryStateName(stateID), {
+		await this.extendObjectIfChanged(this.getPeriodMemoryStateName(stateID), {
 			type: 'state',
 			common: {
 				name: 'Last processed calendar periods',
@@ -2562,7 +2667,9 @@ class Sourceanalytix extends utils.Adapter {
 		this.log.info(`Processing calendar rollover for ${stateID}: ${JSON.stringify(changes)}`);
 		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
 		const previousPeriodTimestamp = calculation.getPreviousPeriodTimestamp(date);
+		await this.rememberReadingGap(stateID, changes, previousPeriods, Number(reading), previousPeriodTimestamp);
 		if (changes.year) await this.initializeYearStatisticsStates(stateID);
+		else if (changes.week) await this.ensureWeekArchiveState(stateID);
 		await this.copyPreviousPeriodStates(stateDetails, changes, previousPeriodTimestamp);
 		await this.resetCurrentWeekdayStates(stateDetails, changes.week, previousPeriodTimestamp);
 		await this.resetCurrentYearCollectionStates(stateDetails, changes.year);
@@ -2575,7 +2682,9 @@ class Sourceanalytix extends utils.Adapter {
 			start_week: changes.week ? reading : stateValues.start_week,
 			start_year: changes.year ? reading : stateValues.start_year,
 		};
-		if (stateDetails.stateUnit === 'W') {
+		// A power interval closed at the boundary (closePowerIntervals) continues into the new
+		// period; any older interval cannot be assigned and starts over with the next reading.
+		if (stateDetails.stateUnit === 'W' && !(Number(stateValues.previousReadingWattTs) >= boundaryTimestamp - 1)) {
 			newCalcValues.previousReadingWatt = null;
 			newCalcValues.previousReadingWattTs = null;
 		}
@@ -2585,6 +2694,8 @@ class Sourceanalytix extends utils.Adapter {
 			await this.ensureDynamicCostMemory(stateID, Number(reading), boundaryTimestamp);
 		}
 		await this.resetDynamicCostMemory(stateID, Number(reading), previousPeriods, boundaryTimestamp);
+		// Remember before writing: the resulting objectChange may arrive before the write resolves
+		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.extendForeignObject(stateID, {
 			common: {
 				custom: {
@@ -2596,6 +2707,152 @@ class Sourceanalytix extends utils.Adapter {
 		await this.persistPeriodMemory(stateID, currentPeriods);
 		await this.refreshStatisticsJson(stateID);
 		return true;
+	}
+
+	/**
+	 * Remember the last reading before a day rollover of a cumulative source, so the first
+	 * reading after it can be split between the ending day and the new one (#1260).
+	 * A second rollover without a reading in between drops the memory: the previous-day
+	 * states then describe another day and the gap is booked to the new period as before.
+	 * @param {string} stateID - Source state ID
+	 * @param {{day: boolean, week: boolean, month: boolean, quarter: boolean, year: boolean}} changes - Changed periods
+	 * @param {object} previousPeriods - Calendar identifiers of the ending period
+	 * @param {number} lastTotal - Cumulative value at the rollover
+	 * @param {number} previousPeriodTimestamp - Timestamp the ending period is stamped with
+	 */
+	async rememberReadingGap(stateID, changes, previousPeriods, lastTotal, previousPeriodTimestamp) {
+		const activeState = this.activeStates[stateID];
+		if (!activeState || !activeState.stateDetails || activeState.stateDetails.stateUnit === 'W') return;
+		if (activeState.readingGap || !changes.day) {
+			activeState.readingGap = null;
+			return;
+		}
+		const dateMatch = typeof previousPeriods.date === 'string' && /^(\d{4})-(\d{2})-(\d{2})$/.exec(previousPeriods.date);
+		if (!dateMatch || !Number.isFinite(lastTotal)) return;
+		const oldDayStart = new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3])).getTime();
+		const oldDayEnd = new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]) + 1).getTime();
+
+		let lastTs = Number(activeState.lastReadingTs);
+		if (!Number.isFinite(lastTs)) {
+			// After a restart the last change of cumulativeReading is the best known reading time
+			const lastState = await this.getStateAsync(`${activeState.stateDetails.deviceName}.cumulativeReading`);
+			lastTs = lastState ? Number(lastState.ts) : NaN;
+		}
+		if (!Number.isFinite(lastTs) || lastTs >= oldDayEnd) return;
+
+		activeState.readingGap = {
+			changes: {...changes},
+			oldPeriods: {...this.getPeriodSnapshot(new Date(oldDayEnd - 1))},
+			oldDayStart,
+			oldDayEnd,
+			lastTs,
+			lastTotal,
+			previousPeriodTimestamp,
+		};
+	}
+
+	/**
+	 * Book the share of a reading gap that belongs to the ending day to that day (#1260):
+	 * add it to the previous-period values and archives of all periods that ended at the
+	 * rollover and move the start values of the new periods by the same amount.
+	 * Meter readings keep the last measured value.
+	 * @param {string} stateID - Source state ID
+	 * @param {number} reading - First cumulative reading after the rollover
+	 * @param {number} timestamp - Timestamp of that reading
+	 */
+	async splitReadingGap(stateID, reading, timestamp) {
+		const activeState = this.activeStates[stateID];
+		const gap = activeState.readingGap;
+		activeState.readingGap = null;
+		if (!gap) return;
+		const oldPart = await this.roundDigits(calculation.getGapShareOfEndingDay(gap, reading, timestamp), stateID);
+		if (!(typeof oldPart === 'number' && oldPart > 0)) return;
+
+		const stateDetails = activeState.stateDetails;
+		const calcValues = activeState.calcValues;
+		this.log.info(`Reading gap of ${stateID} from ${new Date(gap.lastTs).toISOString()} to ${new Date(timestamp).toISOString()}: booking ${oldPart} of ${reading - gap.lastTotal} to ${gap.oldPeriods.date}`);
+
+		// The new periods only count what was consumed after the boundary
+		const startMemory = {};
+		for (const period of ['day', 'week', 'month', 'quarter', 'year']) {
+			if (!gap.changes[period]) continue;
+			const field = `start_${period}`;
+			startMemory[field] = this.getNumberOrDefault(calcValues[field], gap.lastTotal) + oldPart;
+		}
+		Object.assign(calcValues, startMemory);
+		this.rememberSourceCustomUpdate(stateID, startMemory);
+		await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
+
+		if (stateDetails.consumption) {
+			await this.addToEndedPeriodStates(stateID, stateDetails.headCategory, gap, oldPart, value => this.roundDigits(value, stateID));
+		}
+		if (stateDetails.costs) {
+			const price = await this.getDynamicPriceForTimestamp(stateDetails.stateType, gap.oldDayEnd - 1, activeState.prices.unitPrice);
+			const oldCost = oldPart * (price === null ? 0 : price);
+			if (this.usesHistoricalCostCalculation(stateID) && activeState.dynamicCosts) {
+				const lastReading = this.parsePriceValue(activeState.dynamicCosts.lastReading);
+				if (lastReading !== null) {
+					activeState.dynamicCosts.lastReading = lastReading + oldPart;
+					await this.persistDynamicCostMemory(stateID, activeState.dynamicCosts);
+				}
+			}
+			if (oldCost !== 0) {
+				await this.addToEndedPeriodStates(stateID, stateDetails.financialCategory, gap, oldCost, value => this.roundCosts(value, stateID));
+			}
+		}
+		await this.refreshStatisticsJson(stateID);
+	}
+
+	/**
+	 * State IDs that hold values of the periods which ended at a rollover.
+	 * @param {object} stateDetails - Active state details
+	 * @param {string} root - consumed, delivered, costs or earnings
+	 * @param {{changes: object, oldPeriods: {day: string, week: string, weekYear: number, month: string, quarter: number, year: number}}} gap - Reading gap memory
+	 * @returns {string[]} Local state IDs
+	 */
+	getEndedPeriodStateIds(stateDetails, root, gap) {
+		const {changes, oldPeriods} = gap;
+		const device = stateDetails.deviceName;
+		const current = `${device}.currentYear.${root}`;
+		const ids = [];
+		const previousStates = {day: '01_previousDay', week: '02_previousWeek', month: '03_previousMonth', quarter: '04_previousQuarter', year: '05_previousYear'};
+		if (this.config.currentYearPrevious) {
+			for (const [period, state] of Object.entries(previousStates)) {
+				if (changes[period]) ids.push(`${current}.${state}`);
+			}
+		}
+		if (this.config.currentYearDays) {
+			if (!changes.week) ids.push(`${current}.currentWeek.${oldPeriods.day}`);
+			else if (this.config.currentYearPrevious) ids.push(`${current}.previousWeek.${oldPeriods.day}`);
+		}
+		if (!changes.year) {
+			if (changes.week && this.config.currentYearWeek && oldPeriods.weekYear === oldPeriods.year) ids.push(`${current}.weeks.${oldPeriods.week}`);
+			if (changes.month && this.config.currentYearMonth) ids.push(`${current}.months.${oldPeriods.month}`);
+			if (changes.quarter && this.config.currentYearQuarter) ids.push(`${current}.quarters.Q${oldPeriods.quarter}`);
+		}
+		if (changes.week && this.config.store_weeks) ids.push(`${device}.${oldPeriods.weekYear}.${root}.weeks.${oldPeriods.week}`);
+		if (changes.month && this.config.store_months) ids.push(`${device}.${oldPeriods.year}.${root}.months.${oldPeriods.month}`);
+		if (changes.quarter && this.config.store_quarters) ids.push(`${device}.${oldPeriods.year}.${root}.quarters.Q${oldPeriods.quarter}`);
+		if (changes.year) ids.push(`${device}.${oldPeriods.year}.${root}Cumulative`);
+		return ids;
+	}
+
+	/**
+	 * Add an amount to all existing states of the periods which ended at a rollover.
+	 * @param {string} stateID - Source state ID
+	 * @param {string} root - consumed, delivered, costs or earnings
+	 * @param {object} gap - Reading gap memory
+	 * @param {number} amount - Amount to add
+	 * @param {(value: number) => Promise<unknown>} round - Rounding for the category
+	 */
+	async addToEndedPeriodStates(stateID, root, gap, amount, round) {
+		const stateDetails = this.activeStates[stateID].stateDetails;
+		for (const id of this.getEndedPeriodStateIds(stateDetails, root, gap)) {
+			const state = await this.getStateAsync(id);
+			const value = state ? this.parsePriceValue(state.val) : null;
+			if (value === null) continue;
+			await this.setStateAsync(id, {val: Number(await round(value + amount)), ack: true, ts: gap.previousPeriodTimestamp});
+		}
 	}
 
 	/**
@@ -2695,7 +2952,9 @@ class Sourceanalytix extends utils.Adapter {
 		let recovered = 0;
 		try {
 			const date = new Date();
+			await this.closePowerIntervals(date);
 			await this.refreshDates();
+			await this.refreshScheduledPrices(date.getTime());
 			for (const stateID in this.activeStates) {
 				try {
 					if (await this.processPeriodRollover(stateID, date)) recovered = recovered + 1;
@@ -2717,6 +2976,72 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[runPeriodRollovers] No rollover needed, triggered by ${trigger}`);
 		}
 		return recovered;
+	}
+
+	/**
+	 * Before a day rollover, book the energy of the running interval of every power source (W)
+	 * to the ending day: the last power value is integrated up to the boundary and calculated
+	 * with the old period, so nothing is lost at midnight (#1254). The new period continues
+	 * with the same power value from the boundary.
+	 * Only intervals that started on the ending day are closed; longer gaps are not extrapolated.
+	 * @param {Date} date - Current local date
+	 */
+	async closePowerIntervals(date) {
+		const boundaryTimestamp = calculation.getPeriodBoundaryTimestamp(date);
+		const closingTimestamp = boundaryTimestamp - 1;
+		const previousDayStart = calculation.getPeriodBoundaryTimestamp(new Date(closingTimestamp));
+		for (const stateID in this.activeStates) {
+			try {
+				const activeState = this.activeStates[stateID];
+				if (!activeState || !activeState.calcValues || !activeState.stateDetails) continue;
+				if (activeState.stateDetails.stateUnit !== 'W') continue;
+				const calcValues = activeState.calcValues;
+				if (calcValues.previousReadingWatt == null || calcValues.previousReadingWattTs == null) continue;
+				const previousPower = Number(calcValues.previousReadingWatt);
+				const previousTimestamp = Number(calcValues.previousReadingWattTs);
+				if (!Number.isFinite(previousPower) || !Number.isFinite(previousTimestamp)) continue;
+				if (previousTimestamp >= closingTimestamp || previousTimestamp < previousDayStart) continue;
+
+				const previousPeriods = await this.loadPeriodMemory(stateID);
+				if (!previousPeriods) continue;
+				const changes = calculation.getPeriodChanges(previousPeriods, this.getPeriodSnapshot(date));
+				// Only close when a day rollover follows and the in-memory dates still describe the ending day
+				if (!changes.day || actualDate.date !== previousPeriods.date) continue;
+
+				this.log.debug(`[closePowerIntervals] Booking ${previousPower} W from ${new Date(previousTimestamp).toISOString()} up to the period boundary for ${stateID}`);
+				await this.calculationHandler(stateID, {
+					val: previousPower,
+					ack: true,
+					ts: closingTimestamp,
+					lc: closingTimestamp,
+					from: `system.adapter.${this.namespace}`,
+				}, new Date(closingTimestamp));
+			} catch (error) {
+				this.errorHandling(`[closePowerIntervals] ${stateID}`, error);
+			}
+		}
+	}
+
+	/**
+	 * Switch the current price of static price definitions when a price entry with a
+	 * "valid from" date in the past has become active since the last check.
+	 * Costs already use the price history by timestamp; this keeps currentPrice in line.
+	 * @param {number} timestamp - Current timestamp
+	 */
+	async refreshScheduledPrices(timestamp) {
+		for (const priceDefinition in this.unitPriceDef.pricesConfig) {
+			try {
+				const priceConfig = this.unitPriceDef.pricesConfig[priceDefinition];
+				if (!priceConfig || priceConfig.priceSource !== 'static' || priceConfig.basePrice === null) continue;
+				const unitPrice = await this.getDynamicPriceForTimestamp(priceDefinition, timestamp, priceConfig.basePrice);
+				if (unitPrice === null || unitPrice === priceConfig.uPpU) continue;
+				const previousPrice = priceConfig.uPpU;
+				await this.applyCurrentPrice(priceDefinition, unitPrice);
+				this.log.info(`Unit price for ${priceDefinition} changed from ${previousPrice} to ${unitPrice} (valid from date reached)`);
+			} catch (error) {
+				this.errorHandling(`[refreshScheduledPrices] ${priceDefinition}`, error);
+			}
+		}
 	}
 
 	/**
@@ -2785,8 +3110,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {boolean} [deleteState] - Set to true will delete the state
 	 * @param {boolean} [isCurrent] - Store value in current Year
 	 * @param {string} [forceUnit] - Force unit to be set on state
+	 * @param {number} [yearRoot] - Year folder to use instead of the running calendar year
 	 */
-	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit) {
+	async doLocalStateCreate(stateID, stateRoot, name, atDeviceRoot, deleteState, isCurrent, forceUnit, yearRoot) {
 		this.log.debug(`[doLocalStateCreate] ${stateID} | root : ${stateRoot} | name : ${name}) | atDeviceRoot ${atDeviceRoot} | isCurrent : ${isCurrent}`);
 
 		// Check if stateDetails are preset in memory, other wise abort
@@ -2795,7 +3121,7 @@ class Sourceanalytix extends utils.Adapter {
 
 		try {
 			const stateDetails = this.activeStates[stateID].stateDetails;
-			const dateRoot = isCurrent ? `currentYear` : actualDate.year;
+			const dateRoot = isCurrent ? `currentYear` : (yearRoot === undefined ? actualDate.year : yearRoot);
 			let stateName = null;
 
 			// Common object content
@@ -2904,6 +3230,21 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Extend an own object only when the extension changes its content.
+	 * Every object write is broadcast to all object subscribers (js-controller, admin, javascript),
+	 * so re-initialising a source must not rewrite an unchanged output tree (#1233).
+	 * @param {string} id - Object ID relative to this adapter instance
+	 * @param {object} extension - Partial object as passed to extendObjectAsync
+	 * @returns {Promise<boolean>} Whether the object was written
+	 */
+	async extendObjectIfChanged(id, extension) {
+		const current = await this.getObjectAsync(id);
+		if (current && containsExtension(current, extension)) return false;
+		await this.extendObjectAsync(id, extension);
+		return true;
+	}
+
+	/**
 	 * create/extend function for objects
 	 * @param {string} stateName - RAW state ID of monitored state
 	 * @param {object} commonData - common data content
@@ -2911,7 +3252,7 @@ class Sourceanalytix extends utils.Adapter {
 	async localSetObject(stateName, commonData) {
 		this.validStates[stateName] = commonData;
 		// Ensure name and unit changes are propagated
-		await this.extendObjectAsync(stateName, {
+		await this.extendObjectIfChanged(stateName, {
 			type: 'state',
 			common: {
 				name: commonData.name,
@@ -2944,8 +3285,9 @@ class Sourceanalytix extends utils.Adapter {
 	 *Logic to handle all calculations
 	 *  @param {string} [stateID] - state id of source value
 	 *  @param {object} [stateVal] - object with current value (val) and timestamp (ts)
+	 *  @param {Date} [calculationDate] - Date of the period to calculate in, default now
 	 */
-	async calculationHandler(stateID, stateVal) {
+	async calculationHandler(stateID, stateVal, calculationDate) {
 		let activeState;
 		try {
 			this.log.debug(`[calculationHandler] Calculation for ${stateID} with values : ${JSON.stringify(stateVal)}`);
@@ -2976,7 +3318,7 @@ class Sourceanalytix extends utils.Adapter {
 			const statePrices = activeState.prices;
 			const currentCath = this.unitPriceDef.unitConfig[stateDetails.stateUnit].category;
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
-			const date = new Date();
+			const date = calculationDate instanceof Date ? calculationDate : new Date();
 			const readingTimestamp = this.getStateChangeTimestamp(stateVal);
 
 			this.log.debug(`[calculationHandler] calcValues : ${JSON.stringify(calcValues)}`);
@@ -2995,8 +3337,14 @@ class Sourceanalytix extends utils.Adapter {
 				reading = await this.wattToWattHour(stateID, stateVal);
 				if (reading === null || reading === undefined) return;
 			} else {
+				// Accept numeric strings like "12,5" or ".14" from the source state
+				const sourceValue = this.parsePriceValue(stateVal.val);
+				if (sourceValue === null) {
+					this.log.warn(`Value ${JSON.stringify(stateVal.val)} of ${stateID} is not a number, reading ignored`);
+					return;
+				}
 				reading = calculation.convertUnitValue(
-					stateVal.val,
+					sourceValue,
 					this.unitPriceDef.unitConfig[stateDetails.stateUnit],
 					this.unitPriceDef.unitConfig[stateDetails.useUnit],
 				);
@@ -3029,50 +3377,89 @@ class Sourceanalytix extends utils.Adapter {
 			this.log.debug(`[calculationHandler] reading value ${reading} after exponent multiplier : ${JSON.stringify(targetExponent)}`);
 
 			if (currentCath !== 'Watt') {
+				if (activeState.realignDeviceOffset) {
+					activeState.realignDeviceOffset = false;
+					const knownTotal = this.getNumberOrDefault(calcValues.cumulativeValue, 0);
+					const realignedOffset = knownTotal - reading;
+					this.log.warn(`Realigned valueAtDeviceReset of ${stateID} from ${calcValues.valueAtDeviceReset} to ${realignedOffset}: device value ${reading}, total continues from ${knownTotal}`);
+					calcValues.valueAtDeviceReset = realignedOffset;
+					activeState.pendingDeviceReset = null;
+					const realignMemory = {valueAtDeviceReset: realignedOffset};
+					this.rememberSourceCustomUpdate(stateID, realignMemory);
+					await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: realignMemory}}});
+				}
 				if (calcValues.valueAtDeviceReset == null) {
 					this.log.info(`Initiating ${stateID} for the first time in SourceAnalytix`);
 					calcValues.valueAtDeviceReset = 0;
-					calcValues.valueAtDeviceInit = reading;
 				} else {
-					// Reset candidates are intentionally transient; losing one only postpones confirmation until another reading.
-					const resolvedReading = calculation.resolveCumulativeReading(
-						reading,
-						this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0),
-						this.getNumberOrDefault(calcValues.cumulativeValue, reading),
-						stateDetails.deviceResetLogicEnabled,
-						this.getNumberOrDefault(stateDetails.threshold, 0),
-						activeState.pendingDeviceReset,
-					);
-					if (resolvedReading.type === 'invalid') {
-						this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
-						return;
+					let rolledBack = false;
+					if (activeState.confirmedDeviceReset && stateDetails.deviceResetLogicEnabled) {
+						const rollback = calculation.checkConfirmedResetRollback(
+							reading,
+							activeState.confirmedDeviceReset,
+							this.getNumberOrDefault(stateDetails.threshold, 0),
+						);
+						activeState.confirmedDeviceReset = rollback.confirmedReset;
+						if (rollback.action === 'rollback' && rollback.resetOffset !== null) {
+							const previousTotal = this.getNumberOrDefault(calcValues.cumulativeValue, reading + rollback.resetOffset);
+							this.log.warn(`Rolled back the device reset of ${stateID}: raw reading ${reading} returned to the level before the reset, restoring offset ${rollback.resetOffset} instead of ${calcValues.valueAtDeviceReset}`);
+							calcValues.valueAtDeviceReset = rollback.resetOffset;
+							activeState.pendingDeviceReset = null;
+							const rollbackMemory = {valueAtDeviceReset: rollback.resetOffset};
+							this.rememberSourceCustomUpdate(stateID, rollbackMemory);
+							await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: rollbackMemory}}});
+							// Never lower the total: consumption counted since the reset stays counted
+							reading = Math.max(reading + rollback.resetOffset, previousTotal);
+							rolledBack = true;
+						}
 					}
-					const rejectedReset = activeState.pendingDeviceReset;
-					activeState.pendingDeviceReset = resolvedReading.pendingReset;
-					if (resolvedReading.type === 'resetPending') {
-						this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
-						return;
+					if (!rolledBack) {
+						// Reset candidates are intentionally transient; losing one only postpones confirmation until another reading.
+						const resolvedReading = calculation.resolveCumulativeReading(
+							reading,
+							this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0),
+							this.getNumberOrDefault(calcValues.cumulativeValue, reading),
+							stateDetails.deviceResetLogicEnabled,
+							this.getNumberOrDefault(stateDetails.threshold, 0),
+							activeState.pendingDeviceReset,
+						);
+						if (resolvedReading.type === 'invalid') {
+							this.log.warn(`[calculationHandler] Ignoring non-finite cumulative reading for ${stateID}`);
+							return;
+						}
+						const rejectedReset = activeState.pendingDeviceReset;
+						activeState.pendingDeviceReset = resolvedReading.pendingReset;
+						if (resolvedReading.type === 'resetPending') {
+							this.log.info(`[calculationHandler] Waiting for another reading before confirming a possible device reset for ${stateID}`);
+							return;
+						}
+						if (resolvedReading.type === 'resetRejected') {
+							// A genuine reset whose next reading already exceeds half the previous value is indistinguishable from a glitch
+							this.log.warn(`[calculationHandler] Rejected a possible device reset for ${stateID}: raw reading ${reading} is closer to the previous ${rejectedReset && rejectedReset.previousRawReading} than to the low reading ${rejectedReset && rejectedReset.rawReading}. If the device was really reset, consumption since the reset was not counted`);
+						}
+						if (resolvedReading.type === 'jitter') {
+							this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);
+							return;
+						}
+						if (resolvedReading.type === 'reset') {
+							const previousOffset = this.getNumberOrDefault(calcValues.valueAtDeviceReset, 0);
+							this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
+							calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
+							const resetMemory = {valueAtDeviceReset: resolvedReading.resetOffset};
+							this.rememberSourceCustomUpdate(stateID, resetMemory);
+							await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: resetMemory}}});
+							// Remember the reset so it can be rolled back if the previous level returns (#1258)
+							activeState.confirmedDeviceReset = rejectedReset ? {
+								rawReading: rejectedReset.rawReading,
+								previousRawReading: rejectedReset.previousRawReading,
+								previousOffset: previousOffset,
+								lastRawReading: reading,
+							} : null;
+						} else if (resolvedReading.type === 'decrease') {
+							this.log.debug(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
+						}
+						reading = resolvedReading.reading;
 					}
-					if (resolvedReading.type === 'resetRejected') {
-						// A genuine reset whose next reading already exceeds half the previous value is indistinguishable from a glitch
-						this.log.warn(`[calculationHandler] Rejected a possible device reset for ${stateID}: raw reading ${reading} is closer to the previous ${rejectedReset && rejectedReset.previousRawReading} than to the low reading ${rejectedReset && rejectedReset.rawReading}. If the device was really reset, consumption since the reset was not counted`);
-					}
-					if (resolvedReading.type === 'jitter') {
-						this.log.debug(`[calculationHandler] Ignoring cumulative reading jitter of ${resolvedReading.decrease} for ${stateID}`);
-						return;
-					}
-					if (resolvedReading.type === 'reset') {
-						this.log.warn(`Device reset detected for ${stateID}; preserving cumulative value ${resolvedReading.reading} with new offset ${resolvedReading.resetOffset}`);
-						calcValues.valueAtDeviceReset = resolvedReading.resetOffset;
-						calcValues.valueAtDeviceInit = reading;
-						await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: {
-							valueAtDeviceReset: resolvedReading.resetOffset,
-							valueAtDeviceInit: reading,
-						}}}});
-					} else if (resolvedReading.type === 'decrease') {
-						this.log.info(`Cumulative reading for ${stateID} decreased while reset detection is disabled`);
-					}
-					reading = resolvedReading.reading;
 				}
 			}
 
@@ -3080,18 +3467,18 @@ class Sourceanalytix extends utils.Adapter {
 				const initializedStarts = calculation.initializePeriodStartValues(calcValues, reading, true);
 				Object.assign(calcValues, initializedStarts);
 				activeState.firstActivation = false;
-				await this.extendForeignObject(stateID, {
-					common: {
-						custom: {
-							[this.namespace]: {
-								...initializedStarts,
-								valueAtDeviceReset: calcValues.valueAtDeviceReset,
-								valueAtDeviceInit: calcValues.valueAtDeviceInit,
-							},
-						},
-					},
-				});
+				const startMemory = {
+					...initializedStarts,
+					valueAtDeviceReset: calcValues.valueAtDeviceReset,
+				};
+				this.rememberSourceCustomUpdate(stateID, startMemory);
+				await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
+			}
+
+			if (currentCath !== 'Watt') {
+				if (activeState.readingGap) await this.splitReadingGap(stateID, reading, readingTimestamp);
+				activeState.lastReadingTs = readingTimestamp;
 			}
 
 			this.log.debug(`[calculationHandler] ${stateID} set cumulated value ${reading}`);
@@ -3141,8 +3528,8 @@ class Sourceanalytix extends utils.Adapter {
 				stateName = `${this.namespace}.${stateDetails.deviceName}.currentYear.meterReadings`;
 				const readingRounded = await this.roundDigits(reading, stateID);
 
-				// Store meter reading to related period
-				if (readingRounded) {
+				// Store meter reading to related period (0 is a valid reading)
+				if (typeof readingRounded === 'number' && Number.isFinite(readingRounded)) {
 					if (this.config.currentYearDays) {
 						await this.setStateChangedAsync(`${stateName}.currentWeek.${weekdays[date.getDay()]}`, {
 							val: readingRounded,
@@ -3150,7 +3537,7 @@ class Sourceanalytix extends utils.Adapter {
 						});
 						this.recordStatisticsValue(stateID, `currentYear.meterReadings.currentWeek.${weekdays[date.getDay()]}`, readingRounded);
 					}
-					if (this.config.currentYearWeek) {
+					if (this.config.currentYearWeek && this.isWeekInCurrentYear()) {
 						await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
 							val: readingRounded,
 							ack: true
@@ -3172,7 +3559,7 @@ class Sourceanalytix extends utils.Adapter {
 						this.recordStatisticsValue(stateID, `currentYear.meterReadings.quarters.Q${actualDate.quarter}`, readingRounded);
 					}
 					stateName = `${`${this.namespace}.${stateDetails.deviceName}`}.${actualDate.year}.meterReadings`;
-					if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${stateName}.weeks.${actualDate.week}`, {
+					if (storeSettings.storeWeeks) await this.setStateChangedAsync(`${this.getWeekArchiveRoot(stateDetails.deviceName, 'meterReadings')}.weeks.${actualDate.week}`, {
 						val: readingRounded,
 						ack: true
 					});
@@ -3190,17 +3577,24 @@ class Sourceanalytix extends utils.Adapter {
 			}
 
 			// Handle calculations
+			const startValues = {
+				day: this.getNumberOrDefault(calcValues.start_day, reading),
+				week: this.getNumberOrDefault(calcValues.start_week, reading),
+				month: this.getNumberOrDefault(calcValues.start_month, reading),
+				quarter: this.getNumberOrDefault(calcValues.start_quarter, reading),
+				year: this.getNumberOrDefault(calcValues.start_year, reading),
+			};
 			const calculations = {
-				consumedDay: ((reading - calcValues.start_day) - reading_start),
-				consumedWeek: ((reading - calcValues.start_week) - reading_start),
-				consumedMonth: ((reading - calcValues.start_month) - reading_start),
-				consumedQuarter: ((reading - calcValues.start_quarter) - reading_start),
-				consumedYear: ((reading - calcValues.start_year) - reading_start),
-				priceDay: unitPrice * ((reading - calcValues.start_day) - reading_start),
-				priceWeek: unitPrice * ((reading - calcValues.start_week) - reading_start),
-				priceMonth: unitPrice * ((reading - calcValues.start_month) - reading_start),
-				priceQuarter: unitPrice * ((reading - calcValues.start_quarter) - reading_start),
-				priceYear: unitPrice * ((reading - calcValues.start_year) - reading_start),
+				consumedDay: ((reading - startValues.day) - reading_start),
+				consumedWeek: ((reading - startValues.week) - reading_start),
+				consumedMonth: ((reading - startValues.month) - reading_start),
+				consumedQuarter: ((reading - startValues.quarter) - reading_start),
+				consumedYear: ((reading - startValues.year) - reading_start),
+				priceDay: unitPrice * ((reading - startValues.day) - reading_start),
+				priceWeek: unitPrice * ((reading - startValues.week) - reading_start),
+				priceMonth: unitPrice * ((reading - startValues.month) - reading_start),
+				priceQuarter: unitPrice * ((reading - startValues.quarter) - reading_start),
+				priceYear: unitPrice * ((reading - startValues.year) - reading_start),
 			};
 
 			this.log.debug(`[calculationHandler] Result of calculation: ${JSON.stringify(calculations)}`);
@@ -3442,6 +3836,7 @@ class Sourceanalytix extends utils.Adapter {
 			date: actualDate.date,
 			day: actualDate.day,
 			week: actualDate.week,
+			weekYear: actualDate.weekYear,
 			month: actualDate.month,
 			quarter: actualDate.quarter,
 			year: actualDate.year
@@ -3454,25 +3849,33 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
-	 * define proper week-number, add 0 in case of < 10
-	 * @param {object} d - Current date (like initiated with new Date())
+	 * ISO week number with leading zero (01–53).
+	 * @param {Date} d - Current date (like initiated with new Date())
+	 * @returns {string} Two-digit ISO week number
 	 */
 	getWeekNumber(d) {
-		// Copy date so don't modify original
-		d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-		// Set to nearest Thursday: current date + 4 - current day number
-		// Make Sunday's day number 7
-		d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-		// Get first day of year
-		const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-		// Calculate full weeks to nearest Thursday
-		let weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7).toString();
+		return calculation.getIsoWeek(d).week;
+	}
 
-		if (weekNo.length === 1) {
-			weekNo = '0' + weekNo;
-		}
-		// Return week number
-		return weekNo;
+	/**
+	 * Whether the running ISO week belongs to the running calendar year. At the turn of the
+	 * year (29–31 December or 1–3 January) it can belong to the neighbouring year; the
+	 * currentYear folder then does not show it, so week 01 of January is not overwritten.
+	 * @returns {boolean} True if week and calendar year match
+	 */
+	isWeekInCurrentYear() {
+		return actualDate.weekYear === undefined || actualDate.weekYear === actualDate.year;
+	}
+
+	/**
+	 * Folder of the weekly archive for the running week, in the ISO week-numbering year.
+	 * @param {string} deviceName - Output device of the source
+	 * @param {string} category - consumed, delivered, costs, earnings or meterReadings
+	 * @returns {string} Full state ID prefix without ".weeks.<week>"
+	 */
+	getWeekArchiveRoot(deviceName, category) {
+		const weekYear = actualDate.weekYear === undefined ? actualDate.year : actualDate.weekYear;
+		return `${this.namespace}.${deviceName}.${weekYear}.${category}`;
 	}
 
 	/**
@@ -3483,17 +3886,19 @@ class Sourceanalytix extends utils.Adapter {
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		const errorStack = error instanceof Error ? error.stack : undefined;
 		const msg = `[${codePart}] error: ${errorMessage}, stack: ${errorStack || 'not available'}`;
-		if (!disableSentry) {
+		// Always make the error visible in the ioBroker log, Sentry is only an additional channel.
+		this.log.error(msg);
+		if (disableSentry) return;
+		try {
 			if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
 				const sentryInstance = this.getPluginInstance('sentry');
 				if (sentryInstance) {
-					this.log.info(`[Error caught and sent to Sentry, thank you for collaborating!] error: ${msg}`);
 					sentryInstance.getSentryObject().captureException(msg);
+					this.log.info('Error sent to Sentry, thank you for collaborating!');
 				}
 			}
-		} else {
-			this.log.error(`Sentry disabled, error caught : ${msg}`);
-			console.error(`Sentry disabled, error caught : ${msg}`);
+		} catch (sentryError) {
+			this.log.debug(`[errorHandling] Could not send error to Sentry: ${sentryError instanceof Error ? sentryError.message : String(sentryError)}`);
 		}
 	}
 

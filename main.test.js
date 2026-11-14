@@ -7,9 +7,11 @@ const {
 	calculateBasicPriceTotals,
 	calculateHistoricalBasicPriceTotals,
 	calculateVariablePriceTotals,
+	checkConfirmedResetRollback,
 	classifyCumulativeReading,
 	convertUnitValue,
 	getCurrentYearPeriodStateDefinitions,
+	getIsoWeek,
 	getPeriodBoundaryTimestamp,
 	getPeriodChanges,
 	getPreviousPeriodTimestamp,
@@ -19,6 +21,7 @@ const {
 	normalizePeriodSnapshot,
 	resolveDecimals,
 	resolveCumulativeReading,
+	resolveUnit,
 	roundValue,
 } = require('./lib/calculation');
 const {
@@ -45,6 +48,26 @@ describe('unit conversion', () => {
 		assert.deepEqual(units.g, {exponent: 0, category: 'Kilogram'});
 		assert.deepEqual(units.km, {exponent: 3, category: 'Meter'});
 		assert.deepEqual(units.m, {exponent: 0, category: 'Meter'});
+	});
+
+	it('resolves common unit spellings to supported units', () => {
+		assert.equal(resolveUnit('m³', units), 'm³');
+		assert.equal(resolveUnit('m3', units), 'm³');
+		assert.equal(resolveUnit('m^3', units), 'm³');
+		assert.equal(resolveUnit(' kWh ', units), 'kWh');
+		assert.equal(resolveUnit('kwh', units), 'kWh');
+		assert.equal(resolveUnit('KWH', units), 'kWh');
+		assert.equal(resolveUnit('w', units), 'W');
+		assert.equal(resolveUnit('L', units), 'l');
+		assert.equal(resolveUnit('KG', units), 'kg');
+	});
+
+	it('does not resolve ambiguous or unknown units', () => {
+		assert.equal(resolveUnit('mwh', units), null);
+		assert.equal(resolveUnit('mw', units), null);
+		assert.equal(resolveUnit('°C', units), null);
+		assert.equal(resolveUnit('', units), null);
+		assert.equal(resolveUnit(undefined, units), null);
 	});
 
 	it('converts mass values between tonnes, kilograms and grams', () => {
@@ -814,5 +837,104 @@ describe('period and cumulative calculations', () => {
 				priceDay: 0, priceWeek: 0, priceMonth: 0, priceQuarter: 0, priceYear: 0,
 			});
 		});
+	});
+});
+
+describe('ISO week', () => {
+	it('places 29-31 December in week 01 of the next year when that week starts in December', () => {
+		assert.deepEqual(getIsoWeek(new Date(2025, 11, 28)), {week: '52', weekYear: 2025});
+		assert.deepEqual(getIsoWeek(new Date(2025, 11, 29)), {week: '01', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2025, 11, 31)), {week: '01', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2026, 0, 1)), {week: '01', weekYear: 2026});
+	});
+
+	it('places early January in week 53 of the previous year when that year has 53 weeks', () => {
+		assert.deepEqual(getIsoWeek(new Date(2026, 11, 31)), {week: '53', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2027, 0, 3)), {week: '53', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2027, 0, 4)), {week: '01', weekYear: 2027});
+	});
+
+	it('pads week numbers to two digits', () => {
+		assert.deepEqual(getIsoWeek(new Date(2026, 1, 2)), {week: '06', weekYear: 2026});
+		assert.deepEqual(getIsoWeek(new Date(2026, 5, 15)), {week: '25', weekYear: 2026});
+	});
+});
+
+describe('rollback of a confirmed device reset', () => {
+	/**
+	 * Feed raw readings through the same steps as calculationHandler.
+	 * @param {number[]} readings - Raw device readings
+	 * @param {number} threshold - Reset threshold
+	 * @returns {number[]} Cumulative totals after every reading
+	 */
+	function simulate(readings, threshold = 1) {
+		let offset = 0;
+		let total = null;
+		let pending = null;
+		let confirmed = null;
+		const totals = [];
+		for (const raw of readings) {
+			if (total === null) {
+				total = raw;
+				totals.push(total);
+				continue;
+			}
+			let rolledBack = false;
+			if (confirmed) {
+				const rollback = checkConfirmedResetRollback(raw, confirmed, threshold);
+				confirmed = rollback.confirmedReset;
+				if (rollback.action === 'rollback') {
+					offset = rollback.resetOffset ?? offset;
+					pending = null;
+					total = Math.max(raw + offset, total);
+					rolledBack = true;
+				}
+			}
+			if (!rolledBack) {
+				const previousPending = pending;
+				const resolved = resolveCumulativeReading(raw, offset, total, true, threshold, pending);
+				pending = resolved.pendingReset;
+				if (resolved.type === 'reset' && previousPending) {
+					confirmed = {
+						rawReading: previousPending.rawReading,
+						previousRawReading: previousPending.previousRawReading,
+						previousOffset: offset,
+						lastRawReading: raw,
+					};
+					offset = resolved.resetOffset;
+				}
+				if (resolved.type !== 'resetPending' && resolved.type !== 'jitter') total = resolved.reading;
+			}
+			totals.push(total);
+		}
+		return totals;
+	}
+
+	it('does not double the total when the previous level returns after two low readings', () => {
+		assert.deepEqual(simulate([1000, 0, 0, 1000]), [1000, 1000, 1000, 1000]);
+		assert.deepEqual(simulate([1000, 0, 0, 1000.5, 1001]), [1000, 1000, 1000, 1000.5, 1001]);
+	});
+
+	it('keeps a genuine reset that climbs from the low reading', () => {
+		assert.deepEqual(simulate([1000, 0, 0, 0.5, 1, 2]), [1000, 1000, 1000, 1000.5, 1001, 1002]);
+	});
+
+	it('clears the memory once a genuine reset has climbed half of the previous level', () => {
+		const confirmed = {rawReading: 0, previousRawReading: 1000, previousOffset: 0, lastRawReading: 400};
+		assert.equal(checkConfirmedResetRollback(500, confirmed, 1).action, 'clear');
+		const kept = checkConfirmedResetRollback(450, confirmed, 1);
+		assert.equal(kept.action, 'keep');
+		assert.ok(kept.confirmedReset);
+		assert.equal(kept.confirmedReset.lastRawReading, 450);
+	});
+
+	it('leaves a new drop to the regular reset detection', () => {
+		const confirmed = {rawReading: 0, previousRawReading: 1000, previousOffset: 0, lastRawReading: 10};
+		assert.equal(checkConfirmedResetRollback(2, confirmed, 1).action, 'clear');
+	});
+
+	it('restores the offset that was active before the reset', () => {
+		const confirmed = {rawReading: 0, previousRawReading: 1000, previousOffset: 250, lastRawReading: 0};
+		assert.deepEqual(checkConfirmedResetRollback(1000, confirmed, 1), {action: 'rollback', resetOffset: 250, confirmedReset: null});
 	});
 });
