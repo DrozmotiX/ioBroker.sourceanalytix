@@ -413,8 +413,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Price from adapter settings
 	 * @param {unknown} validFrom - Optional effective date
+	 * @param {boolean} [allowMove] - Move the history entry of an unchanged price to a new date; false when another price of the definition changed (#1298)
 	 */
-	async storeConfiguredPrice(priceDefinition, configuredPrice, validFrom) {
+	async storeConfiguredPrice(priceDefinition, configuredPrice, validFrom, allowMove = true) {
 		const stateName = this.getConfiguredPriceStateName(priceDefinition);
 		const validityStateName = this.getConfiguredPriceValidityStateName(priceDefinition);
 		await this.extendObjectAsync(stateName, {
@@ -457,7 +458,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.warnPriceChangedWithoutNewDate(priceDefinition, 'price', storedConfigPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp);
 			effectiveTimestamp = requestedValidityTimestamp === null ? Date.now() : requestedValidityTimestamp;
 			await this.storeDynamicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
-		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
+		} else if (allowMove && requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
 			const moved = dynamicPricing.moveConfiguredPriceHistoryEntry(
 				history,
 				configuredPrice,
@@ -473,6 +474,24 @@ class Sourceanalytix extends utils.Adapter {
 		}
 		await this.setStateChangedAsync(stateName, {val: configuredPrice, ack: true});
 		if (effectiveTimestamp !== null) await this.setStateChangedAsync(validityStateName, {val: effectiveTimestamp, ack: true});
+	}
+
+	/**
+	 * Whether the unit price or the basic price of a definition differs from the stored one.
+	 * @param {string} priceDefinition - Price definition category
+	 * @param {number | null} unitPrice - Configured static unit price, null for state-based prices
+	 * @param {number} basicPrice - Configured monthly basic price
+	 * @returns {Promise<boolean>} True when one of the prices changed
+	 */
+	async hasConfiguredPriceChanged(priceDefinition, unitPrice, basicPrice) {
+		const changed = async (stateName, price) => {
+			if (price === null) return false;
+			const state = await this.getStateAsync(stateName);
+			const stored = state ? this.parsePriceValue(state.val) : null;
+			return stored !== null && stored !== price;
+		};
+		return await changed(this.getConfiguredPriceStateName(priceDefinition), unitPrice)
+			|| await changed(this.getConfiguredBasicPriceStateName(priceDefinition), basicPrice);
 	}
 
 	/**
@@ -662,8 +681,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Monthly basic price from adapter settings
 	 * @param {unknown} validFrom - Optional effective date for the tariff
+	 * @param {boolean} [allowMove] - Move the history entry of an unchanged price to a new date; false when another price of the definition changed (#1298)
 	 */
-	async storeConfiguredBasicPrice(priceDefinition, configuredPrice, validFrom) {
+	async storeConfiguredBasicPrice(priceDefinition, configuredPrice, validFrom, allowMove = true) {
 		const stateName = this.getConfiguredBasicPriceStateName(priceDefinition);
 		const validityStateName = this.getConfiguredBasicPriceValidityStateName(priceDefinition);
 		await this.extendObjectAsync(stateName, {
@@ -710,7 +730,7 @@ class Sourceanalytix extends utils.Adapter {
 				: Date.now();
 			effectiveTimestamp = requestedValidityTimestamp === null ? defaultTimestamp : requestedValidityTimestamp;
 			await this.storeBasicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
-		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
+		} else if (allowMove && requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
 			const moved = dynamicPricing.moveConfiguredPriceHistoryEntry(
 				history,
 				configuredPrice,
@@ -1438,9 +1458,13 @@ class Sourceanalytix extends utils.Adapter {
 				let unitPrice = configuredUnitPrice;
 
 				await this.ensurePriceHistoryState(priceConfig.cat);
-				await this.storeConfiguredBasicPrice(priceConfig.cat, basicPrice, priceConfig.validFrom);
+				// Unit price and basic price share one "valid from": when one of them changes, the date
+				// belongs to that change and must not move the history entry of the other one (#1298)
+				const staticUnitPrice = priceSource === 'static' ? configuredUnitPrice : null;
+				const priceChanged = await this.hasConfiguredPriceChanged(priceConfig.cat, staticUnitPrice, basicPrice);
+				await this.storeConfiguredBasicPrice(priceConfig.cat, basicPrice, priceConfig.validFrom, !priceChanged);
 				if (priceSource === 'static' && configuredUnitPrice !== null) {
-					await this.storeConfiguredPrice(priceConfig.cat, configuredUnitPrice, priceConfig.validFrom);
+					await this.storeConfiguredPrice(priceConfig.cat, configuredUnitPrice, priceConfig.validFrom, !priceChanged);
 					unitPrice = await this.getDynamicPriceForTimestamp(priceConfig.cat, Date.now(), configuredUnitPrice);
 				} else if (priceSource !== 'static') {
 					if (priceState) {

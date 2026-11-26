@@ -50,3 +50,40 @@ describe('price changed without a new "valid from" (#1293)', () => {
 		assert.equal(await validate({cat: 'Strom', uPpU: 0.35, uPpM: 10, validFrom: ''}, {pricesDefinition: [{cat: 'Strom', uPpU: 0.3, uPpM: 10}]}), true);
 	});
 });
+
+describe('one "valid from" for unit and basic price (#1298)', () => {
+	function createPriceAdapter(states) {
+		const adapter = Object.create(Sourceanalytix.prototype);
+		adapter.log = {warn: () => {}, info: () => {}, debug: () => {}};
+		adapter.basicPriceHistories = {};
+		adapter.extendObjectAsync = async () => {};
+		adapter.getStateAsync = async id => states.has(id) ? {val: states.get(id)} : null;
+		adapter.setStateChangedAsync = async (id, state) => states.set(id, state.val);
+		adapter.loadBasicPriceHistory = async () => [{ts: day, price: 10}];
+		adapter.persistBasicPriceHistory = async () => {};
+		adapter.storeBasicPriceHistory = async () => {};
+		return adapter;
+	}
+
+	it('keeps the date of the unchanged basic price when only the unit price changes', async () => {
+		const states = new Map();
+		const adapter = createPriceAdapter(states);
+		states.set(adapter.getConfiguredPriceStateName('Strom'), 0.3);
+		states.set(adapter.getConfiguredBasicPriceStateName('Strom'), 10);
+		const validityState = adapter.getConfiguredBasicPriceValidityStateName('Strom');
+		states.set(validityState, day);
+
+		assert.equal(await adapter.hasConfiguredPriceChanged('Strom', 0.35, 10), true);
+		assert.equal(await adapter.hasConfiguredPriceChanged('Strom', 0.3, 10), false);
+		assert.equal(await adapter.hasConfiguredPriceChanged('Strom', null, 10), false);
+
+		await adapter.storeConfiguredBasicPrice('Strom', 10, '2026-07-01', false);
+		assert.equal(states.get(validityState), day);
+		assert.equal(adapter.basicPriceHistories.Strom, undefined);
+
+		// Only the date changed: the entry moves as before
+		await adapter.storeConfiguredBasicPrice('Strom', 10, '2026-07-01', true);
+		assert.notEqual(states.get(validityState), day);
+		assert.equal(adapter.basicPriceHistories.Strom.length, 1);
+	});
+});
