@@ -29,6 +29,9 @@ import { Bolt, CheckCircle, Close, Search } from '@mui/icons-material';
 import { DialogSelectID } from '@iobroker/gui-components';
 
 import {
+    convertUnit,
+    isCountUnit,
+    isPowerUnit,
     locale,
     nf,
     parseNum,
@@ -38,9 +41,11 @@ import {
     startFields,
     startValueErrors,
     t,
+    unitsCompatible,
     type Api,
     type Overview,
     type StartField,
+    type UnitInfo,
 } from './api';
 import { Card, tabular } from './ui';
 
@@ -66,11 +71,29 @@ interface WizardProps {
 }
 
 const steps = ['datapoint', 'kind', 'unit', 'price', 'calculation', 'start', 'name'] as const;
-const powerUnits = ['W', 'kW'];
-const meterUnits = ['Wh', 'kWh', 'MWh', 'm³', 'l'];
+// Shown first in the unit lists; all units come from the adapter (#1313)
+const preferredUnits = ['W', 'kW', 'Wh', 'kWh', 'MWh', 'm³', 'l'];
+const reservedOutputIds = ['info', 'priceDefinitions', 'priceHistory', 'basicPriceHistory'];
+// Units of adapters before unitInfo was part of the overview
+const fallbackUnitInfo: UnitInfo = {
+    W: { exponent: 0, category: 'Watt' },
+    kW: { exponent: 3, category: 'Watt' },
+    Wh: { exponent: 0, category: 'Watt_hour' },
+    kWh: { exponent: 3, category: 'Watt_hour' },
+    MWh: { exponent: 6, category: 'Watt_hour' },
+    'm³': { exponent: 0, category: 'Cubic_meter' },
+    l: { exponent: 0, category: 'Liter' },
+};
 
 export default function Wizard(props: WizardProps): React.JSX.Element {
     const { api, overview } = props;
+    const unitInfo = overview.unitInfo || fallbackUnitInfo;
+    const sortedUnits = [
+        ...preferredUnits.filter(entry => unitInfo[entry]),
+        ...Object.keys(unitInfo).filter(entry => !preferredUnits.includes(entry)),
+    ];
+    const powerUnits = sortedUnits.filter(entry => isPowerUnit(unitInfo, entry));
+    const meterUnits = sortedUnits.filter(entry => !isPowerUnit(unitInfo, entry));
     const narrow = useMediaQuery('(max-width:600px)');
     const [step, setStep] = useState(0);
     const [done, setDone] = useState(0);
@@ -79,7 +102,9 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
     const [selectOpen, setSelectOpen] = useState(false);
     const [datapoint, setDatapoint] = useState<Candidate | null>(null);
     const [kind, setKind] = useState<'meter' | 'power'>('meter');
-    const [resetJumps, setResetJumps] = useState<'yes' | 'no'>('no');
+    // Reset detection is on by default, like in the adapter (#1313)
+    const [resetJumps, setResetJumps] = useState<'yes' | 'no'>('yes');
+    const [pulses, setPulses] = useState('');
     const [unit, setUnit] = useState('');
     const [price, setPrice] = useState('');
     const [basicRate, setBasicRate] = useState(true);
@@ -121,10 +146,9 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
     // Suggestions from the datapoint
     const selectDatapoint = (candidate: Candidate): void => {
         setDatapoint(candidate);
-        const isPower = powerUnits.includes(candidate.unit);
+        const isPower = isPowerUnit(unitInfo, candidate.unit);
         setKind(isPower ? 'power' : 'meter');
         setUnit(candidate.unit);
-        setResetJumps(/shelly|tasmota/i.test(candidate.id) ? 'yes' : 'no');
         if (!name) {
             setName(candidate.name || candidate.id.split('.').pop() || '');
         }
@@ -133,21 +157,27 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
     const calcUnit = overview.priceDefinitions.find(entry => entry.cat === price)?.unitType || '';
     const currentValue =
         typeof datapoint?.value === 'number' ? datapoint.value : parseNum(String(datapoint?.value ?? ''));
-    const unitFactor: Record<string, number> = { Wh: 1, kWh: 1000, MWh: 1_000_000, W: 1, kW: 1000, 'm³': 1, l: 0.001 };
+    const pulsesPerUnit = parseNum(pulses);
+    const validPulses = pulsesPerUnit !== null && !Number.isNaN(pulsesPerUnit) && pulsesPerUnit > 0 ? pulsesPerUnit : 0;
+    const countSource = isCountUnit(unitInfo, unit);
     const currentInCalcUnit =
-        currentValue !== null && !Number.isNaN(currentValue) && unitFactor[unit] && unitFactor[calcUnit]
-            ? (currentValue * unitFactor[unit]) / unitFactor[calcUnit]
+        currentValue !== null && !Number.isNaN(currentValue)
+            ? countSource && validPulses && !isCountUnit(unitInfo, calcUnit)
+                ? currentValue / validPulses
+                : convertUnit(unitInfo, currentValue, unit, calcUnit)
             : null;
     const startErrors = useMemo(
         () => (startMode === 'since' && kind === 'meter' ? startValueErrors(starts, currentInCalcUnit, calcUnit) : {}),
         [starts, startMode, currentInCalcUnit, calcUnit],
     );
-    const effectiveOutputId = outputIdTouched ? outputId : slug(name);
+    const effectiveOutputId = outputIdTouched ? outputId : slug(name, datapoint?.id || '');
     const outputIdError = !/^[A-Za-z0-9_-]+$/.test(effectiveOutputId)
         ? t('sa_errOutputId')
-        : usedOutputIds[effectiveOutputId] && usedOutputIds[effectiveOutputId] !== datapoint?.id
-          ? t('sa_errOutputIdUsed')
-          : '';
+        : reservedOutputIds.includes(effectiveOutputId)
+          ? t('sa_errOutputIdReserved')
+          : usedOutputIds[effectiveOutputId] && usedOutputIds[effectiveOutputId] !== datapoint?.id
+            ? t('sa_errOutputIdUsed')
+            : '';
     const othersWithBasicFee = overview.sources.filter(
         source => source.enabled && source.priceDefinition === price && source.basicRate && source.id !== datapoint?.id,
     );
@@ -182,6 +212,9 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
         };
         if (kind === 'power') {
             result.averagePowerValues = expertValues.averagePowerValues;
+        }
+        if (countSource && validPulses) {
+            result.pulsesPerUnit = validPulses;
         }
         for (const key of ['decimalsQuantity', 'decimalsCosts'] as const) {
             const value = parseNum(expertValues[key]);
@@ -222,12 +255,23 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
         props.onCreated();
     };
 
-    // Wait for the first value of the new source
+    // Wait for the first value of the new source. Power sources that only report on change can take
+    // long: after a minute the page says so, and polling stops after ten minutes (#1313)
+    const [waitedLong, setWaitedLong] = useState(false);
     useEffect(() => {
         if (!created || created.firstValue !== null) {
             return;
         }
+        const startedAt = Date.now();
         const timer = setInterval(() => {
+            const waited = Date.now() - startedAt;
+            if (waited > 60_000) {
+                setWaitedLong(true);
+            }
+            if (waited > 600_000) {
+                clearInterval(timer);
+                return;
+            }
             void send<Overview>(api, 'getSources').then(result => {
                 const source = result.sources?.find(entry => entry.id === created.id);
                 if (
@@ -256,6 +300,18 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
                         <>
                             <CircularProgress />
                             <Typography sx={{ mt: 2 }}>{t('sa_wizardWaiting', name)}</Typography>
+                            {waitedLong ? (
+                                <Typography
+                                    color="text.secondary"
+                                    sx={{ mt: 1 }}
+                                >
+                                    {t('sa_wizardWaitingLong')}
+                                </Typography>
+                            ) : null}
+                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', mt: 2 }}>
+                                <Button onClick={() => props.onOpenSource(created.id)}>{t('sa_toSource')}</Button>
+                                <Button onClick={props.onClose}>{t('sa_toOverview')}</Button>
+                            </Box>
                         </>
                     ) : (
                         <>
@@ -541,15 +597,26 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
                 );
             case 'price': {
                 const matching = (entryUnit: string): boolean =>
-                    kind === 'power'
-                        ? ['Wh', 'kWh', 'MWh'].includes(entryUnit)
-                        : (unitFactor[entryUnit] !== undefined) === (unitFactor[unit] !== undefined) &&
-                          ['m³', 'l'].includes(entryUnit) === ['m³', 'l'].includes(unit);
+                    unitsCompatible(unitInfo, unit, entryUnit, validPulses);
                 const sorted = [...overview.priceDefinitions].sort(
                     (a, b) => Number(matching(b.unitType)) - Number(matching(a.unitType)),
                 );
                 return (
                     <Box>
+                        {countSource ? (
+                            <TextField
+                                size="small"
+                                sx={{ mb: 2, minWidth: 260 }}
+                                label={t('sa_wizardPulses')}
+                                value={pulses}
+                                error={pulses !== '' && !validPulses}
+                                helperText={
+                                    pulses !== '' && !validPulses ? t('sa_errNumber') : t('sa_wizardPulsesHelp')
+                                }
+                                onChange={e => setPulses(e.target.value)}
+                                slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                            />
+                        ) : null}
                         {sorted.length === 0 ? <Alert severity="warning">{t('sa_noPrices')}</Alert> : null}
                         {sorted.map(entry => {
                             const ok = matching(entry.unitType);

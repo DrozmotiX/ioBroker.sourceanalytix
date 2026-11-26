@@ -66,7 +66,89 @@ export interface Overview {
     checkedAt: number;
     priceDefinitions: PriceDefinition[];
     units: string[];
+    unitInfo?: UnitInfo;
     currency?: string | null;
+}
+
+/** Category and power of ten of each unit, as the adapter knows them */
+export type UnitInfo = Record<string, { exponent: number; category: string }>;
+
+/**
+ * Power and pulse rate are integrated over time
+ *
+ * @param info
+ * @param unit
+ */
+export function isPowerUnit(info: UnitInfo, unit: string): boolean {
+    const category = info[unit]?.category;
+    return category === 'Watt' || category === 'Piece_rate';
+}
+
+/**
+ * Counters without a physical unit (pieces, pulses)
+ *
+ * @param info
+ * @param unit
+ */
+export function isCountUnit(info: UnitInfo, unit: string): boolean {
+    const category = info[unit]?.category;
+    return category === 'Piece' || category === 'Piece_rate';
+}
+
+/**
+ * Whether a source unit can be calculated with a price unit, same rules as areUnitsCompatible
+ * in lib/calculation.js (#1313)
+ *
+ * @param info
+ * @param sourceUnit
+ * @param priceUnit
+ * @param pulsesPerUnit
+ */
+export function unitsCompatible(info: UnitInfo, sourceUnit: string, priceUnit: string, pulsesPerUnit = 0): boolean {
+    const source = info[sourceUnit];
+    const target = info[priceUnit];
+    if (!source || !target) {
+        return false;
+    }
+    if (source.category === 'Watt') {
+        return target.category === 'Watt_hour';
+    }
+    if (source.category === 'Piece' || source.category === 'Piece_rate') {
+        if (target.category === 'Piece') {
+            return true;
+        }
+        return !['Watt', 'Piece_rate'].includes(target.category) && pulsesPerUnit > 0;
+    }
+    if (source.category === target.category) {
+        return true;
+    }
+    const volume = ['Liter', 'Cubic_meter'];
+    return volume.includes(source.category) && volume.includes(target.category);
+}
+
+/**
+ * Convert a value between units of the same quantity, null if that is not possible
+ *
+ * @param info
+ * @param value
+ * @param from
+ * @param to
+ */
+export function convertUnit(info: UnitInfo, value: number, from: string, to: string): number | null {
+    const source = info[from];
+    const target = info[to];
+    if (!source || !target) {
+        return null;
+    }
+    // Liters as common base of the volumes: 1 m³ = 1000 l
+    const base = (unit: { exponent: number; category: string }): number =>
+        10 ** unit.exponent * (unit.category === 'Cubic_meter' ? 1000 : 1);
+    const volume = ['Liter', 'Cubic_meter'];
+    const energy = (category: string): string => (category === 'Watt' ? 'Watt_hour' : category);
+    const sameQuantity =
+        energy(source.category) === energy(target.category) ||
+        (volume.includes(source.category) && volume.includes(target.category));
+    return sameQuantity ? (value * base(source)) / base(target) : null;
 }
 
 export interface ActionResult {
@@ -365,9 +447,10 @@ export function statusText(source: Source, problems: Problem[]): string {
  * Technical ID from a display name (design: ^[a-z0-9_]+$, umlauts replaced)
  *
  * @param name
+ * @param fallback
  */
-export function slug(name: string): string {
-    return name
+export function slug(name: string, fallback = ''): string {
+    const result = name
         .toLowerCase()
         .replace(/ä/g, 'ae')
         .replace(/ö/g, 'oe')
@@ -377,4 +460,6 @@ export function slug(name: string): string {
         .replace(/[̀-ͯ]/g, '')
         .replace(/[^a-z0-9]+/g, '_')
         .replace(/^_+|_+$/g, '');
+    // Names without Latin letters give nothing: use the datapoint ID instead (#1313)
+    return result || (fallback ? slug(fallback) : '');
 }

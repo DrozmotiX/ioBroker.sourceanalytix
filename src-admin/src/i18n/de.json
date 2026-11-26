@@ -94,6 +94,7 @@
     "sa_errOrderBelow": "Darf nicht kleiner sein als der Startwert für %s (%s).",
     "sa_errOutputId": "Nur Buchstaben, Ziffern, _ und - erlaubt.",
     "sa_errOutputIdEmpty": "Die technische ID darf nicht leer sein.",
+    "sa_errOutputIdReserved": "Diese ID ist von SourceAnalytix reserviert.",
     "sa_errOutputIdUsed": "Diese ID nutzt schon eine andere Quelle.",
     "sa_errRequired": "Bitte einen Wert eingeben.",
     "sa_err_failed": "Die Aktion ist fehlgeschlagen.",
@@ -326,9 +327,12 @@
     "sa_updated": "Aktualisiert %s",
     "sa_values": "Werte",
     "sa_wizardFirstValue": "Erster Wert empfangen: %s %s",
+    "sa_wizardPulses": "Impulse pro Einheit des Preises",
+    "sa_wizardPulsesHelp": "Für einen Impulszähler: zum Beispiel 1000 bei 1000 imp/kWh. Danach lassen sich Preisdefinitionen in kWh, m³ und anderen Einheiten wählen.",
     "sa_wizardRunning": "%s läuft",
     "sa_wizardTotalCounter": "Nimm den Gesamtzähler, nicht einen Tageszähler. Gesamtzähler steigen immer weiter; Tageszähler springen jede Nacht auf 0.",
     "sa_wizardWaiting": "%s ist aktiv. Warte auf den ersten Wert …",
+    "sa_wizardWaitingLong": "Noch kein Wert. Quellen, die nur bei Änderung melden, etwa PV in der Nacht, brauchen manchmal länger. Du kannst die Seite schließen; die Quelle läuft weiter und erscheint, sobald ein Wert kommt.",
     "sa_year": "Jahr",
     "sa_yes": "Ja"
 }

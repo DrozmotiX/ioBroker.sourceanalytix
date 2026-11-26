@@ -94,6 +94,7 @@
     "sa_errOrderBelow": "Must not be smaller than the start value of %s (%s).",
     "sa_errOutputId": "Only letters, digits, _ and - are allowed.",
     "sa_errOutputIdEmpty": "The technical ID must not be empty.",
+    "sa_errOutputIdReserved": "This ID is reserved by SourceAnalytix.",
     "sa_errOutputIdUsed": "Another source already uses this ID.",
     "sa_errRequired": "Please enter a value.",
     "sa_err_failed": "The action failed.",
@@ -326,9 +327,12 @@
     "sa_updated": "Updated %s",
     "sa_values": "Values",
     "sa_wizardFirstValue": "First value received: %s %s",
+    "sa_wizardPulses": "Pulses per unit of the price",
+    "sa_wizardPulsesHelp": "For a pulse counter: for example 1000 for 1000 imp/kWh. Then price definitions in kWh, m³ and other units can be chosen.",
     "sa_wizardRunning": "%s is running",
     "sa_wizardTotalCounter": "Use the total counter, not a daily counter. Total counters keep rising; daily counters drop to 0 every night.",
     "sa_wizardWaiting": "%s is active. Waiting for the first value …",
+    "sa_wizardWaitingLong": "No value yet. Sources that only report on change, such as PV at night, can take a while. You can close this page; the source keeps running and shows up as soon as a value arrives.",
     "sa_year": "Year",
     "sa_yes": "Yes"
 }

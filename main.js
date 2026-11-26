@@ -4857,6 +4857,8 @@ class Sourceanalytix extends utils.Adapter {
 			checkedAt: Date.now(),
 			priceDefinitions: this.getPriceDefinitionList(),
 			units: Object.keys(this.unitPriceDef.unitConfig),
+			// Category and power of ten of each unit, so the wizard checks units like the adapter (#1313)
+			unitInfo: {...this.unitPriceDef.unitConfig},
 			currency: useCurrency,
 		};
 	}
