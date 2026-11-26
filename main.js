@@ -3158,7 +3158,8 @@ class Sourceanalytix extends utils.Adapter {
 				const previousPower = Number(calcValues.previousReadingWatt);
 				const previousTimestamp = Number(calcValues.previousReadingWattTs);
 				if (!Number.isFinite(previousPower) || !Number.isFinite(previousTimestamp)) continue;
-				if (previousTimestamp >= closingTimestamp || previousTimestamp < previousDayStart) continue;
+				// An interval closed at the previous boundary continues at previousDayStart - 1 (#1301)
+				if (previousTimestamp >= closingTimestamp || previousTimestamp < previousDayStart - 1) continue;
 
 				const previousPeriods = await this.loadPeriodMemory(stateID);
 				if (!previousPeriods) continue;
