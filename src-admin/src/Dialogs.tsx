@@ -15,7 +15,19 @@ import {
 } from '@mui/material';
 import { Bolt } from '@mui/icons-material';
 
-import { df, nf, parseNum, send, t, type ActionResult, type Api, type Source } from './api';
+import {
+    df,
+    errorText,
+    inputNumber,
+    localDate,
+    nf,
+    parseNum,
+    send,
+    t,
+    type ActionResult,
+    type Api,
+    type Source,
+} from './api';
 import { tabular } from './ui';
 
 export type DialogType = 'align' | 'swap' | 'recalc' | 'delete' | 'unit';
@@ -86,11 +98,7 @@ function useAction(api: Api): {
         try {
             const result = await send(api, command, message);
             if (result.error) {
-                setError(
-                    t(`sa_err_${result.error}`) === `sa_err_${result.error}`
-                        ? result.message || result.error
-                        : t(`sa_err_${result.error}`),
-                );
+                setError(errorText(result));
                 return null;
             }
             return result;
@@ -206,9 +214,9 @@ export function SwapDialog(props: DialogProps): React.JSX.Element {
     const { source } = props;
     const unit = source.calcUnit || '';
     const total = source.cumulative || 0;
-    const [oldEnd, setOldEnd] = useState(nf(total, 3));
+    const [oldEnd, setOldEnd] = useState(inputNumber(total, 3));
     const [newStart, setNewStart] = useState('0');
-    const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+    const [date, setDate] = useState(localDate());
     const action = useAction(props.api);
     const end = parseNum(oldEnd);
     const start = parseNum(newStart);
@@ -299,7 +307,7 @@ export function SwapDialog(props: DialogProps): React.JSX.Element {
  */
 export function RecalcDialog(props: DialogProps): React.JSX.Element {
     const { source, api } = props;
-    const [date, setDate] = useState(props.initialDate || new Date(Date.now() - 86_400_000).toISOString().slice(0, 10));
+    const [date, setDate] = useState(props.initialDate || localDate(Date.now() - 86_400_000));
     const [preview, setPreview] = useState<ActionResult | null>(null);
     const [progress, setProgress] = useState<{ done: number; total: number; running: boolean } | null>(null);
     const action = useAction(api);
@@ -359,7 +367,7 @@ export function RecalcDialog(props: DialogProps): React.JSX.Element {
                     helperText={future ? t('sa_recalcFuture') : df(from)}
                     slotProps={{
                         inputLabel: { shrink: true },
-                        htmlInput: { max: new Date().toISOString().slice(0, 10) },
+                        htmlInput: { max: localDate() },
                     }}
                 />
                 {preview ? (
@@ -380,6 +388,14 @@ export function RecalcDialog(props: DialogProps): React.JSX.Element {
                 >
                     {t('sa_recalcNote')}
                 </Alert>
+                {preview?.variablePriceSources?.length ? (
+                    <Alert
+                        severity="warning"
+                        sx={{ mt: 2 }}
+                    >
+                        {t('sa_recalcVariablePrice')}
+                    </Alert>
+                ) : null}
                 {progress && (action.busy || finished) ? (
                     <Box sx={{ mt: 2 }}>
                         <LinearProgress
@@ -428,14 +444,19 @@ export function RecalcDialog(props: DialogProps): React.JSX.Element {
 export function DeleteDialog(props: DialogProps): React.JSX.Element {
     const { source, api } = props;
     const [preview, setPreview] = useState<ActionResult | null>(null);
+    const [previewError, setPreviewError] = useState('');
     const [confirm, setConfirm] = useState('');
     const action = useAction(api);
     const message = source.orphan ? { outputId: source.outputId } : { source: source.id };
 
     useEffect(() => {
-        void send(api, 'deleteSourceData', { ...message, dryRun: true }).then(result =>
-            setPreview(result.ok ? result : null),
-        );
+        // A failed preview is shown instead of an endless spinner (#1312)
+        send(api, 'deleteSourceData', { ...message, dryRun: true })
+            .then(result => {
+                setPreview(result.ok ? result : null);
+                setPreviewError(result.ok ? '' : errorText(result));
+            })
+            .catch(error => setPreviewError(String(error)));
     }, []);
 
     return (
@@ -450,19 +471,28 @@ export function DeleteDialog(props: DialogProps): React.JSX.Element {
                 <Typography>{t('sa_deleteIntro')}</Typography>
                 {preview ? (
                     <ul>
-                        <li>
-                            {t(
-                                'sa_deleteStates',
-                                preview.states,
-                                `${api.adapterName}.${api.instance}.${preview.outputId}`,
-                            )}
-                        </li>
+                        {preview.outputId ? (
+                            <li>
+                                {t(
+                                    'sa_deleteStates',
+                                    preview.states,
+                                    `${api.adapterName}.${api.instance}.${preview.outputId}`,
+                                )}
+                            </li>
+                        ) : null}
                         {preview.years?.length ? <li>{t('sa_deleteYears', preview.years.join(', '))}</li> : null}
                         {preview.cumulative !== null && preview.cumulative !== undefined ? (
                             <li>{t('sa_deleteTotal', nf(Number(preview.cumulative), 3), source.calcUnit || '')}</li>
                         ) : null}
                         {!source.orphan ? <li>{t('sa_deleteSettings')}</li> : null}
                     </ul>
+                ) : previewError ? (
+                    <Alert
+                        severity="error"
+                        sx={{ my: 2 }}
+                    >
+                        {previewError}
+                    </Alert>
                 ) : (
                     <LinearProgress sx={{ my: 2 }} />
                 )}

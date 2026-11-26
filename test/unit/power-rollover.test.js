@@ -59,6 +59,18 @@ describe('power sources at the period rollover', () => {
 		assert.equal(calls.length, 0);
 	});
 
+	it('continues an interval that was closed at the previous boundary (#1301)', async () => {
+		const {adapter, calls, boundary} = await createAdapter(boundaryTs => {
+			const dayStart = new Date(boundaryTs - 1);
+			dayStart.setHours(0, 0, 0, 0);
+			return {previousReadingWatt: 2000, previousReadingWattTs: dayStart.getTime() - 1};
+		});
+		await adapter.closePowerIntervals(new Date(boundary + 1000));
+		assert.equal(calls.length, 1);
+		assert.equal(calls[0].state.val, 2000);
+		assert.equal(calls[0].state.ts, boundary - 1);
+	});
+
 	it('ignores sources without a running interval and cumulative sources', async () => {
 		const withoutReading = await createAdapter(() => ({previousReadingWatt: null, previousReadingWattTs: null}));
 		await withoutReading.adapter.closePowerIntervals(withoutReading.rolloverDate);

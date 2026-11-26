@@ -66,7 +66,89 @@ export interface Overview {
     checkedAt: number;
     priceDefinitions: PriceDefinition[];
     units: string[];
+    unitInfo?: UnitInfo;
     currency?: string | null;
+}
+
+/** Category and power of ten of each unit, as the adapter knows them */
+export type UnitInfo = Record<string, { exponent: number; category: string }>;
+
+/**
+ * Power and pulse rate are integrated over time
+ *
+ * @param info
+ * @param unit
+ */
+export function isPowerUnit(info: UnitInfo, unit: string): boolean {
+    const category = info[unit]?.category;
+    return category === 'Watt' || category === 'Piece_rate';
+}
+
+/**
+ * Counters without a physical unit (pieces, pulses)
+ *
+ * @param info
+ * @param unit
+ */
+export function isCountUnit(info: UnitInfo, unit: string): boolean {
+    const category = info[unit]?.category;
+    return category === 'Piece' || category === 'Piece_rate';
+}
+
+/**
+ * Whether a source unit can be calculated with a price unit, same rules as areUnitsCompatible
+ * in lib/calculation.js (#1313)
+ *
+ * @param info
+ * @param sourceUnit
+ * @param priceUnit
+ * @param pulsesPerUnit
+ */
+export function unitsCompatible(info: UnitInfo, sourceUnit: string, priceUnit: string, pulsesPerUnit = 0): boolean {
+    const source = info[sourceUnit];
+    const target = info[priceUnit];
+    if (!source || !target) {
+        return false;
+    }
+    if (source.category === 'Watt') {
+        return target.category === 'Watt_hour';
+    }
+    if (source.category === 'Piece' || source.category === 'Piece_rate') {
+        if (target.category === 'Piece') {
+            return true;
+        }
+        return !['Watt', 'Piece_rate'].includes(target.category) && pulsesPerUnit > 0;
+    }
+    if (source.category === target.category) {
+        return true;
+    }
+    const volume = ['Liter', 'Cubic_meter'];
+    return volume.includes(source.category) && volume.includes(target.category);
+}
+
+/**
+ * Convert a value between units of the same quantity, null if that is not possible
+ *
+ * @param info
+ * @param value
+ * @param from
+ * @param to
+ */
+export function convertUnit(info: UnitInfo, value: number, from: string, to: string): number | null {
+    const source = info[from];
+    const target = info[to];
+    if (!source || !target) {
+        return null;
+    }
+    // Liters as common base of the volumes: 1 m³ = 1000 l
+    const base = (unit: { exponent: number; category: string }): number =>
+        10 ** unit.exponent * (unit.category === 'Cubic_meter' ? 1000 : 1);
+    const volume = ['Liter', 'Cubic_meter'];
+    const energy = (category: string): string => (category === 'Watt' ? 'Watt_hour' : category);
+    const sameQuantity =
+        energy(source.category) === energy(target.category) ||
+        (volume.includes(source.category) && volume.includes(target.category));
+    return sameQuantity ? (value * base(source)) / base(target) : null;
 }
 
 export interface ActionResult {
@@ -114,6 +196,41 @@ export async function send<T = ActionResult>(api: Api, command: string, message:
  */
 export function t(key: string, ...args: (string | number)[]): string {
     return I18n.t(key, ...args);
+}
+
+/**
+ * Text of a failed action: the translated error code, else the message of the adapter
+ *
+ * @param result
+ */
+export function errorText(result: ActionResult): string {
+    const key = `sa_err_${result.error}`;
+    const text = t(key);
+    return text === key ? result.message || String(result.error) : text;
+}
+
+/**
+ * Local date as YYYY-MM-DD for date fields; toISOString() would give yesterday after midnight (#1312)
+ *
+ * @param ts
+ */
+export function localDate(ts: number = Date.now()): string {
+    const date = new Date(ts);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Number for an input field: decimal mark of the language, no thousands separator,
+ * so that parseNum reads it back as the same value (#1312)
+ *
+ * @param value
+ * @param decimals
+ */
+export function inputNumber(value: number | null | undefined, decimals = 3): string {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return '';
+    }
+    return new Intl.NumberFormat(locale(), { maximumFractionDigits: decimals, useGrouping: false }).format(value);
 }
 
 export function locale(): string {
@@ -184,7 +301,7 @@ export function ago(ts: number | null | undefined): string {
 
 /**
  * Parse a number with comma or dot as in the design:
- * "1.283,2" → 1283.2, "1283.2" → 1283.2, "1.283" → 1283 (thousands separator), "" → null
+ * "1.283,2" → 1283.2, "1283.2" → 1283.2, "1.283" → 1.283 (a single separator is the decimal mark), "" → null
  *
  * @param input
  */
@@ -206,7 +323,7 @@ export function parseNum(input: string | number | null | undefined): number | nu
                 ? text.replace(/\./g, '').replace(',', '.')
                 : text.replace(/,/g, '');
     } else if (text.includes(',')) {
-        // A single comma or dot is the decimal mark, like in the adapter: 1.283 is 1,283
+        // A single comma or dot is the decimal mark, like in the adapter: 1.283 is 1.283, not 1283
         text = text.replace(',', '.');
     }
     const value = Number(text);
@@ -278,6 +395,8 @@ export function startValueErrors(
         for (const later of ordered.slice(index + 1)) {
             if (starts[later].getTime() > starts[field].getTime() && parsed[field]! > parsed[later]!) {
                 errors[field] = t('sa_errOrder', t(`sa_period_${later}`), nf(parsed[later], 3));
+                // Both fields carry the error, so changing either of them blocks the save (#1304)
+                errors[later] ??= t('sa_errOrderBelow', t(`sa_period_${field}`), nf(parsed[field], 3));
                 break;
             }
         }
@@ -328,9 +447,10 @@ export function statusText(source: Source, problems: Problem[]): string {
  * Technical ID from a display name (design: ^[a-z0-9_]+$, umlauts replaced)
  *
  * @param name
+ * @param fallback
  */
-export function slug(name: string): string {
-    return name
+export function slug(name: string, fallback = ''): string {
+    const result = name
         .toLowerCase()
         .replace(/ä/g, 'ae')
         .replace(/ö/g, 'oe')
@@ -340,4 +460,6 @@ export function slug(name: string): string {
         .replace(/[̀-ͯ]/g, '')
         .replace(/[^a-z0-9]+/g, '_')
         .replace(/^_+|_+$/g, '');
+    // Names without Latin letters give nothing: use the datapoint ID instead (#1313)
+    return result || (fallback ? slug(fallback) : '');
 }

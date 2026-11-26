@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const {buildUnitConfig, isIntegratedUnit} = require('../../lib/calculation');
+const {buildUnitConfig, getMissingPeriodStartValues, isIntegratedUnit} = require('../../lib/calculation');
 const {checkStartValues, parseStartValueInput, START_FIELDS} = require('../../lib/source-checks');
 
 /** @type {(...args: any[]) => any} */
@@ -141,5 +141,17 @@ describe('current total for the dialog (#1267)', () => {
 		adapter.warnAboutStartValues('meter.0.energy', {start_day: 600, start_year: 100}, 510);
 		assert.equal(logs.warn.length, 1);
 		assert.match(logs.warn[0], /Start value day \(600\) of meter\.0\.energy is larger than the current total 510/);
+	});
+});
+
+describe('missing start values count from now on (#1302)', () => {
+	it('fills only empty fields and keeps 0 as a valid start', () => {
+		assert.deepEqual(getMissingPeriodStartValues({start_day: 0, start_week: '', start_month: null, start_quarter: 5}, 12), {
+			start_week: 12,
+			start_month: 12,
+			start_year: 12,
+		});
+		assert.deepEqual(getMissingPeriodStartValues({start_day: 1, start_week: 1, start_month: 1, start_quarter: 1, start_year: 1}, 12), {});
+		assert.deepEqual(getMissingPeriodStartValues({}, NaN), {});
 	});
 });

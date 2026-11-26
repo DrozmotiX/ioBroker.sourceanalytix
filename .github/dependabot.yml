@@ -19,6 +19,24 @@ updates:
           - "version-update:semver-major"
     versioning-strategy: increase
 
+  # Settings page: React, MUI and gui-components are bundled into admin/custom (#1321).
+  # After an update run npm run build:admin and commit admin/custom.
+  - package-ecosystem: npm
+    directory: "/src-admin"
+    schedule:
+      interval: cron
+      cronjob: "47 3 11 * *"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-major"
+    versioning-strategy: increase
+
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

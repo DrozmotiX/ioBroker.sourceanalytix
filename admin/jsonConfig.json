@@ -57,6 +57,9 @@
               "attr": "cat",
               "title": "Category",
               "width": "13%",
+              "validator": "const name = c => String(c || '').trim().replace(/[^a-zA-Z0-9_-]/g, '_'); const rows = (typeof globalData !== 'undefined' && globalData && Array.isArray(globalData.pricesDefinition)) ? globalData.pricesDefinition : []; return !!String(data.cat || '').trim() && rows.filter(r => r && name(r.cat) === name(data.cat)).length <= 1",
+              "validatorErrorText": "Category empty or used twice",
+              "validatorNoSaveOnError": true,
               "default": "Electricity"
             },
             {
@@ -218,6 +221,14 @@
         },
         "store_weeks": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.store_weeks",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Weeks",
           "xs": 12,
           "sm": 4,
@@ -227,6 +238,14 @@
         },
         "store_months": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.store_months",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Months",
           "xs": 12,
           "sm": 4,
@@ -236,6 +255,14 @@
         },
         "store_quarters": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.store_quarters",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Quarters",
           "xs": 12,
           "sm": 4,
@@ -256,6 +283,14 @@
         },
         "currentYearDays": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.currentYearDays",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Weekday",
           "xs": 12,
           "sm": 6,
@@ -265,6 +300,14 @@
         },
         "currentYearWeek": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.currentYearWeek",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Weeks",
           "xs": 12,
           "sm": 6,
@@ -274,6 +317,14 @@
         },
         "currentYearMonth": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.currentYearMonth",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Months",
           "xs": 12,
           "sm": 6,
@@ -283,6 +334,14 @@
         },
         "currentYearQuarter": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.currentYearQuarter",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Quarters",
           "xs": 12,
           "sm": 6,
@@ -292,6 +351,14 @@
         },
         "currentYearPrevious": {
           "type": "checkbox",
+          "confirm": {
+            "condition": "!data.currentYearPrevious",
+            "title": "Delete data?",
+            "text": "Period option off hint",
+            "ok": "Switch off",
+            "cancel": "Cancel",
+            "type": "warning"
+          },
           "label": "Previous period",
           "xs": 12,
           "sm": 6,

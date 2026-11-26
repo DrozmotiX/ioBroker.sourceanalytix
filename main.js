@@ -83,6 +83,8 @@ class Sourceanalytix extends utils.Adapter {
 		this.resetDayJob = null; // Midnight cron job
 		this.periodCheckInterval = null; // Hourly safety check for missed rollovers
 		this.rolloverRunning = false; // Guard against concurrent rollovers
+		this.queueStateChanges = false; // Buffer source values while a rollover blocks the calculations (#1270)
+		this.queuedStateChanges = [];
 		this.statisticsJsonSnapshots = {};
 		this.statisticsJsonTimers = {};
 		this.statisticsJsonLastValues = {};
@@ -142,7 +144,7 @@ class Sourceanalytix extends utils.Adapter {
 							this.log.debug(`SourceAnalytix configuration found for ${stateID}`);
 
 							// Check if custom object is enabled for SourceAnalytix
-							if(customStateArray.rows[index].value[this.namespace].enabled){
+							if(sourceOverview.isSourceRunning(customStateArray.rows[index].value[this.namespace])){
 								// Prepare array in constructor for further processing
 								this.activeStates[stateID] = {};
 								this.log.debug(`SourceAnalytix enabled state found ${stateID}`);
@@ -329,6 +331,18 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Timestamp a reading is priced at. Integrated sources (power, pulse rate) use `ts` like the
+	 * integration: a repeated value keeps `lc`, which would price the energy at an old price (#1300).
+	 * @param {object} stateDetails - Active state details
+	 * @param {ioBroker.State | null | undefined} state - ioBroker state
+	 * @returns {number} Reading timestamp or the current time
+	 */
+	getReadingTimestamp(stateDetails, state) {
+		if (this.isIntegratedSource(stateDetails)) return this.getTimestampOrNow(state && state.ts);
+		return this.getStateChangeTimestamp(state);
+	}
+
+	/**
 	 * @param {ioBroker.State | null | undefined} state - ioBroker state
 	 * @returns {number} State change timestamp or the current time
 	 */
@@ -413,8 +427,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Price from adapter settings
 	 * @param {unknown} validFrom - Optional effective date
+	 * @param {boolean} [allowMove] - Move the history entry of an unchanged price to a new date; false when another price of the definition changed (#1298)
 	 */
-	async storeConfiguredPrice(priceDefinition, configuredPrice, validFrom) {
+	async storeConfiguredPrice(priceDefinition, configuredPrice, validFrom, allowMove = true) {
 		const stateName = this.getConfiguredPriceStateName(priceDefinition);
 		const validityStateName = this.getConfiguredPriceValidityStateName(priceDefinition);
 		await this.extendObjectAsync(stateName, {
@@ -457,7 +472,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.warnPriceChangedWithoutNewDate(priceDefinition, 'price', storedConfigPrice, configuredPrice, storedValidityTimestamp, requestedValidityTimestamp);
 			effectiveTimestamp = requestedValidityTimestamp === null ? Date.now() : requestedValidityTimestamp;
 			await this.storeDynamicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
-		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
+		} else if (allowMove && requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
 			const moved = dynamicPricing.moveConfiguredPriceHistoryEntry(
 				history,
 				configuredPrice,
@@ -473,6 +488,24 @@ class Sourceanalytix extends utils.Adapter {
 		}
 		await this.setStateChangedAsync(stateName, {val: configuredPrice, ack: true});
 		if (effectiveTimestamp !== null) await this.setStateChangedAsync(validityStateName, {val: effectiveTimestamp, ack: true});
+	}
+
+	/**
+	 * Whether the unit price or the basic price of a definition differs from the stored one.
+	 * @param {string} priceDefinition - Price definition category
+	 * @param {number | null} unitPrice - Configured static unit price, null for state-based prices
+	 * @param {number} basicPrice - Configured monthly basic price
+	 * @returns {Promise<boolean>} True when one of the prices changed
+	 */
+	async hasConfiguredPriceChanged(priceDefinition, unitPrice, basicPrice) {
+		const changed = async (stateName, price) => {
+			if (price === null) return false;
+			const state = await this.getStateAsync(stateName);
+			const stored = state ? this.parsePriceValue(state.val) : null;
+			return stored !== null && stored !== price;
+		};
+		return await changed(this.getConfiguredPriceStateName(priceDefinition), unitPrice)
+			|| await changed(this.getConfiguredBasicPriceStateName(priceDefinition), basicPrice);
 	}
 
 	/**
@@ -662,8 +695,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * @param {string} priceDefinition - Price definition category
 	 * @param {number} configuredPrice - Monthly basic price from adapter settings
 	 * @param {unknown} validFrom - Optional effective date for the tariff
+	 * @param {boolean} [allowMove] - Move the history entry of an unchanged price to a new date; false when another price of the definition changed (#1298)
 	 */
-	async storeConfiguredBasicPrice(priceDefinition, configuredPrice, validFrom) {
+	async storeConfiguredBasicPrice(priceDefinition, configuredPrice, validFrom, allowMove = true) {
 		const stateName = this.getConfiguredBasicPriceStateName(priceDefinition);
 		const validityStateName = this.getConfiguredBasicPriceValidityStateName(priceDefinition);
 		await this.extendObjectAsync(stateName, {
@@ -710,7 +744,7 @@ class Sourceanalytix extends utils.Adapter {
 				: Date.now();
 			effectiveTimestamp = requestedValidityTimestamp === null ? defaultTimestamp : requestedValidityTimestamp;
 			await this.storeBasicPriceHistory(priceDefinition, configuredPrice, effectiveTimestamp);
-		} else if (requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
+		} else if (allowMove && requestedValidityTimestamp !== null && requestedValidityTimestamp !== effectiveTimestamp) {
 			const moved = dynamicPricing.moveConfiguredPriceHistoryEntry(
 				history,
 				configuredPrice,
@@ -1080,10 +1114,11 @@ class Sourceanalytix extends utils.Adapter {
 	 * Reset dynamic cost totals when period start values are reset.
 	 * @param {string} stateID - Source state ID
 	 * @param {number} reading - Current cumulative reading
-	 * @param {object} beforeReset - Date information before reset
+	 * @param {{day: boolean, week: boolean, month: boolean, quarter: boolean, year: boolean}} changes - Periods that rolled over,
+	 *   from getPeriodChanges: comparing weekday or month names would keep totals after exactly one week or year (#1309)
 	 * @param {number} [timestamp] - Effective reset timestamp
 	 */
-	async resetDynamicCostMemory(stateID, reading, beforeReset, timestamp = Date.now()) {
+	async resetDynamicCostMemory(stateID, reading, changes, timestamp = Date.now()) {
 		if (!this.usesHistoricalCostCalculation(stateID)) return;
 
 		const activeState = this.activeStates[stateID];
@@ -1095,11 +1130,11 @@ class Sourceanalytix extends utils.Adapter {
 			lastReading: readingNumber,
 			lastTs: timestamp,
 			totals: {
-				priceDay: beforeReset.day === actualDate.day ? this.getNumberOrDefault(existingTotals.priceDay, 0) : 0,
-				priceWeek: beforeReset.week === actualDate.week ? this.getNumberOrDefault(existingTotals.priceWeek, 0) : 0,
-				priceMonth: beforeReset.month === actualDate.month ? this.getNumberOrDefault(existingTotals.priceMonth, 0) : 0,
-				priceQuarter: beforeReset.quarter === actualDate.quarter ? this.getNumberOrDefault(existingTotals.priceQuarter, 0) : 0,
-				priceYear: beforeReset.year === actualDate.year ? this.getNumberOrDefault(existingTotals.priceYear, 0) : 0,
+				priceDay: changes.day ? 0 : this.getNumberOrDefault(existingTotals.priceDay, 0),
+				priceWeek: changes.week ? 0 : this.getNumberOrDefault(existingTotals.priceWeek, 0),
+				priceMonth: changes.month ? 0 : this.getNumberOrDefault(existingTotals.priceMonth, 0),
+				priceQuarter: changes.quarter ? 0 : this.getNumberOrDefault(existingTotals.priceQuarter, 0),
+				priceYear: changes.year ? 0 : this.getNumberOrDefault(existingTotals.priceYear, 0),
 			}
 		};
 		await this.persistDynamicCostMemory(stateID, activeState.dynamicCosts);
@@ -1427,8 +1462,20 @@ class Sourceanalytix extends utils.Adapter {
 			this.dynamicPriceStates = {};
 			this.priceControlStates = {};
 
+			// Names of the price history states, which several categories could share (#1310)
+			const usedHistoryNames = new Map();
 			for (const priceDef in pricesConfig) {
 				const priceConfig = pricesConfig[priceDef];
+				if (!priceConfig || typeof priceConfig.cat !== 'string' || !priceConfig.cat.trim()) {
+					this.log.error(`Price definition ${Number(priceDef) + 1} has no category and is ignored; sources need the category name to find their price`);
+					continue;
+				}
+				const historyName = this.getPriceHistoryStateName(priceConfig.cat);
+				if (usedHistoryNames.has(historyName)) {
+					this.log.error(`Price definition ${JSON.stringify(priceConfig.cat)} is ignored: ${JSON.stringify(usedHistoryNames.get(historyName))} already uses the same price history. Please give each price definition its own name.`);
+					continue;
+				}
+				usedHistoryNames.set(historyName, priceConfig.cat);
 				const priceSource = ['state', 'selector'].includes(priceConfig.priceSource) ? priceConfig.priceSource : 'static';
 				const priceState = priceSource !== 'static' && typeof priceConfig.priceState === 'string' ? priceConfig.priceState.trim() : '';
 				const configuredUnitPrice = this.parsePriceValue(priceConfig.uPpU);
@@ -1438,9 +1485,13 @@ class Sourceanalytix extends utils.Adapter {
 				let unitPrice = configuredUnitPrice;
 
 				await this.ensurePriceHistoryState(priceConfig.cat);
-				await this.storeConfiguredBasicPrice(priceConfig.cat, basicPrice, priceConfig.validFrom);
+				// Unit price and basic price share one "valid from": when one of them changes, the date
+				// belongs to that change and must not move the history entry of the other one (#1298)
+				const staticUnitPrice = priceSource === 'static' ? configuredUnitPrice : null;
+				const priceChanged = await this.hasConfiguredPriceChanged(priceConfig.cat, staticUnitPrice, basicPrice);
+				await this.storeConfiguredBasicPrice(priceConfig.cat, basicPrice, priceConfig.validFrom, !priceChanged);
 				if (priceSource === 'static' && configuredUnitPrice !== null) {
-					await this.storeConfiguredPrice(priceConfig.cat, configuredUnitPrice, priceConfig.validFrom);
+					await this.storeConfiguredPrice(priceConfig.cat, configuredUnitPrice, priceConfig.validFrom, !priceChanged);
 					unitPrice = await this.getDynamicPriceForTimestamp(priceConfig.cat, Date.now(), configuredUnitPrice);
 				} else if (priceSource !== 'static') {
 					if (priceState) {
@@ -2133,6 +2184,15 @@ class Sourceanalytix extends utils.Adapter {
 							this.log.error(`Please choose a price definition with a matching unit (power sources need an energy unit such as kWh)`);
 						}
 						initError = true;
+					} else {
+						// Total, start values and offset are stored in the unit of the price definition and are not
+						// converted: a definition with another unit would read 48213 kWh as 48213 MWh (#1310)
+						const outputUnit = await this.getOutputUnit(newDeviceName);
+						if (sourceOverview.isOutputUnitChanged(outputUnit, targetUnit, this.unitPriceDef.unitConfig)) {
+							this.log.error(`The data of ${stateID} is stored in ${outputUnit}, but price definition ${customData.selectedPrice} uses ${targetUnit}. Values are not converted between units.`);
+							this.log.error(`Please choose a price definition in ${outputUnit}, or delete the data of this source on the settings page to start again in ${targetUnit}`);
+							initError = true;
+						}
 					}
 				}
 
@@ -2191,7 +2251,8 @@ class Sourceanalytix extends utils.Adapter {
 						ignoreNegativeValues: customData.ignoreNegativeValues === true,
 						incrementValues,
 						maxPowerGap: calculation.normalizeMaxPowerGap(customData.maxPowerGap),
-						threshold: customData.threshold ?? 1,
+						// An emptied threshold uses the default, not 0 (#1312)
+						threshold: calculation.normalizeThreshold(customData.threshold),
 					},
 					calcValues: {
 						cumulativeValue: cumulativeValue,
@@ -2438,7 +2499,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by SourceAnalytix to prevent overwrite
 				// Verify if custom information is available regarding SourceAnalytix
-				if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
+				if (obj.common.custom && sourceOverview.isSourceRunning(obj.common.custom[this.namespace])) {
 
 					// ignore object changes when caused by SA (memory is handled internally)
 					// if (obj.from !== `system.adapter.${this.namespace}`) {
@@ -2541,8 +2602,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * Is called if a subscribed state changes
 	 * @param {string} id of state
 	 * @param {ioBroker.State | null | undefined} state - Changed state, or null when deleted
+	 * @param {boolean} [fromQueue] - Value buffered during a rollover, processed while the block still holds (#1270)
 	 */
-	async onStateChange(id, state) {
+	async onStateChange(id, state, fromQueue = false) {
 		// Handled before the calculation block, a manual rollover must always be possible
 		if (state && !state.ack && id === `${this.namespace}.${recoverPeriodsState}`) {
 			try {
@@ -2554,7 +2616,11 @@ class Sourceanalytix extends utils.Adapter {
 			}
 			return;
 		}
-		if (calcBlock) return; // cancel operation if global calculation block is activate
+		if (calcBlock && !fromQueue) {
+			// Values arriving during a rollover are processed afterwards, not dropped (#1270)
+			if (this.queueStateChanges && state && this.queuedStateChanges.length < 10000) this.queuedStateChanges.push({id, state});
+			return;
+		}
 		try {
 			// Check if a valid state change has been received
 			if (state) {
@@ -2815,7 +2881,7 @@ class Sourceanalytix extends utils.Adapter {
 		if (this.usesHistoricalCostCalculation(stateID)) {
 			await this.ensureDynamicCostMemory(stateID, Number(reading), boundaryTimestamp);
 		}
-		await this.resetDynamicCostMemory(stateID, Number(reading), previousPeriods, boundaryTimestamp);
+		await this.resetDynamicCostMemory(stateID, Number(reading), changes, boundaryTimestamp);
 		// Remember before writing: the resulting objectChange may arrive before the write resolves
 		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.extendForeignObject(stateID, {
@@ -2914,7 +2980,14 @@ class Sourceanalytix extends utils.Adapter {
 			if (this.usesHistoricalCostCalculation(stateID) && activeState.dynamicCosts) {
 				const lastReading = this.parsePriceValue(activeState.dynamicCosts.lastReading);
 				if (lastReading !== null) {
+					// The share is priced here, so the cost tracker only prices the new-day share;
+					// periods that keep running across this boundary still contain it (#1299)
 					activeState.dynamicCosts.lastReading = lastReading + oldPart;
+					const totals = activeState.dynamicCosts.totals || (activeState.dynamicCosts.totals = {});
+					const totalFields = {day: 'priceDay', week: 'priceWeek', month: 'priceMonth', quarter: 'priceQuarter', year: 'priceYear'};
+					for (const [period, field] of Object.entries(totalFields)) {
+						if (!gap.changes[period]) totals[field] = this.getNumberOrDefault(totals[field], 0) + oldCost;
+					}
 					await this.persistDynamicCostMemory(stateID, activeState.dynamicCosts);
 				}
 			}
@@ -3059,6 +3132,25 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Process the source values that arrived while a rollover blocked the calculations (#1270).
+	 */
+	async replayQueuedStateChanges() {
+		try {
+			// Values that arrive meanwhile are queued as well, so they keep their order
+			while (this.queuedStateChanges.length) {
+				const {id, state} = this.queuedStateChanges.shift();
+				await this.onStateChange(id, state, true);
+			}
+		} finally {
+			// A rollover that started meanwhile keeps the block and replays afterwards
+			if (!this.rolloverRunning) {
+				calcBlock = false;
+				this.queueStateChanges = false;
+			}
+		}
+	}
+
+	/**
 	 * Process a calendar rollover for all active sources, from the scheduler,
 	 * the safety check, the button state or a sendTo message.
 	 * @param {string} trigger - What asked for the rollover, used for logging
@@ -3072,6 +3164,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 		this.rolloverRunning = true;
 		calcBlock = true;
+		this.queueStateChanges = true;
 		let recovered = 0;
 		try {
 			const date = new Date();
@@ -3091,7 +3184,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.rolloverRunning = false;
 			if (delay) this.clearTimeout(delay);
 			delay = this.setTimeout(() => {
-				calcBlock = false;
+				this.replayQueuedStateChanges().catch(error => this.errorHandling('[runPeriodRollovers] replay', error));
 			}, 500);
 		}
 
@@ -3127,7 +3220,8 @@ class Sourceanalytix extends utils.Adapter {
 				const previousPower = Number(calcValues.previousReadingWatt);
 				const previousTimestamp = Number(calcValues.previousReadingWattTs);
 				if (!Number.isFinite(previousPower) || !Number.isFinite(previousTimestamp)) continue;
-				if (previousTimestamp >= closingTimestamp || previousTimestamp < previousDayStart) continue;
+				// An interval closed at the previous boundary continues at previousDayStart - 1 (#1301)
+				if (previousTimestamp >= closingTimestamp || previousTimestamp < previousDayStart - 1) continue;
 
 				const previousPeriods = await this.loadPeriodMemory(stateID);
 				if (!previousPeriods) continue;
@@ -3449,7 +3543,7 @@ class Sourceanalytix extends utils.Adapter {
 			const ownTotal = this.usesOwnTotal(stateDetails);
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
 			const date = calculationDate instanceof Date ? calculationDate : new Date();
-			const readingTimestamp = this.getStateChangeTimestamp(stateVal);
+			const readingTimestamp = this.getReadingTimestamp(stateDetails, stateVal);
 
 			this.log.debug(`[calculationHandler] calcValues : ${JSON.stringify(calcValues)}`);
 			this.log.debug(`[calculationHandler] stateDetails : ${JSON.stringify(stateDetails)}`);
@@ -3639,6 +3733,16 @@ class Sourceanalytix extends utils.Adapter {
 				this.rememberSourceCustomUpdate(stateID, startMemory);
 				await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
+			} else {
+				// Sources with their own total and emptied start fields: count from now on instead of
+				// showing 0 until the next rollover of that period (#1302)
+				const missingStarts = calculation.getMissingPeriodStartValues(calcValues, reading);
+				if (Object.keys(missingStarts).length) {
+					Object.assign(calcValues, missingStarts);
+					this.rememberSourceCustomUpdate(stateID, missingStarts);
+					await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: missingStarts}}});
+					this.log.info(`Initialized missing period start values ${Object.keys(missingStarts).join(', ')} for ${stateID} from current reading ${reading}`);
+				}
 			}
 
 			if (!ownTotal) {
@@ -4317,7 +4421,16 @@ class Sourceanalytix extends utils.Adapter {
 		for (const job of jobs) {
 			for (const period of job.periods) summary[period.kind] = (summary[period.kind] || 0) + 1;
 		}
-		const result = {ok: true, from, sources: jobs.map(job => job.stateID), total, periods: summary};
+		// Prices from a datapoint change during a period; the recalculation spreads the consumption
+		// evenly over time and replaces costs that were accumulated per price interval (#1311)
+		const variablePriceSources = jobs
+			.filter(job => {
+				const pricesConfig = this.unitPriceDef && this.unitPriceDef.pricesConfig || {};
+				const priceConfig = pricesConfig[this.activeStates[job.stateID].stateDetails.stateType];
+				return !!priceConfig && priceConfig.priceSource !== undefined && priceConfig.priceSource !== 'static';
+			})
+			.map(job => job.stateID);
+		const result = {ok: true, from, sources: jobs.map(job => job.stateID), total, periods: summary, variablePriceSources};
 		if (dryRun || total === 0) return result;
 
 		await this.ensureCostRecalculationState();
@@ -4386,6 +4499,43 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Unit the data of an output folder is stored in, from its cumulativeReading object (#1310).
+	 * @param {string | null | undefined} deviceName - Output folder
+	 * @returns {Promise<string | null>} Stored unit, or null for a new folder
+	 */
+	async getOutputUnit(deviceName) {
+		if (!deviceName) return null;
+		try {
+			const object = await this.getObjectAsync(`${deviceName}.cumulativeReading`);
+			return object && object.common && typeof object.common.unit === 'string' && object.common.unit ? object.common.unit : null;
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * Remove the SourceAnalytix settings of a source that has no output folder (#1312).
+	 * @param {string} sourceId - Source state ID
+	 * @param {boolean} dryRun - Only return what would be deleted
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async deleteSourceSettingsOnly(sourceId, dryRun) {
+		const sourceObject = await this.getForeignObjectAsync(sourceId);
+		const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
+		if (!custom) return {error: 'outputNotFound', message: 'No output folder found for this source'};
+		const result = {ok: true, outputId: null, source: sourceId, states: 0, years: [], cumulative: null};
+		if (dryRun) return result;
+		if (this.activeStates[sourceId]) {
+			this.stopStatisticsJsonUpdates(sourceId);
+			delete this.activeStates[sourceId];
+			this.unsubscribeForeignStates(sourceId);
+		}
+		await this.extendForeignObjectAsync(sourceId, {common: {custom: {[this.namespace]: null}}});
+		this.log.info(`Removed the settings of ${sourceId}, it had no output folder`);
+		return result;
+	}
+
+	/**
 	 * Action "Delete data" (#1265): deactivate the source and remove its output folder.
 	 * Works for active sources and for folders left behind by removed or deactivated ones.
 	 * @param {unknown} source - Source state ID
@@ -4410,18 +4560,21 @@ class Sourceanalytix extends utils.Adapter {
 		} else if (typeof requestedOutputId === 'string' && requestedOutputId) {
 			deviceName = requestedOutputId;
 		}
-		if (!deviceName || !/^[^.*\s]+$/.test(deviceName)) {
-			return {error: 'outputNotFound', message: 'No output folder found for this source'};
+		// Only output folders of sources: never info, priceHistory and the other reserved folders (#1305)
+		const reserved = !!deviceName && outputId.validateOutputId(deviceName).reason === 'is reserved by SourceAnalytix';
+		const deviceObject = deviceName && !reserved && /^[^.*\s]+$/.test(deviceName) ? await this.getObjectAsync(deviceName) : null;
+		if (!deviceObject || deviceObject.type !== 'device') {
+			// A source enabled without ever being initialised has settings but no folder (#1312)
+			if (sourceId && !reserved) return await this.deleteSourceSettingsOnly(sourceId, dryRun);
+			return {error: 'outputNotFound', message: deviceName ? `Output folder ${deviceName} does not exist` : 'No output folder found for this source'};
 		}
 
 		const root = this.getFullOutputRoot(deviceName);
 		const states = await this.getOutputTreeStates(deviceName);
-		const deviceObject = await this.getObjectAsync(deviceName);
-		const sourceState = sourceId || (deviceObject && deviceObject.native && deviceObject.native.sourceState) || null;
+		const sourceState = sourceId || (deviceObject.native && deviceObject.native.sourceState) || null;
 		const summary = sourceActions.summarizeOutputTree(root, Object.keys(states));
 		const cumulative = states[`${root}.cumulativeReading`] ? states[`${root}.cumulativeReading`].val : null;
 		const result = {ok: true, outputId: deviceName, source: sourceState, states: summary.states, years: summary.years, cumulative};
-		if (!deviceObject && summary.states === 0) return {error: 'outputNotFound', message: `Output folder ${deviceName} does not exist`};
 		if (dryRun) return result;
 
 		if (sourceState) {
@@ -4470,7 +4623,7 @@ class Sourceanalytix extends utils.Adapter {
 			const summary = {
 				id: row.id,
 				name: (custom.alias && String(custom.alias).trim()) || (common && (typeof common.name === 'object' ? common.name.de || common.name.en : common.name)) || row.id,
-				enabled: !!custom.enabled,
+				enabled: sourceOverview.isSourceRunning(custom),
 				active: !!details,
 				sourceExists: !!sourceObject,
 				sourceUnit: common && common.unit ? common.unit : null,
@@ -4497,6 +4650,7 @@ class Sourceanalytix extends utils.Adapter {
 				diagnostics: sourceObject ? sourceOverview.diagnoseSourceConfig({
 					custom,
 					unit: common && common.unit,
+					outputUnit: await this.getOutputUnit(outputIdValue),
 					pricesConfig: this.unitPriceDef.pricesConfig,
 					unitConfig: this.unitPriceDef.unitConfig,
 				}) : [],
@@ -4576,21 +4730,29 @@ class Sourceanalytix extends utils.Adapter {
 		const sourceObject = await this.getForeignObjectAsync(source);
 		if (!sourceObject || sourceObject.type !== 'state') return {error: 'sourceNotFound', message: `${source} is not a state`};
 		const current = sourceObject.common.custom && sourceObject.common.custom[this.namespace] || null;
+		// Only known settings: calculation memory is changed by the adapter and its actions only,
+		// unknown fields are not written to common.custom (#1305)
+		const memoryKeys = ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit'];
+		const unknownKeys = Object.keys(settings).filter(key => !memoryKeys.includes(key) && !sourceOverview.isEditableSourceSetting(key));
+		if (unknownKeys.length) return {error: 'invalidSettings', message: `Unknown settings: ${unknownKeys.join(', ')}`, errors: Object.fromEntries(unknownKeys.map(key => [key, 'unknown']))};
 		const update = {...settings};
-		// Calculation memory is only changed by the adapter and its actions
-		for (const key of ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit']) delete update[key];
+		for (const key of memoryKeys) delete update[key];
 		const merged = {...(current || {}), ...update};
 		const errors = Object.fromEntries([]);
 		if (!merged.selectedPrice || !this.unitPriceDef.pricesConfig[merged.selectedPrice]) errors.selectedPrice = 'priceMissing';
 		const findings = sourceOverview.diagnoseSourceConfig({
 			custom: merged,
 			unit: sourceObject.common.unit,
+			outputUnit: await this.getOutputUnit(this.activeStates[source] && this.activeStates[source].stateDetails ? this.activeStates[source].stateDetails.deviceName : outputId.resolveOutputId(current && current.outputId, source)),
 			pricesConfig: this.unitPriceDef.pricesConfig,
 			unitConfig: this.unitPriceDef.unitConfig,
 		});
 		for (const finding of findings) {
 			if (finding.code.startsWith('unit')) errors.selectedUnit = finding.code;
+			if (finding.code === 'priceUnitChanged') errors.selectedPrice = finding.code;
 		}
+		// An emptied technical ID would move the data back to the legacy folder name (#1312)
+		if (update.outputId === '' && current && current.outputId) errors.outputId = 'invalid';
 		if (update.outputId !== undefined && update.outputId !== '') {
 			const validation = outputId.validateResolvedOutputId(update.outputId, source);
 			if (!validation.valid) {
@@ -4618,7 +4780,9 @@ class Sourceanalytix extends utils.Adapter {
 			meter_values: true,
 			deviceResetLogicEnabled: true,
 		};
-		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {...defaults, ...update, enabled: update.enabled ?? (current ? current.enabled : true)}}}});
+		// Enabling through the wizard also resumes a paused source (#1306)
+		const resume = update.enabled === true ? {paused: false} : {};
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {...defaults, ...update, ...resume, enabled: update.enabled ?? (current ? current.enabled : true)}}}});
 		this.log.info(`${current ? 'Changed' : 'Created'} SourceAnalytix settings of ${source} from the settings page`);
 		return {ok: true, created: !current};
 	}
@@ -4634,7 +4798,9 @@ class Sourceanalytix extends utils.Adapter {
 		const sourceObject = await this.getForeignObjectAsync(source);
 		const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
 		if (!custom) return {error: 'notConfigured', message: `${source} has no SourceAnalytix settings`};
-		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {enabled: enabled === true}}}});
+		// Pausing keeps enabled: Admin removes custom settings with enabled false when the
+		// datapoint is saved in the Objects tab, with offset, start values and output ID (#1306)
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {enabled: true, paused: enabled !== true}}}});
 		this.log.info(`${enabled === true ? 'Activated' : 'Deactivated'} ${source} from the settings page`);
 		return {ok: true, enabled: enabled === true};
 	}
@@ -4691,6 +4857,8 @@ class Sourceanalytix extends utils.Adapter {
 			checkedAt: Date.now(),
 			priceDefinitions: this.getPriceDefinitionList(),
 			units: Object.keys(this.unitPriceDef.unitConfig),
+			// Category and power of ten of each unit, so the wizard checks units like the adapter (#1313)
+			unitInfo: {...this.unitPriceDef.unitConfig},
 			currency: useCurrency,
 		};
 	}
@@ -4732,85 +4900,98 @@ class Sourceanalytix extends utils.Adapter {
 
 	//Function to handle messages from State settings and provide Unit and Price definitions
 	async onMessage(obj) {
+		if (!obj) return;
+		// Every command answers, also when it fails or is unknown (#1305)
+		try {
+			await this.handleMessage(obj);
+		} catch (error) {
+			this.errorHandling(`[onMessage] ${obj.command}`, error);
+			if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'failed', message: error instanceof Error ? error.message : String(error)}, obj.callback);
+		}
+	}
 
-		if (obj) {
-			switch (obj.command) {
-				case 'getPriceDefinitions':
-					if (obj.callback) {
+	/**
+	 * @param {ioBroker.Message} obj - Message from Admin or a script
+	 */
+	async handleMessage(obj) {
+		switch (obj.command) {
+			case 'getPriceDefinitions':
+				if (obj.callback) {
 
-						const priceDefinitionArray = [];
-						for (const priceDefinition in this.unitPriceDef.pricesConfig){
-							priceDefinitionArray.push({label: priceDefinition, value: priceDefinition});
-						}
-						this.sendTo(obj.from, obj.command, priceDefinitionArray, obj.callback);
+					const priceDefinitionArray = [];
+					for (const priceDefinition in this.unitPriceDef.pricesConfig){
+						priceDefinitionArray.push({label: priceDefinition, value: priceDefinition});
 					}
-					break;
+					this.sendTo(obj.from, obj.command, priceDefinitionArray, obj.callback);
+				}
+				break;
 
-				case 'getUnits':
-					if (obj.callback) {
+			case 'getUnits':
+				if (obj.callback) {
 
-						const unitArray = [];
+					const unitArray = [];
 
-						unitArray.push({label: 'Detect automatically', value: 'Detect automatically'});
-						for (const priceDefinition in this.unitPriceDef.unitConfig){
-							unitArray.push({label: priceDefinition, value: priceDefinition});
-						}
-						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+					unitArray.push({label: 'Detect automatically', value: 'Detect automatically'});
+					for (const priceDefinition in this.unitPriceDef.unitConfig){
+						unitArray.push({label: priceDefinition, value: priceDefinition});
 					}
-					break;
+					this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+				}
+				break;
 
-				case 'getStartValueContext':
-					if (obj.callback) {
-						const message = obj.message && typeof obj.message === 'object' ? obj.message : {};
-						this.sendTo(obj.from, obj.command, await this.getStartValueContext(message.id), obj.callback);
-					}
-					break;
+			case 'getStartValueContext':
+				if (obj.callback) {
+					const message = obj.message && typeof obj.message === 'object' ? obj.message : {};
+					this.sendTo(obj.from, obj.command, await this.getStartValueContext(message.id), obj.callback);
+				}
+				break;
 
-				case 'getBasicRateSources':
-					if (obj.callback) {
-						this.sendTo(obj.from, obj.command, this.getBasicRateSources(), obj.callback);
-					}
-					break;
+			case 'getBasicRateSources':
+				if (obj.callback) {
+					this.sendTo(obj.from, obj.command, this.getBasicRateSources(), obj.callback);
+				}
+				break;
 
-				case 'getUsedOutputIds':
-					if (obj.callback) {
-						this.sendTo(obj.from, obj.command, await this.getUsedOutputIds(), obj.callback);
-					}
-					break;
+			case 'getUsedOutputIds':
+				if (obj.callback) {
+					this.sendTo(obj.from, obj.command, await this.getUsedOutputIds(), obj.callback);
+				}
+				break;
 
-				case 'recoverPeriods': {
-					// Optional source: only this source, otherwise all sources (#1292)
-					const source = obj.message && typeof obj.message === 'object' && typeof obj.message.source === 'string' ? obj.message.source : undefined;
-					if (source && !this.activeStates[source]) {
-						if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'sourceNotActive', message: `${source} is not active`}, obj.callback);
-						break;
-					}
-					this.log.info(`Period rollover${source ? ` of ${source}` : ''} requested by ${obj.from}`);
-					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`, source);
-					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+			case 'recoverPeriods': {
+				// Optional source: only this source, otherwise all sources (#1292)
+				const source = obj.message && typeof obj.message === 'object' && typeof obj.message.source === 'string' ? obj.message.source : undefined;
+				if (source && !this.activeStates[source]) {
+					if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'sourceNotActive', message: `${source} is not active`}, obj.callback);
 					break;
 				}
-
-				case 'getSources':
-				case 'checkProblems':
-				case 'saveSource':
-				case 'setSourceEnabled':
-				case 'findCandidates':
-				case 'setCumulative':
-				case 'meterSwap':
-				case 'recalcCosts':
-				case 'deleteSourceData': {
-					let response;
-					try {
-						response = await this.handleActionMessage(obj.command, obj.message || {});
-					} catch (error) {
-						this.errorHandling(`[onMessage] ${obj.command}`, error);
-						response = {error: 'failed', message: error instanceof Error ? error.message : String(error)};
-					}
-					if (obj.callback) this.sendTo(obj.from, obj.command, response, obj.callback);
-					break;
-				}
+				this.log.info(`Period rollover${source ? ` of ${source}` : ''} requested by ${obj.from}`);
+				const recovered = await this.runPeriodRollovers(`message from ${obj.from}`, source);
+				if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+				break;
 			}
+
+			case 'getSources':
+			case 'checkProblems':
+			case 'saveSource':
+			case 'setSourceEnabled':
+			case 'findCandidates':
+			case 'setCumulative':
+			case 'meterSwap':
+			case 'recalcCosts':
+			case 'deleteSourceData': {
+				let response;
+				try {
+					response = await this.handleActionMessage(obj.command, obj.message || {});
+				} catch (error) {
+					this.errorHandling(`[onMessage] ${obj.command}`, error);
+					response = {error: 'failed', message: error instanceof Error ? error.message : String(error)};
+				}
+				if (obj.callback) this.sendTo(obj.from, obj.command, response, obj.callback);
+				break;
+			}
+			default:
+				if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'unknownCommand', message: `Unknown command ${obj.command}`}, obj.callback);
 		}
 	}
 

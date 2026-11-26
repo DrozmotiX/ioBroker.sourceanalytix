@@ -72,3 +72,12 @@ describe('maximum gap for power sources (#1266)', () => {
 		assert.equal(logs.info.length, 0);
 	});
 });
+
+describe('price timestamp of power readings (#1300)', () => {
+	it('uses ts for integrated sources and lc for meters', () => {
+		const adapter = Object.create(Sourceanalytix.prototype);
+		const state = {val: 2000, ack: true, ts: 4 * 3_600_000, lc: 3_600_000};
+		assert.equal(adapter.getReadingTimestamp({stateUnit: 'W'}, state), 4 * 3_600_000);
+		assert.equal(adapter.getReadingTimestamp({stateUnit: 'kWh'}, state), 3_600_000);
+	});
+});

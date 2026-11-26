@@ -29,6 +29,11 @@ describe('source configuration check (#1269)', () => {
 		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'gas'}, unit: 'kWh', pricesConfig, unitConfig}).map(f => f.code), ['unitIncompatible']);
 	});
 
+	it('accepts a counter with a quantity price when pulses per unit are set (#1303)', () => {
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power', selectedUnit: 'piece', pulsesPerUnit: 1000}, unit: '', pricesConfig, unitConfig}), []);
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power', selectedUnit: 'piece'}, unit: '', pricesConfig, unitConfig}).map(f => f.code), ['unitIncompatible']);
+	});
+
 	it('uses a manually selected unit', () => {
 		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'gas', selectedUnit: 'm³'}, unit: '', pricesConfig, unitConfig}), []);
 	});
@@ -51,12 +56,17 @@ describe('start value check (#1267, #1269)', () => {
 	it('requires a later period to start at least as high as an earlier one', () => {
 		const errors = checkStartValues({start_day: 900, start_week: 950}, 1000, date);
 		assert.deepEqual(errors.start_week, {code: 'order', other: 'start_day', otherValue: 900});
+		// The later period carries the error as well, so changing only start_day is blocked too (#1304)
+		assert.deepEqual(errors.start_day, {code: 'orderBelow', other: 'start_week', otherValue: 950});
 	});
 
 	it('places the week by its first day', () => {
 		// Monday 02.11.2026 – week started in November, after the month
 		const monday = new Date(2026, 10, 2, 9);
-		assert.deepEqual(checkStartValues({start_week: 900, start_month: 950}, 1000, monday), {start_month: {code: 'order', other: 'start_week', otherValue: 900}});
+		assert.deepEqual(checkStartValues({start_week: 900, start_month: 950}, 1000, monday), {
+			start_month: {code: 'order', other: 'start_week', otherValue: 900},
+			start_week: {code: 'orderBelow', other: 'start_month', otherValue: 950},
+		});
 		// Sunday 01.11.2026 – week started in October, before the month
 		const sunday = new Date(2026, 10, 1, 9);
 		assert.deepEqual(checkStartValues({start_week: 900, start_month: 950}, 1000, sunday), {});
@@ -138,12 +148,41 @@ describe('saveSource and setSourceEnabled (#1269)', () => {
 		assert.equal(objects.get('shelly.0.energy').common.custom, undefined);
 	});
 
+	it('rejects unknown settings fields (#1305)', async () => {
+		const {adapter, objects} = createHarness();
+		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh'}});
+		const result = await adapter.handleActionMessage('saveSource', {source: 'shelly.0.energy', settings: {selectedPrice: 'power', '02_previousWeek': false, history: {enabled: true}}});
+		assert.equal(result.error, 'invalidSettings');
+		assert.deepEqual(result.errors, {history: 'unknown'});
+		assert.equal(objects.get('shelly.0.energy').common.custom, undefined);
+	});
+
+	it('rejects an emptied technical ID (#1312)', async () => {
+		const {adapter, objects} = createHarness();
+		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh', custom: {'sourceanalytix.0': {enabled: true, selectedPrice: 'power', outputId: 'dryer'}}}});
+		const result = await adapter.handleActionMessage('saveSource', {source: 'shelly.0.energy', settings: {outputId: ''}});
+		assert.equal(result.error, 'invalidSettings');
+		assert.deepEqual(result.errors, {outputId: 'invalid'});
+	});
+
 	it('deactivates and activates a source and keeps the settings', async () => {
 		const {adapter, objects} = createHarness();
 		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh', custom: {'sourceanalytix.0': {enabled: true, selectedPrice: 'power'}}}});
 		await adapter.handleActionMessage('setSourceEnabled', {source: 'shelly.0.energy', enabled: false});
-		assert.deepEqual(objects.get('shelly.0.energy').common.custom['sourceanalytix.0'], {enabled: false, selectedPrice: 'power'});
+		// Paused, enabled stays true: Admin would remove custom settings with enabled false (#1306)
+		assert.deepEqual(objects.get('shelly.0.energy').common.custom['sourceanalytix.0'], {enabled: true, paused: true, selectedPrice: 'power'});
+		await adapter.handleActionMessage('setSourceEnabled', {source: 'shelly.0.energy', enabled: true});
+		assert.deepEqual(objects.get('shelly.0.energy').common.custom['sourceanalytix.0'], {enabled: true, paused: false, selectedPrice: 'power'});
 		const missing = await adapter.handleActionMessage('setSourceEnabled', {source: 'x.0.y', enabled: true});
 		assert.equal(missing.error, 'notConfigured');
+	});
+});
+
+describe('price definition with another unit than the stored data (#1310)', () => {
+	it('is reported, because the values are not converted', () => {
+		const findings = diagnoseSourceConfig({custom: {selectedPrice: 'power'}, unit: 'Wh', outputUnit: 'MWh', pricesConfig, unitConfig});
+		assert.deepEqual(findings, [{code: 'priceUnitChanged', severity: 'error', from: 'MWh', to: 'kWh'}]);
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power'}, unit: 'Wh', outputUnit: 'kwh', pricesConfig, unitConfig}), []);
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power'}, unit: 'Wh', outputUnit: null, pricesConfig, unitConfig}), []);
 	});
 });
