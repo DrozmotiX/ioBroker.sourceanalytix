@@ -144,7 +144,7 @@ class Sourceanalytix extends utils.Adapter {
 							this.log.debug(`SourceAnalytix configuration found for ${stateID}`);
 
 							// Check if custom object is enabled for SourceAnalytix
-							if(customStateArray.rows[index].value[this.namespace].enabled){
+							if(sourceOverview.isSourceRunning(customStateArray.rows[index].value[this.namespace])){
 								// Prepare array in constructor for further processing
 								this.activeStates[stateID] = {};
 								this.log.debug(`SourceAnalytix enabled state found ${stateID}`);
@@ -2477,7 +2477,7 @@ class Sourceanalytix extends utils.Adapter {
 
 				// if (obj.from === `system.adapter.${this.namespace}`) return; // Ignore object change if cause by SourceAnalytix to prevent overwrite
 				// Verify if custom information is available regarding SourceAnalytix
-				if (obj.common.custom && obj.common.custom[this.namespace] && obj.common.custom[this.namespace].enabled) {
+				if (obj.common.custom && sourceOverview.isSourceRunning(obj.common.custom[this.namespace])) {
 
 					// ignore object changes when caused by SA (memory is handled internally)
 					// if (obj.from !== `system.adapter.${this.namespace}`) {
@@ -4577,7 +4577,7 @@ class Sourceanalytix extends utils.Adapter {
 			const summary = {
 				id: row.id,
 				name: (custom.alias && String(custom.alias).trim()) || (common && (typeof common.name === 'object' ? common.name.de || common.name.en : common.name)) || row.id,
-				enabled: !!custom.enabled,
+				enabled: sourceOverview.isSourceRunning(custom),
 				active: !!details,
 				sourceExists: !!sourceObject,
 				sourceUnit: common && common.unit ? common.unit : null,
@@ -4729,7 +4729,9 @@ class Sourceanalytix extends utils.Adapter {
 			meter_values: true,
 			deviceResetLogicEnabled: true,
 		};
-		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {...defaults, ...update, enabled: update.enabled ?? (current ? current.enabled : true)}}}});
+		// Enabling through the wizard also resumes a paused source (#1306)
+		const resume = update.enabled === true ? {paused: false} : {};
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {...defaults, ...update, ...resume, enabled: update.enabled ?? (current ? current.enabled : true)}}}});
 		this.log.info(`${current ? 'Changed' : 'Created'} SourceAnalytix settings of ${source} from the settings page`);
 		return {ok: true, created: !current};
 	}
@@ -4745,7 +4747,9 @@ class Sourceanalytix extends utils.Adapter {
 		const sourceObject = await this.getForeignObjectAsync(source);
 		const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
 		if (!custom) return {error: 'notConfigured', message: `${source} has no SourceAnalytix settings`};
-		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {enabled: enabled === true}}}});
+		// Pausing keeps enabled: Admin removes custom settings with enabled false when the
+		// datapoint is saved in the Objects tab, with offset, start values and output ID (#1306)
+		await this.extendForeignObjectAsync(source, {common: {custom: {[this.namespace]: {enabled: true, paused: enabled !== true}}}});
 		this.log.info(`${enabled === true ? 'Activated' : 'Deactivated'} ${source} from the settings page`);
 		return {ok: true, enabled: enabled === true};
 	}

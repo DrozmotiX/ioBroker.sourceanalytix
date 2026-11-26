@@ -161,7 +161,10 @@ describe('saveSource and setSourceEnabled (#1269)', () => {
 		const {adapter, objects} = createHarness();
 		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh', custom: {'sourceanalytix.0': {enabled: true, selectedPrice: 'power'}}}});
 		await adapter.handleActionMessage('setSourceEnabled', {source: 'shelly.0.energy', enabled: false});
-		assert.deepEqual(objects.get('shelly.0.energy').common.custom['sourceanalytix.0'], {enabled: false, selectedPrice: 'power'});
+		// Paused, enabled stays true: Admin would remove custom settings with enabled false (#1306)
+		assert.deepEqual(objects.get('shelly.0.energy').common.custom['sourceanalytix.0'], {enabled: true, paused: true, selectedPrice: 'power'});
+		await adapter.handleActionMessage('setSourceEnabled', {source: 'shelly.0.energy', enabled: true});
+		assert.deepEqual(objects.get('shelly.0.energy').common.custom['sourceanalytix.0'], {enabled: true, paused: false, selectedPrice: 'power'});
 		const missing = await adapter.handleActionMessage('setSourceEnabled', {source: 'x.0.y', enabled: true});
 		assert.equal(missing.error, 'notConfigured');
 	});
