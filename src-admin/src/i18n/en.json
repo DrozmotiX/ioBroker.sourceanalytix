@@ -299,7 +299,7 @@
     "sa_suggest_rolloverMissed": "\"Recover periods\".",
     "sa_suggest_sourceDeleted": "Deactivate or delete the data. Switching the datapoint is planned.",
     "sa_suggest_startValue": "Check the start values: at most the current reading, in the calculation unit.",
-    "sa_suggest_stringValue": "Since v0.6.2 SourceAnalytix reads numbers from text itself. A datapoint of type number is better.",
+    "sa_suggest_stringValue": "Since v0.7.0 SourceAnalytix reads numbers from text itself. A datapoint of type number is better.",
     "sa_suggest_unitIncompatible": "Adjust unit or price definition.",
     "sa_suggest_unitMissing": "Select the unit.",
     "sa_sumAllSources": "Sum of all sources",

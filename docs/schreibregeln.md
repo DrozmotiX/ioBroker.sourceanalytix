@@ -22,7 +22,7 @@ Die Arbeitsdaten liegen im Ordner `docs-project/` (nicht im Git):
 | `analysis/code-findings.md` | Bekannte Fehler im Code mit Datei und Zeile |
 | `inventory/features.json` | Alle Funktionen mit Code-Stelle und Stolperfallen |
 | `corpus/questions.json` | Die Originalfragen mit Link zum Forenbeitrag oder Issue |
-| `issues/issue-entwuerfe.md` | Welche Fehler in v0.6.2 und welche Funktionen in v0.7.0 kommen (Issues #1253–#1273) |
+| `issues/issue-entwuerfe.md` | Welche Fehler in v0.7.0 und welche Funktionen in v0.7.0 kommen (Issues #1253–#1273) |
 
 Jeder Abschnitt im Gerüst trägt zwei unsichtbare Kommentare: `abschnitt:` mit Cluster- und Feature-IDs und `muss beantworten:` mit dem Pflichtinhalt. Beide bleiben stehen. Über die Feature-IDs prüft später ein Skript bei jedem Release, ob sich die belegten Code-Stellen geändert haben.
 
@@ -50,7 +50,7 @@ Die Startwerte trägst du in der Zieleinheit ein, also in kWh, wenn die Werte in
 | Forum | `forum=603844` | Beitrag `https://forum.iobroker.net/post/603844` |
 | Entscheidung | `interview=13b` | Antwort im Entwickler-Interview |
 
-Mehrere Quellen werden mit `;` getrennt. Code-Stellen beziehen sich auf v0.6.1, solange nichts anderes dasteht. Für Verhalten ab v0.6.2 oder v0.7.0 ist das Issue oder der Pull Request die Quelle.
+Mehrere Quellen werden mit `;` getrennt. Code-Stellen beziehen sich auf v0.6.1, solange nichts anderes dasteht. Für Verhalten ab v0.7.0 oder v0.7.0 ist das Issue oder der Pull Request die Quelle.
 
 Wenn die Nutzer etwas wissen müssen, darf ein Issue zusätzlich sichtbar verlinkt werden, z. B. „Der Fehler ist in [#1253](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1253) beschrieben."
 
@@ -58,7 +58,7 @@ Wenn die Nutzer etwas wissen müssen, darf ein Issue zusätzlich sichtbar verlin
 
 - Die Doku beschreibt **v0.6.1** als Grundstand.
 - Verhalten, das erst später gilt, steht als eigener Absatz mit fettem Anfang:
-  - `**Ab v0.6.2:** …` für Fehlerbehebungen aus #1253–#1264
+  - `**Ab v0.7.0:** …` für Fehlerbehebungen aus #1253–#1264
   - `**Ab v0.7.0:** …` für neue Funktionen aus #1265–#1269
 - Für alte Fehler steht `**Bis v0.6.1:** …` und daneben, ab wann es behoben ist.
 - Geplante Funktionen ohne Version (#1270–#1273) werden nicht beschrieben. Höchstens ein Satz „ist geplant" mit Link zum Issue.

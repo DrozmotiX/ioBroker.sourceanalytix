@@ -33,7 +33,7 @@ Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 > Was schiefgehen kann und wie man es vermeidet.
 <!-- quelle: … -->
 
-**Ab v0.6.2:** Was sich mit der Fehlerbehebung ändert ([#1253](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1253)).
+**Ab v0.7.0:** Was sich mit der Fehlerbehebung ändert ([#1253](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1253)).
 <!-- quelle: issue=#1253 -->
 
 **Siehe auch:** [Passender Abschnitt](../05.hintergrund/02.zaehler-reset.md#device-reset-detected-mean-reset)
@@ -43,7 +43,7 @@ Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 
 - [Schreibregeln](schreibregeln.md) Abschnitt 6 eingehalten: kein Frontmatter, kein `:::`, keine Fußnoten; Hinweise nur als `> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` oder `[!CAUTION]`.
 - Jeder Absatz, jede Liste und jede Tabelle mit Aussage hat einen `quelle:`-Kommentar.
-- Jede Versionsangabe nennt die Nummer (`v0.6.2`, `v0.7.0`).
+- Jede Versionsangabe nennt die Nummer (`v0.6.1`, `v0.7.0`).
 - Alles aus `muss beantworten:` ist beantwortet.
 - Links zeigen auf `.md`-Dateien und feste Anker. Sie funktionieren in der GitHub-Ansicht.
 - Keine Benutzernamen, Geräte-IDs, IPs oder MACs.

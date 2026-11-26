@@ -299,7 +299,7 @@
     "sa_suggest_rolloverMissed": "„Perioden nachholen“.",
     "sa_suggest_sourceDeleted": "Deaktivieren oder Daten löschen. Datenpunkt wechseln ist geplant.",
     "sa_suggest_startValue": "Startwerte prüfen: höchstens der aktuelle Stand, in der Rechen-Einheit.",
-    "sa_suggest_stringValue": "Seit v0.6.2 liest SourceAnalytix Zahlen aus Text selbst. Besser ist ein Datenpunkt vom Typ Zahl.",
+    "sa_suggest_stringValue": "Seit v0.7.0 liest SourceAnalytix Zahlen aus Text selbst. Besser ist ein Datenpunkt vom Typ Zahl.",
     "sa_suggest_unitIncompatible": "Einheit oder Preisdefinition anpassen.",
     "sa_suggest_unitMissing": "Einheit auswählen.",
     "sa_sumAllSources": "Summe über alle Quellen",
