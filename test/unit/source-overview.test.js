@@ -148,6 +148,15 @@ describe('saveSource and setSourceEnabled (#1269)', () => {
 		assert.equal(objects.get('shelly.0.energy').common.custom, undefined);
 	});
 
+	it('rejects unknown settings fields (#1305)', async () => {
+		const {adapter, objects} = createHarness();
+		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh'}});
+		const result = await adapter.handleActionMessage('saveSource', {source: 'shelly.0.energy', settings: {selectedPrice: 'power', '02_previousWeek': false, history: {enabled: true}}});
+		assert.equal(result.error, 'invalidSettings');
+		assert.deepEqual(result.errors, {history: 'unknown'});
+		assert.equal(objects.get('shelly.0.energy').common.custom, undefined);
+	});
+
 	it('deactivates and activates a source and keeps the settings', async () => {
 		const {adapter, objects} = createHarness();
 		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh', custom: {'sourceanalytix.0': {enabled: true, selectedPrice: 'power'}}}});

@@ -356,4 +356,36 @@ describe('instant actions on the adapter', () => {
 		assert.equal(customRemoved, true);
 		assert.equal(adapter.activeStates[stateID], undefined);
 	});
+
+	it('never deletes reserved folders such as the price history (#1305)', async () => {
+		const {adapter} = createHarness();
+		let deleted = null;
+		adapter.deleteOutputTree = async deviceName => { deleted = deviceName; };
+		adapter.getObjectAsync = async () => null;
+		adapter.getOutputTreeStates = async () => ({'sourceanalytix.0.priceHistory.power': {val: '[]'}});
+		for (const reserved of ['priceHistory', 'basicPriceHistory', 'priceDefinitions', 'info']) {
+			const result = await adapter.handleActionMessage('deleteSourceData', {outputId: reserved});
+			assert.equal(result.error, 'outputNotFound', reserved);
+		}
+		// A folder that is not a source device is refused as well
+		adapter.getObjectAsync = async () => ({type: 'channel', native: {}});
+		assert.equal((await adapter.handleActionMessage('deleteSourceData', {outputId: 'house'})).error, 'outputNotFound');
+		assert.equal(deleted, null);
+	});
+
+	it('removes the settings of a source that never got an output folder (#1312)', async () => {
+		const {adapter, objects} = createHarness();
+		objects.set(stateID, {common: {custom: {'sourceanalytix.0': {enabled: true}}}});
+		adapter.getForeignObjectAsync = async id => objects.get(id) || null;
+		adapter.getDevicesAsync = async () => [];
+		adapter.getObjectAsync = async () => null;
+		let customRemoved = false;
+		adapter.extendForeignObjectAsync = async (_id, extension) => { customRemoved = extension.common.custom['sourceanalytix.0'] === null; };
+		const preview = await adapter.handleActionMessage('deleteSourceData', {source: stateID, dryRun: true});
+		assert.equal(preview.ok, true);
+		assert.equal(preview.states, 0);
+		assert.equal(customRemoved, false);
+		await adapter.handleActionMessage('deleteSourceData', {source: stateID});
+		assert.equal(customRemoved, true);
+	});
 });

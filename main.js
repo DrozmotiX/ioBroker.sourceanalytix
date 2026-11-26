@@ -4468,6 +4468,28 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Remove the SourceAnalytix settings of a source that has no output folder (#1312).
+	 * @param {string} sourceId - Source state ID
+	 * @param {boolean} dryRun - Only return what would be deleted
+	 * @returns {Promise<object>} Result for the message callback
+	 */
+	async deleteSourceSettingsOnly(sourceId, dryRun) {
+		const sourceObject = await this.getForeignObjectAsync(sourceId);
+		const custom = sourceObject && sourceObject.common && sourceObject.common.custom && sourceObject.common.custom[this.namespace];
+		if (!custom) return {error: 'outputNotFound', message: 'No output folder found for this source'};
+		const result = {ok: true, outputId: null, source: sourceId, states: 0, years: [], cumulative: null};
+		if (dryRun) return result;
+		if (this.activeStates[sourceId]) {
+			this.stopStatisticsJsonUpdates(sourceId);
+			delete this.activeStates[sourceId];
+			this.unsubscribeForeignStates(sourceId);
+		}
+		await this.extendForeignObjectAsync(sourceId, {common: {custom: {[this.namespace]: null}}});
+		this.log.info(`Removed the settings of ${sourceId}, it had no output folder`);
+		return result;
+	}
+
+	/**
 	 * Action "Delete data" (#1265): deactivate the source and remove its output folder.
 	 * Works for active sources and for folders left behind by removed or deactivated ones.
 	 * @param {unknown} source - Source state ID
@@ -4492,18 +4514,21 @@ class Sourceanalytix extends utils.Adapter {
 		} else if (typeof requestedOutputId === 'string' && requestedOutputId) {
 			deviceName = requestedOutputId;
 		}
-		if (!deviceName || !/^[^.*\s]+$/.test(deviceName)) {
-			return {error: 'outputNotFound', message: 'No output folder found for this source'};
+		// Only output folders of sources: never info, priceHistory and the other reserved folders (#1305)
+		const reserved = !!deviceName && outputId.validateOutputId(deviceName).reason === 'is reserved by SourceAnalytix';
+		const deviceObject = deviceName && !reserved && /^[^.*\s]+$/.test(deviceName) ? await this.getObjectAsync(deviceName) : null;
+		if (!deviceObject || deviceObject.type !== 'device') {
+			// A source enabled without ever being initialised has settings but no folder (#1312)
+			if (sourceId && !reserved) return await this.deleteSourceSettingsOnly(sourceId, dryRun);
+			return {error: 'outputNotFound', message: deviceName ? `Output folder ${deviceName} does not exist` : 'No output folder found for this source'};
 		}
 
 		const root = this.getFullOutputRoot(deviceName);
 		const states = await this.getOutputTreeStates(deviceName);
-		const deviceObject = await this.getObjectAsync(deviceName);
-		const sourceState = sourceId || (deviceObject && deviceObject.native && deviceObject.native.sourceState) || null;
+		const sourceState = sourceId || (deviceObject.native && deviceObject.native.sourceState) || null;
 		const summary = sourceActions.summarizeOutputTree(root, Object.keys(states));
 		const cumulative = states[`${root}.cumulativeReading`] ? states[`${root}.cumulativeReading`].val : null;
 		const result = {ok: true, outputId: deviceName, source: sourceState, states: summary.states, years: summary.years, cumulative};
-		if (!deviceObject && summary.states === 0) return {error: 'outputNotFound', message: `Output folder ${deviceName} does not exist`};
 		if (dryRun) return result;
 
 		if (sourceState) {
@@ -4658,9 +4683,13 @@ class Sourceanalytix extends utils.Adapter {
 		const sourceObject = await this.getForeignObjectAsync(source);
 		if (!sourceObject || sourceObject.type !== 'state') return {error: 'sourceNotFound', message: `${source} is not a state`};
 		const current = sourceObject.common.custom && sourceObject.common.custom[this.namespace] || null;
+		// Only known settings: calculation memory is changed by the adapter and its actions only,
+		// unknown fields are not written to common.custom (#1305)
+		const memoryKeys = ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit'];
+		const unknownKeys = Object.keys(settings).filter(key => !memoryKeys.includes(key) && !sourceOverview.isEditableSourceSetting(key));
+		if (unknownKeys.length) return {error: 'invalidSettings', message: `Unknown settings: ${unknownKeys.join(', ')}`, errors: Object.fromEntries(unknownKeys.map(key => [key, 'unknown']))};
 		const update = {...settings};
-		// Calculation memory is only changed by the adapter and its actions
-		for (const key of ['valueAtDeviceReset', 'pendingMeterSwap', 'valueAtDeviceInit']) delete update[key];
+		for (const key of memoryKeys) delete update[key];
 		const merged = {...(current || {}), ...update};
 		const errors = Object.fromEntries([]);
 		if (!merged.selectedPrice || !this.unitPriceDef.pricesConfig[merged.selectedPrice]) errors.selectedPrice = 'priceMissing';
@@ -4814,85 +4843,98 @@ class Sourceanalytix extends utils.Adapter {
 
 	//Function to handle messages from State settings and provide Unit and Price definitions
 	async onMessage(obj) {
+		if (!obj) return;
+		// Every command answers, also when it fails or is unknown (#1305)
+		try {
+			await this.handleMessage(obj);
+		} catch (error) {
+			this.errorHandling(`[onMessage] ${obj.command}`, error);
+			if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'failed', message: error instanceof Error ? error.message : String(error)}, obj.callback);
+		}
+	}
 
-		if (obj) {
-			switch (obj.command) {
-				case 'getPriceDefinitions':
-					if (obj.callback) {
+	/**
+	 * @param {ioBroker.Message} obj - Message from Admin or a script
+	 */
+	async handleMessage(obj) {
+		switch (obj.command) {
+			case 'getPriceDefinitions':
+				if (obj.callback) {
 
-						const priceDefinitionArray = [];
-						for (const priceDefinition in this.unitPriceDef.pricesConfig){
-							priceDefinitionArray.push({label: priceDefinition, value: priceDefinition});
-						}
-						this.sendTo(obj.from, obj.command, priceDefinitionArray, obj.callback);
+					const priceDefinitionArray = [];
+					for (const priceDefinition in this.unitPriceDef.pricesConfig){
+						priceDefinitionArray.push({label: priceDefinition, value: priceDefinition});
 					}
-					break;
+					this.sendTo(obj.from, obj.command, priceDefinitionArray, obj.callback);
+				}
+				break;
 
-				case 'getUnits':
-					if (obj.callback) {
+			case 'getUnits':
+				if (obj.callback) {
 
-						const unitArray = [];
+					const unitArray = [];
 
-						unitArray.push({label: 'Detect automatically', value: 'Detect automatically'});
-						for (const priceDefinition in this.unitPriceDef.unitConfig){
-							unitArray.push({label: priceDefinition, value: priceDefinition});
-						}
-						this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+					unitArray.push({label: 'Detect automatically', value: 'Detect automatically'});
+					for (const priceDefinition in this.unitPriceDef.unitConfig){
+						unitArray.push({label: priceDefinition, value: priceDefinition});
 					}
-					break;
+					this.sendTo(obj.from, obj.command, unitArray, obj.callback);
+				}
+				break;
 
-				case 'getStartValueContext':
-					if (obj.callback) {
-						const message = obj.message && typeof obj.message === 'object' ? obj.message : {};
-						this.sendTo(obj.from, obj.command, await this.getStartValueContext(message.id), obj.callback);
-					}
-					break;
+			case 'getStartValueContext':
+				if (obj.callback) {
+					const message = obj.message && typeof obj.message === 'object' ? obj.message : {};
+					this.sendTo(obj.from, obj.command, await this.getStartValueContext(message.id), obj.callback);
+				}
+				break;
 
-				case 'getBasicRateSources':
-					if (obj.callback) {
-						this.sendTo(obj.from, obj.command, this.getBasicRateSources(), obj.callback);
-					}
-					break;
+			case 'getBasicRateSources':
+				if (obj.callback) {
+					this.sendTo(obj.from, obj.command, this.getBasicRateSources(), obj.callback);
+				}
+				break;
 
-				case 'getUsedOutputIds':
-					if (obj.callback) {
-						this.sendTo(obj.from, obj.command, await this.getUsedOutputIds(), obj.callback);
-					}
-					break;
+			case 'getUsedOutputIds':
+				if (obj.callback) {
+					this.sendTo(obj.from, obj.command, await this.getUsedOutputIds(), obj.callback);
+				}
+				break;
 
-				case 'recoverPeriods': {
-					// Optional source: only this source, otherwise all sources (#1292)
-					const source = obj.message && typeof obj.message === 'object' && typeof obj.message.source === 'string' ? obj.message.source : undefined;
-					if (source && !this.activeStates[source]) {
-						if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'sourceNotActive', message: `${source} is not active`}, obj.callback);
-						break;
-					}
-					this.log.info(`Period rollover${source ? ` of ${source}` : ''} requested by ${obj.from}`);
-					const recovered = await this.runPeriodRollovers(`message from ${obj.from}`, source);
-					if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+			case 'recoverPeriods': {
+				// Optional source: only this source, otherwise all sources (#1292)
+				const source = obj.message && typeof obj.message === 'object' && typeof obj.message.source === 'string' ? obj.message.source : undefined;
+				if (source && !this.activeStates[source]) {
+					if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'sourceNotActive', message: `${source} is not active`}, obj.callback);
 					break;
 				}
-
-				case 'getSources':
-				case 'checkProblems':
-				case 'saveSource':
-				case 'setSourceEnabled':
-				case 'findCandidates':
-				case 'setCumulative':
-				case 'meterSwap':
-				case 'recalcCosts':
-				case 'deleteSourceData': {
-					let response;
-					try {
-						response = await this.handleActionMessage(obj.command, obj.message || {});
-					} catch (error) {
-						this.errorHandling(`[onMessage] ${obj.command}`, error);
-						response = {error: 'failed', message: error instanceof Error ? error.message : String(error)};
-					}
-					if (obj.callback) this.sendTo(obj.from, obj.command, response, obj.callback);
-					break;
-				}
+				this.log.info(`Period rollover${source ? ` of ${source}` : ''} requested by ${obj.from}`);
+				const recovered = await this.runPeriodRollovers(`message from ${obj.from}`, source);
+				if (obj.callback) this.sendTo(obj.from, obj.command, {recovered}, obj.callback);
+				break;
 			}
+
+			case 'getSources':
+			case 'checkProblems':
+			case 'saveSource':
+			case 'setSourceEnabled':
+			case 'findCandidates':
+			case 'setCumulative':
+			case 'meterSwap':
+			case 'recalcCosts':
+			case 'deleteSourceData': {
+				let response;
+				try {
+					response = await this.handleActionMessage(obj.command, obj.message || {});
+				} catch (error) {
+					this.errorHandling(`[onMessage] ${obj.command}`, error);
+					response = {error: 'failed', message: error instanceof Error ? error.message : String(error)};
+				}
+				if (obj.callback) this.sendTo(obj.from, obj.command, response, obj.callback);
+				break;
+			}
+			default:
+				if (obj.callback) this.sendTo(obj.from, obj.command, {error: 'unknownCommand', message: `Unknown command ${obj.command}`}, obj.callback);
 		}
 	}
 
