@@ -56,12 +56,17 @@ describe('start value check (#1267, #1269)', () => {
 	it('requires a later period to start at least as high as an earlier one', () => {
 		const errors = checkStartValues({start_day: 900, start_week: 950}, 1000, date);
 		assert.deepEqual(errors.start_week, {code: 'order', other: 'start_day', otherValue: 900});
+		// The later period carries the error as well, so changing only start_day is blocked too (#1304)
+		assert.deepEqual(errors.start_day, {code: 'orderBelow', other: 'start_week', otherValue: 950});
 	});
 
 	it('places the week by its first day', () => {
 		// Monday 02.11.2026 – week started in November, after the month
 		const monday = new Date(2026, 10, 2, 9);
-		assert.deepEqual(checkStartValues({start_week: 900, start_month: 950}, 1000, monday), {start_month: {code: 'order', other: 'start_week', otherValue: 900}});
+		assert.deepEqual(checkStartValues({start_week: 900, start_month: 950}, 1000, monday), {
+			start_month: {code: 'order', other: 'start_week', otherValue: 900},
+			start_week: {code: 'orderBelow', other: 'start_month', otherValue: 950},
+		});
 		// Sunday 01.11.2026 – week started in October, before the month
 		const sunday = new Date(2026, 10, 1, 9);
 		assert.deepEqual(checkStartValues({start_week: 900, start_month: 950}, 1000, sunday), {});

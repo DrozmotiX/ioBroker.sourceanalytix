@@ -86,6 +86,7 @@
     "sa_errNegative": "Darf nicht negativ sein.",
     "sa_errNumber": "Bitte eine Zahl eingeben.",
     "sa_errOrder": "Darf nicht größer sein als der Startwert für %s (%s).",
+    "sa_errOrderBelow": "Darf nicht kleiner sein als der Startwert für %s (%s).",
     "sa_errOutputId": "Nur Buchstaben, Ziffern, _ und - erlaubt.",
     "sa_errOutputIdUsed": "Diese ID nutzt schon eine andere Quelle.",
     "sa_err_failed": "Die Aktion ist fehlgeschlagen.",

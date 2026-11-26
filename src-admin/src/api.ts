@@ -278,6 +278,8 @@ export function startValueErrors(
         for (const later of ordered.slice(index + 1)) {
             if (starts[later].getTime() > starts[field].getTime() && parsed[field]! > parsed[later]!) {
                 errors[field] = t('sa_errOrder', t(`sa_period_${later}`), nf(parsed[later], 3));
+                // Both fields carry the error, so changing either of them blocks the save (#1304)
+                errors[later] ??= t('sa_errOrderBelow', t(`sa_period_${field}`), nf(parsed[field], 3));
                 break;
             }
         }
