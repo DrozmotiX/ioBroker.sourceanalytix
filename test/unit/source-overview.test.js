@@ -29,6 +29,11 @@ describe('source configuration check (#1269)', () => {
 		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'gas'}, unit: 'kWh', pricesConfig, unitConfig}).map(f => f.code), ['unitIncompatible']);
 	});
 
+	it('accepts a counter with a quantity price when pulses per unit are set (#1303)', () => {
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power', selectedUnit: 'piece', pulsesPerUnit: 1000}, unit: '', pricesConfig, unitConfig}), []);
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power', selectedUnit: 'piece'}, unit: '', pricesConfig, unitConfig}).map(f => f.code), ['unitIncompatible']);
+	});
+
 	it('uses a manually selected unit', () => {
 		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'gas', selectedUnit: 'm³'}, unit: '', pricesConfig, unitConfig}), []);
 	});
