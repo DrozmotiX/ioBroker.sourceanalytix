@@ -3670,6 +3670,16 @@ class Sourceanalytix extends utils.Adapter {
 				this.rememberSourceCustomUpdate(stateID, startMemory);
 				await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: startMemory}}});
 				this.log.info(`Initialized empty period start values for ${stateID} from current reading ${reading}`);
+			} else {
+				// Sources with their own total and emptied start fields: count from now on instead of
+				// showing 0 until the next rollover of that period (#1302)
+				const missingStarts = calculation.getMissingPeriodStartValues(calcValues, reading);
+				if (Object.keys(missingStarts).length) {
+					Object.assign(calcValues, missingStarts);
+					this.rememberSourceCustomUpdate(stateID, missingStarts);
+					await this.extendForeignObject(stateID, {common: {custom: {[this.namespace]: missingStarts}}});
+					this.log.info(`Initialized missing period start values ${Object.keys(missingStarts).join(', ')} for ${stateID} from current reading ${reading}`);
+				}
 			}
 
 			if (!ownTotal) {
