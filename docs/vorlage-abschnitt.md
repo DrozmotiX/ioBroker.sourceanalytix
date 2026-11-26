@@ -14,8 +14,8 @@ Teile, die nicht passen, fallen weg. Eine reine Erklärung braucht keine Schritt
 <!-- abschnitt: prio=…; gewicht=…; readme=…; cluster=…; features=… -->
 <!-- muss beantworten: … -->
 
-**Kurz:** Die Antwort in ein bis zwei Sätzen. Wer nur diesen Satz liest, weiß, was zu tun ist.
-<!-- quelle: code=main.js:…@v0.6.1; issue=#… -->
+Die Antwort in ein bis zwei Sätzen, ohne Vorspann. Wer nur diesen Satz liest, weiß, was zu tun ist.
+<!-- quelle: code=main.js:…; issue=#… -->
 
 Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 <!-- quelle: … -->
@@ -30,11 +30,8 @@ Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 <!-- bild: was der Screenshot zeigen soll (entsteht in Phase 5) -->
 
 > [!WARNING]
-> Was schiefgehen kann und wie man es vermeidet.
+> Nur wenn ohne diesen Hinweis Daten verloren gehen oder die Einrichtung sicher scheitert. Höchstens einer je Abschnitt.
 <!-- quelle: … -->
-
-**Ab v0.7.0:** Was sich mit der Fehlerbehebung ändert ([#1253](https://github.com/DrozmotiX/ioBroker.sourceanalytix/issues/1253)).
-<!-- quelle: issue=#1253 -->
 
 **Siehe auch:** [Passender Abschnitt](../05.hintergrund/02.zaehler-reset.md#device-reset-detected-mean-reset)
 ````
@@ -43,7 +40,8 @@ Warum das so ist, in wenigen Sätzen. Nur, wenn es beim Handeln hilft.
 
 - [Schreibregeln](schreibregeln.md) Abschnitt 6 eingehalten: kein Frontmatter, kein `:::`, keine Fußnoten; Hinweise nur als `> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` oder `[!CAUTION]`.
 - Jeder Absatz, jede Liste und jede Tabelle mit Aussage hat einen `quelle:`-Kommentar.
-- Jede Versionsangabe nennt die Nummer (`v0.6.1`, `v0.7.0`).
+- Nur der aktuelle Stand, keine Sätze über frühere Versionen.
+- Kein „Kurz:“-Vorspann, höchstens ein Hinweisblock, Anfang ohne Code oder Log-Zeile.
 - Alles aus `muss beantworten:` ist beantwortet.
 - Links zeigen auf `.md`-Dateien und feste Anker. Sie funktionieren in der GitHub-Ansicht.
 - Keine Benutzernamen, Geräte-IDs, IPs oder MACs.
