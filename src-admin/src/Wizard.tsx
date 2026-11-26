@@ -102,8 +102,7 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
     const [selectOpen, setSelectOpen] = useState(false);
     const [datapoint, setDatapoint] = useState<Candidate | null>(null);
     const [kind, setKind] = useState<'meter' | 'power'>('meter');
-    // Reset detection is on by default, like in the adapter (#1313)
-    const [resetJumps, setResetJumps] = useState<'yes' | 'no'>('yes');
+    const [resetJumps, setResetJumps] = useState<'yes' | 'no'>('no');
     const [pulses, setPulses] = useState('');
     const [unit, setUnit] = useState('');
     const [price, setPrice] = useState('');
@@ -149,6 +148,8 @@ export default function Wizard(props: WizardProps): React.JSX.Element {
         const isPower = isPowerUnit(unitInfo, candidate.unit);
         setKind(isPower ? 'power' : 'meter');
         setUnit(candidate.unit);
+        // Reset detection only where devices are known to restart at 0 (decision 14.11.2026)
+        setResetJumps(/shelly|tasmota/i.test(candidate.id) ? 'yes' : 'no');
         if (!name) {
             setName(candidate.name || candidate.id.split('.').pop() || '');
         }
