@@ -107,6 +107,29 @@ describe('reading gap across midnight', () => {
 		assert.equal(states.get(`gas.currentYear.costs.currentWeek.${oldDay}`), 16);
 	});
 
+	it('adds the cost of the ending day share to the cost totals of the running periods (#1299)', async () => {
+		const {adapter, logs} = createAdapter();
+		const activeState = adapter.activeStates['meter.0.gas'];
+		activeState.lastReadingTs = oldDayEnd - 2 * hour;
+		activeState.dynamicCosts = {lastReading: 100, lastTs: oldDayEnd - 2 * hour, totals: {priceDay: 6, priceWeek: 40, priceMonth: 60, priceQuarter: 90, priceYear: 120}};
+		adapter.usesHistoricalCostCalculation = () => true;
+		const persisted = [];
+		adapter.persistDynamicCostMemory = async (_id, memory) => persisted.push(JSON.parse(JSON.stringify(memory)));
+		adapter.getDynamicPriceForTimestamp = async () => 2;
+		const changes = {day: true, week: false, month: false, quarter: false, year: false};
+		await adapter.rememberReadingGap('meter.0.gas', changes, {date: '2026-03-10'}, 100, oldDayEnd - 1000);
+		// The rollover reset the day total
+		activeState.dynamicCosts.totals.priceDay = 0;
+
+		await adapter.splitReadingGap('meter.0.gas', 110, oldDayEnd + 2 * hour);
+
+		assert.equal(activeState.dynamicCosts.lastReading, 105);
+		// 5 m³ × 2 € of the ending day: only the periods that keep running get them
+		assert.deepEqual(activeState.dynamicCosts.totals, {priceDay: 0, priceWeek: 50, priceMonth: 70, priceQuarter: 100, priceYear: 130});
+		assert.deepEqual(persisted.at(-1).totals, activeState.dynamicCosts.totals);
+		assert.deepEqual(logs.error, []);
+	});
+
 	it('lists previous values, collections and archives of all periods that ended', () => {
 		const {adapter} = createAdapter();
 		const gap = {

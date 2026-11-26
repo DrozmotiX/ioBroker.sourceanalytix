@@ -2914,7 +2914,14 @@ class Sourceanalytix extends utils.Adapter {
 			if (this.usesHistoricalCostCalculation(stateID) && activeState.dynamicCosts) {
 				const lastReading = this.parsePriceValue(activeState.dynamicCosts.lastReading);
 				if (lastReading !== null) {
+					// The share is priced here, so the cost tracker only prices the new-day share;
+					// periods that keep running across this boundary still contain it (#1299)
 					activeState.dynamicCosts.lastReading = lastReading + oldPart;
+					const totals = activeState.dynamicCosts.totals || (activeState.dynamicCosts.totals = {});
+					const totalFields = {day: 'priceDay', week: 'priceWeek', month: 'priceMonth', quarter: 'priceQuarter', year: 'priceYear'};
+					for (const [period, field] of Object.entries(totalFields)) {
+						if (!gap.changes[period]) totals[field] = this.getNumberOrDefault(totals[field], 0) + oldCost;
+					}
 					await this.persistDynamicCostMemory(stateID, activeState.dynamicCosts);
 				}
 			}
