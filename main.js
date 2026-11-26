@@ -329,6 +329,18 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Timestamp a reading is priced at. Integrated sources (power, pulse rate) use `ts` like the
+	 * integration: a repeated value keeps `lc`, which would price the energy at an old price (#1300).
+	 * @param {object} stateDetails - Active state details
+	 * @param {ioBroker.State | null | undefined} state - ioBroker state
+	 * @returns {number} Reading timestamp or the current time
+	 */
+	getReadingTimestamp(stateDetails, state) {
+		if (this.isIntegratedSource(stateDetails)) return this.getTimestampOrNow(state && state.ts);
+		return this.getStateChangeTimestamp(state);
+	}
+
+	/**
 	 * @param {ioBroker.State | null | undefined} state - ioBroker state
 	 * @returns {number} State change timestamp or the current time
 	 */
@@ -3482,7 +3494,7 @@ class Sourceanalytix extends utils.Adapter {
 			const ownTotal = this.usesOwnTotal(stateDetails);
 			const targetCath = this.unitPriceDef.unitConfig[stateDetails.useUnit].category;
 			const date = calculationDate instanceof Date ? calculationDate : new Date();
-			const readingTimestamp = this.getStateChangeTimestamp(stateVal);
+			const readingTimestamp = this.getReadingTimestamp(stateDetails, stateVal);
 
 			this.log.debug(`[calculationHandler] calcValues : ${JSON.stringify(calcValues)}`);
 			this.log.debug(`[calculationHandler] stateDetails : ${JSON.stringify(stateDetails)}`);
