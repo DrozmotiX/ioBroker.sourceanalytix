@@ -83,6 +83,8 @@ class Sourceanalytix extends utils.Adapter {
 		this.resetDayJob = null; // Midnight cron job
 		this.periodCheckInterval = null; // Hourly safety check for missed rollovers
 		this.rolloverRunning = false; // Guard against concurrent rollovers
+		this.queueStateChanges = false; // Buffer source values while a rollover blocks the calculations (#1270)
+		this.queuedStateChanges = [];
 		this.statisticsJsonSnapshots = {};
 		this.statisticsJsonTimers = {};
 		this.statisticsJsonLastValues = {};
@@ -2578,8 +2580,9 @@ class Sourceanalytix extends utils.Adapter {
 	 * Is called if a subscribed state changes
 	 * @param {string} id of state
 	 * @param {ioBroker.State | null | undefined} state - Changed state, or null when deleted
+	 * @param {boolean} [fromQueue] - Value buffered during a rollover, processed while the block still holds (#1270)
 	 */
-	async onStateChange(id, state) {
+	async onStateChange(id, state, fromQueue = false) {
 		// Handled before the calculation block, a manual rollover must always be possible
 		if (state && !state.ack && id === `${this.namespace}.${recoverPeriodsState}`) {
 			try {
@@ -2591,7 +2594,11 @@ class Sourceanalytix extends utils.Adapter {
 			}
 			return;
 		}
-		if (calcBlock) return; // cancel operation if global calculation block is activate
+		if (calcBlock && !fromQueue) {
+			// Values arriving during a rollover are processed afterwards, not dropped (#1270)
+			if (this.queueStateChanges && state && this.queuedStateChanges.length < 10000) this.queuedStateChanges.push({id, state});
+			return;
+		}
 		try {
 			// Check if a valid state change has been received
 			if (state) {
@@ -3103,6 +3110,25 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Process the source values that arrived while a rollover blocked the calculations (#1270).
+	 */
+	async replayQueuedStateChanges() {
+		try {
+			// Values that arrive meanwhile are queued as well, so they keep their order
+			while (this.queuedStateChanges.length) {
+				const {id, state} = this.queuedStateChanges.shift();
+				await this.onStateChange(id, state, true);
+			}
+		} finally {
+			// A rollover that started meanwhile keeps the block and replays afterwards
+			if (!this.rolloverRunning) {
+				calcBlock = false;
+				this.queueStateChanges = false;
+			}
+		}
+	}
+
+	/**
 	 * Process a calendar rollover for all active sources, from the scheduler,
 	 * the safety check, the button state or a sendTo message.
 	 * @param {string} trigger - What asked for the rollover, used for logging
@@ -3116,6 +3142,7 @@ class Sourceanalytix extends utils.Adapter {
 		}
 		this.rolloverRunning = true;
 		calcBlock = true;
+		this.queueStateChanges = true;
 		let recovered = 0;
 		try {
 			const date = new Date();
@@ -3135,7 +3162,7 @@ class Sourceanalytix extends utils.Adapter {
 			this.rolloverRunning = false;
 			if (delay) this.clearTimeout(delay);
 			delay = this.setTimeout(() => {
-				calcBlock = false;
+				this.replayQueuedStateChanges().catch(error => this.errorHandling('[runPeriodRollovers] replay', error));
 			}, 500);
 		}
 
