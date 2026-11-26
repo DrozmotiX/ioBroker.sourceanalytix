@@ -5,6 +5,9 @@ declare global {
 	interface SaFinding {
 		code: string;
 		severity: string;
+		/** Stored and new unit for priceUnitChanged (#1310) */
+		from?: string | null;
+		to?: string;
 	}
 
 	/** One source (or output folder without datapoint) as shown on the settings page */

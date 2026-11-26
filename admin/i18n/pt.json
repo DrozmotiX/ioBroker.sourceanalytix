@@ -145,5 +145,6 @@
     "Start value scale hint": "Um valor inicial é maior do que o total atual, mas serviria dividido por 1000. Foi introduzido em Wh em vez de kWh, ou em l em vez de m³? Os valores iniciais usam a unidade da definição de preço.",
     "Custom settings moved hint": "Here you only switch SourceAnalytix on or off for this datapoint. Price definition, unit, start values and all other settings are set up in the SourceAnalytix instance settings. An enabled source without a price definition appears there on the \"Problems\" tab. Switching it off here removes the SourceAnalytix settings of this datapoint, including start values and offset. To pause a source, use \"Deactivate\" in the instance settings.",
     "Open SourceAnalytix settings": "Open SourceAnalytix settings",
-    "Price changed without new valid from": "Price changed but \"Valid from\" did not: the new price replaces the old one retroactively. Set a new date?"
+    "Price changed without new valid from": "Price changed but \"Valid from\" did not: the new price replaces the old one retroactively. Set a new date?",
+    "Category empty or used twice": "Category empty or used twice"
 }

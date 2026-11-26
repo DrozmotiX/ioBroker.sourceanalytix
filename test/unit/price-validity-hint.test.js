@@ -38,7 +38,7 @@ describe('price changed without a new "valid from" (#1293)', () => {
 
 	it('marks the price fields in the price definitions table', async () => {
 		const items = jsonConfig.items._prices.items.pricesDefinition.items;
-		const validated = items.filter(item => item.validator);
+		const validated = items.filter(item => item.validator && item.attr !== 'cat');
 		assert.deepEqual(validated.map(item => item.attr).sort(), ['uPpM', 'uPpU', 'validFrom']);
 		const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
 		const validate = new AsyncFunction('data', 'originalData', validated[0].validator);
@@ -85,5 +85,22 @@ describe('one "valid from" for unit and basic price (#1298)', () => {
 		await adapter.storeConfiguredBasicPrice('Strom', 10, '2026-07-01', true);
 		assert.notEqual(states.get(validityState), day);
 		assert.equal(adapter.basicPriceHistories.Strom.length, 1);
+	});
+});
+
+describe('price definition categories (#1310)', () => {
+	it('must not be empty or used twice', async () => {
+		const items = jsonConfig.items._prices.items.pricesDefinition.items;
+		const cat = items.find(item => item.attr === 'cat');
+		if (!cat || !cat.validator) throw new Error('no validator for cat');
+		const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
+		const validate = new AsyncFunction('data', 'originalData', 'globalData', cat.validator);
+		const globalData = {pricesDefinition: [{cat: 'Strom'}, {cat: 'Gas'}, {cat: 'Wasser kalt'}, {cat: 'Wasser_kalt'}]};
+		assert.equal(await validate({cat: 'Strom'}, {}, globalData), true);
+		assert.equal(await validate({cat: ' '}, {}, globalData), false);
+		assert.equal(await validate({cat: 'Wasser kalt'}, {}, globalData), false, 'same price history state after sanitising');
+		// Without the table data the field is only checked for content
+		const withoutGlobal = new AsyncFunction('data', cat.validator);
+		assert.equal(await withoutGlobal({cat: 'Strom'}), true);
 	});
 });

@@ -1462,8 +1462,20 @@ class Sourceanalytix extends utils.Adapter {
 			this.dynamicPriceStates = {};
 			this.priceControlStates = {};
 
+			// Names of the price history states, which several categories could share (#1310)
+			const usedHistoryNames = new Map();
 			for (const priceDef in pricesConfig) {
 				const priceConfig = pricesConfig[priceDef];
+				if (!priceConfig || typeof priceConfig.cat !== 'string' || !priceConfig.cat.trim()) {
+					this.log.error(`Price definition ${Number(priceDef) + 1} has no category and is ignored; sources need the category name to find their price`);
+					continue;
+				}
+				const historyName = this.getPriceHistoryStateName(priceConfig.cat);
+				if (usedHistoryNames.has(historyName)) {
+					this.log.error(`Price definition ${JSON.stringify(priceConfig.cat)} is ignored: ${JSON.stringify(usedHistoryNames.get(historyName))} already uses the same price history. Please give each price definition its own name.`);
+					continue;
+				}
+				usedHistoryNames.set(historyName, priceConfig.cat);
 				const priceSource = ['state', 'selector'].includes(priceConfig.priceSource) ? priceConfig.priceSource : 'static';
 				const priceState = priceSource !== 'static' && typeof priceConfig.priceState === 'string' ? priceConfig.priceState.trim() : '';
 				const configuredUnitPrice = this.parsePriceValue(priceConfig.uPpU);
@@ -2172,6 +2184,15 @@ class Sourceanalytix extends utils.Adapter {
 							this.log.error(`Please choose a price definition with a matching unit (power sources need an energy unit such as kWh)`);
 						}
 						initError = true;
+					} else {
+						// Total, start values and offset are stored in the unit of the price definition and are not
+						// converted: a definition with another unit would read 48213 kWh as 48213 MWh (#1310)
+						const outputUnit = await this.getOutputUnit(newDeviceName);
+						if (sourceOverview.isOutputUnitChanged(outputUnit, targetUnit, this.unitPriceDef.unitConfig)) {
+							this.log.error(`The data of ${stateID} is stored in ${outputUnit}, but price definition ${customData.selectedPrice} uses ${targetUnit}. Values are not converted between units.`);
+							this.log.error(`Please choose a price definition in ${outputUnit}, or delete the data of this source on the settings page to start again in ${targetUnit}`);
+							initError = true;
+						}
 					}
 				}
 
@@ -4468,6 +4489,21 @@ class Sourceanalytix extends utils.Adapter {
 	}
 
 	/**
+	 * Unit the data of an output folder is stored in, from its cumulativeReading object (#1310).
+	 * @param {string | null | undefined} deviceName - Output folder
+	 * @returns {Promise<string | null>} Stored unit, or null for a new folder
+	 */
+	async getOutputUnit(deviceName) {
+		if (!deviceName) return null;
+		try {
+			const object = await this.getObjectAsync(`${deviceName}.cumulativeReading`);
+			return object && object.common && typeof object.common.unit === 'string' && object.common.unit ? object.common.unit : null;
+		} catch {
+			return null;
+		}
+	}
+
+	/**
 	 * Remove the SourceAnalytix settings of a source that has no output folder (#1312).
 	 * @param {string} sourceId - Source state ID
 	 * @param {boolean} dryRun - Only return what would be deleted
@@ -4604,6 +4640,7 @@ class Sourceanalytix extends utils.Adapter {
 				diagnostics: sourceObject ? sourceOverview.diagnoseSourceConfig({
 					custom,
 					unit: common && common.unit,
+					outputUnit: await this.getOutputUnit(outputIdValue),
 					pricesConfig: this.unitPriceDef.pricesConfig,
 					unitConfig: this.unitPriceDef.unitConfig,
 				}) : [],
@@ -4696,11 +4733,13 @@ class Sourceanalytix extends utils.Adapter {
 		const findings = sourceOverview.diagnoseSourceConfig({
 			custom: merged,
 			unit: sourceObject.common.unit,
+			outputUnit: await this.getOutputUnit(this.activeStates[source] && this.activeStates[source].stateDetails ? this.activeStates[source].stateDetails.deviceName : outputId.resolveOutputId(current && current.outputId, source)),
 			pricesConfig: this.unitPriceDef.pricesConfig,
 			unitConfig: this.unitPriceDef.unitConfig,
 		});
 		for (const finding of findings) {
 			if (finding.code.startsWith('unit')) errors.selectedUnit = finding.code;
+			if (finding.code === 'priceUnitChanged') errors.selectedPrice = finding.code;
 		}
 		if (update.outputId !== undefined && update.outputId !== '') {
 			const validation = outputId.validateResolvedOutputId(update.outputId, source);

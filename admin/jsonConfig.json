@@ -57,6 +57,9 @@
               "attr": "cat",
               "title": "Category",
               "width": "13%",
+              "validator": "const name = c => String(c || '').trim().replace(/[^a-zA-Z0-9_-]/g, '_'); const rows = (typeof globalData !== 'undefined' && globalData && Array.isArray(globalData.pricesDefinition)) ? globalData.pricesDefinition : []; return !!String(data.cat || '').trim() && rows.filter(r => r && name(r.cat) === name(data.cat)).length <= 1",
+              "validatorErrorText": "Category empty or used twice",
+              "validatorNoSaveOnError": true,
               "default": "Electricity"
             },
             {

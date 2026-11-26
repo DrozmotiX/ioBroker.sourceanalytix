@@ -169,3 +169,12 @@ describe('saveSource and setSourceEnabled (#1269)', () => {
 		assert.equal(missing.error, 'notConfigured');
 	});
 });
+
+describe('price definition with another unit than the stored data (#1310)', () => {
+	it('is reported, because the values are not converted', () => {
+		const findings = diagnoseSourceConfig({custom: {selectedPrice: 'power'}, unit: 'Wh', outputUnit: 'MWh', pricesConfig, unitConfig});
+		assert.deepEqual(findings, [{code: 'priceUnitChanged', severity: 'error', from: 'MWh', to: 'kWh'}]);
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power'}, unit: 'Wh', outputUnit: 'kwh', pricesConfig, unitConfig}), []);
+		assert.deepEqual(diagnoseSourceConfig({custom: {selectedPrice: 'power'}, unit: 'Wh', outputUnit: null, pricesConfig, unitConfig}), []);
+	});
+});
