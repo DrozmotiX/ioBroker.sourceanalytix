@@ -56,3 +56,15 @@ describe('Negative power readings', () => {
 		assert.equal(calculatePowerEnergy(-3000, -3000, start, fifteenMinutesLater, false), -750);
 	});
 });
+
+describe('threshold of a source (#1312)', () => {
+	const {normalizeThreshold} = require('../../lib/calculation');
+	it('uses the default 1 for empty or invalid values and keeps 0', () => {
+		assert.equal(normalizeThreshold(''), 1);
+		assert.equal(normalizeThreshold(undefined), 1);
+		assert.equal(normalizeThreshold('abc'), 1);
+		assert.equal(normalizeThreshold(-2), 1);
+		assert.equal(normalizeThreshold(0), 0);
+		assert.equal(normalizeThreshold('0,5'), 0.5);
+	});
+});

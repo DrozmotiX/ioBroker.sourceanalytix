@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     Box,
@@ -36,6 +36,7 @@ import {
 
 import {
     ago,
+    errorText,
     money,
     nf,
     parseNum,
@@ -164,12 +165,30 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
     const [dialog, setDialog] = useState<DialogType | null>(null);
     const [expert, setExpert] = useState(false);
     const [settings, setSettings] = useState<Record<string, any>>(() => ({ ...source.settings }));
+    // The adapter writes the settings itself (start values at midnight, offsets). Take them over when
+    // nothing is edited; keep the input and say so otherwise, instead of rebuilding the page (#1312)
+    const [outdated, setOutdated] = useState(false);
+    const loadedSettings = useRef(JSON.stringify(source.settings));
     const [errors, setErrors] = useState<Record<string, any>>({});
     const [busy, setBusy] = useState(false);
     const changed = useMemo(
         () => Object.keys(settings).some(key => settings[key] !== source.settings[key]),
         [settings, source.settings],
     );
+    useEffect(() => {
+        const next = JSON.stringify(source.settings);
+        if (next === loadedSettings.current) {
+            return;
+        }
+        const before = JSON.parse(loadedSettings.current) as Record<string, any>;
+        loadedSettings.current = next;
+        const edited = Object.keys(settings).some(key => settings[key] !== before[key]);
+        if (edited) {
+            setOutdated(true);
+        } else {
+            setSettings({ ...source.settings });
+        }
+    }, [source.settings]);
     const ownProblems: Problem[] = overview.problems.filter(problem => problem.source === source.id);
     const prices = overview.priceDefinitions;
     const set = (key: string, value: unknown): void => setSettings({ ...settings, [key]: value });
@@ -190,6 +209,44 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
         isChanged(key) && settings[key] !== '' && settings[key] !== null && settings[key] !== undefined
             ? Number.isNaN(parseNum(settings[key]))
             : false;
+
+    // Number fields and the technical ID are checked before saving instead of being dropped (#1312)
+    const fieldError = (key: string): string => {
+        if (!isChanged(key)) {
+            return '';
+        }
+        const value = settings[key];
+        if (key === 'outputId') {
+            return String(value ?? '').trim() ? '' : t('sa_errOutputIdEmpty');
+        }
+        if (value === '' || value === null || value === undefined) {
+            // Empty means the default; only the threshold needs a value
+            return key === 'threshold' ? t('sa_errRequired') : '';
+        }
+        const parsed = parseNum(value);
+        if (parsed === null || Number.isNaN(parsed)) {
+            return t('sa_errNumber');
+        }
+        if (
+            (key === 'decimalsQuantity' || key === 'decimalsCosts') &&
+            (!Number.isInteger(parsed) || parsed < -1 || parsed > 15)
+        ) {
+            return t('sa_errDecimals');
+        }
+        if ((key === 'threshold' || key === 'maxPowerGap' || key === 'pulsesPerUnit') && parsed < 0) {
+            return t('sa_errNegative');
+        }
+        return '';
+    };
+    const checkedFields = [
+        'threshold',
+        'decimalsQuantity',
+        'decimalsCosts',
+        'maxPowerGap',
+        'pulsesPerUnit',
+        'outputId',
+    ];
+    const invalidFields = checkedFields.filter(key => !!fieldError(key));
 
     // Changes that delete or replace data ask first (#1311)
     const [confirmLosses, setConfirmLosses] = useState<string[] | null>(null);
@@ -232,6 +289,7 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
             return;
         }
         setErrors({});
+        setOutdated(false);
         props.onChanged(t('sa_settingsApplied'));
     };
 
@@ -244,18 +302,21 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
         }
     };
 
+    // Errors of the adapter are shown, not reported as success (#1312)
     const toggleEnabled = async (): Promise<void> => {
         const result = await send(api, 'setSourceEnabled', { source: source.id, enabled: !source.enabled });
-        if (!result.error) {
-            props.onChanged(source.enabled ? t('sa_deactivated', source.name) : t('sa_activated', source.name));
-        }
+        props.onChanged(
+            result.error
+                ? errorText(result)
+                : source.enabled
+                  ? t('sa_deactivated', source.name)
+                  : t('sa_activated', source.name),
+        );
     };
 
     const recoverPeriods = async (): Promise<void> => {
         const result = await send(api, 'recoverPeriods', { source: source.id });
-        if (!result.error) {
-            props.onChanged(t('sa_recovered', source.name));
-        }
+        props.onChanged(result.error ? errorText(result) : t('sa_recovered', source.name));
     };
 
     return (
@@ -563,30 +624,38 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                                 <TextField
                                     label={t('sa_threshold', unit)}
                                     value={settings.threshold ?? 1}
+                                    error={!!fieldError('threshold')}
+                                    helperText={fieldError('threshold')}
                                     onChange={e => set('threshold', e.target.value)}
                                 />
                                 <TextField
                                     label={t('sa_decimalsQuantity')}
                                     value={settings.decimalsQuantity ?? ''}
+                                    error={!!fieldError('decimalsQuantity')}
+                                    helperText={fieldError('decimalsQuantity')}
                                     onChange={e => set('decimalsQuantity', e.target.value)}
                                 />
                                 <TextField
                                     label={t('sa_decimalsCosts')}
                                     value={settings.decimalsCosts ?? ''}
+                                    error={!!fieldError('decimalsCosts')}
+                                    helperText={fieldError('decimalsCosts')}
                                     onChange={e => set('decimalsCosts', e.target.value)}
                                 />
                                 <TextField
                                     label={t('sa_outputId')}
                                     value={settings.outputId ?? source.outputId}
-                                    error={!!errors.outputId}
+                                    error={!!errors.outputId || !!fieldError('outputId')}
                                     helperText={
                                         errors.outputId === 'used'
                                             ? t('sa_errOutputIdUsed')
                                             : errors.outputId
                                               ? t('sa_errOutputId')
-                                              : isChanged('outputId')
-                                                ? t('sa_outputIdChangeHint')
-                                                : ''
+                                              : fieldError('outputId')
+                                                ? fieldError('outputId')
+                                                : isChanged('outputId')
+                                                  ? t('sa_outputIdChangeHint')
+                                                  : ''
                                     }
                                     onChange={e => set('outputId', e.target.value.trim())}
                                 />
@@ -603,6 +672,26 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                                 />
                             ) : null}
                         </Collapse>
+                        {outdated ? (
+                            <Alert
+                                severity="warning"
+                                sx={{ mt: 2 }}
+                                action={
+                                    <Button
+                                        color="inherit"
+                                        size="small"
+                                        onClick={() => {
+                                            setSettings({ ...source.settings });
+                                            setOutdated(false);
+                                        }}
+                                    >
+                                        {t('sa_discardInput')}
+                                    </Button>
+                                }
+                            >
+                                {t('sa_settingsChangedMeanwhile')}
+                            </Alert>
+                        ) : null}
                         {Object.keys(errors).length ? (
                             <Alert
                                 severity="error"
@@ -623,7 +712,13 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                             <Button
                                 variant="contained"
                                 startIcon={<Bolt />}
-                                disabled={!alive || !changed || busy || Object.keys(startErrors).length > 0}
+                                disabled={
+                                    !alive ||
+                                    !changed ||
+                                    busy ||
+                                    Object.keys(startErrors).length > 0 ||
+                                    invalidFields.length > 0
+                                }
                                 onClick={requestApply}
                             >
                                 {t('sa_apply')}
@@ -666,7 +761,7 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                         title={t('sa_actionRecover')}
                         text={t('sa_actionRecoverText')}
                         button={t('sa_actionRecoverButton')}
-                        disabled={!alive}
+                        disabled={!alive || !source.active}
                         onClick={() => void recoverPeriods()}
                     />
                     <Divider />

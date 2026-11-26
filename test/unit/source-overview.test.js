@@ -157,6 +157,14 @@ describe('saveSource and setSourceEnabled (#1269)', () => {
 		assert.equal(objects.get('shelly.0.energy').common.custom, undefined);
 	});
 
+	it('rejects an emptied technical ID (#1312)', async () => {
+		const {adapter, objects} = createHarness();
+		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh', custom: {'sourceanalytix.0': {enabled: true, selectedPrice: 'power', outputId: 'dryer'}}}});
+		const result = await adapter.handleActionMessage('saveSource', {source: 'shelly.0.energy', settings: {outputId: ''}});
+		assert.equal(result.error, 'invalidSettings');
+		assert.deepEqual(result.errors, {outputId: 'invalid'});
+	});
+
 	it('deactivates and activates a source and keeps the settings', async () => {
 		const {adapter, objects} = createHarness();
 		objects.set('shelly.0.energy', {type: 'state', common: {unit: 'Wh', custom: {'sourceanalytix.0': {enabled: true, selectedPrice: 'power'}}}});

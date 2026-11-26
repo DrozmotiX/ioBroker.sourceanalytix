@@ -28,6 +28,7 @@ import {
 
 import {
     ago,
+    errorText,
     money,
     nf,
     send,
@@ -434,6 +435,16 @@ export default function SourcesApp(props: SourcesAppProps): React.JSX.Element {
         void reload();
     };
 
+    // Only report success when the adapter did not answer with an error (#1312)
+    const runFix = async (command: string, message: Record<string, any>, doneText: string): Promise<void> => {
+        try {
+            const result = await send(api, command, message);
+            changed(result.error ? errorText(result) : doneText);
+        } catch (error) {
+            changed(String(error));
+        }
+    };
+
     const fix = async (problem: Problem): Promise<void> => {
         const source = overview?.sources.find(entry => entry.id === problem.source);
         if (!problem.fix) {
@@ -457,16 +468,21 @@ export default function SourcesApp(props: SourcesAppProps): React.JSX.Element {
                 setScreen({ type: 'detail', id: source.id });
                 return;
             case 'setSourceEnabled':
-                await send(api, 'setSourceEnabled', { source: source.id, enabled: false });
-                changed(t('sa_deactivated', source.name));
+                await runFix(
+                    'setSourceEnabled',
+                    { source: source.id, enabled: false },
+                    t('sa_deactivated', source.name),
+                );
                 return;
             case 'recoverPeriods':
-                await send(api, 'recoverPeriods', { source: source.id });
-                changed(t('sa_recovered', source.name));
+                await runFix('recoverPeriods', { source: source.id }, t('sa_recovered', source.name));
                 return;
             default:
-                await send(api, problem.fix.command, { source: source.id, ...(problem.fix.message || {}) });
-                changed(t('sa_fixed', source.name));
+                await runFix(
+                    problem.fix.command,
+                    { source: source.id, ...(problem.fix.message || {}) },
+                    t('sa_fixed', source.name),
+                );
         }
     };
 
@@ -507,7 +523,7 @@ export default function SourcesApp(props: SourcesAppProps): React.JSX.Element {
             if (source) {
                 return (
                     <SourceDetail
-                        key={`${source.id}:${JSON.stringify(source.settings)}`}
+                        key={source.id}
                         api={api}
                         alive={alive}
                         source={source}

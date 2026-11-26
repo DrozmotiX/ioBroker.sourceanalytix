@@ -2251,7 +2251,8 @@ class Sourceanalytix extends utils.Adapter {
 						ignoreNegativeValues: customData.ignoreNegativeValues === true,
 						incrementValues,
 						maxPowerGap: calculation.normalizeMaxPowerGap(customData.maxPowerGap),
-						threshold: customData.threshold ?? 1,
+						// An emptied threshold uses the default, not 0 (#1312)
+						threshold: calculation.normalizeThreshold(customData.threshold),
 					},
 					calcValues: {
 						cumulativeValue: cumulativeValue,
@@ -4750,6 +4751,8 @@ class Sourceanalytix extends utils.Adapter {
 			if (finding.code.startsWith('unit')) errors.selectedUnit = finding.code;
 			if (finding.code === 'priceUnitChanged') errors.selectedPrice = finding.code;
 		}
+		// An emptied technical ID would move the data back to the legacy folder name (#1312)
+		if (update.outputId === '' && current && current.outputId) errors.outputId = 'invalid';
 		if (update.outputId !== undefined && update.outputId !== '') {
 			const validation = outputId.validateResolvedOutputId(update.outputId, source);
 			if (!validation.valid) {

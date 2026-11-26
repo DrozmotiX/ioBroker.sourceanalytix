@@ -116,6 +116,41 @@ export function t(key: string, ...args: (string | number)[]): string {
     return I18n.t(key, ...args);
 }
 
+/**
+ * Text of a failed action: the translated error code, else the message of the adapter
+ *
+ * @param result
+ */
+export function errorText(result: ActionResult): string {
+    const key = `sa_err_${result.error}`;
+    const text = t(key);
+    return text === key ? result.message || String(result.error) : text;
+}
+
+/**
+ * Local date as YYYY-MM-DD for date fields; toISOString() would give yesterday after midnight (#1312)
+ *
+ * @param ts
+ */
+export function localDate(ts: number = Date.now()): string {
+    const date = new Date(ts);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Number for an input field: decimal mark of the language, no thousands separator,
+ * so that parseNum reads it back as the same value (#1312)
+ *
+ * @param value
+ * @param decimals
+ */
+export function inputNumber(value: number | null | undefined, decimals = 3): string {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return '';
+    }
+    return new Intl.NumberFormat(locale(), { maximumFractionDigits: decimals, useGrouping: false }).format(value);
+}
+
 export function locale(): string {
     const lang = I18n.getLanguage();
     return lang === 'en' ? 'en-GB' : lang;
@@ -184,7 +219,7 @@ export function ago(ts: number | null | undefined): string {
 
 /**
  * Parse a number with comma or dot as in the design:
- * "1.283,2" → 1283.2, "1283.2" → 1283.2, "1.283" → 1283 (thousands separator), "" → null
+ * "1.283,2" → 1283.2, "1283.2" → 1283.2, "1.283" → 1.283 (a single separator is the decimal mark), "" → null
  *
  * @param input
  */
@@ -206,7 +241,7 @@ export function parseNum(input: string | number | null | undefined): number | nu
                 ? text.replace(/\./g, '').replace(',', '.')
                 : text.replace(/,/g, '');
     } else if (text.includes(',')) {
-        // A single comma or dot is the decimal mark, like in the adapter: 1.283 is 1,283
+        // A single comma or dot is the decimal mark, like in the adapter: 1.283 is 1.283, not 1283
         text = text.replace(',', '.');
     }
     const value = Number(text);
