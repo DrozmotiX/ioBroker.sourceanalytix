@@ -146,5 +146,8 @@
     "Custom settings moved hint": "Hier schaltest du SourceAnalytix für diesen Datenpunkt nur ein oder aus. Preisdefinition, Einheit, Startwerte und alle weiteren Einstellungen richtest du in den Instanz-Einstellungen von SourceAnalytix ein. Eine eingeschaltete Quelle ohne Preisdefinition erscheint dort im Tab „Probleme“. Schaltest du es hier aus, entfernt das die SourceAnalytix-Einstellungen dieses Datenpunkts samt Startwerten und Offset. Zum Pausieren nimm „Deaktivieren“ in den Instanz-Einstellungen.",
     "Open SourceAnalytix settings": "SourceAnalytix-Einstellungen öffnen",
     "Price changed without new valid from": "Preis geändert, „Gültig ab“ nicht: der neue Preis ersetzt den alten rückwirkend. Neues Datum setzen?",
-    "Category empty or used twice": "Kategorie leer oder doppelt vergeben"
+    "Category empty or used twice": "Kategorie leer oder doppelt vergeben",
+    "Delete data?": "Daten löschen?",
+    "Period option off hint": "Schaltest du das aus, löscht SourceAnalytix beim Speichern diese States aller Quellen für das laufende Jahr. Werte früherer Jahre bleiben erhalten.",
+    "Switch off": "Ausschalten"
 }

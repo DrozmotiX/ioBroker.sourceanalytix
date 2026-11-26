@@ -4420,7 +4420,16 @@ class Sourceanalytix extends utils.Adapter {
 		for (const job of jobs) {
 			for (const period of job.periods) summary[period.kind] = (summary[period.kind] || 0) + 1;
 		}
-		const result = {ok: true, from, sources: jobs.map(job => job.stateID), total, periods: summary};
+		// Prices from a datapoint change during a period; the recalculation spreads the consumption
+		// evenly over time and replaces costs that were accumulated per price interval (#1311)
+		const variablePriceSources = jobs
+			.filter(job => {
+				const pricesConfig = this.unitPriceDef && this.unitPriceDef.pricesConfig || {};
+				const priceConfig = pricesConfig[this.activeStates[job.stateID].stateDetails.stateType];
+				return !!priceConfig && priceConfig.priceSource !== undefined && priceConfig.priceSource !== 'static';
+			})
+			.map(job => job.stateID);
+		const result = {ok: true, from, sources: jobs.map(job => job.stateID), total, periods: summary, variablePriceSources};
 		if (dryRun || total === 0) return result;
 
 		await this.ensureCostRecalculationState();

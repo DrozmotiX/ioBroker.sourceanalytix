@@ -380,6 +380,14 @@ export function RecalcDialog(props: DialogProps): React.JSX.Element {
                 >
                     {t('sa_recalcNote')}
                 </Alert>
+                {preview?.variablePriceSources?.length ? (
+                    <Alert
+                        severity="warning"
+                        sx={{ mt: 2 }}
+                    >
+                        {t('sa_recalcVariablePrice')}
+                    </Alert>
+                ) : null}
                 {progress && (action.busy || finished) ? (
                     <Box sx={{ mt: 2 }}>
                         <LinearProgress

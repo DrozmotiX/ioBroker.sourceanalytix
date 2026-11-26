@@ -6,6 +6,10 @@ import {
     Checkbox,
     Chip,
     Collapse,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Divider,
     FormControlLabel,
     MenuItem,
@@ -187,7 +191,26 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
             ? Number.isNaN(parseNum(settings[key]))
             : false;
 
+    // Changes that delete or replace data ask first (#1311)
+    const [confirmLosses, setConfirmLosses] = useState<string[] | null>(null);
+    const dataLosses = (): string[] => {
+        const losses: string[] = [];
+        for (const flag of ['consumption', 'costs', 'meter_values']) {
+            if (source.settings[flag] !== false && settings[flag] === false) {
+                losses.push(t(`sa_loss_${flag}`));
+            }
+        }
+        if (settings.selectedPrice !== source.settings.selectedPrice) {
+            const before = prices.find(price => price.cat === source.settings.selectedPrice);
+            const after = prices.find(price => price.cat === settings.selectedPrice);
+            if (before && after && before.costType !== after.costType) {
+                losses.push(t(`sa_loss_costType_${before.costType}`));
+            }
+        }
+        return losses;
+    };
     const apply = async (): Promise<void> => {
+        setConfirmLosses(null);
         const update: Record<string, any> = {};
         for (const key of Object.keys(settings)) {
             if (settings[key] !== source.settings[key]) {
@@ -210,6 +233,15 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
         }
         setErrors({});
         props.onChanged(t('sa_settingsApplied'));
+    };
+
+    const requestApply = (): void => {
+        const losses = dataLosses();
+        if (losses.length) {
+            setConfirmLosses(losses);
+        } else {
+            void apply();
+        }
     };
 
     const toggleEnabled = async (): Promise<void> => {
@@ -592,7 +624,7 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                                 variant="contained"
                                 startIcon={<Bolt />}
                                 disabled={!alive || !changed || busy || Object.keys(startErrors).length > 0}
-                                onClick={() => void apply()}
+                                onClick={requestApply}
                             >
                                 {t('sa_apply')}
                             </Button>
@@ -667,6 +699,32 @@ export default function SourceDetail(props: SourceDetailProps): React.JSX.Elemen
                     />
                 </Card>
             </Box>
+            <Dialog
+                open={!!confirmLosses}
+                onClose={() => setConfirmLosses(null)}
+            >
+                <DialogTitle>{t('sa_confirmLossTitle')}</DialogTitle>
+                <DialogContent>
+                    <Typography sx={{ mb: 1 }}>{t('sa_confirmLossText')}</Typography>
+                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                        {(confirmLosses || []).map(loss => (
+                            <li key={loss}>
+                                <Typography variant="body2">{loss}</Typography>
+                            </li>
+                        ))}
+                    </ul>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmLosses(null)}>{t('sa_cancel')}</Button>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => void apply()}
+                    >
+                        {t('sa_confirmLossButton')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
             {dialog ? (
                 <ActionDialog
                     type={dialog}
