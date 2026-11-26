@@ -1100,10 +1100,11 @@ class Sourceanalytix extends utils.Adapter {
 	 * Reset dynamic cost totals when period start values are reset.
 	 * @param {string} stateID - Source state ID
 	 * @param {number} reading - Current cumulative reading
-	 * @param {object} beforeReset - Date information before reset
+	 * @param {{day: boolean, week: boolean, month: boolean, quarter: boolean, year: boolean}} changes - Periods that rolled over,
+	 *   from getPeriodChanges: comparing weekday or month names would keep totals after exactly one week or year (#1309)
 	 * @param {number} [timestamp] - Effective reset timestamp
 	 */
-	async resetDynamicCostMemory(stateID, reading, beforeReset, timestamp = Date.now()) {
+	async resetDynamicCostMemory(stateID, reading, changes, timestamp = Date.now()) {
 		if (!this.usesHistoricalCostCalculation(stateID)) return;
 
 		const activeState = this.activeStates[stateID];
@@ -1115,11 +1116,11 @@ class Sourceanalytix extends utils.Adapter {
 			lastReading: readingNumber,
 			lastTs: timestamp,
 			totals: {
-				priceDay: beforeReset.day === actualDate.day ? this.getNumberOrDefault(existingTotals.priceDay, 0) : 0,
-				priceWeek: beforeReset.week === actualDate.week ? this.getNumberOrDefault(existingTotals.priceWeek, 0) : 0,
-				priceMonth: beforeReset.month === actualDate.month ? this.getNumberOrDefault(existingTotals.priceMonth, 0) : 0,
-				priceQuarter: beforeReset.quarter === actualDate.quarter ? this.getNumberOrDefault(existingTotals.priceQuarter, 0) : 0,
-				priceYear: beforeReset.year === actualDate.year ? this.getNumberOrDefault(existingTotals.priceYear, 0) : 0,
+				priceDay: changes.day ? 0 : this.getNumberOrDefault(existingTotals.priceDay, 0),
+				priceWeek: changes.week ? 0 : this.getNumberOrDefault(existingTotals.priceWeek, 0),
+				priceMonth: changes.month ? 0 : this.getNumberOrDefault(existingTotals.priceMonth, 0),
+				priceQuarter: changes.quarter ? 0 : this.getNumberOrDefault(existingTotals.priceQuarter, 0),
+				priceYear: changes.year ? 0 : this.getNumberOrDefault(existingTotals.priceYear, 0),
 			}
 		};
 		await this.persistDynamicCostMemory(stateID, activeState.dynamicCosts);
@@ -2839,7 +2840,7 @@ class Sourceanalytix extends utils.Adapter {
 		if (this.usesHistoricalCostCalculation(stateID)) {
 			await this.ensureDynamicCostMemory(stateID, Number(reading), boundaryTimestamp);
 		}
-		await this.resetDynamicCostMemory(stateID, Number(reading), previousPeriods, boundaryTimestamp);
+		await this.resetDynamicCostMemory(stateID, Number(reading), changes, boundaryTimestamp);
 		// Remember before writing: the resulting objectChange may arrive before the write resolves
 		this.rememberSourceCustomUpdate(stateID, newCalcValues);
 		await this.extendForeignObject(stateID, {
